@@ -172,6 +172,16 @@ func (r *simulationAccountsDB) Close() error {
 	return nil
 }
 
+// SaveAliasAddress saves the given alias address
+func (r *simulationAccountsDB) SaveAliasAddress(request *vmcommon.AliasSaveRequest) error {
+	return r.originalAccounts.SaveAliasAddress(request)
+}
+
+// RequestAddress returns the requested address
+func (r *simulationAccountsDB) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	return r.originalAccounts.RequestAddress(request)
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (r *simulationAccountsDB) IsInterfaceNil() bool {
 	return r == nil
