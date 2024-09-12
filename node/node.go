@@ -884,6 +884,11 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	if txArgs.Version == 0 {
 		return nil, nil, ErrInvalidTransactionVersion
 	}
+
+	simulatedTx := &transaction.Transaction{Options: txArgs.Options}
+	mainAddressIdentifier := simulatedTx.GetMainAddressIdentifier()
+	isMainFormat := mainAddressIdentifier == core.MVXAddressIdentifier
+
 	if txArgs.ChainID == "" || len(txArgs.ChainID) > len(n.coreComponents.ChainID()) {
 		return nil, nil, ErrInvalidChainIDInTransaction
 	}
@@ -894,19 +899,13 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	if check.IfNil(n.stateComponents.AccountsAdapterAPI()) {
 		return nil, nil, ErrNilAccountsAdapter
 	}
-	if len(txArgs.SignatureHex) > n.addressSignatureHexSize {
+	if isMainFormat && len(txArgs.SignatureHex) > n.addressSignatureHexSize {
 		return nil, nil, ErrInvalidSignatureLength
 	}
 	if len(txArgs.GuardianSigHex) > n.addressSignatureHexSize {
 		return nil, nil, fmt.Errorf("%w for guardian signature", ErrInvalidSignatureLength)
 	}
 
-	if uint32(len(txArgs.Receiver)) > n.coreComponents.EncodedAddressLen() {
-		return nil, nil, fmt.Errorf("%w for receiver", ErrInvalidAddressLength)
-	}
-	if uint32(len(txArgs.Sender)) > n.coreComponents.EncodedAddressLen() {
-		return nil, nil, fmt.Errorf("%w for sender", ErrInvalidAddressLength)
-	}
 	if uint32(len(txArgs.Guardian)) > n.coreComponents.EncodedAddressLen() {
 		return nil, nil, fmt.Errorf("%w for guardian", ErrInvalidAddressLength)
 	}
@@ -916,10 +915,19 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	if len(txArgs.ReceiverUsername) > core.MaxUserNameLength {
 		return nil, nil, ErrInvalidReceiverUsernameLength
 	}
-	if len(txArgs.DataField) > core.MegabyteSize {
-		return nil, nil, ErrDataFieldTooBig
+	if !isMainFormat && txArgs.SenderAliasAddress != nil {
+		err := n.assignReceiverAndSenderForAliases(txArgs, mainAddressIdentifier, addrPubKeyConverter)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
+	if uint32(len(txArgs.Receiver)) > n.coreComponents.EncodedAddressLen() {
+		return nil, nil, fmt.Errorf("%w for receiver", ErrInvalidAddressLength)
+	}
+	if uint32(len(txArgs.Sender)) > n.coreComponents.EncodedAddressLen() {
+		return nil, nil, fmt.Errorf("%w for sender", ErrInvalidAddressLength)
+	}
 	receiverAddress, err := addrPubKeyConverter.Decode(txArgs.Receiver)
 	if err != nil {
 		return nil, nil, errors.New("could not create receiver address from provided param")
@@ -928,6 +936,17 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	senderAddress, err := addrPubKeyConverter.Decode(txArgs.Sender)
 	if err != nil {
 		return nil, nil, errors.New("could not create sender address from provided param")
+	}
+
+	if !isMainFormat && txArgs.OriginalDataField != nil {
+		err = n.processAndAssignOriginalData(txArgs, senderAddress, receiverAddress, mainAddressIdentifier)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if len(txArgs.DataField) > core.MegabyteSize {
+		return nil, nil, ErrDataFieldTooBig
 	}
 
 	signatureBytes, err := hex.DecodeString(txArgs.SignatureHex)
@@ -945,19 +964,22 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	}
 
 	tx := &transaction.Transaction{
-		Nonce:       txArgs.Nonce,
-		Value:       valAsBigInt,
-		RcvAddr:     receiverAddress,
-		RcvUserName: txArgs.ReceiverUsername,
-		SndAddr:     senderAddress,
-		SndUserName: txArgs.SenderUsername,
-		GasPrice:    txArgs.GasPrice,
-		GasLimit:    txArgs.GasLimit,
-		Data:        txArgs.DataField,
-		Signature:   signatureBytes,
-		ChainID:     []byte(txArgs.ChainID),
-		Version:     txArgs.Version,
-		Options:     txArgs.Options,
+		Nonce:        txArgs.Nonce,
+		Value:        valAsBigInt,
+		RcvAddr:      receiverAddress,
+		RcvUserName:  txArgs.ReceiverUsername,
+		RcvAliasAddr: txArgs.ReceiverAliasAddress,
+		SndAddr:      senderAddress,
+		SndUserName:  txArgs.SenderUsername,
+		SndAliasAddr: txArgs.SenderAliasAddress,
+		GasPrice:     txArgs.GasPrice,
+		GasLimit:     txArgs.GasLimit,
+		Data:         txArgs.DataField,
+		OriginalData: txArgs.OriginalDataField,
+		Signature:    signatureBytes,
+		ChainID:      []byte(txArgs.ChainID),
+		Version:      txArgs.Version,
+		Options:      txArgs.Options,
 	}
 
 	if len(txArgs.Guardian) > 0 {
@@ -1588,6 +1610,50 @@ func (n *Node) AddClosableComponent(component mainFactory.Closer) {
 	n.mutClosableComponents.Lock()
 	n.closableComponents = append(n.closableComponents, component)
 	n.mutClosableComponents.Unlock()
+}
+
+// assignReceiverAndSenderForAliases maps the aliases to multiversX addresses and assigns them on the transaction args
+func (n *Node) assignReceiverAndSenderForAliases(txArgs *external.ArgsCreateTransaction, mainAddressIdentifier core.AddressIdentifier, addrPubKeyConverter core.PubkeyConverter) error {
+	sender, receiver, err := state.RequestSenderAndReceiver(
+		n.stateComponents.AccountsAdapterAPI(),
+		txArgs.SenderAliasAddress,
+		txArgs.ReceiverAliasAddress,
+		mainAddressIdentifier,
+		core.MVXAddressIdentifier,
+		false,
+	)
+	if err != nil {
+		return err
+	}
+
+	encodedSender, err := addrPubKeyConverter.Encode(sender)
+	if err != nil {
+		return err
+	}
+	txArgs.Sender = encodedSender
+
+	encodedReceiver, err := addrPubKeyConverter.Encode(receiver)
+	if err != nil {
+		return err
+	}
+	txArgs.Receiver = encodedReceiver
+
+	return nil
+}
+
+// processAndAssignOriginalData processes the data field and formats it to the MultiversX standard
+func (n *Node) processAndAssignOriginalData(txArgs *external.ArgsCreateTransaction, senderAddress []byte, receiverAddress []byte, mainAddressIdentifier core.AddressIdentifier) error {
+	switch mainAddressIdentifier {
+	case core.ETHAddressIdentifier:
+		processedData, err := processEthereumOriginalData(txArgs, senderAddress, receiverAddress)
+		if err != nil {
+			return err
+		}
+		txArgs.DataField = processedData
+	default:
+		txArgs.DataField = txArgs.OriginalDataField
+	}
+	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
