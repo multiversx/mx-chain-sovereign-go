@@ -295,6 +295,13 @@ func (scf *systemSCFactory) createDelegationManagerContract() (vm.SystemSmartCon
 	return delegationManager, err
 }
 
+func (scf *systemSCFactory) createAliasContract() (vm.SystemSmartContract, error) {
+	return systemSmartContracts.NewAliasContract(systemSmartContracts.ArgsAliasContract{
+		Eei:     scf.systemEI,
+		GasCost: scf.gasCost,
+	})
+}
+
 // CreateForGenesis instantiates all the system smart contracts and returns a container containing them to be used in the genesis process
 func (scf *systemSCFactory) CreateForGenesis() (vm.SystemSCContainer, error) {
 	staking, err := scf.createStakingContract()
@@ -333,6 +340,16 @@ func (scf *systemSCFactory) CreateForGenesis() (vm.SystemSCContainer, error) {
 	}
 
 	err = scf.systemSCsContainer.Add(vm.GovernanceSCAddress, governance)
+	if err != nil {
+		return nil, err
+	}
+
+	alias, err := scf.createAliasContract()
+	if err != nil {
+		return nil, err
+	}
+
+	err = scf.systemSCsContainer.Add(vm.AliasSCAddress, alias)
 	if err != nil {
 		return nil, err
 	}
