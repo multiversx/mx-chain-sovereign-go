@@ -46,8 +46,8 @@ copyConfig() {
   fi
 
   if [ "$SOVEREIGN_DEPLOY" -eq 1 ]; then
-      cp "$MULTIVERSXDIR"/../mx-chain-sovereign-bridge-go/cert/cmd/cert/private_key.pem ./node/config
-      cp "$MULTIVERSXDIR"/../mx-chain-sovereign-bridge-go/cert/cmd/cert/certificate.crt ./node/config
+      cp "$MULTIVERSXDIR"/../mx-evm-chain-sovereign-bridge-go/cert/cmd/cert/private_key.pem ./node/config
+      cp "$MULTIVERSXDIR"/../mx-evm-chain-sovereign-bridge-go/cert/cmd/cert/certificate.crt ./node/config
   fi
 
   echo "Configuration files copied from the configuration generator to the working directories of the executables."
@@ -123,14 +123,25 @@ copyNodeConfig() {
   popd
 }
 
+copyOneSovereignNodeConfig() {
+  pushd $TESTNETDIR
+  cp $SOVEREIGNNODEDIR/oneConfig/config.toml ./node/config/config_validator.toml
+  cp $SOVEREIGNNODEDIR/oneConfig/config.toml ./node/config/config_observer.toml
+  cp $SOVEREIGNNODEDIR/oneConfig/genesisSmartContracts.json ./node/config
+  cp $SOVEREIGNNODEDIR/oneConfig/systemSmartContractsConfig.toml ./node/config
+
+  echo "ONE Configuration files copied from the Sovereign Node to the working directories of the executables."
+  popd
+}
+
 copySovereignNodeConfig() {
   pushd $TESTNETDIR
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./txgen/config/nodeConfig/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./node/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./txgen/config
+  cp $SOVEREIGNNODEDIR/oneConfig/economics.toml ./node/config
+  cp $SOVEREIGNNODEDIR/oneConfig/economics.toml ./txgen/config
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
-  cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
+  cp $SOVEREIGNNODEDIR/oneConfig/sovereignConfig.toml ./node/config
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd
