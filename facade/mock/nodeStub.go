@@ -37,6 +37,8 @@ type NodeStub struct {
 	IsSelfTriggerCalled                            func() bool
 	GetQueryHandlerCalled                          func(name string) (debug.QueryHandler, error)
 	GetValueForKeyCalled                           func(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
+	GetAliasForAddressCalled                       func(address string, identifier core.AddressIdentifier) (string, error)
+	GetMvxAddressForAliasCalled                    func(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error)
 	GetGuardianDataCalled                          func(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error)
 	GetPeerInfoCalled                              func(pid string) ([]core.QueryP2PPeerInfo, error)
 	GetConnectedPeersRatingsOnMainNetworkCalled    func() (string, error)
@@ -119,6 +121,24 @@ func (ns *NodeStub) GetValueForKey(address string, key string, options api.Accou
 	}
 
 	return "", api.BlockInfo{}, nil
+}
+
+// GetAliasForAddress -
+func (ns *NodeStub) GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error) {
+	if ns.GetAliasForAddressCalled != nil {
+		return ns.GetAliasForAddressCalled(address, identifier)
+	}
+
+	return "", nil
+}
+
+// GetMvxAddressForAlias -
+func (ns *NodeStub) GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error) {
+	if ns.GetMvxAddressForAliasCalled != nil {
+		return ns.GetMvxAddressForAliasCalled(aliasAddress, aliasIdentifier)
+	}
+
+	return "", nil
 }
 
 // GetGuardianData -

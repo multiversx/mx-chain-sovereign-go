@@ -361,6 +361,46 @@ func (n *Node) GetValueForKey(address string, key string, options api.AccountQue
 	return hex.EncodeToString(valueBytes), blockInfo, nil
 }
 
+// GetAliasForAddress will return the alias address a given mvx address
+func (n *Node) GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error) {
+	userAccount, _, err := n.loadUserAccountHandlerByAddress(address, api.AccountQueryOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	alias, err := state.FetchValidAliasAddress(userAccount, identifier)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(alias), nil
+}
+
+// GetMvxAddressForAlias will return the mvx address a given alias address
+func (n *Node) GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error) {
+	aliasScUserAccount, _, err := n.loadUserAccountHandlerByPubKey(vm.AliasSCAddress, api.AccountQueryOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	alias, err := hex.DecodeString(aliasAddress)
+	if err != nil {
+		return "", err
+	}
+
+	mvxAddressBytes, err := state.FetchValidMultiversXAddress(aliasScUserAccount, alias, aliasIdentifier)
+	if err != nil {
+		return "", err
+	}
+
+	mvxAddress, err := n.coreComponents.AddressPubKeyConverter().Encode(mvxAddressBytes)
+	if err != nil {
+		return "", err
+	}
+
+	return mvxAddress, nil
+}
+
 // GetGuardianData returns the guardian data for given account
 func (n *Node) GetGuardianData(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error) {
 	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)

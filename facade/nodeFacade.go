@@ -193,6 +193,16 @@ func (nf *nodeFacade) GetValueForKey(address string, key string, options apiData
 	return nf.node.GetValueForKey(address, key, options)
 }
 
+// GetAliasForAddress gets the alias address for a given mvx address
+func (nf *nodeFacade) GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error) {
+	return nf.node.GetAliasForAddress(address, identifier)
+}
+
+// GetMvxAddressForAlias gets the mvx address for a given alias address
+func (nf *nodeFacade) GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error) {
+	return nf.node.GetMvxAddressForAlias(aliasAddress, aliasIdentifier)
+}
+
 // GetESDTData returns the ESDT data for the given address, tokenID and nonce
 func (nf *nodeFacade) GetESDTData(address string, key string, nonce uint64, options apiData.AccountQueryOptions) (*esdt.ESDigitalToken, apiData.BlockInfo, error) {
 	return nf.node.GetESDTData(address, key, nonce, options)

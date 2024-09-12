@@ -35,6 +35,12 @@ type NodeHandler interface {
 	// GetValueForKey returns the value of a key from a given account
 	GetValueForKey(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
 
+	// GetAliasForAddress returns the alias address a given mvx address
+	GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error)
+
+	// GetMvxAddressForAlias returns the mvx address a given alias address
+	GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error)
+
 	// GetGuardianData returns the guardian data for given account
 	GetGuardianData(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error)
 

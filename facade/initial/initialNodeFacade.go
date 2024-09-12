@@ -116,6 +116,16 @@ func (inf *initialNodeFacade) GetValueForKey(_ string, _ string, _ api.AccountQu
 	return emptyString, api.BlockInfo{}, errNodeStarting
 }
 
+// GetAliasForAddress gets the alias address for a given mvx address
+func (inf *initialNodeFacade) GetAliasForAddress(_ string, _ core.AddressIdentifier) (string, error) {
+	return emptyString, errNodeStarting
+}
+
+// GetMvxAddressForAlias gets the mvx address for a given alias address
+func (inf *initialNodeFacade) GetMvxAddressForAlias(_ string, _ core.AddressIdentifier) (string, error) {
+	return emptyString, errNodeStarting
+}
+
 // GetESDTBalance returns empty strings and error
 func (inf *initialNodeFacade) GetESDTBalance(_ string, _ string, _ api.AccountQueryOptions) (string, string, api.BlockInfo, error) {
 	return emptyString, emptyString, api.BlockInfo{}, errNodeStarting
