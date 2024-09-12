@@ -104,7 +104,13 @@
         { Name = "/:address/registered-nfts", Open = true },
 
         # /address/:address/is-data-trie-migrated will return the status of the data trie migration for the given address
-        { Name = "/:address/is-data-trie-migrated", Open = true }
+        { Name = "/:address/is-data-trie-migrated", Open = true },
+
+        # /address/alias-address will return the alias address for a given mvx address
+        { Name = "/alias-address", Open = true },
+
+        # /address/mvx-address will return the mvx address for a given alias address
+        { Name = "/mvx-address", Open = true }
     ]
 
 [APIPackages.hardfork]
