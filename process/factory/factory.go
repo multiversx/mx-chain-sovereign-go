@@ -30,5 +30,8 @@ var IELEVirtualMachine = []byte{1, 0}
 // WasmVirtualMachine is a byte array identifier for the smart contract address created for Wasm VM
 var WasmVirtualMachine = []byte{5, 0}
 
+// EVMVirtualMachine is a byte array identifier for the smart contract address created for EVM VM
+var EVMVirtualMachine = []byte{6, 0}
+
 // InternalTestingVM is a byte array identified for the smart contract address created for the testing VM
 var InternalTestingVM = []byte{255, 255}
