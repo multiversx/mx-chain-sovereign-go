@@ -79,8 +79,8 @@ github.com/buidly/mx-evm-chain-sovereign-notifier-go v0.0.0-20240912212529-94378
 github.com/buidly/mx-evm-chain-sovereign-notifier-go v0.0.0-20240912212529-94378d15e0b8/go.mod h1:VDStzBhmR+0pdYWH9JyW6TD6Gt5xuNLy1GAcriyfy98=
 github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240912094510-8885cc5d6774 h1:l54fTJejS3Tk10hBKTYq66AZdfHgoEd1wtsYuTNmSus=
 github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240912094510-8885cc5d6774/go.mod h1:7MQBf5DkBT1zkIPvDzltW6OnlF9O7XCPVJvWMi3WXBk=
-github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240912185012-a0da6e854e55 h1:eHFIADjd7YCsSWIohu8aTV6746ZMcFRqxEWPMOnDIIg=
-github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240912185012-a0da6e854e55/go.mod h1:rTSkNOVc60ubUs7c6od4zXsjdd5ShcOzXcX7PpYBams=
+github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240913090447-b108ff654e54 h1:9RDUFmpGdRYCRRl259/h0TPgj34jgqIcTpda6n7bJXg=
+github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240913090447-b108ff654e54/go.mod h1:rTSkNOVc60ubUs7c6od4zXsjdd5ShcOzXcX7PpYBams=
 github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240912101101-88693a13339a h1:wUyHbNToTLAJPBKEWp9LhCwEWs4IqCIXWqDFua3p8Ek=
 github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240912101101-88693a13339a/go.mod h1:icYBdRWm1kePswrnSY6IbzEeljzkvqFrwbf7TjBR2d4=
 github.com/buidly/mx-evm-sdk-abi-go v0.0.0-20240912062928-8502f4c3b37c h1:Xg15iusEuPNoenuwNO8/PA6Wz9mU0fIKKFL7HITDhnY=

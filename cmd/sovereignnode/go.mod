@@ -12,7 +12,7 @@ replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-c
 
 replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240912094510-8885cc5d6774
 
-replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240912185012-a0da6e854e55
+replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240913090447-b108ff654e54
 
 replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240912101101-88693a13339a
 

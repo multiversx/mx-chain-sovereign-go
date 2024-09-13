@@ -430,6 +430,8 @@ func (vmf *vmContainerFactory) createInProcessEVM() (vmcommon.VMExecutionHandler
 		Hasher:                              vmf.hasher,
 		MapOpcodeAddressIsAllowed:           vmf.mapOpcodeAddressIsAllowed,
 		OverrideVMExecutor:                  evm.ExecutorFactory(),
+		UsePseudoAddresses:                  true,
+		OmitFunctionNameChecks:              true,
 	}
 
 	return wasmVMHost15.NewVMHost(vmf.blockChainHook, hostParameters)
