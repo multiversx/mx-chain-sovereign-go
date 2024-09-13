@@ -3,6 +3,7 @@ package process
 import (
 	"errors"
 	"fmt"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"math"
 	"math/big"
 	"sync"
@@ -106,6 +107,10 @@ func baseCreateShardGenesisBlock(
 	nodesListSplitter genesis.NodesListSplitter,
 	processors *genesisProcessors,
 ) (data.HeaderHandler, [][]byte, *genesis.IndexingData, error) {
+	aliasesErr := saveAliases(arg)
+	if aliasesErr != nil {
+		return nil, nil, nil, aliasesErr
+	}
 
 	indexingData := &genesis.IndexingData{
 		DelegationTxs:      make([]data.TransactionHandler, 0),
@@ -888,4 +893,20 @@ func incrementNoncesForCrossShardDelegations(processors *genesisProcessors, arg 
 	}
 
 	return counter, nil
+}
+
+// saveAliases saves the aliases for the initial accounts
+func saveAliases(arg ArgsGenesisBlockCreator) error {
+	initialAccounts, err := arg.RunTypeComponents.AccountsParser().InitialAccountsSplitOnAddressesShards(arg.ShardCoordinator)
+	if err != nil {
+		return err
+	}
+
+	initialAccountsForShard := initialAccounts[arg.ShardCoordinator.SelfId()]
+	addresses := make([][]byte, len(initialAccountsForShard))
+	for _, account := range initialAccountsForShard {
+		addresses = append(addresses, account.AddressBytes())
+	}
+
+	return state.GenerateAddresses(arg.Accounts, addresses, core.MVXAddressIdentifier)
 }

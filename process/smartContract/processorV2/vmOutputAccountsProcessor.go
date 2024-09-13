@@ -288,18 +288,5 @@ func (oap *VMOutputAccountsProcessor) updateAccountBalanceStep(
 }
 
 func (oap *VMOutputAccountsProcessor) saveAliases(address []byte) error {
-	requestedIdentifiers := []core.AddressIdentifier{core.ETHAddressIdentifier}
-
-	for _, requestedIdentifier := range requestedIdentifiers {
-		_, err := oap.sc.accounts.RequestAddress(&vmcommon.AddressRequest{
-			SourceAddress:       address,
-			SourceIdentifier:    core.MVXAddressIdentifier,
-			RequestedIdentifier: requestedIdentifier,
-			SaveOnGenerate:      true,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return state.GenerateAddresses(oap.sc.accounts, [][]byte{address}, core.MVXAddressIdentifier)
 }

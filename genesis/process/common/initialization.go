@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"math/big"
 
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
@@ -24,6 +25,7 @@ func UpdateSystemSCContractsCode(contractMetadata []byte, userAccountsDB state.A
 	contractsToUpdate = append(contractsToUpdate, vm.ESDTSCAddress)
 	contractsToUpdate = append(contractsToUpdate, vm.DelegationManagerSCAddress)
 	contractsToUpdate = append(contractsToUpdate, vm.FirstDelegationSCAddress)
+	contractsToUpdate = append(contractsToUpdate, vm.AliasSCAddress)
 
 	for _, address := range contractsToUpdate {
 		userAcc, err := getUserAccount(address, userAccountsDB)
@@ -105,6 +107,11 @@ func ProcessSCOutputAccounts(
 
 	outputAccounts := process.SortVMOutputInsideData(vmOutput)
 	for _, outAcc := range outputAccounts {
+		err := state.GenerateAddresses(userAccountsDB, [][]byte{outAcc.Address}, core.MVXAddressIdentifier)
+		if err != nil {
+			return err
+		}
+
 		acc, err := getUserAccount(outAcc.Address, userAccountsDB)
 		if err != nil {
 			return err

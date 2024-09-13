@@ -306,23 +306,10 @@ func (txProc *baseTxProcessor) verifyGuardian(tx *transaction.Transaction, accou
 }
 
 func (txProc *baseTxProcessor) saveAliases(tx *transaction.Transaction) error {
-	var sender, receiver []byte
-	var requestedIdentifiers []core.AddressIdentifier
-	sourceIdentifier := tx.GetMainAddressIdentifier()
-	switch tx.GetMainAddressIdentifier() {
+	switch sourceIdentifier := tx.GetMainAddressIdentifier(); sourceIdentifier {
 	case core.MVXAddressIdentifier:
-		sender, receiver = tx.SndAddr, tx.RcvAddr
-		requestedIdentifiers = []core.AddressIdentifier{core.ETHAddressIdentifier}
+		return state.GenerateAddresses(txProc.accounts, [][]byte{tx.SndAddr, tx.RcvAddr}, sourceIdentifier)
 	default:
-		sender, receiver = tx.SndAliasAddr, tx.RcvAliasAddr
-		requestedIdentifiers = []core.AddressIdentifier{core.MVXAddressIdentifier}
+		return state.GenerateAddresses(txProc.accounts, [][]byte{tx.SndAliasAddr, tx.RcvAliasAddr}, sourceIdentifier)
 	}
-
-	for _, requestedIdentifier := range requestedIdentifiers {
-		_, _, err := state.RequestSenderAndReceiver(txProc.accounts, sender, receiver, sourceIdentifier, requestedIdentifier, true)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

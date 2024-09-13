@@ -26,3 +26,17 @@ var FirstDelegationSCAddress = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
 
 // AliasSCAddress is the hard-coded address for alias handling smart contract
 var AliasSCAddress = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 255, 255}
+
+func SystemSCAddresses() [][]byte {
+	return [][]byte{
+		StakingSCAddress,
+		ValidatorSCAddress,
+		ESDTSCAddress,
+		GovernanceSCAddress,
+		JailingAddress,
+		EndOfEpochAddress,
+		DelegationManagerSCAddress,
+		FirstDelegationSCAddress,
+		AliasSCAddress,
+	}
+}

@@ -22,8 +22,10 @@ func (adb *AccountsDB) RequestAddress(request *vmcommon.AddressRequest) (*vmcomm
 	if err != nil {
 		return nil, err
 	}
-	if isDefaultRequest(request) {
-		return buildDefaultResponse(request)
+
+	err = enhanceRequest(request)
+	if err != nil {
+		return nil, err
 	}
 
 	return adb.requestAddress(request)

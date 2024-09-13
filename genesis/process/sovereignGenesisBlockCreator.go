@@ -75,6 +75,11 @@ func (gbc *sovereignGenesisBlockCreator) initGenesisAccounts() error {
 		return err
 	}
 
+	err = gbc.saveAliasesForGenesisAccounts()
+	if err != nil {
+		return err
+	}
+
 	codeMetaData := &vmcommon.CodeMetadata{
 		Upgradeable: false,
 		Payable:     false,
@@ -82,6 +87,11 @@ func (gbc *sovereignGenesisBlockCreator) initGenesisAccounts() error {
 	}
 
 	return genesisCommon.UpdateSystemSCContractsCode(codeMetaData.ToBytes(), gbc.arg.Accounts)
+}
+
+func (gbc *sovereignGenesisBlockCreator) saveAliasesForGenesisAccounts() error {
+	systemAddresses := append(vm.SystemSCAddresses(), core.SystemAccountAddress)
+	return state.GenerateAddresses(gbc.arg.Accounts, systemAddresses, core.MVXAddressIdentifier)
 }
 
 func (gbc *sovereignGenesisBlockCreator) createSovereignEmptyGenesisBlocks() (map[uint32]data.HeaderHandler, error) {

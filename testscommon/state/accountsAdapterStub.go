@@ -263,7 +263,7 @@ func (as *AccountsStub) SaveAliasAddress(request *vmcommon.AliasSaveRequest) err
 		return as.SaveAliasAddressCalled(request)
 	}
 
-	return errNotImplemented
+	return nil
 }
 
 // RequestAddress -
@@ -272,7 +272,7 @@ func (as *AccountsStub) RequestAddress(request *vmcommon.AddressRequest) (*vmcom
 		return as.RequestAddressCalled(request)
 	}
 
-	return nil, errNotImplemented
+	return nil, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

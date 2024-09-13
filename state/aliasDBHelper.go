@@ -1,6 +1,7 @@
 package state
 
 import (
+	"bytes"
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -12,16 +13,34 @@ var multiversXDefaultAddress = make([]byte, len(core.SystemAccountAddress))
 
 var ethereumDefaultAddress = make([]byte, common.AddressLength)
 
-func isDefaultRequest(request *vmcommon.AddressRequest) bool {
-	return core.IsEmptyAddress(request.SourceAddress)
+func enhanceRequest(request *vmcommon.AddressRequest) error {
+	if len(request.SourceAddress) == 0 {
+		defaultAddress, err := requestDefaultAddress(request.SourceIdentifier)
+		if err != nil {
+			return err
+		}
+		request.SourceAddress = defaultAddress
+	}
+	return nil
 }
 
-func buildDefaultResponse(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
-	switch request.RequestedIdentifier {
+func isDefaultSourceAddress(sourceAddress []byte, sourceIdentifier core.AddressIdentifier) bool {
+	switch sourceIdentifier {
 	case core.MVXAddressIdentifier:
-		return &vmcommon.AddressResponse{MultiversXAddress: multiversXDefaultAddress, RequestedAddress: multiversXDefaultAddress}, nil
+		return bytes.Equal(sourceAddress, multiversXDefaultAddress)
 	case core.ETHAddressIdentifier:
-		return &vmcommon.AddressResponse{MultiversXAddress: multiversXDefaultAddress, RequestedAddress: ethereumDefaultAddress}, nil
+		return bytes.Equal(sourceAddress, ethereumDefaultAddress)
+	default:
+		return false
+	}
+}
+
+func requestDefaultAddress(requestedIdentifier core.AddressIdentifier) ([]byte, error) {
+	switch requestedIdentifier {
+	case core.MVXAddressIdentifier:
+		return multiversXDefaultAddress, nil
+	case core.ETHAddressIdentifier:
+		return ethereumDefaultAddress, nil
 	default:
 		return nil, ErrFunctionalityNotImplemented
 	}
@@ -91,6 +110,10 @@ func fetchOrGenerateMultiversXAddress(aliasSCAccount UserAccountHandler, aliasAd
 		return multiversXAddress, false, nil
 	}
 
+	if isDefaultSourceAddress(aliasAddress, aliasIdentifier) {
+		multiversXAddress, err = requestDefaultAddress(core.MVXAddressIdentifier)
+		return multiversXAddress, true, err
+	}
 	multiversXAddress, err = address.GeneratePseudoAddress(aliasAddress, aliasIdentifier, core.MVXAddressIdentifier)
 	return multiversXAddress, true, err
 }
@@ -104,6 +127,10 @@ func fetchOrGenerateAliasAddress(account UserAccountHandler, mainAddress []byte,
 		return aliasAddress, false, nil
 	}
 
+	if isDefaultSourceAddress(mainAddress, mainAddressIdentifier) {
+		aliasAddress, err = requestDefaultAddress(aliasIdentifier)
+		return aliasAddress, true, err
+	}
 	aliasAddress, err = address.GeneratePseudoAddress(mainAddress, mainAddressIdentifier, aliasIdentifier)
 	return aliasAddress, true, err
 }
@@ -184,4 +211,52 @@ func RequestSenderAndReceiver(
 	}
 
 	return senderResponse.RequestedAddress, receiverResponse.RequestedAddress, nil
+}
+
+func GenerateAddressesForIdentifier(
+	accounts AccountsAdapter,
+	sourceAddresses [][]byte,
+	sourceIdentifier core.AddressIdentifier,
+	requestedIdentifier core.AddressIdentifier,
+) error {
+	for _, sourceAddress := range sourceAddresses {
+		_, err := accounts.RequestAddress(&vmcommon.AddressRequest{
+			SourceAddress:       sourceAddress,
+			SourceIdentifier:    sourceIdentifier,
+			RequestedIdentifier: requestedIdentifier,
+			SaveOnGenerate:      true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GenerateAddressesForIdentifiers(
+	accounts AccountsAdapter,
+	sourceAddresses [][]byte,
+	sourceIdentifier core.AddressIdentifier,
+	requestedIdentifiers []core.AddressIdentifier,
+) error {
+	for _, requestedIdentifier := range requestedIdentifiers {
+		if requestedIdentifier == sourceIdentifier {
+			continue
+		}
+
+		err := GenerateAddressesForIdentifier(accounts, sourceAddresses, sourceIdentifier, requestedIdentifier)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GenerateAddresses(
+	accounts AccountsAdapter,
+	sourceAddresses [][]byte,
+	sourceIdentifier core.AddressIdentifier,
+) error {
+	requestedIdentifiers := []core.AddressIdentifier{core.MVXAddressIdentifier, core.ETHAddressIdentifier}
+	return GenerateAddressesForIdentifiers(accounts, sourceAddresses, sourceIdentifier, requestedIdentifiers)
 }
