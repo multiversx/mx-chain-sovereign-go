@@ -565,7 +565,8 @@ func (bh *BlockChainHookImpl) IsPayable(sndAddress []byte, recvAddress []byte) (
 	}
 
 	userAcc, err := bh.GetUserAccount(recvAddress)
-	if err == state.ErrAccNotFound {
+	_, isErrAccountNotFoundAtBlock := err.(*state.ErrAccountNotFoundAtBlock)
+	if err == state.ErrAccNotFound || isErrAccountNotFoundAtBlock {
 		return false, nil
 	}
 	if err != nil {
