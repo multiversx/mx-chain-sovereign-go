@@ -32,7 +32,7 @@ func processEthereumOriginalData(txArgs *external.ArgsCreateTransaction, _ []byt
 }
 
 func processDeployData(originalData []byte) ([]byte, error) {
-	codeMetadata := vmcommon.CodeMetadata{Payable: false, PayableBySC: false, Upgradeable: false, Readable: false, Guarded: false}
+	codeMetadata := vmcommon.GetEVMContractCodeMetadata()
 
 	codeHex := hex.EncodeToString(originalData)
 	vmTypeHex := hex.EncodeToString(factory.EVMVirtualMachine)

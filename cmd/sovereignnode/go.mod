@@ -8,13 +8,13 @@ replace github.com/multiversx/mx-sdk-abi-go => github.com/buidly/mx-evm-sdk-abi-
 
 replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20240912063737-78e64569c8c9
 
-replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917101914-439d5ca6d888
+replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917153019-bb73bba6d015
 
-replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917101244-c5e02189a20a
+replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917152746-3df27d1f4784
 
-replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240917111626-4f2ea01f2106
+replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240917154433-66208ad467e3
 
-replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917102305-3b561c26a23c
+replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917152848-00769eb4e55f
 
 replace github.com/multiversx/mx-chain-sovereign-bridge-go => github.com/buidly/mx-evm-chain-sovereign-bridge-go v0.0.0-20240912213951-67477ef07f0b
 
