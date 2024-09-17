@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/beevik/ntp v1.3.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/ethereum/go-ethereum v1.13.15
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.10.0
@@ -74,6 +73,7 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
+	github.com/ethereum/go-ethereum v1.13.15 // indirect
 	github.com/flynn/noise v1.0.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -227,10 +227,10 @@ replace github.com/multiversx/mx-sdk-abi-go => github.com/buidly/mx-evm-sdk-abi-
 
 replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20240912063737-78e64569c8c9
 
-replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240912100235-4d4f0deb79ba
+replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917101914-439d5ca6d888
 
-replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240912094510-8885cc5d6774
+replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917101244-c5e02189a20a
 
-replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240913090447-b108ff654e54
+replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240917111626-4f2ea01f2106
 
-replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240912101101-88693a13339a
+replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917102305-3b561c26a23c

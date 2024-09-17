@@ -1,50 +1,11 @@
 package state
 
 import (
-	"bytes"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-crypto-go/address"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
-
-var multiversXDefaultAddress = make([]byte, len(core.SystemAccountAddress))
-
-var ethereumDefaultAddress = make([]byte, common.AddressLength)
-
-func enhanceRequest(request *vmcommon.AddressRequest) error {
-	if len(request.SourceAddress) == 0 {
-		defaultAddress, err := requestDefaultAddress(request.SourceIdentifier)
-		if err != nil {
-			return err
-		}
-		request.SourceAddress = defaultAddress
-	}
-	return nil
-}
-
-func isDefaultSourceAddress(sourceAddress []byte, sourceIdentifier core.AddressIdentifier) bool {
-	switch sourceIdentifier {
-	case core.MVXAddressIdentifier:
-		return bytes.Equal(sourceAddress, multiversXDefaultAddress)
-	case core.ETHAddressIdentifier:
-		return bytes.Equal(sourceAddress, ethereumDefaultAddress)
-	default:
-		return false
-	}
-}
-
-func requestDefaultAddress(requestedIdentifier core.AddressIdentifier) ([]byte, error) {
-	switch requestedIdentifier {
-	case core.MVXAddressIdentifier:
-		return multiversXDefaultAddress, nil
-	case core.ETHAddressIdentifier:
-		return ethereumDefaultAddress, nil
-	default:
-		return nil, ErrFunctionalityNotImplemented
-	}
-}
 
 func buildMainAddressIdentifierKey() []byte {
 	return []byte(core.ProtectedKeyPrefix + "MainAddressIdentifier")
@@ -110,8 +71,8 @@ func fetchOrGenerateMultiversXAddress(aliasSCAccount UserAccountHandler, aliasAd
 		return multiversXAddress, false, nil
 	}
 
-	if isDefaultSourceAddress(aliasAddress, aliasIdentifier) {
-		multiversXAddress, err = requestDefaultAddress(core.MVXAddressIdentifier)
+	if vmcommon.IsBlankAddress(aliasAddress, aliasIdentifier) {
+		multiversXAddress, err = vmcommon.RequestBlankAddress(core.MVXAddressIdentifier)
 		return multiversXAddress, true, err
 	}
 	multiversXAddress, err = address.GeneratePseudoAddress(aliasAddress, aliasIdentifier, core.MVXAddressIdentifier)
@@ -127,8 +88,8 @@ func fetchOrGenerateAliasAddress(account UserAccountHandler, mainAddress []byte,
 		return aliasAddress, false, nil
 	}
 
-	if isDefaultSourceAddress(mainAddress, mainAddressIdentifier) {
-		aliasAddress, err = requestDefaultAddress(aliasIdentifier)
+	if vmcommon.IsBlankAddress(mainAddress, mainAddressIdentifier) {
+		aliasAddress, err = vmcommon.RequestBlankAddress(aliasIdentifier)
 		return aliasAddress, true, err
 	}
 	aliasAddress, err = address.GeneratePseudoAddress(mainAddress, mainAddressIdentifier, aliasIdentifier)

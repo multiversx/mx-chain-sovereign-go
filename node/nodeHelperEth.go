@@ -47,7 +47,10 @@ func processCallData(originalData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	argsHex := hex.EncodeToString(args)
 	functionNameHex := hex.EncodeToString(functionName)
-	return []byte(strings.Join([]string{functionNameHex, argsHex}, common.PartsSeparator)), nil
+	if len(args) > 0 {
+		argsHex := hex.EncodeToString(args)
+		return []byte(strings.Join([]string{functionNameHex, argsHex}, common.PartsSeparator)), nil
+	}
+	return []byte(functionNameHex), nil
 }

@@ -23,7 +23,7 @@ func (adb *AccountsDB) RequestAddress(request *vmcommon.AddressRequest) (*vmcomm
 		return nil, err
 	}
 
-	err = enhanceRequest(request)
+	err = vmcommon.EnhanceAddressRequest(request)
 	if err != nil {
 		return nil, err
 	}
