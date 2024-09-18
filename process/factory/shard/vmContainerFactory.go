@@ -432,6 +432,7 @@ func (vmf *vmContainerFactory) createInProcessEVM() (vmcommon.VMExecutionHandler
 		OverrideVMExecutor:                  evm.ExecutorFactory(),
 		UsePseudoAddresses:                  true,
 		OmitFunctionNameChecks:              true,
+		OmitDefaultCodeChanges:              true,
 	}
 
 	return wasmVMHost15.NewVMHost(vmf.blockChainHook, hostParameters)
