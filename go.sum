@@ -76,8 +76,8 @@ github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917153019-bb73bba6d015 h1
 github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917153019-bb73bba6d015/go.mod h1:nW+OpvQ5vbsHeE/Vt689MDWojWN3mx3E9zpWwYZz5mE=
 github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917152746-3df27d1f4784 h1:VOMHHaInRjkD/q3AQ8mBy4vErzcOwgNma00gIJcpz10=
 github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917152746-3df27d1f4784/go.mod h1:7MQBf5DkBT1zkIPvDzltW6OnlF9O7XCPVJvWMi3WXBk=
-github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240917154433-66208ad467e3 h1:FhwXTvBllbJ9JiVgTtJ4jAbg9p3nhw2gBv50jJCFEec=
-github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240917154433-66208ad467e3/go.mod h1:PIT8vkH0ZS26eZeKo6pte1yNdLQZQZEFn84hC7VJFTk=
+github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240923081241-372a758a72f8 h1:/4isEwAcfNH9lfz02K9DaTzbDsYNdX/5fXm+P+Vrdnc=
+github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240923081241-372a758a72f8/go.mod h1:PIT8vkH0ZS26eZeKo6pte1yNdLQZQZEFn84hC7VJFTk=
 github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917152848-00769eb4e55f h1:jETCT9gK9WpNhu6HOB2iZF/zcw/Yqk2f6NszuOjDP6U=
 github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917152848-00769eb4e55f/go.mod h1:VL0suegSgdk5bkZRyeB0KQBIv9aL8jmcmNZ6FWI8Auw=
 github.com/buidly/mx-evm-sdk-abi-go v0.0.0-20240912062928-8502f4c3b37c h1:Xg15iusEuPNoenuwNO8/PA6Wz9mU0fIKKFL7HITDhnY=
