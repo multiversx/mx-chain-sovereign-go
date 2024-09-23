@@ -1149,6 +1149,7 @@ func (scbp *sovereignChainBlockProcessor) CommitBlock(headerHandler data.HeaderH
 		"shard", scbp.shardCoordinator.SelfId(),
 		"nonce", highestFinalBlockNonce,
 	)
+	scbp.appStatusHandler.SetUInt64Value(common.MetricHighestFinalBlock, highestFinalBlockNonce)
 
 	err = scbp.commonHeaderAndBodyCommit(headerHandler, body, headerHash, []data.HeaderHandler{lastSelfNotarizedHeader}, [][]byte{lastSelfNotarizedHeaderHash})
 	if err != nil {
