@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	shardData "github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/process/coordinator"
+	processDisabled "github.com/multiversx/mx-chain-go/process/disabled"
 	"github.com/multiversx/mx-chain-go/process/factory/shard"
 	disabledGuardian "github.com/multiversx/mx-chain-go/process/guardian/disabled"
 	"github.com/multiversx/mx-chain-go/process/receipts"
@@ -376,18 +378,21 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 	}
 
 	argsBuiltIn := builtInFunctions.ArgsCreateBuiltInFunctionContainer{
-		GasSchedule:               arg.GasSchedule,
-		MapDNSAddresses:           make(map[string]struct{}),
-		MapDNSV2Addresses:         make(map[string]struct{}),
-		EnableUserNameChange:      false,
-		Marshalizer:               arg.Core.InternalMarshalizer(),
-		Accounts:                  arg.Accounts,
-		ShardCoordinator:          arg.ShardCoordinator,
-		EpochNotifier:             epochNotifier,
-		EnableEpochsHandler:       enableEpochsHandler,
-		AutomaticCrawlerAddresses: [][]byte{make([]byte, 32)},
-		MaxNumNodesInTransferRole: math.MaxUint32,
-		GuardedAccountHandler:     disabledGuardian.NewDisabledGuardedAccountHandler(),
+		GasSchedule:                    arg.GasSchedule,
+		MapDNSAddresses:                make(map[string]struct{}),
+		DNSV2Addresses:                 []string{},
+		WhiteListedCrossChainAddresses: arg.VirtualMachineConfig.TransferAndExecuteByUserAddresses,
+		EnableUserNameChange:           false,
+		Marshalizer:                    arg.Core.InternalMarshalizer(),
+		Accounts:                       arg.Accounts,
+		ShardCoordinator:               arg.ShardCoordinator,
+		EpochNotifier:                  epochNotifier,
+		EnableEpochsHandler:            enableEpochsHandler,
+		AutomaticCrawlerAddresses:      [][]byte{make([]byte, 32)},
+		MaxNumAddressesInTransferRole:  math.MaxUint32,
+		GuardedAccountHandler:          disabledGuardian.NewDisabledGuardedAccountHandler(),
+		SelfESDTPrefix:                 []byte(arg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
+		PubKeyConverter:                arg.Core.AddressPubKeyConverter(),
 	}
 	builtInFuncFactory, err := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 	if err != nil {
@@ -531,35 +536,41 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 		return nil, err
 	}
 
+	err = arg.Core.EconomicsData().SetTxTypeHandler(txTypeHandler)
+	if err != nil {
+		return nil, err
+	}
+
 	gasHandler, err := preprocess.NewGasComputation(arg.Economics, txTypeHandler, enableEpochsHandler)
 	if err != nil {
 		return nil, err
 	}
 
 	argsNewScProcessor := scrCommon.ArgsNewSmartContractProcessor{
-		VmContainer:         vmContainer,
-		ArgsParser:          smartContract.NewArgumentParser(),
-		Hasher:              arg.Core.Hasher(),
-		Marshalizer:         arg.Core.InternalMarshalizer(),
-		AccountsDB:          arg.Accounts,
-		BlockChainHook:      vmFactoryImpl.BlockChainHookImpl(),
-		BuiltInFunctions:    builtInFuncFactory.BuiltInFunctionContainer(),
-		PubkeyConv:          arg.Core.AddressPubKeyConverter(),
-		ShardCoordinator:    arg.ShardCoordinator,
-		ScrForwarder:        scForwarder,
-		TxFeeHandler:        genesisFeeHandler,
-		EconomicsFee:        genesisFeeHandler,
-		TxTypeHandler:       txTypeHandler,
-		GasHandler:          gasHandler,
-		GasSchedule:         arg.GasSchedule,
-		TxLogsProcessor:     arg.TxLogsProcessor,
-		BadTxForwarder:      badTxInterim,
-		EnableRoundsHandler: enableRoundsHandler,
-		EnableEpochsHandler: enableEpochsHandler,
-		IsGenesisProcessing: true,
-		VMOutputCacher:      txcache.NewDisabledCache(),
-		WasmVMChangeLocker:  genesisWasmVMLocker,
-		EpochNotifier:       epochNotifier,
+		VmContainer:             vmContainer,
+		ArgsParser:              smartContract.NewArgumentParser(),
+		Hasher:                  arg.Core.Hasher(),
+		Marshalizer:             arg.Core.InternalMarshalizer(),
+		AccountsDB:              arg.Accounts,
+		BlockChainHook:          vmFactoryImpl.BlockChainHookImpl(),
+		BuiltInFunctions:        builtInFuncFactory.BuiltInFunctionContainer(),
+		PubkeyConv:              arg.Core.AddressPubKeyConverter(),
+		ShardCoordinator:        arg.ShardCoordinator,
+		ScrForwarder:            scForwarder,
+		TxFeeHandler:            genesisFeeHandler,
+		EconomicsFee:            genesisFeeHandler,
+		TxTypeHandler:           txTypeHandler,
+		GasHandler:              gasHandler,
+		GasSchedule:             arg.GasSchedule,
+		TxLogsProcessor:         arg.TxLogsProcessor,
+		BadTxForwarder:          badTxInterim,
+		EnableRoundsHandler:     enableRoundsHandler,
+		EnableEpochsHandler:     enableEpochsHandler,
+		IsGenesisProcessing:     true,
+		VMOutputCacher:          txcache.NewDisabledCache(),
+		WasmVMChangeLocker:      genesisWasmVMLocker,
+		FailedTxLogsAccumulator: processDisabled.NewFailedTxLogsAccumulator(),
+		EpochNotifier:           epochNotifier,
 	}
 
 	scProcessorProxy, err := arg.RunTypeComponents.SCProcessorCreator().CreateSCProcessor(argsNewScProcessor)
@@ -577,25 +588,27 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 	}
 
 	argsNewTxProcessor := transaction.ArgsNewTxProcessor{
-		Accounts:            arg.Accounts,
-		Hasher:              arg.Core.Hasher(),
-		PubkeyConv:          arg.Core.AddressPubKeyConverter(),
-		Marshalizer:         arg.Core.InternalMarshalizer(),
-		SignMarshalizer:     arg.Core.TxMarshalizer(),
-		ShardCoordinator:    arg.ShardCoordinator,
-		ScProcessor:         scProcessorProxy,
-		TxFeeHandler:        genesisFeeHandler,
-		TxTypeHandler:       txTypeHandler,
-		EconomicsFee:        genesisFeeHandler,
-		ReceiptForwarder:    receiptTxInterim,
-		BadTxForwarder:      badTxInterim,
-		ArgsParser:          smartContract.NewArgumentParser(),
-		ScrForwarder:        scForwarder,
-		EnableRoundsHandler: enableRoundsHandler,
-		EnableEpochsHandler: enableEpochsHandler,
-		TxVersionChecker:    arg.Core.TxVersionChecker(),
-		GuardianChecker:     disabledGuardian.NewDisabledGuardedAccountHandler(),
-		TxLogsProcessor:     arg.TxLogsProcessor,
+		Accounts:                arg.Accounts,
+		Hasher:                  arg.Core.Hasher(),
+		PubkeyConv:              arg.Core.AddressPubKeyConverter(),
+		Marshalizer:             arg.Core.InternalMarshalizer(),
+		SignMarshalizer:         arg.Core.TxMarshalizer(),
+		ShardCoordinator:        arg.ShardCoordinator,
+		ScProcessor:             scProcessorProxy,
+		TxFeeHandler:            genesisFeeHandler,
+		TxTypeHandler:           txTypeHandler,
+		EconomicsFee:            genesisFeeHandler,
+		ReceiptForwarder:        receiptTxInterim,
+		BadTxForwarder:          badTxInterim,
+		ArgsParser:              smartContract.NewArgumentParser(),
+		ScrForwarder:            scForwarder,
+		EnableRoundsHandler:     enableRoundsHandler,
+		EnableEpochsHandler:     enableEpochsHandler,
+		TxVersionChecker:        arg.Core.TxVersionChecker(),
+		GuardianChecker:         disabledGuardian.NewDisabledGuardedAccountHandler(),
+		TxLogsProcessor:         arg.TxLogsProcessor,
+		RelayedTxV3Processor:    processDisabled.NewRelayedTxV3Processor(),
+		FailedTxLogsAccumulator: processDisabled.NewFailedTxLogsAccumulator(),
 	}
 	transactionProcessor, err := transaction.NewTxProcessor(argsNewTxProcessor)
 	if err != nil {
@@ -609,33 +622,32 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 	disabledScheduledTxsExecutionHandler := &disabled.ScheduledTxsExecutionHandler{}
 	disabledProcessedMiniBlocksTracker := &disabled.ProcessedMiniBlocksTracker{}
 
-	argsPreProc := shard.ArgPreProcessorsContainerFactory{
-		ShardCoordinator:                       arg.ShardCoordinator,
-		Store:                                  arg.Data.StorageService(),
-		Marshaller:                             arg.Core.InternalMarshalizer(),
-		Hasher:                                 arg.Core.Hasher(),
-		DataPool:                               arg.Data.Datapool(),
-		PubkeyConverter:                        arg.Core.AddressPubKeyConverter(),
-		Accounts:                               arg.Accounts,
-		RequestHandler:                         disabledRequestHandler,
-		TxProcessor:                            transactionProcessor,
-		ScProcessor:                            scProcessorProxy,
-		ScResultProcessor:                      scProcessorProxy,
-		RewardsTxProcessor:                     rewardsTxProcessor,
-		EconomicsFee:                           arg.Economics,
-		GasHandler:                             gasHandler,
-		BlockTracker:                           disabledBlockTracker,
-		BlockSizeComputation:                   disabledBlockSizeComputationHandler,
-		BalanceComputation:                     disabledBalanceComputationHandler,
-		EnableEpochsHandler:                    enableEpochsHandler,
-		TxTypeHandler:                          txTypeHandler,
-		ScheduledTxsExecutionHandler:           disabledScheduledTxsExecutionHandler,
-		ProcessedMiniBlocksTracker:             disabledProcessedMiniBlocksTracker,
-		TxExecutionOrderHandler:                arg.TxExecutionOrderHandler,
-		TxPreProcessorCreator:                  arg.RunTypeComponents.TxPreProcessorCreator(),
-		SmartContractResultPreProcessorCreator: arg.RunTypeComponents.SCResultsPreProcessorCreator(),
+	argsPreProc := shardData.ArgPreProcessorsContainerFactory{
+		ShardCoordinator:             arg.ShardCoordinator,
+		Store:                        arg.Data.StorageService(),
+		Marshaller:                   arg.Core.InternalMarshalizer(),
+		Hasher:                       arg.Core.Hasher(),
+		DataPool:                     arg.Data.Datapool(),
+		PubkeyConverter:              arg.Core.AddressPubKeyConverter(),
+		Accounts:                     arg.Accounts,
+		RequestHandler:               disabledRequestHandler,
+		TxProcessor:                  transactionProcessor,
+		ScProcessor:                  scProcessorProxy,
+		ScResultProcessor:            scProcessorProxy,
+		RewardsTxProcessor:           rewardsTxProcessor,
+		EconomicsFee:                 arg.Economics,
+		GasHandler:                   gasHandler,
+		BlockTracker:                 disabledBlockTracker,
+		BlockSizeComputation:         disabledBlockSizeComputationHandler,
+		BalanceComputation:           disabledBalanceComputationHandler,
+		EnableEpochsHandler:          enableEpochsHandler,
+		TxTypeHandler:                txTypeHandler,
+		ScheduledTxsExecutionHandler: disabledScheduledTxsExecutionHandler,
+		ProcessedMiniBlocksTracker:   disabledProcessedMiniBlocksTracker,
+		TxExecutionOrderHandler:      arg.TxExecutionOrderHandler,
+		RunTypeComponents:            arg.RunTypeComponents,
 	}
-	preProcFactory, err := shard.NewPreProcessorsContainerFactory(argsPreProc)
+	preProcFactory, err := arg.RunTypeComponents.PreProcessorsContainerFactoryCreator().CreatePreProcessorContainerFactory(argsPreProc)
 	if err != nil {
 		return nil, err
 	}

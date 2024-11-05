@@ -120,5 +120,6 @@ type Facade interface {
 	GetEligibleManagedKeys() ([]string, error)
 	GetWaitingManagedKeys() ([]string, error)
 	GetWaitingEpochsLeftForPublicKey(publicKey string) (uint32, error)
+	GetSCRsByTxHash(txHash string, scrHash string) ([]*transaction.ApiSmartContractResult, error)
 	IsInterfaceNil() bool
 }

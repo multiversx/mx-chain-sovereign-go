@@ -14,18 +14,18 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/klauspost/cpuid/v2 v2.2.7
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/multiversx/mx-chain-communication-go v1.0.15-0.20240508074652-e128a1c05c8e
-	github.com/multiversx/mx-chain-core-go v1.2.21-0.20240531074039-9f259f2709fd
-	github.com/multiversx/mx-chain-crypto-go v1.2.12-0.20240508074452-cc21c1b505df
-	github.com/multiversx/mx-chain-es-indexer-go v1.7.2-0.20240514123403-92975ee00840
-	github.com/multiversx/mx-chain-logger-go v1.0.15-0.20240508072523-3f00a726af57
-	github.com/multiversx/mx-chain-scenario-go v1.4.4-0.20240509103754-9e8129721f00
-	github.com/multiversx/mx-chain-storage-go v1.0.16-0.20240508073549-dcb8e6e0370f
-	github.com/multiversx/mx-chain-vm-common-go v1.5.13-0.20240531074440-5c5af08087c1
-	github.com/multiversx/mx-chain-vm-go v1.5.30-0.20240520161801-d5467292e454
-	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.68-0.20240509103859-89de3c5da36b
-	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.69-0.20240509104009-598a37ff36b9
-	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.98-0.20240509104102-2a6a709b4041
+	github.com/multiversx/mx-chain-communication-go v1.1.0
+	github.com/multiversx/mx-chain-core-go v1.2.23-0.20241007113300-50ac1ae23824
+	github.com/multiversx/mx-chain-crypto-go v1.2.12
+	github.com/multiversx/mx-chain-es-indexer-go v1.7.10-0.20241009093024-7b5c180a61ea
+	github.com/multiversx/mx-chain-logger-go v1.0.15
+	github.com/multiversx/mx-chain-scenario-go v1.4.4
+	github.com/multiversx/mx-chain-storage-go v1.0.16
+	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20241008143259-334f3a5bafe0
+	github.com/multiversx/mx-chain-vm-go v1.5.36-0.20240923134141-bdba60bb6bcd
+	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.68
+	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.69
+	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.98
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
@@ -221,16 +221,16 @@ require (
 
 replace github.com/gogo/protobuf => github.com/multiversx/protobuf v1.3.2
 
-replace github.com/multiversx/mx-chain-core-go => github.com/buidly/mx-evm-chain-core-go v0.0.0-20240912061415-6accab87a6f8
+replace github.com/multiversx/mx-chain-core-go => github.com/buidly/mx-evm-chain-core-go v0.0.0-20241103203857-bd0899d823bf
 
 replace github.com/multiversx/mx-sdk-abi-go => github.com/buidly/mx-evm-sdk-abi-go v0.0.0-20240912062928-8502f4c3b37c
 
-replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20240912063737-78e64569c8c9
+replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20241103205629-d6922d7e2ac4
 
-replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20240917153019-bb73bba6d015
+replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20241104210707-624bf19cc781
 
-replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20240917152746-3df27d1f4784
+replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20241103211402-22d1f9d10e60
 
-replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20240923081241-372a758a72f8
+replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20241105095659-561cb6893dab
 
-replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20240917152848-00769eb4e55f
+replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20241104212633-db8a066360b1

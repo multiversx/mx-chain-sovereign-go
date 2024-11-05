@@ -4,10 +4,23 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/keyValStorage"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/endProcess"
+	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/hashing/blake2b"
+	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/factory"
@@ -50,17 +63,6 @@ import (
 	testState "github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	updateMocks "github.com/multiversx/mx-chain-go/update/mock"
-
-	"github.com/multiversx/mx-chain-core-go/core/keyValStorage"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
-	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-core-go/data/endProcess"
-	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-core-go/hashing/blake2b"
-	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
-	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -948,6 +950,116 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 		require.True(t, errors.Is(err, errorsMx.ErrNilGenesisMetaBlockChecker))
 		require.Nil(t, pcf)
 	})
+	t.Run("nil EpochStartTrigger should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.EpochStartTriggerFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilEpochStartTriggerFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil StakingToPeerFactory should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.StakingToPeerFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilStakingToPeerFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil ValidatorInfoCreatorFactory should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.ValidatorInfoCreatorFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilValidatorInfoCreatorFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil ApiProcessorCompsCreator should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.APIProcessorCompsCreatorHandlerField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilAPIProcessorCompsCreator))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil EndOfEpochEconomicsFactoryHandler should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.EndOfEpochEconomicsFactoryHandlerField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilEndOfEpochEconomicsFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil ErrNilRewardsFactory should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.RewardsCreatorFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilRewardsFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil SystemSCProcessorFactory should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.SystemSCProcessorFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilSysSCFactory))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil PreProcessorsContainerFactoryCreatorField should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.PreProcessorsContainerFactoryCreatorField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilPreProcessorsContainerFactoryCreator))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil DataRetrieverContainersSetter should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.DataRetrieverContainersSetterField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilDataRetrieverContainersSetter))
+		require.Nil(t, pcf)
+	})
+	t.Run("nil ExportHandlerFactoryCreator should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.ExportHandlerFactoryCreatorField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilExportHandlerFactoryCreator))
+		require.Nil(t, pcf)
+	})
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
@@ -967,39 +1079,53 @@ func getSovereignRunTypeComponentsMock() *mainFactoryMocks.RunTypeComponentsStub
 
 func getRunTypeComponents(rt runType.RunTypeComponentsHolder) *mainFactoryMocks.RunTypeComponentsStub {
 	return &mainFactoryMocks.RunTypeComponentsStub{
-		BlockChainHookHandlerFactory:        rt.BlockChainHookHandlerCreator(),
-		BlockProcessorFactory:               rt.BlockProcessorCreator(),
-		BlockTrackerFactory:                 rt.BlockTrackerCreator(),
-		BootstrapperFromStorageFactory:      rt.BootstrapperFromStorageCreator(),
-		EpochStartBootstrapperFactory:       rt.EpochStartBootstrapperCreator(),
-		ForkDetectorFactory:                 rt.ForkDetectorCreator(),
-		HeaderValidatorFactory:              rt.HeaderValidatorCreator(),
-		RequestHandlerFactory:               rt.RequestHandlerCreator(),
-		ScheduledTxsExecutionFactory:        rt.ScheduledTxsExecutionCreator(),
-		TransactionCoordinatorFactory:       rt.TransactionCoordinatorCreator(),
-		ValidatorStatisticsProcessorFactory: rt.ValidatorStatisticsProcessorCreator(),
-		AdditionalStorageServiceFactory:     rt.AdditionalStorageServiceCreator(),
-		SCProcessorFactory:                  rt.SCProcessorCreator(),
-		ConsensusModelType:                  rt.ConsensusModel(),
-		BootstrapperFactory:                 rt.BootstrapperCreator(),
-		SCResultsPreProcessorFactory:        rt.SCResultsPreProcessorCreator(),
-		VmContainerMetaFactory:              rt.VmContainerMetaFactoryCreator(),
-		VmContainerShardFactory:             rt.VmContainerShardFactoryCreator(),
-		AccountParser:                       rt.AccountsParser(),
-		AccountCreator:                      rt.AccountsCreator(),
-		VMContextCreatorHandler:             rt.VMContextCreator(),
-		OutGoingOperationsPool:              rt.OutGoingOperationsPoolHandler(),
-		DataCodec:                           rt.DataCodecHandler(),
-		TopicsChecker:                       rt.TopicsCheckerHandler(),
-		ShardCoordinatorFactory:             rt.ShardCoordinatorCreator(),
-		RequestersContainerFactory:          rt.RequestersContainerFactoryCreator(),
-		InterceptorsContainerFactory:        rt.InterceptorsContainerFactoryCreator(),
-		ShardResolversContainerFactory:      rt.ShardResolversContainerFactoryCreator(),
-		TxPreProcessorFactory:               rt.TxPreProcessorCreator(),
-		ExtraHeaderSigVerifier:              rt.ExtraHeaderSigVerifierHolder(),
-		GenesisBlockFactory:                 rt.GenesisBlockCreatorFactory(),
-		GenesisMetaBlockChecker:             rt.GenesisMetaBlockCheckerCreator(),
-		NodesSetupCheckerFactoryField:       rt.NodesSetupCheckerFactory(),
+		BlockChainHookHandlerFactory:                rt.BlockChainHookHandlerCreator(),
+		BlockProcessorFactory:                       rt.BlockProcessorCreator(),
+		BlockTrackerFactory:                         rt.BlockTrackerCreator(),
+		BootstrapperFromStorageFactory:              rt.BootstrapperFromStorageCreator(),
+		EpochStartBootstrapperFactory:               rt.EpochStartBootstrapperCreator(),
+		ForkDetectorFactory:                         rt.ForkDetectorCreator(),
+		HeaderValidatorFactory:                      rt.HeaderValidatorCreator(),
+		RequestHandlerFactory:                       rt.RequestHandlerCreator(),
+		ScheduledTxsExecutionFactory:                rt.ScheduledTxsExecutionCreator(),
+		TransactionCoordinatorFactory:               rt.TransactionCoordinatorCreator(),
+		ValidatorStatisticsProcessorFactory:         rt.ValidatorStatisticsProcessorCreator(),
+		AdditionalStorageServiceFactory:             rt.AdditionalStorageServiceCreator(),
+		SCProcessorFactory:                          rt.SCProcessorCreator(),
+		ConsensusModelType:                          rt.ConsensusModel(),
+		BootstrapperFactory:                         rt.BootstrapperCreator(),
+		SCResultsPreProcessorFactory:                rt.SCResultsPreProcessorCreator(),
+		VmContainerMetaFactory:                      rt.VmContainerMetaFactoryCreator(),
+		VmContainerShardFactory:                     rt.VmContainerShardFactoryCreator(),
+		AccountParser:                               rt.AccountsParser(),
+		AccountCreator:                              rt.AccountsCreator(),
+		VMContextCreatorHandler:                     rt.VMContextCreator(),
+		OutGoingOperationsPool:                      rt.OutGoingOperationsPoolHandler(),
+		DataCodec:                                   rt.DataCodecHandler(),
+		TopicsChecker:                               rt.TopicsCheckerHandler(),
+		ShardCoordinatorFactory:                     rt.ShardCoordinatorCreator(),
+		RequestersContainerFactory:                  rt.RequestersContainerFactoryCreator(),
+		InterceptorsContainerFactory:                rt.InterceptorsContainerFactoryCreator(),
+		ShardResolversContainerFactory:              rt.ShardResolversContainerFactoryCreator(),
+		TxPreProcessorFactory:                       rt.TxPreProcessorCreator(),
+		ExtraHeaderSigVerifier:                      rt.ExtraHeaderSigVerifierHolder(),
+		GenesisBlockFactory:                         rt.GenesisBlockCreatorFactory(),
+		GenesisMetaBlockChecker:                     rt.GenesisMetaBlockCheckerCreator(),
+		NodesSetupCheckerFactoryField:               rt.NodesSetupCheckerFactory(),
+		EpochStartTriggerFactoryField:               rt.EpochStartTriggerFactory(),
+		LatestDataProviderFactoryField:              rt.LatestDataProviderFactory(),
+		StakingToPeerFactoryField:                   rt.StakingToPeerFactory(),
+		ValidatorInfoCreatorFactoryField:            rt.ValidatorInfoCreatorFactory(),
+		APIProcessorCompsCreatorHandlerField:        rt.ApiProcessorCompsCreatorHandler(),
+		EndOfEpochEconomicsFactoryHandlerField:      rt.EndOfEpochEconomicsFactoryHandler(),
+		RewardsCreatorFactoryField:                  rt.RewardsCreatorFactory(),
+		SystemSCProcessorFactoryField:               rt.SystemSCProcessorFactory(),
+		PreProcessorsContainerFactoryCreatorField:   rt.PreProcessorsContainerFactoryCreator(),
+		DataRetrieverContainersSetterField:          rt.DataRetrieverContainersSetter(),
+		ShardMessengerFactoryField:                  rt.BroadCastShardMessengerFactoryHandler(),
+		ExportHandlerFactoryCreatorField:            rt.ExportHandlerFactoryCreator(),
+		ValidatorAccountsSyncerFactoryHandlerField:  rt.ValidatorAccountsSyncerFactoryHandler(),
+		ShardRequestersContainerCreatorHandlerField: rt.ShardRequestersContainerCreatorHandler(),
 	}
 }
 
@@ -1148,6 +1274,30 @@ func TestProcessComponentsFactory_Create(t *testing.T) {
 		args.Config.Debug.Process.Enabled = true
 		args.Config.Debug.Process.PollingTimeInSeconds = 0
 		testCreateWithArgs(t, args, "PollingTimeInSeconds")
+	})
+	t.Run("AddressListToMap should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		decodeCounter := 0
+		decodeErr := fmt.Errorf("decode error")
+		coreCompStub := factoryMocks.NewCoreComponentsHolderStubFromRealComponent(args.CoreData)
+		coreCompStub.AddressPubKeyConverterCalled = func() core.PubkeyConverter {
+			return &testscommon.PubkeyConverterStub{
+				LenCalled: func() int {
+					return addrPubKeyConv.Len()
+				},
+				DecodeCalled: func(humanReadable string) ([]byte, error) {
+					decodeCounter++
+					if decodeCounter == 7 {
+						return nil, decodeErr
+					}
+					return addrPubKeyConv.Decode(humanReadable)
+				},
+			}
+		}
+		args.CoreData = coreCompStub
+		testCreateWithArgs(t, args, decodeErr.Error())
 	})
 	t.Run("nodesSetupChecker.Check fails should error", func(t *testing.T) {
 		t.Parallel()
@@ -1476,8 +1626,8 @@ func TestProcessComponentsFactory_CreateShouldWork(t *testing.T) {
 
 		pc, err := pcf.Create()
 
-		assert.NotNil(t, pc)
-		assert.Nil(t, err)
+		require.NotNil(t, pc)
+		require.Nil(t, err)
 	})
 
 	t.Run("creating process components factory in sovereign chain should work", func(t *testing.T) {

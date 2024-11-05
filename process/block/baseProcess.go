@@ -10,6 +10,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/scheduled"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
+	"github.com/multiversx/mx-chain-core-go/display"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/errChan"
@@ -32,18 +44,6 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/state/parsers"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
-
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
-	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
-	"github.com/multiversx/mx-chain-core-go/display"
-	"github.com/multiversx/mx-chain-core-go/hashing"
-	"github.com/multiversx/mx-chain-core-go/marshal"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("process/block")
@@ -132,6 +132,7 @@ type baseProcessor struct {
 	crossNotarizer               crossNotarizer
 	accountCreator               state.AccountFactory
 	validatorStatisticsProcessor process.ValidatorStatisticsProcessor
+	epochSystemSCProcessor       process.EpochStartSystemSCProcessor
 }
 
 type bootStorerDataArgs struct {
@@ -617,7 +618,7 @@ func (bp *baseProcessor) createBlockStarted() error {
 	bp.txCoordinator.CreateBlockStarted()
 	bp.feeHandler.CreateBlockStarted(scheduledGasAndFees)
 
-	err := bp.txCoordinator.AddIntermediateTransactions(bp.scheduledTxsExecutionHandler.GetScheduledIntermediateTxs())
+	err := bp.txCoordinator.AddIntermediateTransactions(bp.scheduledTxsExecutionHandler.GetScheduledIntermediateTxs(), nil)
 	if err != nil {
 		return err
 	}
@@ -1872,7 +1873,7 @@ func (bp *baseProcessor) addHeaderIntoTrackerPool(nonce uint64, shardID uint32) 
 	}
 }
 
-func (bp *baseProcessor) commitTrieEpochRootHashIfNeeded(metaBlock *block.MetaBlock, rootHash []byte) error {
+func (bp *baseProcessor) commitTrieEpochRootHashIfNeeded(metaBlock data.MetaHeaderHandler, rootHash []byte) error {
 	trieEpochRootHashStorageUnit, err := bp.store.GetStorer(dataRetriever.TrieEpochRootHashUnit)
 	if err != nil {
 		return err
@@ -1891,7 +1892,7 @@ func (bp *baseProcessor) commitTrieEpochRootHashIfNeeded(metaBlock *block.MetaBl
 		return fmt.Errorf("%w for user accounts state", process.ErrNilAccountsAdapter)
 	}
 
-	epochBytes := bp.uint64Converter.ToByteSlice(uint64(metaBlock.Epoch))
+	epochBytes := bp.uint64Converter.ToByteSlice(uint64(metaBlock.GetEpoch()))
 
 	err = trieEpochRootHashStorageUnit.Put(epochBytes, rootHash)
 	if err != nil {
@@ -1966,7 +1967,7 @@ func (bp *baseProcessor) commitTrieEpochRootHashIfNeeded(metaBlock *block.MetaBl
 
 	stats := []interface{}{
 		"shard", bp.shardCoordinator.SelfId(),
-		"epoch", metaBlock.Epoch,
+		"epoch", metaBlock.GetEpoch(),
 		"sum", balanceSum.String(),
 		"processDataTries", processDataTries,
 		"numCodeLeaves", numCodeLeaves,
@@ -2286,4 +2287,58 @@ func (bp *baseProcessor) checkSentSignaturesAtCommitTime(header data.HeaderHandl
 	}
 
 	return nil
+}
+
+func (bp *baseProcessor) checkEpochCorrectness(
+	headerHandler data.HeaderHandler,
+) error {
+	currentBlockHeader := bp.blockChain.GetCurrentBlockHeader()
+	if check.IfNil(currentBlockHeader) {
+		return nil
+	}
+
+	isEpochIncorrect := headerHandler.GetEpoch() != currentBlockHeader.GetEpoch() &&
+		bp.epochStartTrigger.Epoch() == currentBlockHeader.GetEpoch()
+	if isEpochIncorrect {
+		log.Warn("epoch does not match", "currentHeaderEpoch", currentBlockHeader.GetEpoch(), "receivedHeaderEpoch", headerHandler.GetEpoch(), "epochStartTrigger", bp.epochStartTrigger.Epoch())
+		return process.ErrEpochDoesNotMatch
+	}
+
+	isEpochIncorrect = bp.epochStartTrigger.IsEpochStart() &&
+		bp.epochStartTrigger.EpochStartRound() <= headerHandler.GetRound() &&
+		headerHandler.GetEpoch() != currentBlockHeader.GetEpoch()+1
+	if isEpochIncorrect {
+		log.Warn("is epoch start and epoch does not match", "currentHeaderEpoch", currentBlockHeader.GetEpoch(), "receivedHeaderEpoch", headerHandler.GetEpoch(), "epochStartTrigger", bp.epochStartTrigger.Epoch())
+		return process.ErrEpochDoesNotMatch
+	}
+
+	return nil
+}
+
+func (bp *baseProcessor) processIfFirstBlockAfterEpochStart() error {
+	epoch, isPreviousEpochStart := bp.isPreviousBlockEpochStart()
+	if !isPreviousEpochStart {
+		return nil
+	}
+
+	nodesForcedToStay, err := bp.validatorStatisticsProcessor.SaveNodesCoordinatorUpdates(epoch)
+	if err != nil {
+		return err
+	}
+
+	err = bp.epochSystemSCProcessor.ToggleUnStakeUnBond(nodesForcedToStay)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (bp *baseProcessor) isPreviousBlockEpochStart() (uint32, bool) {
+	blockHeader := bp.blockChain.GetCurrentBlockHeader()
+	if check.IfNil(blockHeader) {
+		blockHeader = bp.blockChain.GetGenesisHeader()
+	}
+
+	return blockHeader.GetEpoch(), blockHeader.IsStartOfEpochBlock()
 }

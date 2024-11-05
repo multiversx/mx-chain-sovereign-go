@@ -33,7 +33,7 @@ func TestSovereignChainSimulator_RegisterTwoSfts(t *testing.T) {
 	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
 		SovereignConfigPath: sovereignConfigPath,
 		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
-			BypassTxSignatureCheck: false,
+			BypassTxSignatureCheck: true,
 			TempDir:                t.TempDir(),
 			PathToInitialConfig:    defaultPathToInitialConfig,
 			GenesisTimestamp:       time.Now().Unix(),
@@ -41,7 +41,6 @@ func TestSovereignChainSimulator_RegisterTwoSfts(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
-			ConsensusGroupSize:     2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.SystemSCConfig.ESDTSystemSCConfig.BaseIssuingCost = issuePrice
 			},
@@ -58,6 +57,9 @@ func TestSovereignChainSimulator_RegisterTwoSfts(t *testing.T) {
 	require.Nil(t, err)
 	nonce := uint64(0)
 
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+
 	issueCost, _ := big.NewInt(0).SetString(issuePrice, 10)
 	sftName := "SFTNAME"
 	sftTicker := "SFTTICKER"
@@ -67,7 +69,7 @@ func TestSovereignChainSimulator_RegisterTwoSfts(t *testing.T) {
 
 	initialSupply := big.NewInt(111)
 	createArgs := createNftArgs(sftIdentifier, initialSupply, "SFTNAME #1")
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
 
 	tokens, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
@@ -83,7 +85,7 @@ func TestSovereignChainSimulator_RegisterTwoSfts(t *testing.T) {
 
 	initialSupply = big.NewInt(222)
 	createArgs = createNftArgs(sftIdentifier, initialSupply, "SFTNAME #2")
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
 
 	tokens, _, err = nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
@@ -100,7 +102,7 @@ func TestSovereignChainSimulator_IssueTwoSfts(t *testing.T) {
 	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
 		SovereignConfigPath: sovereignConfigPath,
 		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
-			BypassTxSignatureCheck: false,
+			BypassTxSignatureCheck: true,
 			TempDir:                t.TempDir(),
 			PathToInitialConfig:    defaultPathToInitialConfig,
 			GenesisTimestamp:       time.Now().Unix(),
@@ -108,7 +110,9 @@ func TestSovereignChainSimulator_IssueTwoSfts(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
-			ConsensusGroupSize:     2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.SystemSCConfig.ESDTSystemSCConfig.BaseIssuingCost = issuePrice
+			},
 		},
 	})
 	require.Nil(t, err)
@@ -122,19 +126,22 @@ func TestSovereignChainSimulator_IssueTwoSfts(t *testing.T) {
 	require.Nil(t, err)
 	nonce := uint64(0)
 
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+
 	issueCost, _ := big.NewInt(0).SetString(issuePrice, 10)
 	sftName := "SFTNAME"
 	sftTicker := "SFTTICKER"
 	sftIdentifier := chainSim.IssueSemiFungible(t, cs, nodeHandler, wallet.Bytes, &nonce, issueCost, sftName, sftTicker)
 
 	setRolesArgs := setSpecialRole(sftIdentifier, wallet.Bytes, sftRoles)
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, vm.ESDTSCAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, vm.ESDTSCAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
 
 	checkAllRoles(t, nodeHandler, wallet.Bech32, sftIdentifier, sftRoles)
 
 	initialSupply := big.NewInt(100)
 	createArgs := createNftArgs(sftIdentifier, initialSupply, "SFTNAME #1")
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
 
 	tokens, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
@@ -147,13 +154,13 @@ func TestSovereignChainSimulator_IssueTwoSfts(t *testing.T) {
 	sftIdentifier = chainSim.IssueSemiFungible(t, cs, nodeHandler, wallet.Bytes, &nonce, issueCost, sftName, sftTicker)
 
 	setRolesArgs = setSpecialRole(sftIdentifier, wallet.Bytes, sftRoles)
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, vm.ESDTSCAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, vm.ESDTSCAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
 
 	checkAllRoles(t, nodeHandler, wallet.Bech32, sftIdentifier, sftRoles)
 
 	initialSupply = big.NewInt(200)
 	createArgs = createNftArgs(sftIdentifier, initialSupply, "SFTNAME2 #1")
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, wallet.Bytes, chainSim.ZeroValue, createArgs, uint64(60000000))
 
 	tokens, _, err = nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)

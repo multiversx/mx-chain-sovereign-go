@@ -41,7 +41,7 @@ func TestSovereignChainSimulator_SmartContract_IssueToken(t *testing.T) {
 	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
 		SovereignConfigPath: sovereignConfigPath,
 		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
-			BypassTxSignatureCheck: false,
+			BypassTxSignatureCheck: true,
 			TempDir:                t.TempDir(),
 			PathToInitialConfig:    defaultPathToInitialConfig,
 			GenesisTimestamp:       time.Now().Unix(),
@@ -49,7 +49,6 @@ func TestSovereignChainSimulator_SmartContract_IssueToken(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
-			ConsensusGroupSize:     2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.SystemSCConfig.ESDTSystemSCConfig.BaseIssuingCost = issuePrice
 			},
@@ -70,12 +69,15 @@ func TestSovereignChainSimulator_SmartContract_IssueToken(t *testing.T) {
 	require.Nil(t, err)
 	nonce := uint64(0)
 
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+
 	deployedContractAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemScAddress, "", issueWasmPath)
 	deployedContractAddressBech32, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Encode(deployedContractAddress)
 	require.Nil(t, err)
 
 	issueCost, _ := big.NewInt(0).SetString(issuePrice, 10)
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, deployedContractAddress, issueCost, "issue", uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, deployedContractAddress, issueCost, "issue", uint64(60000000))
 
 	account, _, err := nodeHandler.GetFacadeHandler().GetAccount(deployedContractAddressBech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
@@ -88,7 +90,7 @@ func TestSovereignChainSimulator_SmartContract_IssueToken(t *testing.T) {
 	tokenIdentifier := issuedESDTs[0]
 
 	setRolesArgs := "setRoles@" + hex.EncodeToString([]byte(tokenIdentifier))
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, deployedContractAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, deployedContractAddress, chainSim.ZeroValue, setRolesArgs, uint64(60000000))
 
 	checkAllRoles(t, nodeHandler, deployedContractAddressBech32, tokenIdentifier, fungibleRoles)
 
@@ -96,7 +98,7 @@ func TestSovereignChainSimulator_SmartContract_IssueToken(t *testing.T) {
 	mintTxArgs := "mint" +
 		"@" + hex.EncodeToString([]byte(tokenIdentifier)) +
 		"@" + hex.EncodeToString(expectedMintedAmount.Bytes())
-	chainSim.SendTransaction(t, cs, wallet.Bytes, &nonce, deployedContractAddress, chainSim.ZeroValue, mintTxArgs, uint64(20000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, deployedContractAddress, chainSim.ZeroValue, mintTxArgs, uint64(20000000))
 
 	account, _, err = nodeHandler.GetFacadeHandler().GetAccount(deployedContractAddressBech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)

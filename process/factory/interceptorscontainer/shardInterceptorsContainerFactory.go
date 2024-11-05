@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/process/factory/containers"
@@ -98,6 +99,7 @@ func NewShardInterceptorsContainerFactory(
 		SignaturesHandler:            args.SignaturesHandler,
 		HeartbeatExpiryTimespanInSec: args.HeartbeatExpiryTimespanInSec,
 		PeerID:                       args.MainMessenger.ID(),
+		RelayedTxV3Processor:         args.RelayedTxV3Processor,
 	}
 
 	base := &baseInterceptorsContainerFactory{
@@ -154,7 +156,7 @@ func (sicf *shardInterceptorsContainerFactory) Create() (process.InterceptorsCon
 		return nil, nil, err
 	}
 
-	err = sicf.generateHeaderInterceptors()
+	err = sicf.generateHeaderInterceptors(core.MetachainShardId)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -189,7 +191,7 @@ func (sicf *shardInterceptorsContainerFactory) Create() (process.InterceptorsCon
 		return nil, nil, err
 	}
 
-	err = sicf.generateValidatorInfoInterceptor()
+	err = sicf.generateValidatorInfoInterceptor(common.ValidatorInfoTopic)
 	if err != nil {
 		return nil, nil, err
 	}

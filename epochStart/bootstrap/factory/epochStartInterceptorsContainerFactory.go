@@ -14,6 +14,7 @@ import (
 	disabledFactory "github.com/multiversx/mx-chain-go/factory/disabled"
 	disabledGenesis "github.com/multiversx/mx-chain-go/genesis/process/disabled"
 	"github.com/multiversx/mx-chain-go/process"
+	processDisabled "github.com/multiversx/mx-chain-go/process/disabled"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/storage/cache"
@@ -46,20 +47,51 @@ type ArgsEpochStartInterceptorContainer struct {
 
 // NewEpochStartInterceptorsContainer will return a real interceptors container factory, but with many disabled components
 func NewEpochStartInterceptorsContainer(args ArgsEpochStartInterceptorContainer) (process.InterceptorsContainer, process.InterceptorsContainer, error) {
+	containerFactoryArgs, err := CreateEpochStartContainerFactoryArgs(args)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	interceptorsContainerFactory, err := interceptorscontainer.NewMetaInterceptorsContainerFactory(*containerFactoryArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mainContainer, fullArchiveContainer, err := interceptorsContainerFactory.Create()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = interceptorsContainerFactory.AddShardTrieNodeInterceptors(mainContainer)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if args.NodeOperationMode == common.FullArchiveMode {
+		err = interceptorsContainerFactory.AddShardTrieNodeInterceptors(fullArchiveContainer)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return mainContainer, fullArchiveContainer, nil
+}
+
+func CreateEpochStartContainerFactoryArgs(args ArgsEpochStartInterceptorContainer) (*interceptorscontainer.CommonInterceptorsContainerFactoryArgs, error) {
 	if check.IfNil(args.CoreComponents) {
-		return nil, nil, epochStart.ErrNilCoreComponentsHolder
+		return nil, epochStart.ErrNilCoreComponentsHolder
 	}
 	if check.IfNil(args.CryptoComponents) {
-		return nil, nil, epochStart.ErrNilCryptoComponentsHolder
+		return nil, epochStart.ErrNilCryptoComponentsHolder
 	}
 	if check.IfNil(args.CoreComponents.AddressPubKeyConverter()) {
-		return nil, nil, epochStart.ErrNilPubkeyConverter
+		return nil, epochStart.ErrNilPubkeyConverter
 	}
 
 	cryptoComponents := args.CryptoComponents.Clone().(process.CryptoComponentsHolder)
 	err := cryptoComponents.SetMultiSignerContainer(disabled.NewMultiSignerContainer())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	nodesCoordinator := disabled.NewNodesCoordinator()
@@ -77,7 +109,7 @@ func NewEpochStartInterceptorsContainer(args ArgsEpochStartInterceptorContainer)
 	fullArchivePeerShardMapper := disabled.NewPeerShardMapper()
 	hardforkTrigger := disabledFactory.HardforkTrigger()
 
-	containerFactoryArgs := interceptorscontainer.CommonInterceptorsContainerFactoryArgs{
+	return &interceptorscontainer.CommonInterceptorsContainerFactoryArgs{
 		CoreComponents:               args.CoreComponents,
 		CryptoComponents:             cryptoComponents,
 		Accounts:                     accountsAdapter,
@@ -108,29 +140,6 @@ func NewEpochStartInterceptorsContainer(args ArgsEpochStartInterceptorContainer)
 		FullArchivePeerShardMapper:   fullArchivePeerShardMapper,
 		HardforkTrigger:              hardforkTrigger,
 		NodeOperationMode:            args.NodeOperationMode,
-	}
-
-	interceptorsContainerFactory, err := interceptorscontainer.NewMetaInterceptorsContainerFactory(containerFactoryArgs)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	mainContainer, fullArchiveContainer, err := interceptorsContainerFactory.Create()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	err = interceptorsContainerFactory.AddShardTrieNodeInterceptors(mainContainer)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if args.NodeOperationMode == common.FullArchiveMode {
-		err = interceptorsContainerFactory.AddShardTrieNodeInterceptors(fullArchiveContainer)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return mainContainer, fullArchiveContainer, nil
+		RelayedTxV3Processor:         processDisabled.NewRelayedTxV3Processor(),
+	}, nil
 }
