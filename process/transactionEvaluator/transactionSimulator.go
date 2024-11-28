@@ -172,6 +172,9 @@ func (ts *transactionSimulator) addLogsFromVmOutput(results *txSimData.Simulatio
 }
 
 func (ts *transactionSimulator) addTxResultsFromVmOutput(results *txSimData.SimulationResultsWithVMOutput, output *vmcommon.VMOutput) {
+	if output == nil {
+		return
+	}
 	results.ReturnData = output.ReturnData
 	results.ReturnCode = output.ReturnCode
 	results.ReturnMessage = output.ReturnMessage
