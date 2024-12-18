@@ -10,18 +10,27 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	apiData "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
+	"github.com/multiversx/mx-chain-go/factory"
+	"github.com/multiversx/mx-chain-go/factory/runType"
 	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
 	"github.com/multiversx/mx-chain-go/integrationTests/chainSimulator/staking"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
+	proc "github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator"
+	"github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/common"
+	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/components"
+	testsFactory "github.com/multiversx/mx-chain-go/testscommon/factory"
 )
 
 const (
@@ -39,6 +48,27 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	roundsPerEpoch := core.OptionalUint64{
 		HasValue: true,
 		Value:    50, // do not lower this value so that each validator can participate in consensus as leader to get rewards
+	}
+
+	sovConfig := config.SovereignConfig{}
+
+	sovRequestHandler := &testscommon.ExtendedShardHeaderRequestHandlerStub{
+		RequestHandlerStub: testscommon.RequestHandlerStub{
+			RequestMiniBlockHandlerCalled: func(destShardID uint32, miniblockHash []byte) {
+				require.Fail(t, "should not request miniBlock")
+			},
+			RequestMiniBlocksHandlerCalled: func(destShardID uint32, miniblocksHashes [][]byte) {
+				require.Fail(t, "should not request miniBlocks")
+			},
+			RequestRewardTxHandlerCalled: func(destShardID uint32, txHashes [][]byte) {
+				require.Fail(t, "should not request reward txs")
+			},
+		},
+	}
+	sovRequestHandlerFactory := &testsFactory.RequestHandlerFactoryMock{
+		CreateRequestHandlerCalled: func(args requestHandlers.RequestHandlerArgs) (proc.RequestHandler, error) {
+			return sovRequestHandler, nil
+		},
 	}
 
 	var protocolSustainabilityAddress string
@@ -68,6 +98,16 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
+				sovConfig = cfg.GeneralConfig.SovereignConfig
+			},
+			CreateRunTypeComponents: func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error) {
+				runTypeComps, err := common.CreateSovereignRunTypeComponents(args, sovConfig)
+				require.Nil(t, err)
+
+				runTypeCompsHolder := components.GetRunTypeComponentsStub(runTypeComps)
+				runTypeCompsHolder.RequestHandlerFactory = sovRequestHandlerFactory
+
+				return runTypeCompsHolder, nil
 			},
 		},
 	})
@@ -124,7 +164,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 		err = cs.GenerateBlocksUntilEpochIsReached(int32(epoch))
 		require.Nil(t, err)
 
-		checkEpochChangeHeader(t, nodeHandler)
+		checkEpochChangeHeader(t, nodeHandler, allOwnersBalance, protocolSustainabilityAddress)
 		requireValidatorBalancesIncreasedAfterRewards(t, nodeHandler, allOwnersBalance)
 		checkProtocolSustainabilityAddressBalanceIncreased(t, nodeHandler, protocolSustainabilityAddress, protocolSustainabilityAddrBalance)
 
@@ -144,7 +184,12 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	}
 }
 
-func checkEpochChangeHeader(t *testing.T, nodeHandler process.NodeHandler) {
+func checkEpochChangeHeader(
+	t *testing.T,
+	nodeHandler process.NodeHandler,
+	allOwnersBalance map[string]*big.Int,
+	protocolSustainabilityAddress string,
+) {
 	currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
 	require.True(t, currentHeader.IsStartOfEpochBlock())
 
@@ -171,6 +216,53 @@ func checkEpochChangeHeader(t *testing.T, nodeHandler process.NodeHandler) {
 	validatorRootHash, err := nodeHandler.GetStateComponents().PeerAccounts().RootHash()
 	require.Nil(t, err)
 	require.Equal(t, validatorRootHash, currentHeader.GetValidatorStatsRootHash())
+
+	checkEpochChangeRewardsMB(t, nodeHandler, mbs[0], currentHeader, allOwnersBalance, protocolSustainabilityAddress)
+}
+
+func checkEpochChangeRewardsMB(
+	t *testing.T,
+	nodeHandler process.NodeHandler,
+	mb data.MiniBlockHeaderHandler,
+	currentHeader data.HeaderHandler,
+	allOwnersBalance map[string]*big.Int,
+	protocolSustainabilityAddress string,
+) {
+	mbRewardBytes, ok := nodeHandler.GetDataComponents().Datapool().MiniBlocks().Get(mb.GetHash())
+	require.True(t, ok)
+
+	mbReward, castOk := mbRewardBytes.(*block.MiniBlock)
+	require.True(t, castOk)
+	require.Len(t, mbReward.TxHashes, 7)
+
+	owners := getOwnersMap(allOwnersBalance, nodeHandler.GetCoreComponents().AddressPubKeyConverter())
+	owners[protocolSustainabilityAddress] = struct{}{}
+	for _, txHash := range mbReward.TxHashes {
+		tx, err := nodeHandler.GetFacadeHandler().GetTransaction(hex.EncodeToString(txHash), false)
+		require.Nil(t, err)
+
+		require.Equal(t, string(transaction.TxTypeReward), tx.Type)
+		require.Equal(t, currentHeader.GetRound(), tx.Round)
+		require.Equal(t, currentHeader.GetEpoch(), tx.Epoch)
+		require.Equal(t, "sovereign", tx.Sender)
+		require.Equal(t, core.SovereignChainShardId, tx.SourceShard)
+
+		_, found := owners[tx.Receiver]
+		require.True(t, found)
+		delete(owners, tx.Receiver)
+	}
+
+	require.Empty(t, owners)
+}
+
+func getOwnersMap(allOwnersBalance map[string]*big.Int, pkConv core.PubkeyConverter) map[string]struct{} {
+	ret := make(map[string]struct{})
+	for owner := range allOwnersBalance {
+		encodedKey, _ := pkConv.Encode([]byte(owner))
+		ret[encodedKey] = struct{}{}
+	}
+
+	return ret
 }
 
 func getConsensusOwnersBalances(t *testing.T, nodeHandler process.NodeHandler) map[string]*big.Int {
@@ -235,15 +327,11 @@ func checkProtocolSustainabilityAddressBalanceIncreased(
 }
 
 func getAllFeesInEpoch(nodeHandler process.NodeHandler) (*big.Int, *big.Int) {
-	sovHdr := getCurrSovHdr(nodeHandler)
+	sovHdr := common.GetCurrentSovereignHeader(nodeHandler)
 	return sovHdr.GetAccumulatedFeesInEpoch(), sovHdr.GetDevFeesInEpoch()
 }
 
 func getAllFees(nodeHandler process.NodeHandler) (*big.Int, *big.Int) {
-	sovHdr := getCurrSovHdr(nodeHandler)
+	sovHdr := common.GetCurrentSovereignHeader(nodeHandler)
 	return sovHdr.GetAccumulatedFees(), sovHdr.GetDeveloperFees()
-}
-
-func getCurrSovHdr(nodeHandler process.NodeHandler) data.SovereignChainHeaderHandler {
-	return nodeHandler.GetChainHandler().GetCurrentBlockHeader().(data.SovereignChainHeaderHandler)
 }

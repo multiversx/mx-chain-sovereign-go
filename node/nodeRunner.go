@@ -43,6 +43,7 @@ import (
 	coreComp "github.com/multiversx/mx-chain-go/factory/core"
 	cryptoComp "github.com/multiversx/mx-chain-go/factory/crypto"
 	dataComp "github.com/multiversx/mx-chain-go/factory/data"
+	factoryDisabled "github.com/multiversx/mx-chain-go/factory/disabled"
 	heartbeatComp "github.com/multiversx/mx-chain-go/factory/heartbeat"
 	networkComp "github.com/multiversx/mx-chain-go/factory/network"
 	processComp "github.com/multiversx/mx-chain-go/factory/processing"
@@ -53,7 +54,6 @@ import (
 	"github.com/multiversx/mx-chain-go/genesis/parsing"
 	"github.com/multiversx/mx-chain-go/health"
 	"github.com/multiversx/mx-chain-go/node/metrics"
-	trieIteratorsFactory "github.com/multiversx/mx-chain-go/node/trieIterators/factory"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/interceptors"
@@ -727,23 +727,20 @@ func (nr *nodeRunner) createApiFacade(
 	log.Debug("creating api resolver structure")
 
 	apiResolverArgs := &apiComp.ApiResolverArgs{
-		Configs:                        configs,
-		CoreComponents:                 nodeHandler.GetCoreComponents(),
-		DataComponents:                 nodeHandler.GetDataComponents(),
-		StateComponents:                nodeHandler.GetStateComponents(),
-		BootstrapComponents:            nodeHandler.GetBootstrapComponents(),
-		CryptoComponents:               nodeHandler.GetCryptoComponents(),
-		ProcessComponents:              nodeHandler.GetProcessComponents(),
-		StatusCoreComponents:           nodeHandler.GetStatusCoreComponents(),
-		GasScheduleNotifier:            gasScheduleNotifier,
-		Bootstrapper:                   nodeHandler.GetConsensusComponents().Bootstrapper(),
-		RunTypeComponents:              nodeHandler.GetRunTypeComponents(),
-		AllowVMQueriesChan:             allowVMQueriesChan,
-		StatusComponents:               nodeHandler.GetStatusComponents(),
-		ProcessingMode:                 common.GetNodeProcessingMode(nr.configs.ImportDbConfig),
-		DelegatedListFactoryHandler:    trieIteratorsFactory.NewDelegatedListProcessorFactory(),
-		DirectStakedListFactoryHandler: trieIteratorsFactory.NewDirectStakedListProcessorFactory(),
-		TotalStakedValueFactoryHandler: trieIteratorsFactory.NewTotalStakedListProcessorFactory(),
+		Configs:              configs,
+		CoreComponents:       nodeHandler.GetCoreComponents(),
+		DataComponents:       nodeHandler.GetDataComponents(),
+		StateComponents:      nodeHandler.GetStateComponents(),
+		BootstrapComponents:  nodeHandler.GetBootstrapComponents(),
+		CryptoComponents:     nodeHandler.GetCryptoComponents(),
+		ProcessComponents:    nodeHandler.GetProcessComponents(),
+		StatusCoreComponents: nodeHandler.GetStatusCoreComponents(),
+		GasScheduleNotifier:  gasScheduleNotifier,
+		Bootstrapper:         nodeHandler.GetConsensusComponents().Bootstrapper(),
+		RunTypeComponents:    nodeHandler.GetRunTypeComponents(),
+		AllowVMQueriesChan:   allowVMQueriesChan,
+		StatusComponents:     nodeHandler.GetStatusComponents(),
+		ProcessingMode:       common.GetNodeProcessingMode(nr.configs.ImportDbConfig),
 	}
 
 	apiResolver, err := apiComp.CreateApiResolver(apiResolverArgs)
@@ -1116,6 +1113,7 @@ func (nr *nodeRunner) CreateManagedStatusComponents(
 		IsInImportMode:       isInImportMode,
 		StatusCoreComponents: managedStatusCoreComponents,
 		CryptoComponents:     cryptoComponents,
+		IsSovereign:          false,
 	}
 
 	statusComponentsFactory, err := statusComp.NewStatusComponentsFactory(statArgs)
@@ -1239,33 +1237,34 @@ func (nr *nodeRunner) CreateManagedProcessComponents(
 	txExecutionOrderHandler := ordering.NewOrderedCollection()
 
 	processArgs := processComp.ProcessComponentsFactoryArgs{
-		Config:                  *configs.GeneralConfig,
-		EpochConfig:             *configs.EpochConfig,
-		RoundConfig:             *configs.RoundConfig,
-		PrefConfigs:             *configs.PreferencesConfig,
-		ImportDBConfig:          *configs.ImportDbConfig,
-		EconomicsConfig:         *configs.EconomicsConfig,
-		SmartContractParser:     smartContractParser,
-		GasSchedule:             gasScheduleNotifier,
-		NodesCoordinator:        nodesCoordinator,
-		Data:                    dataComponents,
-		CoreData:                coreComponents,
-		Crypto:                  cryptoComponents,
-		State:                   stateComponents,
-		Network:                 networkComponents,
-		BootstrapComponents:     bootstrapComponents,
-		StatusComponents:        statusComponents,
-		StatusCoreComponents:    statusCoreComponents,
-		RequestedItemsHandler:   requestedItemsHandler,
-		WhiteListHandler:        whiteListRequest,
-		WhiteListerVerifiedTxs:  whiteListerVerifiedTxs,
-		MaxRating:               configs.RatingsConfig.General.MaxRating,
-		SystemSCConfig:          configs.SystemSCConfig,
-		ImportStartHandler:      importStartHandler,
-		HistoryRepo:             historyRepository,
-		FlagsConfig:             *configs.FlagsConfig,
-		TxExecutionOrderHandler: txExecutionOrderHandler,
-		RunTypeComponents:       runTypeComponents,
+		Config:                   *configs.GeneralConfig,
+		EpochConfig:              *configs.EpochConfig,
+		RoundConfig:              *configs.RoundConfig,
+		PrefConfigs:              *configs.PreferencesConfig,
+		ImportDBConfig:           *configs.ImportDbConfig,
+		EconomicsConfig:          *configs.EconomicsConfig,
+		SmartContractParser:      smartContractParser,
+		GasSchedule:              gasScheduleNotifier,
+		NodesCoordinator:         nodesCoordinator,
+		Data:                     dataComponents,
+		CoreData:                 coreComponents,
+		Crypto:                   cryptoComponents,
+		State:                    stateComponents,
+		Network:                  networkComponents,
+		BootstrapComponents:      bootstrapComponents,
+		StatusComponents:         statusComponents,
+		StatusCoreComponents:     statusCoreComponents,
+		RequestedItemsHandler:    requestedItemsHandler,
+		WhiteListHandler:         whiteListRequest,
+		WhiteListerVerifiedTxs:   whiteListerVerifiedTxs,
+		MaxRating:                configs.RatingsConfig.General.MaxRating,
+		SystemSCConfig:           configs.SystemSCConfig,
+		ImportStartHandler:       importStartHandler,
+		HistoryRepo:              historyRepository,
+		FlagsConfig:              *configs.FlagsConfig,
+		TxExecutionOrderHandler:  txExecutionOrderHandler,
+		RunTypeComponents:        runTypeComponents,
+		IncomingHeaderSubscriber: &factoryDisabled.IncomingHeaderProcessor{},
 	}
 	processComponentsFactory, err := processComp.NewProcessComponentsFactory(processArgs)
 	if err != nil {

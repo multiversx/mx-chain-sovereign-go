@@ -667,6 +667,7 @@ func GetProcessArgs(
 				},
 			},
 		},
+		IncomingHeaderSubscriber: &sovereign.IncomingHeaderSubscriberStub{},
 	}
 
 	initialAccounts := createAccounts()
@@ -842,7 +843,7 @@ func GetStatusComponentsFactoryArgsAndProcessComponents(shardCoordinator shardin
 				{
 					MarshallerType:     "json",
 					Mode:               "client",
-					URL:                "localhost:12345",
+					URL:                "ws://localhost:12345",
 					RetryDurationInSec: 1,
 				},
 			},
@@ -1126,6 +1127,7 @@ func createSovereignAccounts() []genesis.InitialAccountHandler {
 }
 
 func createArgsRunTypeComponents() runType.ArgsRunTypeComponents {
+	generalCfg := GetGeneralConfig()
 	return runType.ArgsRunTypeComponents{
 		CoreComponents: &mockCoreComp.CoreComponentsStub{
 			HasherField:                 &hashingMocks.HasherMock{},
@@ -1144,6 +1146,7 @@ func createArgsRunTypeComponents() runType.ArgsRunTypeComponents {
 					GenesisMintingSenderAddress: "erd17rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rcqqkhty3",
 				},
 			},
+			GeneralConfig: &generalCfg,
 		},
 		InitialAccounts: createAccounts(),
 	}
@@ -1199,6 +1202,12 @@ func GetRunTypeComponentsStub(rt factory.RunTypeComponentsHandler) *mainFactoryM
 		ExportHandlerFactoryCreatorField:            rt.ExportHandlerFactoryCreator(),
 		ValidatorAccountsSyncerFactoryHandlerField:  rt.ValidatorAccountsSyncerFactoryHandler(),
 		ShardRequestersContainerCreatorHandlerField: rt.ShardRequestersContainerCreatorHandler(),
+		APIRewardsTxHandlerField:                    rt.APIRewardsTxHandler(),
+		OutportDataProviderFactoryField:             rt.OutportDataProviderFactory(),
+		DelegatedListFactoryField:                   rt.DelegatedListFactoryHandler(),
+		DirectStakedListFactoryField:                rt.DirectStakedListFactoryHandler(),
+		TotalStakedValueFactoryField:                rt.TotalStakedValueFactoryHandler(),
+		VersionedHeaderFactoryField:                 rt.VersionedHeaderFactory(),
 	}
 }
 
@@ -1268,7 +1277,6 @@ func GetSovereignRunTypeComponents() factory.RunTypeComponentsHolder {
 
 func createSovRunTypeArgs() runType.ArgsSovereignRunTypeComponents {
 	runTypeComponentsFactory, _ := runType.NewRunTypeComponentsFactory(createArgsRunTypeComponents())
-
 	return runType.ArgsSovereignRunTypeComponents{
 		RunTypeComponentsFactory: runTypeComponentsFactory,
 		Config: config.SovereignConfig{

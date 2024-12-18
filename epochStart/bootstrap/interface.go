@@ -5,15 +5,19 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	storageRequestFactory "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer/factory"
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	bootStrapFactory "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-go/state"
 	syncerFactory "github.com/multiversx/mx-chain-go/state/syncer/factory"
+	updateSync "github.com/multiversx/mx-chain-go/update/sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
@@ -92,6 +96,10 @@ type RunTypeComponentsHolder interface {
 	RequestersContainerFactoryCreator() requesterscontainer.RequesterContainerFactoryCreator
 	ValidatorAccountsSyncerFactoryHandler() syncerFactory.ValidatorAccountsSyncerFactoryHandler
 	ShardRequestersContainerCreatorHandler() storageRequestFactory.ShardRequestersContainerCreatorHandler
+	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
+	DataCodecHandler() sovereign.DataCodecHandler
+	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
+	AccountsCreator() state.AccountFactory
 	IsInterfaceNil() bool
 }
 
@@ -117,6 +125,7 @@ type bootStrapShardProcessorHandler interface {
 	createEpochStartMetaSyncer() (epochStart.StartOfEpochMetaSyncer, error)
 	createStorageEpochStartMetaSyncer(args ArgsNewEpochStartMetaSyncer) (epochStart.StartOfEpochMetaSyncer, error)
 	createEpochStartInterceptorsContainers(args bootStrapFactory.ArgsEpochStartInterceptorContainer) (process.InterceptorsContainer, process.InterceptorsContainer, error)
+	createCrossHeaderRequester() (updateSync.CrossHeaderRequester, error)
 }
 
 type epochStartTopicProviderHandler interface {

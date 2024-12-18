@@ -785,6 +785,9 @@ var ErrNilFunction = errors.New("nil function")
 // ErrEmptyBaseToken signals that an empty base token has been provided
 var ErrEmptyBaseToken = errors.New("empty base token")
 
+// ErrInvalidBaseToken signals that an invalid base token has been provided
+var ErrInvalidBaseToken = errors.New("invalid base token")
+
 // ErrNilESDTAsBalanceHandler signals that a nil esdt as balance handler was provided
 var ErrNilESDTAsBalanceHandler = errors.New("nil esdt as balance handler provided")
 
@@ -799,9 +802,6 @@ var ErrNilOperationsHasher = errors.New("nil outgoing operations hasher")
 
 // ErrNilEpochSystemSCProcessor defines the error for setting a nil EpochSystemSCProcessor
 var ErrNilEpochSystemSCProcessor = errors.New("nil epoch system SC processor")
-
-// ErrNilRelayedTxV3Processor signals that a nil relayed tx v3 processor has been provided
-var ErrNilRelayedTxV3Processor = errors.New("nil relayed tx v3 processor")
 
 // ErrInvalidTokenPrefix signals that an invalid token prefix has been provided
 var ErrInvalidTokenPrefix = errors.New("invalid token prefix, should have max 4 (lowercase/alphanumeric) characters")
@@ -868,3 +868,9 @@ var ErrNilValidatorAccountsDBSyncerFactory = errors.New("nil validator accounts 
 
 // ErrNilShardRequestersContainerCreatorHandler signals that a nil shard requesters container creator has been provided
 var ErrNilShardRequestersContainerCreatorHandler = errors.New("nil shard requesters container creator has been provided")
+
+// ErrNilAPIRewardsHandler signals that a nil api rewards handler has been provided
+var ErrNilAPIRewardsHandler = errors.New("nil api rewards handler has been provided")
+
+// ErrNilOutportDataProviderFactory signals that a nil outport data provider factory has been provided
+var ErrNilOutportDataProviderFactory = errors.New("nil outport data provider factory has been provided")

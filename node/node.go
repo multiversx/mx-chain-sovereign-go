@@ -862,8 +862,6 @@ func (n *Node) commonTransactionValidation(
 		enableSignWithTxHash,
 		n.coreComponents.TxSignHasher(),
 		n.coreComponents.TxVersionChecker(),
-		n.coreComponents.EnableEpochsHandler(),
-		n.processComponents.RelayedTxV3Processor(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -992,20 +990,12 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 		ChainID:           []byte(txArgs.ChainID),
 		Version:           txArgs.Version,
 		Options:           txArgs.Options,
-		InnerTransactions: txArgs.InnerTransactions,
 	}
 
 	if len(txArgs.Guardian) > 0 {
 		err = n.setTxGuardianData(txArgs.Guardian, txArgs.GuardianSigHex, tx)
 		if err != nil {
 			return nil, nil, err
-		}
-	}
-
-	if len(txArgs.Relayer) > 0 {
-		tx.RelayerAddr, err = addrPubKeyConverter.Decode(txArgs.Relayer)
-		if err != nil {
-			return nil, nil, errors.New("could not create relayer address from provided param")
 		}
 	}
 

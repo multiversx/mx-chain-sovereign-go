@@ -14,15 +14,15 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/klauspost/cpuid/v2 v2.2.7
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/multiversx/mx-chain-communication-go v1.1.0
-	github.com/multiversx/mx-chain-core-go v1.2.23-0.20241007113300-50ac1ae23824
+	github.com/multiversx/mx-chain-communication-go v1.1.1
+	github.com/multiversx/mx-chain-core-go v1.2.24-0.20241209142414-762196f8dd06
 	github.com/multiversx/mx-chain-crypto-go v1.2.12
-	github.com/multiversx/mx-chain-es-indexer-go v1.7.10-0.20241009093024-7b5c180a61ea
+	github.com/multiversx/mx-chain-es-indexer-go v1.7.11-0.20241211094055-23de51462ca4
 	github.com/multiversx/mx-chain-logger-go v1.0.15
 	github.com/multiversx/mx-chain-scenario-go v1.4.4
 	github.com/multiversx/mx-chain-storage-go v1.0.16
-	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20241008143259-334f3a5bafe0
-	github.com/multiversx/mx-chain-vm-go v1.5.36-0.20240923134141-bdba60bb6bcd
+	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20241119132002-2fa80c5ec516
+	github.com/multiversx/mx-chain-vm-go v1.5.37
 	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.68
 	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.69
 	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.98
@@ -221,16 +221,16 @@ require (
 
 replace github.com/gogo/protobuf => github.com/multiversx/protobuf v1.3.2
 
-replace github.com/multiversx/mx-chain-core-go => github.com/buidly/mx-evm-chain-core-go v0.0.0-20241103203857-bd0899d823bf
+replace github.com/multiversx/mx-chain-core-go => github.com/buidly/mx-evm-chain-core-go v0.0.0-20241218164003-125e62918c9a
 
 replace github.com/multiversx/mx-sdk-abi-go => github.com/buidly/mx-evm-sdk-abi-go v0.0.0-20240912062928-8502f4c3b37c
 
-replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20241103205629-d6922d7e2ac4
+replace github.com/multiversx/mx-chain-crypto-go => github.com/buidly/mx-evm-chain-crypto-go v0.0.0-20241218164427-23002ca51a06
 
-replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20241104210707-624bf19cc781
+replace github.com/multiversx/mx-chain-scenario-go => github.com/buidly/mx-evm-chain-scenario-go v0.0.0-20241218165419-d40ea3583a6d
 
-replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20241103211402-22d1f9d10e60
+replace github.com/multiversx/mx-chain-vm-common-go => github.com/buidly/mx-evm-chain-vm-common-go v0.0.0-20241218165151-6a06c28b888f
 
-replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20241105095659-561cb6893dab
+replace github.com/multiversx/mx-chain-vm-go => github.com/buidly/mx-evm-chain-vm-go v0.0.0-20241218192919-285df70148f7
 
-replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20241104212633-db8a066360b1
+replace github.com/multiversx/mx-chain-vm-v1_2-go => github.com/buidly/mx-evm-chain-vm-v1_2-go v0.0.0-20241218193455-79c9fb21c65f

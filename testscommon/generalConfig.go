@@ -429,9 +429,6 @@ func GetGeneralConfig() config.Config {
 		ResourceStats: config.ResourceStatsConfig{
 			RefreshIntervalInSec: 1,
 		},
-		RelayedTransactionConfig: config.RelayedTransactionConfig{
-			MaxTransactionsAllowed: 10,
-		},
 		SovereignConfig: config.SovereignConfig{
 			NotifierConfig: config.NotifierConfig{
 				SubscribedEvents: []config.SubscribedEvent{
@@ -439,6 +436,10 @@ func GetGeneralConfig() config.Config {
 						Identifier: "bridgeOps",
 						Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
 					},
+				},
+				WebSocketConfig: config.WebSocketConfig{
+					HasherType:     "keccak",
+					MarshallerType: "json",
 				},
 			},
 			OutgoingSubscribedEvents: config.OutgoingSubscribedEvents{

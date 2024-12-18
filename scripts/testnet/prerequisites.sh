@@ -63,12 +63,16 @@ git clone git@github.com:buidly/mx-evm-chain-proxy-go.git
 
 if [ "$SOVEREIGN_DEPLOY" -eq 1 ]; then
     pushd .
+    cd mx-chain-proxy-go
+    git checkout feat/sovereign
+    popd
+
+    pushd .
     cd mx-evm-chain-deploy-go
     git checkout one
     popd
 
     pushd .
-
     git clone git@github.com:buidly/mx-evm-chain-sovereign-bridge-go.git
     cd mx-evm-chain-sovereign-bridge-go
     git checkout one

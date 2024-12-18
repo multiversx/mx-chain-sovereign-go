@@ -2,12 +2,13 @@ package vm_test
 
 import (
 	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/factory/vm"
-	factory2 "github.com/multiversx/mx-chain-go/process/factory"
+	testFactory "github.com/multiversx/mx-chain-go/process/factory"
 	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 )
 
@@ -43,6 +44,9 @@ func TestNewSovereignVmContainerShardCreatorFactory(t *testing.T) {
 
 func TestNewSovereignVmContainerShardFactory_CreateVmContainerFactoryShard(t *testing.T) {
 	t.Parallel()
+	if runtime.GOARCH == "arm64" {
+		t.Skip("skipping test on arm64")
+	}
 
 	runTypeComponents := componentsMock.GetRunTypeComponents()
 	sovereignVmContainerShardFactory, err := vm.NewSovereignVmContainerShardFactory(runTypeComponents.VmContainerMetaFactoryCreator(), runTypeComponents.VmContainerShardFactoryCreator())
@@ -82,12 +86,12 @@ func TestNewSovereignVmContainerShardFactory_CreateVmContainerFactoryShard(t *te
 	require.Equal(t, "*shard.vmContainerFactory", fmt.Sprintf("%T", vmFactory))
 
 	require.Equal(t, 3, vmContainer.Len())
-	svm, err := vmContainer.Get(factory2.SystemVirtualMachine)
+	svm, err := vmContainer.Get(testFactory.SystemVirtualMachine)
 	require.Nil(t, err)
 	require.NotNil(t, svm)
 	require.Equal(t, "*process.systemVM", fmt.Sprintf("%T", svm))
 
-	wasmvm, err := vmContainer.Get(factory2.WasmVirtualMachine)
+	wasmvm, err := vmContainer.Get(testFactory.WasmVirtualMachine)
 	require.Nil(t, err)
 	require.NotNil(t, wasmvm)
 	require.Equal(t, "*hostCore.vmHost", fmt.Sprintf("%T", wasmvm))

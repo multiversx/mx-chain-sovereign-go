@@ -99,7 +99,6 @@ func NewShardInterceptorsContainerFactory(
 		SignaturesHandler:            args.SignaturesHandler,
 		HeartbeatExpiryTimespanInSec: args.HeartbeatExpiryTimespanInSec,
 		PeerID:                       args.MainMessenger.ID(),
-		RelayedTxV3Processor:         args.RelayedTxV3Processor,
 	}
 
 	base := &baseInterceptorsContainerFactory{
@@ -156,7 +155,7 @@ func (sicf *shardInterceptorsContainerFactory) Create() (process.InterceptorsCon
 		return nil, nil, err
 	}
 
-	err = sicf.generateHeaderInterceptors(core.MetachainShardId)
+	err = sicf.generateShardHeaderInterceptors()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -197,6 +196,14 @@ func (sicf *shardInterceptorsContainerFactory) Create() (process.InterceptorsCon
 	}
 
 	return sicf.mainContainer, sicf.fullArchiveContainer, nil
+}
+
+func (sicf *shardInterceptorsContainerFactory) generateShardHeaderInterceptors() error {
+	hdrFactory, err := interceptorFactory.NewInterceptedShardHeaderDataFactory(sicf.argInterceptorFactory)
+	if err != nil {
+		return err
+	}
+	return sicf.generateHeaderInterceptors(hdrFactory, core.MetachainShardId)
 }
 
 func (sicf *shardInterceptorsContainerFactory) generateTrieNodesInterceptors() error {
