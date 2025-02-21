@@ -14,7 +14,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-logger-go/proto"
 )
 
@@ -75,7 +74,7 @@ func (circumstance *failureCircumstance) enrichWithLoggerCorrelation(correlation
 	circumstance.round = uint64(correlation.Round)
 }
 
-func (circumstance *failureCircumstance) enrichWithConsensusState(consensusState spos.ConsensusStateHandler, nodePublicKey string) {
+func (circumstance *failureCircumstance) enrichWithConsensusState(consensusState MyConsensusStateHandler, nodePublicKey string) {
 	if check.IfNil(consensusState) {
 		return
 	}
@@ -93,7 +92,13 @@ func (circumstance *failureCircumstance) enrichWithConsensusState(consensusState
 
 	circumstance.nodePublicKey = hex.EncodeToString([]byte(nodePublicKey))
 	circumstance.consensusSize = consensusState.ConsensusGroupSize()
-	circumstance.amILeader = consensusState.Leader() == nodePublicKey
+
+	leader, err := consensusState.GetLeader()
+	if err != nil {
+		log.Warn("failureCircumstance.enrichWithConsensusState(): error getting leader", "error", err)
+	}
+
+	circumstance.amILeader = leader == nodePublicKey
 	circumstance.enrichWithBlockHeader(consensusState.GetHeader())
 }
 

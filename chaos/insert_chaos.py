@@ -57,7 +57,7 @@ def main():
     )
 
     do_replacements(
-        file_path=Path("consensus/spos/bls/v1/subroundSignature.go"),
+        file_path=Path("consensus/spos/bls/subroundSignature.go"),
         replacements=[
             (
                 "// chaos:consensusV1SubroundSignatureDoSignatureJobWhenSingleKey",
@@ -72,7 +72,7 @@ def main():
     )
 
     do_replacements(
-        file_path=Path("consensus/spos/bls/v1/subroundEndRound.go"),
+        file_path=Path("consensus/spos/bls/subroundEndRound.go"),
         replacements=[
             (
                 "// chaos:consensusV1SubroundEndRoundCheckSignaturesValidity",
@@ -83,35 +83,6 @@ def main():
             (
                 "// chaos:consensusV1SubroundEndRoundDoEndRoundJobByLeaderBeforeBroadcastingFinalBlock",
                 """chaos.Controller.HandlePoint(chaos.PointInput{Name: \"consensusV1SubroundEndRoundDoEndRoundJobByLeaderBeforeBroadcastingFinalBlock\", ConsensusState: sr})"""
-            )
-        ],
-        with_import=True
-    )
-
-    do_replacements(
-        file_path=Path("consensus/spos/bls/v2/subroundBlock.go"),
-        replacements=[
-            (
-                "// chaos:consensusV2SubroundBlockDoBlockJob",
-                """errChaos := chaos.Controller.HandlePoint(chaos.PointInput{Name: \"consensusV2SubroundBlockDoBlockJob\", ConsensusState: sr, Header: header, Signature: leaderSignature})
-    if errChaos == chaos.ErrEarlyReturn {
-        return false
-    }"""
-            )
-        ],
-        with_import=True
-    )
-
-    do_replacements(
-        file_path=Path("consensus/spos/bls/v2/subroundSignature.go"),
-        replacements=[
-            (
-                "// chaos:consensusV2SubroundSignatureDoSignatureJobWhenSingleKey",
-                """chaos.Controller.HandlePoint(chaos.PointInput{Name: \"consensusV2SubroundSignatureDoSignatureJobWhenSingleKey\", ConsensusState: sr, Signature: signatureShare})"""
-            ),
-            (
-                "// chaos:consensusV2SubroundSignatureDoSignatureJobWhenMultiKey",
-                """chaos.Controller.HandlePoint(chaos.PointInput{Name: \"consensusV2SubroundSignatureDoSignatureJobWhenMultiKey\", ConsensusState: sr, NodePublicKey: pk, Signature: signatureShare})"""
             )
         ],
         with_import=True

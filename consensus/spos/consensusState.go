@@ -390,3 +390,7 @@ func (cns *ConsensusState) GetMultikeyRedundancyStepInReason() string {
 func (cns *ConsensusState) ResetRoundsWithoutReceivedMessages(pkBytes []byte, pid core.PeerID) {
 	cns.keysHandler.ResetRoundsWithoutReceivedMessages(pkBytes, pid)
 }
+
+func (cns *ConsensusState) GetHeader() data.HeaderHandler {
+	return cns.Header
+}
