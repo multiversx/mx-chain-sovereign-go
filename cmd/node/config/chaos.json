@@ -7,19 +7,6 @@
                 {
                     "name": "a",
                     "enabled": true,
-                    "type": "returnError",
-                    "onPoints": [
-                        "shardBlockCreateBlock",
-                        "shardBlockProcessBlock"
-                    ],
-                    "triggers": [
-                        "point == \"shardBlockCreateBlock\" && round % 9 == 0",
-                        "point == \"shardBlockProcessBlock\" && round % 10 == 0 && randomNumber % 3 == 0"
-                    ]
-                },
-                {
-                    "name": "b",
-                    "enabled": true,
                     "type": "corruptSignature",
                     "onPoints": [
                         "consensusV1SubroundSignatureDoSignatureJobWhenSingleKey",
@@ -27,6 +14,19 @@
                     ],
                     "triggers": [
                         "round % 7 == 0 && nodeIndex < consensusSize / 3 - 1"
+                    ]
+                },
+                {
+                    "name": "b",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "shardBlockCreateBlock",
+                        "shardBlockProcessBlock"
+                    ],
+                    "triggers": [
+                        "point == \"shardBlockCreateBlock\" && round % 8 == 0",
+                        "point == \"shardBlockProcessBlock\" && round % 9 == 0 && randomNumber % 3 == 0"
                     ]
                 },
                 {
