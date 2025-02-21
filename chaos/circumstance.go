@@ -1,13 +1,13 @@
 package chaos
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"go/constant"
 	"go/token"
 	"go/types"
 	"math"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -21,7 +21,7 @@ type failureCircumstance struct {
 	// Always available:
 	point           string
 	failure         string
-	randomNumber    uint64
+	randomNumber    uint8
 	now             int64
 	uptime          int64
 	nodeDisplayName string
@@ -39,7 +39,7 @@ type failureCircumstance struct {
 }
 
 func newFailureCircumstance() *failureCircumstance {
-	randomNumber := rand.Uint64()
+	randomNumber := getRandomNumber()
 	now := time.Now().Unix()
 	uptime := time.Since(startTime).Seconds()
 
@@ -60,6 +60,12 @@ func newFailureCircumstance() *failureCircumstance {
 		blockNonce:          0,
 		blockIsStartOfEpoch: false,
 	}
+}
+
+func getRandomNumber() uint8 {
+	buffer := make([]byte, 1)
+	_, _ = rand.Read(buffer)
+	return buffer[0]
 }
 
 // For simplicity, we get the current shard, epoch and round from the logger correlation facility.
@@ -154,7 +160,7 @@ func (circumstance *failureCircumstance) createGoPackage() *types.Package {
 
 	// Always available:
 	scope.Insert(createFailureExpressionStringParameter(pack, parameterPoint, circumstance.point))
-	scope.Insert(createFailureExpressionNumericParameter(pack, parameterRandomNumber, circumstance.randomNumber))
+	scope.Insert(createFailureExpressionNumericParameter(pack, parameterRandomNumber, uint64(circumstance.randomNumber)))
 	scope.Insert(createFailureExpressionNumericParameter(pack, parameterNow, uint64(circumstance.now)))
 	scope.Insert(createFailureExpressionNumericParameter(pack, parameterUptime, uint64(circumstance.uptime)))
 	scope.Insert(createFailureExpressionStringParameter(pack, parameterNodeDisplayName, circumstance.nodeDisplayName))
