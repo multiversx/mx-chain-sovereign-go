@@ -5,7 +5,42 @@
             "name": "spica-a",
             "failures": [
                 {
-                    "name": "a",
+                    "name": "a-shard",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "shardBlockCreateBlock",
+                        "shardBlockProcessBlock"
+                    ],
+                    "triggers": [
+                        "point == \"shardBlockCreateBlock\" && shard == 0 && round % 8 == 0",
+                        "point == \"shardBlockProcessBlock\" && shard == 1 && round % 8 == 0 && randomNumber % 4 == 0"
+                    ]
+                },
+                {
+                    "name": "a-meta",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "metaBlockCreateBlock",
+                        "metaBlockProcessBlock"
+                    ],
+                    "triggers": [
+                        "point == \"metaBlockCreateBlock\" && round % 8 == 0",
+                        "point == \"metaBlockProcessBlock\" && round % 9 == 0 && randomNumber % 4 == 0"
+                    ]
+                },
+                {
+                    "name": "b",
+                    "enabled": true,
+                    "type": "panic",
+                    "onPoints": ["epochConfirmed"],
+                    "triggers": [
+                        "shard == 4294967295 && randomNumber % 7 == 0 && uptime > 120"
+                    ]
+                },
+                {
+                    "name": "c-corrupt",
                     "enabled": true,
                     "type": "corruptSignature",
                     "onPoints": [
@@ -17,20 +52,7 @@
                     ]
                 },
                 {
-                    "name": "b",
-                    "enabled": true,
-                    "type": "returnError",
-                    "onPoints": [
-                        "shardBlockCreateBlock",
-                        "shardBlockProcessBlock"
-                    ],
-                    "triggers": [
-                        "point == \"shardBlockCreateBlock\" && round % 8 == 0",
-                        "point == \"shardBlockProcessBlock\" && round % 9 == 0 && randomNumber % 3 == 0"
-                    ]
-                },
-                {
-                    "name": "c",
+                    "name": "c-check",
                     "enabled": true,
                     "type": "returnError",
                     "onPoints": [
@@ -51,15 +73,6 @@
                     "parameters": {
                         "duration": 12
                     }
-                },
-                {
-                    "name": "d",
-                    "enabled": true,
-                    "type": "panic",
-                    "onPoints": ["epochConfirmed"],
-                    "triggers": [
-                        "epoch > 0 && randomNumber % 7 == 0 && uptime > 60"
-                    ]
                 }
             ]
         }
