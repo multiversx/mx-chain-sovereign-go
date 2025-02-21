@@ -122,6 +122,9 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 		return err
 	}
 
+	// chaos:setup
+	// chaos:node_main_handleNodeConfig
+
 	memBallastValue := c.GlobalUint64(memBallast.Name)
 	if memBallastValue > 0 {
 		// memory ballast is an optimization for golang's garbage collector. If set to a high value, it can decrease

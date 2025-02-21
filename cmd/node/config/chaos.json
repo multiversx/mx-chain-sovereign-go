@@ -1,0 +1,109 @@
+{
+    "selectedProfile": "andromeda-a",
+    "profiles": [
+        {
+            "name": "spica-a",
+            "failures": [
+                {
+                    "name": "a",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "shardBlockCreateBlock",
+                        "shardBlockProcessBlock"
+                    ],
+                    "triggers": [
+                        "point == \"shardBlockCreateBlock\" && shard == 0 && round % 29 == 0",
+                        "point == \"shardBlockProcessBlock\" && shard == 1 && round % 29 == 0 && randomNumber % 4 == 0"
+                    ]
+                },
+                {
+                    "name": "b",
+                    "enabled": true,
+                    "type": "corruptSignature",
+                    "onPoints": [
+                        "consensusV1SubroundSignatureDoSignatureJobWhenSingleKey",
+                        "consensusV1SubroundSignatureDoSignatureJobWhenMultiKey"
+                    ],
+                    "triggers": [
+                        "epoch == 0 && round % 7 == 0 && nodeIndex < consensusSize / 3 - 1"
+                    ]
+                },
+                {
+                    "name": "c",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "consensusV1SubroundEndRoundCheckSignaturesValidity"
+                    ],
+                    "triggers": [
+                        "epoch == 1 && round % 13 == 0 && nodeIndex < consensusSize / 3 - 1"
+                    ]
+                },
+                {
+                    "name": "classic soft fork",
+                    "enabled": true,
+                    "type": "sleep",
+                    "onPoints": [
+                        "consensusV1SubroundEndRoundDoEndRoundJobByLeaderBeforeBroadcastingFinalBlock"
+                    ],
+                    "triggers": ["round % 20 == 0"],
+                    "parameters": {
+                        "duration": 12
+                    }
+                }
+            ]
+        },
+        {
+            "name": "andromeda-a",
+            "failures": [
+                {
+                    "name": "a",
+                    "enabled": true,
+                    "type": "returnError",
+                    "onPoints": [
+                        "shardBlockCreateBlock",
+                        "shardBlockProcessBlock"
+                    ],
+                    "triggers": [
+                        "point == \"shardBlockCreateBlock\" && shard == 0 && round % 29 == 0",
+                        "point == \"shardBlockProcessBlock\" && shard == 1 && round % 29 == 0 && randomNumber % 4 == 0"
+                    ]
+                },
+                {
+                    "name": "b",
+                    "enabled": true,
+                    "type": "panic",
+                    "onPoints": ["epochConfirmed"],
+                    "triggers": [
+                        "shard == 4294967295 && randomNumber % 5 == 0 && uptime > 60"
+                    ]
+                },
+                {
+                    "name": "c-corrupt",
+                    "enabled": true,
+                    "type": "corruptSignature",
+                    "onPoints": ["consensusV2SubroundBlockDoBlockJob"],
+                    "triggers": ["round % 13 == 0"]
+                },
+                {
+                    "name": "c-delay",
+                    "enabled": true,
+                    "type": "sleep",
+                    "onPoints": ["consensusV2SubroundBlockDoBlockJob"],
+                    "triggers": ["round % 19 == 0"],
+                    "parameters": {
+                        "duration": 4
+                    }
+                },
+                {
+                    "name": "c-do-not-send",
+                    "enabled": true,
+                    "type": "earlyReturn",
+                    "onPoints": ["consensusV2SubroundBlockDoBlockJob"],
+                    "triggers": ["round % 7 == 0 && randomNumber % 2 == 0"]
+                }
+            ]
+        }
+    ]
+}

@@ -100,6 +100,8 @@ func (sr *subroundSignature) doSignatureJob(_ context.Context) bool {
 			return false
 		}
 
+		// chaos:consensusV1SubroundSignatureDoSignatureJobWhenSingleKey
+
 		if !isSelfLeader {
 			ok := sr.createAndSendSignatureMessage(signatureShare, []byte(sr.SelfPubKey()))
 			if !ok {
@@ -377,6 +379,8 @@ func (sr *subroundSignature) doSignatureJobForManagedKeys() bool {
 			log.Debug("doSignatureJobForManagedKeys.CreateSignatureShareForPublicKey", "error", err.Error())
 			return false
 		}
+
+		// chaos:consensusV1SubroundSignatureDoSignatureJobWhenMultiKey
 
 		if !isMultiKeyLeader {
 			ok := sr.createAndSendSignatureMessage(signatureShare, pkBytes)

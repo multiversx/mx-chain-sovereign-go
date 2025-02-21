@@ -351,7 +351,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 		return false
 	}
 
-	// broadcast header and final info section
+	// chaos:consensusV1SubroundEndRoundDoEndRoundJobByLeaderBeforeBroadcastingFinalBlock
 
 	sr.createAndBroadcastHeaderFinalInfo()
 
@@ -863,6 +863,8 @@ func (sr *subroundEndRound) doEndRoundConsensusCheck() bool {
 }
 
 func (sr *subroundEndRound) checkSignaturesValidity(bitmap []byte) error {
+	// chaos:consensusV1SubroundEndRoundCheckSignaturesValidity
+
 	consensusGroup := sr.ConsensusGroup()
 	signers := headerCheck.ComputeSignersPublicKeys(consensusGroup, bitmap)
 	for _, pubKey := range signers {
