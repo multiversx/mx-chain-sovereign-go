@@ -1,5 +1,7 @@
 module github.com/multiversx/mx-chain-go
 
+replace github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250304144631-a325edffb2f5
+
 go 1.20
 
 require (
