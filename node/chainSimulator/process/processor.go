@@ -72,7 +72,10 @@ func (creator *blocksCreator) CreateNewBlock() error {
 		return err
 	}
 
-	err = newHeader.SetPubKeysBitmap([]byte{1})
+	cnsGroupSize := creator.nodeHandler.GetProcessComponents().NodesCoordinator().ConsensusGroupSize(epoch)
+	pkMap := make([]byte, cnsGroupSize/8+1)
+	pkMap[0] = 1
+	err = newHeader.SetPubKeysBitmap(pkMap)
 	if err != nil {
 		return err
 	}
