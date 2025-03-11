@@ -3,11 +3,12 @@ package runType
 import (
 	"fmt"
 
+	"github.com/multiversx/mx-sdk-abi-go/abi"
+
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/factory/runType"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
-	"github.com/multiversx/mx-chain-go/sovereignnode/dataCodec"
-	"github.com/multiversx/mx-sdk-abi-go/abi"
 )
 
 const (
