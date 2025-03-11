@@ -72,10 +72,8 @@ func (creator *blocksCreator) CreateNewBlock() error {
 		return err
 	}
 
-	cnsGroupSize := creator.nodeHandler.GetProcessComponents().NodesCoordinator().ConsensusGroupSize(epoch)
-	pkMap := make([]byte, cnsGroupSize/8+1)
-	pkMap[0] = 1
-	err = newHeader.SetPubKeysBitmap(pkMap)
+	pubKeysBitMap := creator.createPubKeysBitMap(epoch)
+	err = newHeader.SetPubKeysBitmap(pubKeysBitMap)
 	if err != nil {
 		return err
 	}
@@ -165,6 +163,14 @@ func (creator *blocksCreator) getPreviousHeaderData() (nonce, round uint64, prev
 	nonce = creator.nodeHandler.GetChainHandler().GetGenesisHeader().GetNonce()
 
 	return
+}
+
+func (creator *blocksCreator) createPubKeysBitMap(epoch uint32) []byte {
+	cnsGroupSize := creator.nodeHandler.GetProcessComponents().NodesCoordinator().ConsensusGroupSize(epoch)
+	pkMap := make([]byte, cnsGroupSize/8+1)
+	pkMap[0] = 1
+
+	return pkMap
 }
 
 func (creator *blocksCreator) setHeaderSignatures(header data.HeaderHandler, blsKeyBytes []byte) error {
