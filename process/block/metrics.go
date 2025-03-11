@@ -12,11 +12,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 const leaderIndex = 0

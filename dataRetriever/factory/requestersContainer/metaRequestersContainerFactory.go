@@ -5,11 +5,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/random"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers"
-	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers/requesters"
-	"github.com/multiversx/mx-chain-go/process/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/containers"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/requestHandlers/requesters"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 type metaRequestersContainerFactory struct {

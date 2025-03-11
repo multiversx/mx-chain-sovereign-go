@@ -8,16 +8,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/atomic"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/consensus/broadcast"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/broadcast"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
 )
 
 func createDelayData(prefix string) ([]byte, *block.Header, map[uint32][]byte, map[string][][]byte) {

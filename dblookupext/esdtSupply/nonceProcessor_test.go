@@ -3,10 +3,11 @@ package esdtSupply
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNonceProcessor_shouldProcessLogs_currentNonceLowerThanProcessed(t *testing.T) {

@@ -6,10 +6,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 var log = logger.GetOrCreate("process/throttle/antiflood/blacklist")

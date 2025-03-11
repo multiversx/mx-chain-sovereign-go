@@ -2,8 +2,9 @@ package networksharding
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 // MaxNumPidsPerPk -

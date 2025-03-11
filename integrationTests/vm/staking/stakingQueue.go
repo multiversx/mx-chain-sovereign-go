@@ -4,10 +4,11 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon/stakingcommon"
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/stakingcommon"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 func createStakingQueue(

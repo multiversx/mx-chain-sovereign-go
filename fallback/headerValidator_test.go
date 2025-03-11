@@ -7,14 +7,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/fallback"
-	"github.com/multiversx/mx-chain-go/fallback/mock"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/fallback"
+	"github.com/multiversx/mx-chain-sovereign-go/fallback/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewFallbackHeaderValidator_ShouldErrNilHeadersDataPool(t *testing.T) {

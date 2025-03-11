@@ -2,9 +2,10 @@ package status
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/outport"
-	outportDriverFactory "github.com/multiversx/mx-chain-go/outport/factory"
-	"github.com/multiversx/mx-chain-go/p2p"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	outportDriverFactory "github.com/multiversx/mx-chain-sovereign-go/outport/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 // ComputeNumConnectedPeers -

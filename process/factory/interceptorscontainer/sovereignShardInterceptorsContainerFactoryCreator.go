@@ -1,6 +1,6 @@
 package interceptorscontainer
 
-import "github.com/multiversx/mx-chain-go/process"
+import "github.com/multiversx/mx-chain-sovereign-go/process"
 
 type sovereignShardInterceptorsContainerFactoryCreator struct {
 }

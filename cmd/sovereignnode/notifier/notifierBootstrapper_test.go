@@ -17,11 +17,11 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/testscommon"
 	"github.com/stretchr/testify/require"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/process"
-	processMocks "github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	processMocks "github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
 )
 
 func createArgs() ArgsNotifierBootstrapper {

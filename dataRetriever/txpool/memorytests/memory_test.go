@@ -13,11 +13,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/txpool"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
-	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/txpool"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txcachemocks"
 )
 
 // useMemPprof dictates whether to save heap profiles when running the test.

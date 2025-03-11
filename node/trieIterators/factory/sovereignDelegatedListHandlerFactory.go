@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/node/trieIterators"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/node/trieIterators"
 )
 
 type sovereignDelegatedListProcessorFactory struct {

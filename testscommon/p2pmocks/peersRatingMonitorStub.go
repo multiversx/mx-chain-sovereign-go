@@ -1,6 +1,6 @@
 package p2pmocks
 
-import "github.com/multiversx/mx-chain-go/p2p"
+import "github.com/multiversx/mx-chain-sovereign-go/p2p"
 
 // PeersRatingMonitorStub -
 type PeersRatingMonitorStub struct {

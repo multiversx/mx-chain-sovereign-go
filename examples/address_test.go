@@ -7,10 +7,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/display"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestHexAddressToBech32Address(t *testing.T) {

@@ -3,7 +3,8 @@ package mock
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 // MiniBlockProvider defines what a miniblock data provider should do

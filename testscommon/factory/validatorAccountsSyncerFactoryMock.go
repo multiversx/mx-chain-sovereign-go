@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	processMock "github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/state/syncer"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	processMock "github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/state/syncer"
 )
 
 // ValidatorAccountsSyncerFactoryMock -

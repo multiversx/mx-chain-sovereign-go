@@ -13,15 +13,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
-	"github.com/multiversx/mx-chain-go/genesis"
-	genesisCommon "github.com/multiversx/mx-chain-go/genesis/process/common"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/addressDecoder"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	genesisCommon "github.com/multiversx/mx-chain-sovereign-go/genesis/process/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 type sovereignGenesisBlockCreator struct {

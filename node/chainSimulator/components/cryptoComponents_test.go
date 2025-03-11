@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
 )
 
 func createArgsCryptoComponentsHolder() ArgsCryptoComponentsHolder {

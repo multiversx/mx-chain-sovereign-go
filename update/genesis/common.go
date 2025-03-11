@@ -5,10 +5,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
 
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/accounts"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state/accounts"
 )
 
 // TODO: create a structure or use this function also in process/peer/process.go

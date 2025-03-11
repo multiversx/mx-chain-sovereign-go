@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 func TestPresenterStatusHandler_GetNumTxInBlock(t *testing.T) {

@@ -3,10 +3,11 @@ package components
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 func TestNewInstantBroadcastMessenger(t *testing.T) {

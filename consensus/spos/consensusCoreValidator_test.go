@@ -3,13 +3,14 @@ package spos
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	consensusMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 func initConsensusDataContainer() *ConsensusCore {

@@ -7,7 +7,8 @@ import (
 	messagecheck "github.com/multiversx/mx-chain-communication-go/p2p/messageCheck"
 	"github.com/multiversx/mx-chain-communication-go/p2p/peersHolder"
 	"github.com/multiversx/mx-chain-communication-go/p2p/rating"
-	"github.com/multiversx/mx-chain-go/p2p"
+
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 // ArgsNetworkMessenger defines the options used to create a p2p wrapper

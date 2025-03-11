@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/storage"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestHas_ErrorWhenStorerIsMissing(t *testing.T) {

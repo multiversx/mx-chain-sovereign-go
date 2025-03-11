@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 var _ consensus.P2PAntifloodHandler = (*AntiFlood)(nil)

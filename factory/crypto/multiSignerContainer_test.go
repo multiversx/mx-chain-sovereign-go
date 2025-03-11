@@ -7,13 +7,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	disabledMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/disabled/multisig"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
 )
 
 func Test_NewMultiSignerContainer(t *testing.T) {

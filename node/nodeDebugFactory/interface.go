@@ -1,6 +1,6 @@
 package nodeDebugFactory
 
-import "github.com/multiversx/mx-chain-go/debug"
+import "github.com/multiversx/mx-chain-sovereign-go/debug"
 
 // NodeWrapper is the interface that defines the behavior of a Node that can work with debug handlers
 type NodeWrapper interface {

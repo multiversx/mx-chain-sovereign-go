@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+import "github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 
 // InitialNodesSetupHandlerStub -
 type InitialNodesSetupHandlerStub struct {

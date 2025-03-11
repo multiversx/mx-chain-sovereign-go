@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 
 	"github.com/stretchr/testify/require"
 )

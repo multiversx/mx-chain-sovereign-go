@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/requestersContainer"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
 )
 
 func TestNewMetaRequestersContainerFactory_NilShardCoordinatorShouldErr(t *testing.T) {

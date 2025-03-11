@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // EvictionWaitingListMock is a mock implementation of state.DBRemoveCacher

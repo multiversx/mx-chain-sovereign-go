@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 // NodesCoordinatorStub -

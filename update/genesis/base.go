@@ -11,7 +11,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/update"
+
+	"github.com/multiversx/mx-chain-sovereign-go/update"
 )
 
 // EpochStartMetaBlockIdentifier is the constant which defines the export/import identifier for epoch start metaBlock

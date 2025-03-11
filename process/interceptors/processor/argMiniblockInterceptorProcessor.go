@@ -3,9 +3,10 @@ package processor
 import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 // ArgMiniblockInterceptorProcessor is the argument for the interceptor processor used for miniblocks

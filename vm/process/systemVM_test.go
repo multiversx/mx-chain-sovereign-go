@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/mock"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/mock"
 )
 
 func createMockArguments() ArgsNewSystemVM {

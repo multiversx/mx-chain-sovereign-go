@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
 )
 
 func TestRequestDataType_StringVals(t *testing.T) {

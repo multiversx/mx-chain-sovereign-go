@@ -12,11 +12,12 @@ import (
 	"github.com/multiversx/mx-chain-logger-go/file"
 	"github.com/urfave/cli"
 
-	"github.com/multiversx/mx-chain-go/cmd/node/factory"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/config/overridableConfig"
-	sovereignConfig "github.com/multiversx/mx-chain-go/sovereignnode/config"
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/node/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config/overridableConfig"
+
+	sovereignConfig "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/config"
 	// test point 1 for custom profiler
 )
 

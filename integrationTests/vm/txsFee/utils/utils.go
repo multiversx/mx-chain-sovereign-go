@@ -16,16 +16,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txDataBuilder"
 )
 
 var (

@@ -5,12 +5,13 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-vm-common-go/txDataBuilder"
 	"github.com/multiversx/mx-chain-vm-go/mock/contracts"
 	"github.com/multiversx/mx-chain-vm-go/testcommon"
 	test "github.com/multiversx/mx-chain-vm-go/testcommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
 )
 
 var LegacyAsyncCallType = []byte{0}

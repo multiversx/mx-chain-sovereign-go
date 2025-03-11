@@ -6,20 +6,21 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	storagerequesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	storagerequesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/storageRequestersContainer"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createMessengerStubForMeta(matchStrToErrOnCreate string, matchStrToErrOnRegister string) p2p.Messenger {

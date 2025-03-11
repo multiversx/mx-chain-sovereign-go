@@ -1,6 +1,6 @@
 package hooks
 
-import "github.com/multiversx/mx-chain-go/process"
+import "github.com/multiversx/mx-chain-sovereign-go/process"
 
 // blockChainHookFactory - factory for blockchain hook chain run type normal
 type blockChainHookFactory struct {

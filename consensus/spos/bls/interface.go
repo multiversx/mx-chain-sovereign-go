@@ -3,8 +3,8 @@ package bls
 import (
 	"context"
 
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"

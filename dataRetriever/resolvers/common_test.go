@@ -1,10 +1,10 @@
 package resolvers_test
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
 )
 
 func createRequestMsg(dataType dataRetriever.RequestDataType, val []byte) p2p.MessageP2P {

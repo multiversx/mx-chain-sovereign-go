@@ -2,7 +2,8 @@ package outport
 
 import (
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/outport"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
 )
 
 // OutportStub is a mock implementation fot the OutportHandler interface

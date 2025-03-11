@@ -22,13 +22,13 @@ import (
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 var _ process.SmartContractResultProcessor = (*scProcessor)(nil)

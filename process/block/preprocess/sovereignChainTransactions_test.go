@@ -12,15 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process"
-	state2 "github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/txcache"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/state"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	state2 "github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/txcache"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/economicsmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
 )
 
 func TestTxsPreprocessor_NewSovereignChainTransactionPreprocessorShouldErrNilPreProcessor(t *testing.T) {

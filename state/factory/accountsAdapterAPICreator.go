@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	chainData "github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/blockInfoProviders"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state/blockInfoProviders"
 )
 
 // CreateAccountsAdapterAPIOnFinal creates a new instance of AccountsAdapterAPI that tracks the final blocks state

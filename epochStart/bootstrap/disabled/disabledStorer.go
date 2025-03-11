@@ -1,9 +1,9 @@
 package disabled
 
 import (
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 const defaultCapacity = 10000

@@ -8,11 +8,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/interceptedBlocks"
-	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/interceptedBlocks"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
 )
 
 func createDefaultMetaArgument() *interceptedBlocks.ArgInterceptedBlockHeader {

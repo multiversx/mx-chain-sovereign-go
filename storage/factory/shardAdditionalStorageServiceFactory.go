@@ -1,6 +1,6 @@
 package factory
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 type shardAdditionalStorageServiceFactory struct {
 }

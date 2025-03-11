@@ -1,20 +1,20 @@
 package mock
 
 import (
-	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
-	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
-	storageRequestFactory "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer/factory"
-	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/state"
-	syncerFactory "github.com/multiversx/mx-chain-go/state/syncer/factory"
-	"github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	sovereignMocks "github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
+	sovereignBlock "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool/sovereign"
+	requesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/requestersContainer"
+	storageRequestFactory "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/storageRequestersContainer/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/requestHandlers"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	syncerFactory "github.com/multiversx/mx-chain-sovereign-go/state/syncer/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	sovereignMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
+	stateMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
 )
 
 // RunTypeComponentsStub -

@@ -3,8 +3,8 @@ package enablers
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type sovereignEnableEpochsHandler struct {

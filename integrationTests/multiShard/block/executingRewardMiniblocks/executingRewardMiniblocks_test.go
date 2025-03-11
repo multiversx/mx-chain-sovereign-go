@@ -10,11 +10,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	testBlock "github.com/multiversx/mx-chain-go/integrationTests/multiShard/block"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/state"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	testBlock "github.com/multiversx/mx-chain-sovereign-go/integrationTests/multiShard/block"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 func getLeaderPercentage(node *integrationTests.TestProcessorNode) float64 {

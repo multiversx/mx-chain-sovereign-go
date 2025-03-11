@@ -5,7 +5,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/p2p"
+
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 // HeaderSigVerifierHandler is the interface needed to check that a header's signature is correct

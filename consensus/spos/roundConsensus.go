@@ -4,7 +4,8 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
 )
 
 // roundConsensus defines the data needed by spos to do the consensus in each round

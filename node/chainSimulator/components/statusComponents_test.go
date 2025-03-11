@@ -6,13 +6,14 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/atomic"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	mxErrors "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	mxErrors "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func TestCreateStatusComponents(t *testing.T) {

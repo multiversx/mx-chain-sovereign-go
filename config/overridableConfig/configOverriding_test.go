@@ -3,8 +3,8 @@ package overridableConfig
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	p2pConfig "github.com/multiversx/mx-chain-go/p2p/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	p2pConfig "github.com/multiversx/mx-chain-sovereign-go/p2p/config"
 
 	"github.com/stretchr/testify/require"
 )

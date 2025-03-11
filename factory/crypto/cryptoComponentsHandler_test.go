@@ -3,13 +3,14 @@ package crypto_test
 import (
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	cryptoComp "github.com/multiversx/mx-chain-go/factory/crypto"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	cryptoComp "github.com/multiversx/mx-chain-sovereign-go/factory/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestManagedCryptoComponents(t *testing.T) {

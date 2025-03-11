@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	mxFactory "github.com/multiversx/mx-chain-go/factory"
-	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
-	factoryMocks "github.com/multiversx/mx-chain-go/testscommon/factory"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	mxFactory "github.com/multiversx/mx-chain-sovereign-go/factory"
+	consensusComp "github.com/multiversx/mx-chain-sovereign-go/factory/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	factoryMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 // ------------ Test ManagedConsensusComponentsFactory --------------------

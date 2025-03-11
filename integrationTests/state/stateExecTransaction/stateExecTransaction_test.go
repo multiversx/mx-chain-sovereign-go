@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/state"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 func TestExecTransaction_SelfTransactionShouldWork(t *testing.T) {

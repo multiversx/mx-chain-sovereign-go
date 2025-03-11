@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestPayloadProcessor_New(t *testing.T) {

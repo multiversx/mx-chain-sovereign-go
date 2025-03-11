@@ -8,13 +8,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createMockHeaderRequesterArg() ArgHeaderRequester {

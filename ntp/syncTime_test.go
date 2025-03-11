@@ -8,10 +8,11 @@ import (
 	"time"
 
 	beevikNtp "github.com/beevik/ntp"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/ntp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/ntp"
 )
 
 var responseMock1 *beevikNtp.Response

@@ -3,8 +3,9 @@ package api
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/facade"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
 )
 
 func TestNewNoApiInterface(t *testing.T) {

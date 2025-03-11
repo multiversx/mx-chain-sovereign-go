@@ -1,9 +1,9 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
 )
 
 // StatusComponentsStub -

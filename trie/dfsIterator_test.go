@@ -3,8 +3,9 @@ package trie_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
 )
 
 func TestNewDFSIterator(t *testing.T) {

@@ -12,14 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/groups"
-	"github.com/multiversx/mx-chain-go/api/middleware"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/facade"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/groups"
+	"github.com/multiversx/mx-chain-sovereign-go/api/middleware"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
 )
 
 var log = logger.GetOrCreate("api/gin")

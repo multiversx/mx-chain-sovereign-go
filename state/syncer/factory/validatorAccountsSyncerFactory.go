@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/state/syncer"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/state/syncer"
 )
 
 type validatorAccountsSyncerFactory struct {

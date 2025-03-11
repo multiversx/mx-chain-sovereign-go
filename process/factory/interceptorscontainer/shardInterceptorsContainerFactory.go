@@ -5,11 +5,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/factory/containers"
-	interceptorFactory "github.com/multiversx/mx-chain-go/process/interceptors/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/containers"
+	interceptorFactory "github.com/multiversx/mx-chain-sovereign-go/process/interceptors/factory"
 )
 
 var _ process.InterceptorsContainerFactory = (*shardInterceptorsContainerFactory)(nil)

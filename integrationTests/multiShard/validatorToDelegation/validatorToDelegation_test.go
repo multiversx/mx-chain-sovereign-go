@@ -8,13 +8,14 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txDataBuilder"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 func TestValidatorToDelegationManagerWithNewContract(t *testing.T) {

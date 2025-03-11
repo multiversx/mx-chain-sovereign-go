@@ -9,7 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/batch"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // blockSizeComputation is able to estimate the size in bytes of a block body given the number of contained

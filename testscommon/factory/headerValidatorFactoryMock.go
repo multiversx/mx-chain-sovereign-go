@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/node/mock"
-	"github.com/multiversx/mx-chain-go/process"
-	processBlock "github.com/multiversx/mx-chain-go/process/block"
+	"github.com/multiversx/mx-chain-sovereign-go/node/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	processBlock "github.com/multiversx/mx-chain-sovereign-go/process/block"
 )
 
 // HeaderValidatorFactoryMock -

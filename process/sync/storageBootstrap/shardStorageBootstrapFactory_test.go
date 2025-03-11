@@ -3,16 +3,17 @@ package storageBootstrap
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/epochNotifier"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewShardStorageBootstrapperFactory(t *testing.T) {

@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	storagerequesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	storagerequesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/storageRequestersContainer"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 func TestNewSovereignShardRequestersContainerFactory(t *testing.T) {

@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestNewTimeCache_ShouldWork(t *testing.T) {

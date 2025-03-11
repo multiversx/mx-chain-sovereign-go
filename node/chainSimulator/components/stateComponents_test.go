@@ -3,15 +3,15 @@ package components
 import (
 	"testing"
 
-	disabledStatistics "github.com/multiversx/mx-chain-go/common/statistics/disabled"
-	mockFactory "github.com/multiversx/mx-chain-go/factory/mock"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/components"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/factory"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	disabledStatistics "github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
+	mockFactory "github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 
 	"github.com/stretchr/testify/require"
 )

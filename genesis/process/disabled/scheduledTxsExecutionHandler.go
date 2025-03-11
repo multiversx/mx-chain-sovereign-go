@@ -7,8 +7,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // ScheduledTxsExecutionHandler implements ScheduledTxsExecutionHandler interface but does nothing as it is a disabled component

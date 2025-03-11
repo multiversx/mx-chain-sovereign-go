@@ -8,8 +8,8 @@ import (
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/mock"
 )
 
 func TestNewSovereignVMContext(t *testing.T) {

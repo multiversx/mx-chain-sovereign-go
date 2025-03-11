@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/storage"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 var log = logger.GetOrCreate("inteagrationtests/node/heartbeatv2")

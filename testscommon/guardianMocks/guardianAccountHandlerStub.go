@@ -2,8 +2,9 @@ package guardianMocks
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data/guardians"
-	"github.com/multiversx/mx-chain-go/state"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // GuardedAccountHandlerStub -

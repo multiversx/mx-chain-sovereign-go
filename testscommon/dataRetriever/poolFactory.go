@@ -6,17 +6,18 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool"
-	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool/headersCache"
-	"github.com/multiversx/mx-chain-go/dataRetriever/shardedData"
-	"github.com/multiversx/mx-chain-go/dataRetriever/txpool"
-	"github.com/multiversx/mx-chain-go/storage/cache"
-	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
-	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
-	"github.com/multiversx/mx-chain-go/trie/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool/headersCache"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/shardedData"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/txpool"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/cache"
+	storageFactory "github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txcachemocks"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/factory"
 )
 
 var peerAuthDuration = 10 * time.Second

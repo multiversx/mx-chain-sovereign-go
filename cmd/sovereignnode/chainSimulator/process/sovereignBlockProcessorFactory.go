@@ -3,8 +3,8 @@ package process
 import (
 	"time"
 
-	chainSimulatorProcess "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	"github.com/multiversx/mx-chain-go/process"
+	chainSimulatorProcess "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"

@@ -6,9 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/process"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 const uint32Size = 4

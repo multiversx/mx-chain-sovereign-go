@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/p2p"
-	p2pConfig "github.com/multiversx/mx-chain-go/p2p/config"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	p2pConfig "github.com/multiversx/mx-chain-sovereign-go/p2p/config"
 )
 
 var p2pBootstrapStepDelay = 2 * time.Second

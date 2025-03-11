@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/process/unsigned"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process/unsigned"
 )
 
 func TestNewInterceptedUnsignedTxDataFactory_NilArgumentShouldErr(t *testing.T) {

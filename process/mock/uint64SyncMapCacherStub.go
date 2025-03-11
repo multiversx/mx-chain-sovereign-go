@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 // Uint64SyncMapCacherStub -

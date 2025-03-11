@@ -6,8 +6,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
 )
 
 func TestTransfers_DuplicatedTransferValueEvents(t *testing.T) {

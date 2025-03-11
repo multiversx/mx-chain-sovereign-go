@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
 )
 
 func TestDNS_Register(t *testing.T) {

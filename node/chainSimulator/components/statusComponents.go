@@ -11,15 +11,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	factoryMarshalizer "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	indexerFactory "github.com/multiversx/mx-chain-es-indexer-go/process/factory"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/outport/factory"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/testscommon"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 type statusComponentsHolder struct {

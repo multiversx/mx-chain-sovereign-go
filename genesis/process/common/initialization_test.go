@@ -3,10 +3,11 @@ package common
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon/state"
-	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestUpdateSystemSCContractsCode(t *testing.T) {

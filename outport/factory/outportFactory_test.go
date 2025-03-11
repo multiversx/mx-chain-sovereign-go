@@ -10,11 +10,11 @@ import (
 	"github.com/multiversx/mx-chain-storage-go/testscommon"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/outport/factory"
-	notifierFactory "github.com/multiversx/mx-chain-go/outport/factory"
-	"github.com/multiversx/mx-chain-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/factory"
+	notifierFactory "github.com/multiversx/mx-chain-sovereign-go/outport/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
 )
 
 func createMockArgsOutportHandler(indexerEnabled, notifierEnabled bool) *factory.OutportFactoryArgs {

@@ -8,11 +8,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/trie/storageMarker"
-	"github.com/multiversx/mx-chain-go/update"
-	"github.com/multiversx/mx-chain-go/update/genesis"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/storageMarker"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	"github.com/multiversx/mx-chain-sovereign-go/update/genesis"
 )
 
 var _ update.EpochStartTriesSyncHandler = (*syncAccountsDBs)(nil)

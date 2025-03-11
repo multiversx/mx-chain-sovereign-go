@@ -9,16 +9,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos/bls"
+	sovereignBlock "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 type sovEndRoundHandler interface {

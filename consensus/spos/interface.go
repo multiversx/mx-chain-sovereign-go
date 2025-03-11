@@ -9,14 +9,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/ntp"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+
+	cryptoCommon "github.com/multiversx/mx-chain-sovereign-go/common/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/ntp"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 // ConsensusCoreHandler encapsulates all needed data for the Consensus

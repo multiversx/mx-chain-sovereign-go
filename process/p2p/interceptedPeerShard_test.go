@@ -8,9 +8,10 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	p2pFactory "github.com/multiversx/mx-chain-go/p2p/factory"
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/assert"
+
+	p2pFactory "github.com/multiversx/mx-chain-sovereign-go/p2p/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 const providedShard = "5"

@@ -8,11 +8,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/node/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	"github.com/multiversx/mx-chain-go/process/track"
-	sovereignChainSimulator "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator"
+	sovereignChainSimulator "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/chainSimulator"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/components/api"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/track"
 )
 
 func TestSovereignChainSimulator_NoCrossHeadersReceived(t *testing.T) {

@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/multiShard/relayedTx"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/multiShard/relayedTx"
 )
 
 func TestRelayedTransactionInMultiShardEnvironmentWithNormalTxButWrongNonceShouldNotIncrementUserAccNonce(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/storage/txcache"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/txcache"
 )
 
 // SortedTransactionsProvider defines the public API of the transactions cache

@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // CheckIfNil verifies if contract call input is not nil

@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-go/facade"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func createInitialNodeFacadeArgs() ArgInitialNodeFacade {

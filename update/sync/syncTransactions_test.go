@@ -16,17 +16,18 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	dataTransaction "github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/multiversx/mx-chain-go/update"
-	"github.com/multiversx/mx-chain-go/update/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	dataRetrieverMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	"github.com/multiversx/mx-chain-sovereign-go/update/mock"
 )
 
 func createMockArgs() ArgsNewTransactionsSyncer {

@@ -7,7 +7,8 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/multiversx/mx-chain-go/api/shared"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
 )
 
 // globalThrottler is a middleware limiter used to limit total number of requests originating from the same source

@@ -6,8 +6,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/process/track"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/track"
 )
 
 func TestNewBlockNotifier_ShouldWork(t *testing.T) {

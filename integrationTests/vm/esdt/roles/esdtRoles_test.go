@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/esdt"
-	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/esdt"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txDataBuilder"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // Test scenario

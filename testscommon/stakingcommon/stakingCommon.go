@@ -5,16 +5,17 @@ import (
 	"strconv"
 
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/genesis/process/disabled"
-	"github.com/multiversx/mx-chain-go/process"
-	economicsHandler "github.com/multiversx/mx-chain-go/process/economics"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/process/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	economicsHandler "github.com/multiversx/mx-chain-sovereign-go/process/economics"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/epochNotifier"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 var log = logger.GetOrCreate("testscommon/stakingCommon")

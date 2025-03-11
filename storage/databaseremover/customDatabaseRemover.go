@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 const (

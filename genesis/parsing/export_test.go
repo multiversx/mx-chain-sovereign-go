@@ -3,11 +3,11 @@ package parsing
 import (
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/genesis/data"
-	"github.com/multiversx/mx-chain-go/genesis/mock"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/data"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"

@@ -7,9 +7,10 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // ArgDeployLibrarySC is the argument used to create a deployLibrarySC instance

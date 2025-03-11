@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/broadcast"
-	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/broadcast"
+	consensusMock "github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
 )
 
 // ShardChainMessengerFactoryMock -

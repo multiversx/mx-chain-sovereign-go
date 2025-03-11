@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
-	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/interceptors"
-	interceptorsFactory "github.com/multiversx/mx-chain-go/process/interceptors/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/interceptors"
+	interceptorsFactory "github.com/multiversx/mx-chain-sovereign-go/process/interceptors/factory"
 )
 
 type epochStartSovereignSyncer struct {

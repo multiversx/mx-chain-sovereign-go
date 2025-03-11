@@ -7,10 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/update"
-	"github.com/multiversx/mx-chain-go/update/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	"github.com/multiversx/mx-chain-sovereign-go/update/mock"
 )
 
 func createMockArgsAfterHardFork() ArgsAfterHardFork {

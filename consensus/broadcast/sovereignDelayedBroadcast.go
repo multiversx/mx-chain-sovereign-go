@@ -3,7 +3,8 @@ package broadcast
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/process/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 type sovereignDelayedBroadcastData struct {

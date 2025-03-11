@@ -3,14 +3,15 @@ package state_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	stateComp "github.com/multiversx/mx-chain-go/factory/state"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	stateComp "github.com/multiversx/mx-chain-sovereign-go/factory/state"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewManagedStateComponents(t *testing.T) {

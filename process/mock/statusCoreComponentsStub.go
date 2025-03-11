@@ -2,10 +2,11 @@ package mock
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/statusHandler/persister"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler/persister"
 )
 
 // StatusCoreComponentsStub -

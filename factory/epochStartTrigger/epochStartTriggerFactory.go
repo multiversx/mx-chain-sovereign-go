@@ -7,13 +7,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/epochStart/metachain"
-	"github.com/multiversx/mx-chain-go/epochStart/shardchain"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/shardchain"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block"
 )
 
 type epochStartTriggerFactory struct {

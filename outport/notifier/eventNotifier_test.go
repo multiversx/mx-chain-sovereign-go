@@ -9,12 +9,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/outport/mock"
-	"github.com/multiversx/mx-chain-go/outport/notifier"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	outportStub "github.com/multiversx/mx-chain-go/testscommon/outport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/notifier"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	outportStub "github.com/multiversx/mx-chain-sovereign-go/testscommon/outport"
 )
 
 func createMockEventNotifierArgs() notifier.ArgsEventNotifier {

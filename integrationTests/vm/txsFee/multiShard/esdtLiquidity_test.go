@@ -7,14 +7,15 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/txsFee/utils"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon/integrationtests"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/txsFee/utils"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/integrationtests"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 func TestSystemAccountLiquidityAfterCrossShardTransferAndBurn(t *testing.T) {

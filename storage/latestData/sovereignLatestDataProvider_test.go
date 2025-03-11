@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 func TestNewSovereignLatestDataProvider(t *testing.T) {

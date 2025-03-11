@@ -4,10 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	networkComp "github.com/multiversx/mx-chain-go/factory/network"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	networkComp "github.com/multiversx/mx-chain-sovereign-go/factory/network"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewNetworkComponentsFactory(t *testing.T) {

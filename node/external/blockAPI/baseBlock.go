@@ -21,15 +21,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/api/shared/logging"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dblookupext"
-	outportProcess "github.com/multiversx/mx-chain-go/outport/process"
-	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts/shared"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/state"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared/logging"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext"
+	outportProcess "github.com/multiversx/mx-chain-sovereign-go/outport/process"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/alteredaccounts/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // BlockStatus is the status of a block

@@ -21,17 +21,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/errChan"
-	"github.com/multiversx/mx-chain-go/common/holders"
-	errorsCommon "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/state/parsers"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
-	"github.com/multiversx/mx-chain-go/trie"
-	"github.com/multiversx/mx-chain-go/trie/keyBuilder"
-	"github.com/multiversx/mx-chain-go/trie/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/errChan"
+	"github.com/multiversx/mx-chain-sovereign-go/common/holders"
+	errorsCommon "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/state/parsers"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/keyBuilder"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/mock"
 )
 
 var emptyTrieHash = make([]byte, 32)

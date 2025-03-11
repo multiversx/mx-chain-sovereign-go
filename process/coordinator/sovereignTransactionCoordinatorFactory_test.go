@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestSovereignTransactionCoordinatorFactory_NewShardTransactionCoordinatorFactory(t *testing.T) {

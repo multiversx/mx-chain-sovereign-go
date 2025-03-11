@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/cache"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/cache"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 const cacheSize = 10

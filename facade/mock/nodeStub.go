@@ -10,10 +10,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/debug"
-	"github.com/multiversx/mx-chain-go/heartbeat/data"
-	"github.com/multiversx/mx-chain-go/node/external"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/data"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
 )
 
 // NodeStub -

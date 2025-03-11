@@ -1,13 +1,13 @@
 package storage
 
 import (
-	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/genesis/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
 )
 
 // GetStorageManagerArgs returns mock args for trie storage manager creation

@@ -11,8 +11,9 @@ import (
 	dataCore "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 var _ process.InterceptorProcessor = (*epochStartMetaBlockProcessor)(nil)

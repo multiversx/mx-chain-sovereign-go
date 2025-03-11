@@ -4,9 +4,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/state"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // GetClosableComponentName -

@@ -11,16 +11,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/process"
-	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
-	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos/bls"
+	consensusComp "github.com/multiversx/mx-chain-sovereign-go/factory/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	consensusMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/subRoundsHolder"
 )
 
 const (

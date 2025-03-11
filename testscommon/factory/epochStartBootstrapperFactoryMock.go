@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/epochStart/bootstrap"
-	"github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/bootstrapMocks"
 )
 
 // EpochStartBootstrapperFactoryMock -

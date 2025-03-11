@@ -1,8 +1,8 @@
 package testscommon
 
 import (
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 // NodesCoordinatorFactoryMock -

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 
-	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/factory"
-	bootstrapComp "github.com/multiversx/mx-chain-go/factory/bootstrap"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+	nodeFactory "github.com/multiversx/mx-chain-sovereign-go/cmd/node/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	bootstrapComp "github.com/multiversx/mx-chain-sovereign-go/factory/bootstrap"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 )

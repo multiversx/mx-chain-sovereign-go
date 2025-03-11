@@ -4,7 +4,8 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/p2p"
+
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 // CountInterceptor represents an interceptors that counts received messages on topics

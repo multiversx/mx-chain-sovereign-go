@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/sync"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/sync"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 // BootstrapperFactoryMock -

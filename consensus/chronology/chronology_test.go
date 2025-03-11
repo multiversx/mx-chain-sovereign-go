@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/chronology"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/chronology"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	statusHandlerMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func initSubroundHandlerMock() *mock.SubroundHandlerMock {

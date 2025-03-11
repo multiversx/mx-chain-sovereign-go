@@ -5,17 +5,18 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool"
-	"github.com/multiversx/mx-chain-go/factory"
-	integrationMocks "github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/state/accounts"
-	"github.com/multiversx/mx-chain-go/storage"
-	nodesSetupMock "github.com/multiversx/mx-chain-go/testscommon/genesisMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/stakingcommon"
 	"github.com/multiversx/mx-chain-storage-go/lrucache"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	integrationMocks "github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/state/accounts"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	nodesSetupMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/genesisMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/stakingcommon"
 )
 
 const (

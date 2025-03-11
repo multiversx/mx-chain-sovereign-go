@@ -4,12 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/factory/bootstrap"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/bootstrap"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 // ------------ Test ManagedBootstrapComponents --------------------

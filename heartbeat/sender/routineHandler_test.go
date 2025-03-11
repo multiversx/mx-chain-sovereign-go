@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/heartbeat/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/mock"
 )
 
 func TestRoutineHandler_ShouldWork(t *testing.T) {

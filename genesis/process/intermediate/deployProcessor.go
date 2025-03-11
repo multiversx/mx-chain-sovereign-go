@@ -7,10 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/versioning"
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/vm"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // codeMetadataHexForInitialSC used for initial SC deployment, set to upgrade-able

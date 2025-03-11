@@ -14,16 +14,17 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataTx "github.com/multiversx/mx-chain-core-go/data/transaction"
-	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/groups"
-	"github.com/multiversx/mx-chain-go/api/mock"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/node/external"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	apiErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/groups"
+	"github.com/multiversx/mx-chain-sovereign-go/api/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
 )
 
 func TestNewTransactionGroup(t *testing.T) {

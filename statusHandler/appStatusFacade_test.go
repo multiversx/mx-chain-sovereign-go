@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/statusHandler"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler"
+	statusHandlerMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func TestNewAppStatusFacadeWithHandlers_NilHandlersShouldFail(t *testing.T) {

@@ -3,8 +3,9 @@ package requesterscontainer_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/requestersContainer"
 )
 
 func TestNewSovereignShardRequestersContainerFactoryCreator(t *testing.T) {

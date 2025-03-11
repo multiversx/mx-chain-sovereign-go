@@ -11,8 +11,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
-	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
-	"github.com/multiversx/mx-chain-go/errors"
+	sovereignBlock "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 var log = logger.GetOrCreate("headerSubscriber")

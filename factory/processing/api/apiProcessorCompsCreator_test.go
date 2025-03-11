@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/epochStart/metachain"
-	factoryDisabled "github.com/multiversx/mx-chain-go/factory/disabled"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	epochNotifierMock "github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/metachain"
+	factoryDisabled "github.com/multiversx/mx-chain-sovereign-go/factory/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	epochNotifierMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/epochNotifier"
 )
 
 func createArgs(shardID uint32) ArgsCreateAPIProcessComps {

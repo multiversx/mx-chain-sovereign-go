@@ -3,18 +3,19 @@ package metachain_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory/metachain"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	txExecOrderStub "github.com/multiversx/mx-chain-go/testscommon/common"
-	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	txExecOrderStub "github.com/multiversx/mx-chain-sovereign-go/testscommon/common"
+	dataRetrieverMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/economicsmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createMockPubkeyConverter() *testscommon.PubkeyConverterMock {

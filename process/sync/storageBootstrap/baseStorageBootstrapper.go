@@ -9,15 +9,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
-	"github.com/multiversx/mx-chain-go/process/sync"
-	"github.com/multiversx/mx-chain-go/process/sync/storageBootstrap/metricsLoader"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/storage"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-sovereign-go/process/sync"
+	"github.com/multiversx/mx-chain-sovereign-go/process/sync/storageBootstrap/metricsLoader"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 var log = logger.GetOrCreate("process/sync")

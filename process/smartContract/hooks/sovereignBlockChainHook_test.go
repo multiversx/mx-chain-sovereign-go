@@ -11,12 +11,12 @@ import (
 	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	"github.com/multiversx/mx-chain-go/testscommon/trie"
-	"github.com/multiversx/mx-chain-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/hooks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	stateMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestNewSovereignBlockChainHook(t *testing.T) {

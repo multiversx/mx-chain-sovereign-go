@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm/delegation"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm/delegation"
 )
 
 // ArgDelegationBenchmark is the delegation type benchmark argument used in constructor

@@ -5,8 +5,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common/holders"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/holders"
 )
 
 func TestMarshalAndUnmarshalReceiptsHolder(t *testing.T) {

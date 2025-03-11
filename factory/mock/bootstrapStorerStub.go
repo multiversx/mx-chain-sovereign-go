@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
+import "github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
 
 // BoostrapStorerStub -
 type BoostrapStorerStub struct {

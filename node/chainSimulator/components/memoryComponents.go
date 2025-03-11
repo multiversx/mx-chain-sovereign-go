@@ -3,9 +3,9 @@ package components
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 // CreateMemUnit creates a new in-memory storage unit

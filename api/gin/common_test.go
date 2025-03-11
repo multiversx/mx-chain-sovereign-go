@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/facade/initial"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/require"
+
+	apiErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/facade/initial"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestCommon_checkArgs(t *testing.T) {

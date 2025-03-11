@@ -1,14 +1,14 @@
 package components
 
 import (
-	disabledBootstrap "github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
-	"github.com/multiversx/mx-chain-go/factory"
-	disabledFactory "github.com/multiversx/mx-chain-go/factory/disabled"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/disabled"
-	"github.com/multiversx/mx-chain-go/p2p"
-	disabledP2P "github.com/multiversx/mx-chain-go/p2p/disabled"
-	"github.com/multiversx/mx-chain-go/process"
-	disabledAntiflood "github.com/multiversx/mx-chain-go/process/throttle/antiflood/disabled"
+	disabledBootstrap "github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	disabledFactory "github.com/multiversx/mx-chain-sovereign-go/factory/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	disabledP2P "github.com/multiversx/mx-chain-sovereign-go/p2p/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	disabledAntiflood "github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/disabled"
 )
 
 type networkComponentsHolder struct {

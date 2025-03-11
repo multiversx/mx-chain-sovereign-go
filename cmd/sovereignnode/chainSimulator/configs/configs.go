@@ -7,12 +7,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 
-	"github.com/multiversx/mx-chain-go/common/factory"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/genesis/data"
-	"github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	chainSimulatorConfigs "github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-sovereign-go/common/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/data"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	chainSimulatorConfigs "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
 )
 
 var initialStakedEgldPerNode = big.NewInt(0).Mul(chainSimulator.OneEGLD, big.NewInt(2500))

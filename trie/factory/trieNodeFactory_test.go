@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
 )
 
 func TestNewTrieNodeFactory(t *testing.T) {

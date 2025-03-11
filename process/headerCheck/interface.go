@@ -3,7 +3,8 @@ package headerCheck
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // ExtraHeaderSigVerifierHolder manages extra header verifiers

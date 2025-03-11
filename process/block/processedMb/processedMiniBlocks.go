@@ -3,8 +3,9 @@ package processedMb
 import (
 	"sync"
 
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
 	"github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
 )
 
 var log = logger.GetOrCreate("process/processedMb")

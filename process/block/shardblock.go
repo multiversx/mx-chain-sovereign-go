@@ -12,15 +12,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/headerVersionData"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/holders"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	processOutport "github.com/multiversx/mx-chain-go/outport/process"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
-	"github.com/multiversx/mx-chain-go/process/block/helpers"
-	"github.com/multiversx/mx-chain-go/process/block/processedMb"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/holders"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	processOutport "github.com/multiversx/mx-chain-sovereign-go/outport/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/helpers"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/processedMb"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 var _ process.BlockProcessor = (*shardProcessor)(nil)

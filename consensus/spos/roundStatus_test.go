@@ -3,9 +3,10 @@ package spos_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos/bls"
 )
 
 func TestRoundStatus_NewRoundStatusShouldWork(t *testing.T) {

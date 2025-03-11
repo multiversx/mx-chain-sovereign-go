@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory/containers"
-	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/containers"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
 )
 
 func TestNewPreProcessorsContainer_ShouldWork(t *testing.T) {

@@ -9,10 +9,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
-	"github.com/multiversx/mx-chain-go/node/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestWithInitialNodesPubKeys(t *testing.T) {

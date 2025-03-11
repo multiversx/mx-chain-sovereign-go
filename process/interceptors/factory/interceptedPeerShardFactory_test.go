@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	p2pFactory "github.com/multiversx/mx-chain-go/p2p/factory"
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/assert"
+
+	p2pFactory "github.com/multiversx/mx-chain-sovereign-go/p2p/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestNewInterceptedPeerShardFactory(t *testing.T) {

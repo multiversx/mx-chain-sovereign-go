@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/factory/vm"
-	testFactory "github.com/multiversx/mx-chain-go/process/factory"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/vm"
+	testFactory "github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewSovereignVmContainerShardCreatorFactory(t *testing.T) {

@@ -1,6 +1,6 @@
 package metachain
 
-import "github.com/multiversx/mx-chain-go/epochStart"
+import "github.com/multiversx/mx-chain-sovereign-go/epochStart"
 
 type sovereignRewardsCreatorFactory struct {
 }

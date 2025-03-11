@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/node"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
 )
 
 func TestNewSovereignNodeFactory(t *testing.T) {

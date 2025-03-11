@@ -1,9 +1,9 @@
 package factory
 
 import (
-	metachainEpochStart "github.com/multiversx/mx-chain-go/epochStart/metachain"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/process"
+	metachainEpochStart "github.com/multiversx/mx-chain-sovereign-go/epochStart/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // EconomicsFactoryMock -

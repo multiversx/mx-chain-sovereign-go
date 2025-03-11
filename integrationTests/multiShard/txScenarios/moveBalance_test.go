@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestTransaction_TransactionMoveBalanceScenarios(t *testing.T) {

@@ -8,8 +8,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 const addressSize = 32

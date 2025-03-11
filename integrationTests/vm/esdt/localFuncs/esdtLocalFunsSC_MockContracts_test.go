@@ -3,9 +3,10 @@ package localFuncs
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm/wasmvm"
 	test "github.com/multiversx/mx-chain-vm-go/testcommon"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm/wasmvm"
 )
 
 func TestESDTLocalMintAndBurnFromSC_MockContracts(t *testing.T) {

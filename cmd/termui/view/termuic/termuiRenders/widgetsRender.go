@@ -7,8 +7,9 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/cmd/termui/view"
-	"github.com/multiversx/mx-chain-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/view"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 const (

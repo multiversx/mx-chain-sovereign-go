@@ -11,14 +11,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/debug"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/heartbeat/data"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/process"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/data"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 // TestBootstrapper extends the Bootstrapper interface with some functions intended to be used only in tests

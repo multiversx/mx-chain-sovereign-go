@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 const maxElementSize = 32 + 4 // hash + chunk_index_as_uint32

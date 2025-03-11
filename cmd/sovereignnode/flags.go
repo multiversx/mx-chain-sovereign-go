@@ -10,9 +10,9 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
 
-	"github.com/multiversx/mx-chain-go/common/operationmodes"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/facade"
+	"github.com/multiversx/mx-chain-sovereign-go/common/operationmodes"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
 )
 
 var (

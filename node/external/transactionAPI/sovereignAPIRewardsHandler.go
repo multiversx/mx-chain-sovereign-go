@@ -6,7 +6,7 @@ import (
 	rewardTxData "github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 
-	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 type sovereignAPIRewards struct {

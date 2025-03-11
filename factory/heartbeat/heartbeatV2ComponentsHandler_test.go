@@ -3,10 +3,11 @@ package heartbeat_test
 import (
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	heartbeatComp "github.com/multiversx/mx-chain-go/factory/heartbeat"
 	"github.com/stretchr/testify/assert"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	heartbeatComp "github.com/multiversx/mx-chain-sovereign-go/factory/heartbeat"
 )
 
 func TestNewManagedHeartbeatV2Components(t *testing.T) {

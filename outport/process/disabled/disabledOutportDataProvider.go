@@ -2,7 +2,8 @@ package disabled
 
 import (
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/outport/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process"
 )
 
 type disabledOutportDataProvider struct{}

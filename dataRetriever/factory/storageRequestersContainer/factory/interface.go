@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	storagerequesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	storagerequesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/storageRequestersContainer"
 )
 
 // ShardRequestersContainerCreatorHandler defines a creator of shard requesters container creator

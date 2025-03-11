@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 // LoadState loads the nodes coordinator state from the used boot storage

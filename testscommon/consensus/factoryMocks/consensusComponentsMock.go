@@ -1,9 +1,9 @@
 package factoryMocks
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type ConsensusComponentsStub struct {

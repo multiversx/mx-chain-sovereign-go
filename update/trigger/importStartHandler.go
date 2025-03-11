@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/update"
+
+	"github.com/multiversx/mx-chain-sovereign-go/update"
 )
 
 const filename = "mustimport"

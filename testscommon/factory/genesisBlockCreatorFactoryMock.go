@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/genesis/mock"
-	"github.com/multiversx/mx-chain-go/genesis/process"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/process"
 )
 
 // GenesisBlockCreatorFactoryMock -

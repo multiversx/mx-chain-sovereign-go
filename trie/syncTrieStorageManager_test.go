@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewSyncTrieStorageManagerNilTsm(t *testing.T) {

@@ -6,12 +6,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dblookupext"
-	"github.com/multiversx/mx-chain-go/dblookupext/disabled"
-	"github.com/multiversx/mx-chain-go/dblookupext/esdtSupply"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext/esdtSupply"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // ArgsHistoryRepositoryFactory holds all dependencies required by the history processor factory in order to create

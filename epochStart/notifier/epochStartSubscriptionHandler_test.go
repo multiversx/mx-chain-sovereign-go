@@ -6,8 +6,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/notifier"
 )
 
 func TestNewEpochStartSubscriptionHandler(t *testing.T) {

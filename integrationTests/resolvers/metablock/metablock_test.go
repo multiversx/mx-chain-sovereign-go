@@ -6,11 +6,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/resolvers"
-	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/requestHandlers"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/resolvers"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 //------- Request resolve by hash

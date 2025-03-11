@@ -3,10 +3,11 @@ package trie_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
-	"github.com/multiversx/mx-chain-go/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
 )
 
 func TestNewTrieStorageManagerWithoutPruningWithNilStorage(t *testing.T) {

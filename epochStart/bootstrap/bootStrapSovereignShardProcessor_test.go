@@ -11,17 +11,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common"
-	factoryInterceptors "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
-	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	factoryInterceptors "github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	epochStartMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/bootstrapMocks/epochStart"
+	dataRetrieverMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 func createSovBootStrapProc() *sovereignBootStrapShardProcessor {

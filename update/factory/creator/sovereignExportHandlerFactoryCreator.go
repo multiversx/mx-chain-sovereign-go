@@ -1,9 +1,9 @@
 package creator
 
 import (
-	mxFactory "github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/update"
-	"github.com/multiversx/mx-chain-go/update/disabled"
+	mxFactory "github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	"github.com/multiversx/mx-chain-sovereign-go/update/disabled"
 )
 
 type sovereignExportHandlerFactoryCreator struct {

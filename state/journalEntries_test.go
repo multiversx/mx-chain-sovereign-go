@@ -6,12 +6,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/accounts"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state/accounts"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	stateMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewJournalEntryCode_NilUpdaterShouldErr(t *testing.T) {

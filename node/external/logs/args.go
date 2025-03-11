@@ -4,7 +4,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 // ArgsNewLogsFacade holds the arguments for constructing a logsFacade

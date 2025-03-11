@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/random"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
 	"github.com/stretchr/testify/require"
+
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewConcurrentTriesMap(t *testing.T) {

@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestSovereignShardCoordinator_ComputeId(t *testing.T) {

@@ -6,8 +6,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/batch"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/holders"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/holders"
 )
 
 func marshalReceiptsHolder(holder common.ReceiptsHolder, marshaller marshal.Marshalizer) ([]byte, error) {

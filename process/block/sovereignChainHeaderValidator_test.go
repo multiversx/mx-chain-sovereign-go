@@ -5,11 +5,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	block2 "github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
 )
 
 func TestNewSovereignChainHeaderValidator_ShouldErrNilHeaderValidator(t *testing.T) {

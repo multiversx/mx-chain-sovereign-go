@@ -3,12 +3,13 @@ package components
 import (
 	"testing"
 
-	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
-	chainStorage "github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/require"
+
+	retriever "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	chainStorage "github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createArgsDataComponentsHolder() ArgsDataComponentsHolder {

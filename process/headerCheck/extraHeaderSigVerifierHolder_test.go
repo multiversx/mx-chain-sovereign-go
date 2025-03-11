@@ -6,11 +6,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/headerSigVerifier"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/headerSigVerifier"
 )
 
 func TestExtraHeaderSigVerifierHolder_VerifyAggregatedSignature(t *testing.T) {

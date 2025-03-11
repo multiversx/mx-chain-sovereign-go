@@ -8,16 +8,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/common/mock"
-	"github.com/multiversx/mx-chain-go/dblookupext/esdtSupply"
-	epochStartMocks "github.com/multiversx/mx-chain-go/epochStart/mock"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext/esdtSupply"
+	epochStartMocks "github.com/multiversx/mx-chain-sovereign-go/epochStart/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createMockHistoryRepoArgs(epoch uint32) HistoryRepositoryArguments {

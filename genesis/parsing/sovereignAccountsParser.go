@@ -5,8 +5,9 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/sharding"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 type sovereignAccountsParser struct {

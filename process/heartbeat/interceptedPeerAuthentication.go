@@ -8,9 +8,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/process"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // ArgInterceptedPeerAuthentication is the argument used in the intercepted peer authentication constructor

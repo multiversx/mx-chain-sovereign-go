@@ -4,15 +4,16 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	metachainEpochStart "github.com/multiversx/mx-chain-go/epochStart/metachain"
-	"github.com/multiversx/mx-chain-go/epochStart/notifier"
-	factoryDisabled "github.com/multiversx/mx-chain-go/factory/disabled"
 
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/peer"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	metachainEpochStart "github.com/multiversx/mx-chain-sovereign-go/epochStart/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/notifier"
+	factoryDisabled "github.com/multiversx/mx-chain-sovereign-go/factory/disabled"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/peer"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // APIProcessComps is a struct placeholder for created api process comps

@@ -3,8 +3,9 @@ package groups
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestParseBoolUrlParam(t *testing.T) {

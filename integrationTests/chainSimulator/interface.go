@@ -3,8 +3,8 @@ package chainSimulator
 import (
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
 
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"

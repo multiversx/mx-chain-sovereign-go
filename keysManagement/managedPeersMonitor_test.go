@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/epochNotifier"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 var expectedErr = errors.New("expected error")

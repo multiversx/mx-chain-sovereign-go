@@ -3,21 +3,23 @@ package chainSimulator
 import (
 	"path"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/factory/runType"
-	chainSimulatorIntegrationTests "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator"
-	chainSimulatorConfigs "github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
-	sovCommon "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/common"
-	sovChainSimConfig "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/configs"
-	sovereignConfig "github.com/multiversx/mx-chain-go/sovereignnode/config"
+	sovCommon "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/chainSimulator/common"
+	sovChainSimConfig "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/chainSimulator/configs"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/runType"
+	chainSimulatorIntegrationTests "github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator"
+	chainSimulatorConfigs "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/sovereign/incomingHeader"
+
+	sovereignConfig "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/config"
 )
 
 const (

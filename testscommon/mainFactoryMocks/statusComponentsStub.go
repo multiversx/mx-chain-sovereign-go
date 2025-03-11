@@ -2,10 +2,11 @@ package mainFactoryMocks
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // StatusComponentsStub -

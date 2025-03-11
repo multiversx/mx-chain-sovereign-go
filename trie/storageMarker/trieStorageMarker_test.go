@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
 )
 
 func TestTrieStorageMarker_MarkStorerAsSyncedAndActive(t *testing.T) {

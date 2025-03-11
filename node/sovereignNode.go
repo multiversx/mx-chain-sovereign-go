@@ -7,7 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 
-	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 const (

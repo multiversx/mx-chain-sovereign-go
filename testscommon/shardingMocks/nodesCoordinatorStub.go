@@ -3,8 +3,8 @@ package shardingMocks
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // NodesCoordinatorStub -

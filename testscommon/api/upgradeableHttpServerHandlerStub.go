@@ -1,6 +1,6 @@
 package api
 
-import "github.com/multiversx/mx-chain-go/api/shared"
+import "github.com/multiversx/mx-chain-sovereign-go/api/shared"
 
 // UpgradeableHttpServerHandlerStub -
 type UpgradeableHttpServerHandlerStub struct {

@@ -8,7 +8,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/display"
-	"github.com/multiversx/mx-chain-go/state"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 const (

@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/multiversx/mx-chain-go/update"
 	"github.com/stretchr/testify/require"
+
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
 )
 
 func TestGetDataFromStorage_NilStorageShouldErr(t *testing.T) {

@@ -2,8 +2,9 @@ package factory_test
 
 import (
 	"fmt"
-	trieIteratorsFactory "github.com/multiversx/mx-chain-go/node/trieIterators/factory"
 	"testing"
+
+	trieIteratorsFactory "github.com/multiversx/mx-chain-sovereign-go/node/trieIterators/factory"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/assert"

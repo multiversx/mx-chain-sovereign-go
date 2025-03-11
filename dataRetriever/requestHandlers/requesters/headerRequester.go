@@ -3,7 +3,8 @@ package requesters
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 var _ dataRetriever.HeaderRequester = (*headerRequester)(nil)

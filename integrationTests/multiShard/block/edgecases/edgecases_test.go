@@ -9,12 +9,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/multiShard/block"
-	"github.com/multiversx/mx-chain-go/state"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/multiShard/block"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 var log = logger.GetOrCreate("integrationTests/multishard/block")
@@ -163,7 +164,7 @@ func closeNodes(nodesMap map[uint32][]*integrationTests.TestProcessorNode) {
 	}
 }
 
-//nolint
+// nolint
 func checkSameBlockHeight(t *testing.T, nodesMap map[uint32][]*integrationTests.TestProcessorNode) {
 	for _, nodes := range nodesMap {
 		referenceBlock := nodes[0].BlockChain.GetCurrentBlockHeader()
@@ -179,7 +180,7 @@ func checkSameBlockHeight(t *testing.T, nodesMap map[uint32][]*integrationTests.
 	}
 }
 
-//nolint
+// nolint
 func printAccount(node *integrationTests.TestProcessorNode) {
 	accnt, _ := node.AccntState.GetExistingAccount(node.OwnAccount.Address)
 	if check.IfNil(accnt) {

@@ -6,16 +6,17 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	heartbeatMessages "github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/heartbeat"
-	"github.com/multiversx/mx-chain-go/process/heartbeat/validator"
-	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/assert"
+
+	heartbeatMessages "github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process/heartbeat/validator"
+	"github.com/multiversx/mx-chain-sovereign-go/process/interceptors/processor"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
 )
 
 type interceptedDataHandler interface {

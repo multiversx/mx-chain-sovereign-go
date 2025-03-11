@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
-	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
-	storagerequesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
+	storagerequesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/storageRequestersContainer"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func createFactoryArgs() storagerequesterscontainer.FactoryArgs {

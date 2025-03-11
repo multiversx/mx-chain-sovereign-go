@@ -8,15 +8,16 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common/statistics/machine"
-	"github.com/multiversx/mx-chain-go/common/statistics/osLevel"
-	"github.com/multiversx/mx-chain-go/config"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/machine"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/osLevel"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 const minRefreshTimeInSec = 1

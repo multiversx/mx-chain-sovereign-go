@@ -3,9 +3,10 @@ package factory
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/debug/handler"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/debug/handler"
 )
 
 func TestNewInterceptorResolverDebuggerFactory_DisabledShouldWork(t *testing.T) {

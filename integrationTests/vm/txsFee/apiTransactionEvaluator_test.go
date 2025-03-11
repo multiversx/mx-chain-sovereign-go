@@ -7,12 +7,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/txsFee/utils"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/txsFee/utils"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
 )
 
 func getZeroGasAndFees() scheduled.GasAndFees {

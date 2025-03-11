@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/p2p/antiflood"
-	"github.com/multiversx/mx-chain-go/p2p"
 	"github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/p2p/antiflood"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 // TestAntifloodWithMessagesFromTheSamePeer tests what happens if a peer decide to send a large number of messages

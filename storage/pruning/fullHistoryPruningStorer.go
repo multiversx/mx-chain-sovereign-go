@@ -6,8 +6,9 @@ import (
 	"math"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/cache"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/cache"
 )
 
 // FullHistoryPruningStorer represents a storer for full history nodes

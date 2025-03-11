@@ -1,8 +1,9 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // SystemSCStub -

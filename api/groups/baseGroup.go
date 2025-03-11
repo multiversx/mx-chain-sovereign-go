@@ -4,9 +4,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/config"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 var log = logger.GetOrCreate("api/groups")

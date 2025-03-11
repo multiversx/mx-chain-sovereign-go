@@ -9,11 +9,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	cryptoCommon "github.com/multiversx/mx-chain-sovereign-go/common/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 var _ process.InterceptedHeaderSigVerifier = (*HeaderSigVerifier)(nil)

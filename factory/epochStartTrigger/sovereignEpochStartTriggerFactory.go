@@ -1,10 +1,10 @@
 package epochStartTrigger
 
 import (
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/epochStart/metachain"
-	"github.com/multiversx/mx-chain-go/epochStart/shardchain"
-	"github.com/multiversx/mx-chain-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/shardchain"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
 )
 
 type sovereignEpochStartTriggerFactory struct {

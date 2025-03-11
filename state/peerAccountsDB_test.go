@@ -9,19 +9,20 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/iteratorChannelsProvider"
-	"github.com/multiversx/mx-chain-go/state/lastSnapshotMarker"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	testState "github.com/multiversx/mx-chain-go/testscommon/state"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state/iteratorChannelsProvider"
+	"github.com/multiversx/mx-chain-sovereign-go/state/lastSnapshotMarker"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	testState "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewPeerAccountsDB(t *testing.T) {

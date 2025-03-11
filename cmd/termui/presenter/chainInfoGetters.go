@@ -2,8 +2,9 @@ package presenter
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/cmd/termui/provider"
-	"github.com/multiversx/mx-chain-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/provider"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 var maxSpeedHistorySaved = 2000

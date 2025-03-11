@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	dataRetrieverTests "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	updateMock "github.com/multiversx/mx-chain-go/update/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	dataRetrieverTests "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	updateMock "github.com/multiversx/mx-chain-sovereign-go/update/mock"
 )
 
 func createMockArgHeaderRequester(argBase ArgBaseRequester) ArgHeaderRequester {

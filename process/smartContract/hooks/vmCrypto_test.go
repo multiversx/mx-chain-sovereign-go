@@ -6,8 +6,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
 	"github.com/multiversx/mx-chain-core-go/hashing/sha256"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/hooks"
 )
 
 func TestVMCrypto_Sha256(t *testing.T) {

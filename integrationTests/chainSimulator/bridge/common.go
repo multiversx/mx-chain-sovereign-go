@@ -12,8 +12,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 
-	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	chainSim "github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
 )
 
 const (

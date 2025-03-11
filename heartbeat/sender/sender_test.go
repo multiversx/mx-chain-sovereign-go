@@ -8,15 +8,16 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/heartbeat"
-	"github.com/multiversx/mx-chain-go/heartbeat/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 func createMockSenderArgs() ArgSender {

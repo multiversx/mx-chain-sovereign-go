@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 // blockBootstrapper is the interface needed by base sync to deal with shards and meta nodes while they bootstrap

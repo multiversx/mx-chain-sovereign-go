@@ -11,12 +11,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	testBlock "github.com/multiversx/mx-chain-go/integrationTests/singleShard/block"
-	"github.com/multiversx/mx-chain-go/process"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	testBlock "github.com/multiversx/mx-chain-sovereign-go/integrationTests/singleShard/block"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // TestShardShouldNotProposeAndExecuteTwoBlocksInSameRound tests that a shard can not continue building on a
@@ -82,11 +83,11 @@ func TestShardShouldNotProposeAndExecuteTwoBlocksInSameRound(t *testing.T) {
 }
 
 // TestShardShouldProposeBlockContainingInvalidTransactions tests the following scenario:
-// 1. generate 3 move balance transactions: one that can be executed, one to be processed as invalid, and one that isn't executable (no balance left for fee).
-// 2. proposer will have those 3 transactions in its pools and will propose a block
-// 3. another node will be able to sync the proposed block (and request - receive) the 2 transactions that
-//    will end up in the block (one valid and one invalid)
-// 4. the non-executable transaction will not be immediately removed from the proposer's pool. See MX-16200.
+//  1. generate 3 move balance transactions: one that can be executed, one to be processed as invalid, and one that isn't executable (no balance left for fee).
+//  2. proposer will have those 3 transactions in its pools and will propose a block
+//  3. another node will be able to sync the proposed block (and request - receive) the 2 transactions that
+//     will end up in the block (one valid and one invalid)
+//  4. the non-executable transaction will not be immediately removed from the proposer's pool. See MX-16200.
 func TestShardShouldProposeBlockContainingInvalidTransactions(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -217,7 +218,6 @@ func testSameBlockHeight(t *testing.T, nodes []*integrationTests.TestProcessorNo
 		assert.Equal(t, proposer.BlockChain.GetCurrentBlockHeaderHash(), n.BlockChain.GetCurrentBlockHeaderHash())
 	}
 }
-
 
 func testTxIsInMiniblock(t *testing.T, proposer *integrationTests.TestProcessorNode, hash []byte, bt block.Type) {
 	hdrHandler := proposer.BlockChain.GetCurrentBlockHeader()

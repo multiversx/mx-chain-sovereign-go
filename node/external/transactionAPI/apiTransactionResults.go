@@ -9,10 +9,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dblookupext"
-	"github.com/multiversx/mx-chain-go/node/filters"
-	"github.com/multiversx/mx-chain-go/sharding"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dblookupext"
+	"github.com/multiversx/mx-chain-sovereign-go/node/filters"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 type apiTransactionResultsProcessor struct {

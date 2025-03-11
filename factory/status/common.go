@@ -3,11 +3,12 @@ package status
 import (
 	nodeData "github.com/multiversx/mx-chain-core-go/data"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/epochStart/notifier"
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/notifier"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 // CreateSaveValidatorsPubKeysEventHandler creates an epoch start action handler able to save validators pub keys

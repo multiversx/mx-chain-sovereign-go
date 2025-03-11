@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
 )
 
 // StatusComponentsMock -

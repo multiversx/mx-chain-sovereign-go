@@ -5,8 +5,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // Validator defines a node that can be allocated to a shard for participation in a consensus group as validator

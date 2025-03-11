@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/vm/mock"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm/mock"
 )
 
 func TestCreateLogEntryForDelegate(t *testing.T) {

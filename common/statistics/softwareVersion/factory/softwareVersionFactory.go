@@ -3,9 +3,10 @@ package factory
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/common/statistics/softwareVersion"
-	"github.com/multiversx/mx-chain-go/config"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/softwareVersion"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 type softwareVersionFactory struct {

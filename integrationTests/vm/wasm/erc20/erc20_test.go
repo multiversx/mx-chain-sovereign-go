@@ -3,8 +3,9 @@ package erc20
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm"
 )
 
 func Test_C_001(t *testing.T) {

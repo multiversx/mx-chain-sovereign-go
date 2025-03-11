@@ -3,8 +3,8 @@ package chainSimulator
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	"github.com/multiversx/mx-chain-go/testscommon/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/chainSimulator"
 
 	"github.com/stretchr/testify/require"
 )

@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-storage-go/types"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 // Cacher provides caching services

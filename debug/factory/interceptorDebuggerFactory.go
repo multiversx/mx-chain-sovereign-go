@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/debug/handler"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/debug/handler"
 )
 
 // NewInterceptorDebuggerFactory will instantiate an InterceptorDebugHandler based on the provided config

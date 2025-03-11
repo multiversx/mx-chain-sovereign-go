@@ -5,15 +5,16 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/mock"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/multiversx/mx-chain-storage-go/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewStorageUnit(t *testing.T) {

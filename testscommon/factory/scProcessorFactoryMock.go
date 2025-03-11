@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 // SCProcessorFactoryMock -

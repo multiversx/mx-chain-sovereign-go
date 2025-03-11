@@ -1,6 +1,6 @@
 package disabled
 
-import "github.com/multiversx/mx-chain-go/p2p"
+import "github.com/multiversx/mx-chain-sovereign-go/p2p"
 
 type peersRatingMonitor struct {
 }

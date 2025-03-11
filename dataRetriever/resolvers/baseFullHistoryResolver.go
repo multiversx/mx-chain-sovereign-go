@@ -1,7 +1,7 @@
 package resolvers
 
 import (
-	"github.com/multiversx/mx-chain-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 type baseFullHistoryResolver struct {

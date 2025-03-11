@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/statusHandler"
-	"github.com/multiversx/mx-chain-go/statusHandler/mock"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler/mock"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewPersistentStatusHandler_NilMarshalizerShouldErr(t *testing.T) {

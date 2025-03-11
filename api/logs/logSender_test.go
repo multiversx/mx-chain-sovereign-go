@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/multiversx/mx-chain-go/api/logs"
-	"github.com/multiversx/mx-chain-go/api/mock"
 	"github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/logs"
+	"github.com/multiversx/mx-chain-sovereign-go/api/mock"
 )
 
 func removeWriterFromLogSubsystem(w io.Writer) {

@@ -7,28 +7,28 @@ import (
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 
-	"github.com/multiversx/mx-chain-go/common/disabled"
-	bootstrapDisabled "github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
-	"github.com/multiversx/mx-chain-go/factory"
-	factoryVm "github.com/multiversx/mx-chain-go/factory/vm"
-	"github.com/multiversx/mx-chain-go/genesis"
-	processDisabled "github.com/multiversx/mx-chain-go/genesis/process/disabled"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/preprocess"
-	"github.com/multiversx/mx-chain-go/process/coordinator"
-	"github.com/multiversx/mx-chain-go/process/factory/shard"
-	"github.com/multiversx/mx-chain-go/process/smartContract"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks/counters"
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
-	"github.com/multiversx/mx-chain-go/process/transaction"
-	"github.com/multiversx/mx-chain-go/process/transactionEvaluator"
-	"github.com/multiversx/mx-chain-go/process/transactionLog"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/syncer"
-	"github.com/multiversx/mx-chain-go/storage"
-	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/common/disabled"
+	bootstrapDisabled "github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	factoryVm "github.com/multiversx/mx-chain-sovereign-go/factory/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	processDisabled "github.com/multiversx/mx-chain-sovereign-go/genesis/process/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/preprocess"
+	"github.com/multiversx/mx-chain-sovereign-go/process/coordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/shard"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/hooks"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/hooks/counters"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
+	"github.com/multiversx/mx-chain-sovereign-go/process/transaction"
+	"github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator"
+	"github.com/multiversx/mx-chain-sovereign-go/process/transactionLog"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state/syncer"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	storageFactory "github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 func (pcf *processComponentsFactory) createAPITransactionEvaluator() (factory.TransactionEvaluator, process.VirtualMachinesContainerFactory, error) {
@@ -434,29 +434,29 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 	argsParser := smartContract.NewArgumentParser()
 
 	scProcArgs := scrCommon.ArgsNewSmartContractProcessor{
-		VmContainer:             vmContainer,
-		ArgsParser:              argsParser,
-		Hasher:                  pcf.coreData.Hasher(),
-		Marshalizer:             pcf.coreData.InternalMarshalizer(),
-		AccountsDB:              accountsAdapter,
-		BlockChainHook:          vmFactory.BlockChainHookImpl(),
-		BuiltInFunctions:        builtInFuncFactory.BuiltInFunctionContainer(),
-		PubkeyConv:              pcf.coreData.AddressPubKeyConverter(),
-		ShardCoordinator:        pcf.bootstrapComponents.ShardCoordinator(),
-		ScrForwarder:            scForwarder,
-		TxFeeHandler:            &processDisabled.FeeHandler{},
-		EconomicsFee:            pcf.coreData.EconomicsData(),
-		TxTypeHandler:           txTypeHandler,
-		GasHandler:              gasHandler,
-		GasSchedule:             pcf.gasSchedule,
-		TxLogsProcessor:         txLogsProcessor,
-		EnableEpochsHandler:     pcf.coreData.EnableEpochsHandler(),
-		EnableRoundsHandler:     pcf.coreData.EnableRoundsHandler(),
-		BadTxForwarder:          badTxInterim,
-		VMOutputCacher:          vmOutputCacher,
-		WasmVMChangeLocker:      pcf.coreData.WasmVMChangeLocker(),
-		IsGenesisProcessing:     false,
-		EpochNotifier:           pcf.epochNotifier,
+		VmContainer:         vmContainer,
+		ArgsParser:          argsParser,
+		Hasher:              pcf.coreData.Hasher(),
+		Marshalizer:         pcf.coreData.InternalMarshalizer(),
+		AccountsDB:          accountsAdapter,
+		BlockChainHook:      vmFactory.BlockChainHookImpl(),
+		BuiltInFunctions:    builtInFuncFactory.BuiltInFunctionContainer(),
+		PubkeyConv:          pcf.coreData.AddressPubKeyConverter(),
+		ShardCoordinator:    pcf.bootstrapComponents.ShardCoordinator(),
+		ScrForwarder:        scForwarder,
+		TxFeeHandler:        &processDisabled.FeeHandler{},
+		EconomicsFee:        pcf.coreData.EconomicsData(),
+		TxTypeHandler:       txTypeHandler,
+		GasHandler:          gasHandler,
+		GasSchedule:         pcf.gasSchedule,
+		TxLogsProcessor:     txLogsProcessor,
+		EnableEpochsHandler: pcf.coreData.EnableEpochsHandler(),
+		EnableRoundsHandler: pcf.coreData.EnableRoundsHandler(),
+		BadTxForwarder:      badTxInterim,
+		VMOutputCacher:      vmOutputCacher,
+		WasmVMChangeLocker:  pcf.coreData.WasmVMChangeLocker(),
+		IsGenesisProcessing: false,
+		EpochNotifier:       pcf.epochNotifier,
 	}
 
 	scProcessor, err := pcf.runTypeComponents.SCProcessorCreator().CreateSCProcessor(scProcArgs)

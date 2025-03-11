@@ -9,7 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // SovereignSCProcessArgs - arguments for creating a new sovereign smart contract processor

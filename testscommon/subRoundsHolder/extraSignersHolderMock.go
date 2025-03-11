@@ -1,8 +1,8 @@
 package subRoundsHolder
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/subRounds"
 )
 
 // ExtraSignersHolderMock -

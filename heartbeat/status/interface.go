@@ -2,7 +2,8 @@ package status
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/heartbeat/data"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/data"
 )
 
 // HeartbeatMonitor defines the operations that a monitor should implement

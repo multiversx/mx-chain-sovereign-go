@@ -3,7 +3,7 @@ package block
 import (
 	"time"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
 )
 
 // StepDelay -

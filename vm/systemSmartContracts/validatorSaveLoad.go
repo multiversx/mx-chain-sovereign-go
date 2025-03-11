@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/common"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 func (v *validatorSC) setConfig(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {

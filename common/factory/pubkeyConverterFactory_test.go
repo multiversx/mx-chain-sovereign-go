@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/state"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 func TestNewPubkeyConverter_HexShouldWork(t *testing.T) {

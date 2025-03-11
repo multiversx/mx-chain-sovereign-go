@@ -1,6 +1,6 @@
 package systemSmartContracts
 
-import "github.com/multiversx/mx-chain-go/vm"
+import "github.com/multiversx/mx-chain-sovereign-go/vm"
 
 type oneShardSystemVMEEICreator struct {
 }

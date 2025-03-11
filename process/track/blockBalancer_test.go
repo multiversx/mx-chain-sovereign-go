@@ -3,8 +3,9 @@ package track_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process/track"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/track"
 )
 
 func TestNewBlockBalancer_ShouldWork(t *testing.T) {

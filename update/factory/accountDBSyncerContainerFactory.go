@@ -8,16 +8,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/disabled"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/state/syncer"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/trie"
-	"github.com/multiversx/mx-chain-go/trie/statistics"
-	"github.com/multiversx/mx-chain-go/update"
-	containers "github.com/multiversx/mx-chain-go/update/container"
-	"github.com/multiversx/mx-chain-go/update/genesis"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/state/syncer"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	containers "github.com/multiversx/mx-chain-sovereign-go/update/container"
+	"github.com/multiversx/mx-chain-sovereign-go/update/genesis"
 )
 
 // ArgsNewAccountsDBSyncersContainerFactory defines the arguments needed to create accounts DB syncers container

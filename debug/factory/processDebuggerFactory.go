@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/debug/process"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/debug/process"
 )
 
 // CreateProcessDebugger creates a new instance of type ProcessDebugger

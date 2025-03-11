@@ -2,7 +2,8 @@ package bls
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
 )
 
 type subroundEndRoundV2 struct {

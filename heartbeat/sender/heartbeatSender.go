@@ -5,7 +5,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/heartbeat"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
 )
 
 const maxSizeInBytes = 128

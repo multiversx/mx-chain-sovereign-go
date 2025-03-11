@@ -2,7 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/multiversx/mx-chain-go/config"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 // GroupHandlerStub -

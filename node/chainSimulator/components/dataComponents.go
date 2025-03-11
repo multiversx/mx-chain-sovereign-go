@@ -3,9 +3,10 @@ package components
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/provider"
-	"github.com/multiversx/mx-chain-go/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/provider"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
 )
 
 // ArgsDataComponentsHolder will hold the components needed for data components

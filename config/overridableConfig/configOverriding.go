@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multiversx/mx-chain-go/common/reflectcommon"
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/common/reflectcommon"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 
 	logger "github.com/multiversx/mx-chain-logger-go"
 )

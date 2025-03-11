@@ -2,7 +2,8 @@ package dataRetriever
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/process/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 // SetEpochHandlerToHdrResolver sets the epoch handler to the metablock hdr resolver

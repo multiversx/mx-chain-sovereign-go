@@ -1,6 +1,6 @@
 package checking
 
-import "github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+import "github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 
 // NodesSetupChecker defines the interface for genesis nodes checker
 type NodesSetupChecker interface {

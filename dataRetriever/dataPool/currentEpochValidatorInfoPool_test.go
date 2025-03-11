@@ -3,9 +3,10 @@ package dataPool
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/state"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 func TestCurrentEpochValidatorInfoPool_AddGetCleanTx(t *testing.T) {

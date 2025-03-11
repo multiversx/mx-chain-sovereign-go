@@ -5,12 +5,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/mock"
 )
 
 func TestNewBootstrapDataProvider_NilMarshalizerShouldErr(t *testing.T) {

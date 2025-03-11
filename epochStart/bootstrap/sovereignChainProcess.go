@@ -2,7 +2,8 @@ package bootstrap
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/errors"
+
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 type sovereignChainEpochStartBootstrap struct {

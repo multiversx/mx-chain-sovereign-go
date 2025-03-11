@@ -9,9 +9,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/stretchr/testify/require"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/trie"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 const baseTokenID = "WEGLD-bd4d79"

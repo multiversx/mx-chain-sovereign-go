@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
-	commonMock "github.com/multiversx/mx-chain-go/testscommon/common"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	commonMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/common"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
 )
 
 func TestNewShardScheduledTxsExecutionFactory(t *testing.T) {

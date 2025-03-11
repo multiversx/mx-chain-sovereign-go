@@ -12,16 +12,17 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/random"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/pathmanager"
-	"github.com/multiversx/mx-chain-go/storage/pruning"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/pathmanager"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/pruning"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestNewFullHistoryPruningStorer_OkValsShouldWork(t *testing.T) {

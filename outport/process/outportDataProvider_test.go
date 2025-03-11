@@ -12,16 +12,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/outport/mock"
-	"github.com/multiversx/mx-chain-go/outport/process/transactionsfee"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	commonMocks "github.com/multiversx/mx-chain-go/testscommon/common"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/transactionsfee"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	commonMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/common"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
 )
 
 func createArgOutportDataProvider() ArgOutportDataProvider {

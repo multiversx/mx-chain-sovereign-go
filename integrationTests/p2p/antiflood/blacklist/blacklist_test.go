@@ -6,17 +6,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/integrationTests/p2p/antiflood"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/blackList"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/floodPreventers"
-	"github.com/multiversx/mx-chain-go/storage/cache"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/p2p/antiflood"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/blackList"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/floodPreventers"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/cache"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 var log = logger.GetOrCreate("integrationtests/p2p/antiflooding/blacklist")

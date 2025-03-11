@@ -6,15 +6,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common/enablers"
-	"github.com/multiversx/mx-chain-go/config"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	coreComp "github.com/multiversx/mx-chain-go/factory/core"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/state"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
-	"github.com/multiversx/mx-chain-go/testscommon/genesisMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/common/enablers"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	coreComp "github.com/multiversx/mx-chain-sovereign-go/factory/core"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genesisMocks"
 )
 
 func TestNewCoreComponentsFactory(t *testing.T) {

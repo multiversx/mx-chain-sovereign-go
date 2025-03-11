@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/txcache"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/txcache"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	dataRetrieverMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
 )
 
 func createMockArgTxsPoolsCleaner() ArgTxsPoolsCleaner {

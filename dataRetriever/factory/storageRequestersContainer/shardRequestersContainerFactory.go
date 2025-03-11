@@ -2,10 +2,11 @@ package storagerequesterscontainer
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers"
-	storagerequesters "github.com/multiversx/mx-chain-go/dataRetriever/storageRequesters"
-	"github.com/multiversx/mx-chain-go/process/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/containers"
+	storagerequesters "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/storageRequesters"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 var _ dataRetriever.RequestersContainerFactory = (*shardRequestersContainerFactory)(nil)

@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"testing"
 
-	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/api"
 	"github.com/stretchr/testify/require"
+
+	apiErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/api"
 )
 
 func TestNewHttpServer(t *testing.T) {

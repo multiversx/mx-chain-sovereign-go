@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/factory"
 )
 
 func TestNewShardAdditionalStorageServiceFactory(t *testing.T) {

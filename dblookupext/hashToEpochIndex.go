@@ -4,7 +4,8 @@ package dblookupext
 
 import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 type epochByHashIndex struct {

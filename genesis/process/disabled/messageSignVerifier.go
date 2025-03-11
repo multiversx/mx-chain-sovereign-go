@@ -3,7 +3,8 @@ package disabled
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/genesis"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
 )
 
 // MessageSignVerifier represents the message verifier that accepts any message, sign, pk tuple

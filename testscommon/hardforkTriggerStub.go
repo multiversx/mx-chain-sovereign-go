@@ -1,6 +1,6 @@
 package testscommon
 
-import "github.com/multiversx/mx-chain-go/update"
+import "github.com/multiversx/mx-chain-sovereign-go/update"
 
 // HardforkTriggerStub -
 type HardforkTriggerStub struct {

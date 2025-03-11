@@ -3,9 +3,9 @@ package epochStartTrigger
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func checkNilArgs(args factory.ArgsEpochStartTrigger) error {

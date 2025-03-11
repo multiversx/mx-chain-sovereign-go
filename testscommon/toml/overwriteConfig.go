@@ -1,6 +1,6 @@
 package toml
 
-import "github.com/multiversx/mx-chain-go/config"
+import "github.com/multiversx/mx-chain-sovereign-go/config"
 
 // OverrideConfig holds an array of configs to be overridden
 type OverrideConfig struct {

@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	dataTransaction "github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/process/transaction"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process/transaction"
 )
 
 func TestNewInterceptedTxDataFactory_NilArgumentShouldErr(t *testing.T) {

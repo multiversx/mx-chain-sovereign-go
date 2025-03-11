@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/genesis/data"
-	"github.com/multiversx/mx-chain-go/genesis/mock"
-	"github.com/multiversx/mx-chain-go/genesis/parsing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/data"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/parsing"
 )
 
 func createMockInitialSmartContract(owner string) *data.InitialSmartContract {

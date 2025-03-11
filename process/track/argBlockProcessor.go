@@ -1,8 +1,8 @@
 package track
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // ArgBlockProcessor holds all dependencies required to process tracked blocks in order to create new instances of

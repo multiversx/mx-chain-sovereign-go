@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/common"
+import "github.com/multiversx/mx-chain-sovereign-go/common"
 
 // KeyBuilderStub -
 type KeyBuilderStub struct {

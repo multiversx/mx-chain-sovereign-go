@@ -3,9 +3,10 @@ package pathmanager_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/storage/pathmanager"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage/pathmanager"
 )
 
 func TestNewPathManager_EmptyPruningPathTemplateShouldErr(t *testing.T) {

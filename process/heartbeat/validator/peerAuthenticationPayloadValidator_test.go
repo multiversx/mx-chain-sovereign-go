@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestNewPeerAuthenticationPayloadValidator(t *testing.T) {

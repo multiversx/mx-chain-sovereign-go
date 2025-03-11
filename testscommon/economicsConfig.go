@@ -1,7 +1,7 @@
 package testscommon
 
 import (
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 // GetEconomicsConfig returns the common configuration used for testing

@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
 )
 
 func TestNewResolverRequestHandlerFactory(t *testing.T) {

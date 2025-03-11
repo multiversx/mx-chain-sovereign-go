@@ -13,8 +13,9 @@ import (
 	"github.com/beevik/ntp"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 var _ SyncTimer = (*syncTime)(nil)

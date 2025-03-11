@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers"
-	"github.com/multiversx/mx-chain-go/process"
-	dataRetrieverTests "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/containers"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	dataRetrieverTests "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
 )
 
 func TestNewRequestersContainer_ShouldWork(t *testing.T) {

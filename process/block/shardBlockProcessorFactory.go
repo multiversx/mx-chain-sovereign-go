@@ -3,7 +3,7 @@ package block
 import (
 	"errors"
 
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type shardBlockProcessorFactory struct {

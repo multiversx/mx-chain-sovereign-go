@@ -12,13 +12,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
-	"github.com/multiversx/mx-chain-go/testscommon/syncer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	epochStartMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/bootstrapMocks/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/syncer"
 )
 
 func Test_newStartInEpochShardHeaderDataSyncerWithScheduledNilScheduledTxHandler(t *testing.T) {

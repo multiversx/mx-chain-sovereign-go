@@ -13,16 +13,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/state"
-	disabledState "github.com/multiversx/mx-chain-go/state/disabled"
-	"github.com/multiversx/mx-chain-go/state/factory"
-	"github.com/multiversx/mx-chain-go/state/storagePruningManager/disabled"
-	"github.com/multiversx/mx-chain-go/trie"
-	"github.com/multiversx/mx-chain-go/update"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	disabledState "github.com/multiversx/mx-chain-sovereign-go/state/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/state/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/state/storagePruningManager/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/trie"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
 )
 
 var _ update.ImportHandler = (*stateImport)(nil)

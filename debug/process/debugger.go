@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/config"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 const (

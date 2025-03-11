@@ -11,8 +11,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	"github.com/multiversx/mx-chain-go/genesis"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
 )
 
 func TestBalanceComputationHandler(t *testing.T) {

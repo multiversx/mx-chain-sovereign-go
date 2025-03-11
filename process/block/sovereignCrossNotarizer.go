@@ -2,7 +2,8 @@ package block
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
 )
 
 type sovereignShardCrossNotarizer struct {

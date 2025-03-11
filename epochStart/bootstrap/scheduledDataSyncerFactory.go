@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/types"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/types"
 )
 
 // ScheduledDataSyncerFactory is a factory for the scheduled data syncer

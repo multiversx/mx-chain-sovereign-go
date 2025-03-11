@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/factory/processing/api"
-	"github.com/multiversx/mx-chain-go/testscommon/stakingcommon"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/processing/api"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/stakingcommon"
 )
 
 // APIProcessorCompsCreatorMock -

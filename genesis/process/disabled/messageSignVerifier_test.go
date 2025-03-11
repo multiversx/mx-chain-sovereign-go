@@ -4,10 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/genesis/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
 )
 
 func TestNewMessageSignVerifier(t *testing.T) {

@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/shared"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
 )
 
 type throttlerGetter interface {

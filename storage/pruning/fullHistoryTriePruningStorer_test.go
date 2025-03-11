@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/storage/pruning"
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage/pruning"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewFullHistoryTriePruningStorer(t *testing.T) {

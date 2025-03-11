@@ -6,12 +6,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/common"
-	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/vm"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	cryptoCommon "github.com/multiversx/mx-chain-sovereign-go/common/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 var _ factory.ComponentHandler = (*managedCryptoComponents)(nil)

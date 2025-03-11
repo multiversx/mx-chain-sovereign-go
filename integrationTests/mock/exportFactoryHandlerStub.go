@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/update"
+import "github.com/multiversx/mx-chain-sovereign-go/update"
 
 // ExportFactoryHandlerStub -
 type ExportFactoryHandlerStub struct {

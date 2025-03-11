@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
 )
 
 func TestSimulateExecutionOfStakeTransaction(t *testing.T) {

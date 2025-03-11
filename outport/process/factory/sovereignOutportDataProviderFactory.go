@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/outport"
-	"github.com/multiversx/mx-chain-go/outport/process"
-	"github.com/multiversx/mx-chain-go/outport/process/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/outport"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/disabled"
 )
 
 type sovereignOutportDataProviderFactory struct {

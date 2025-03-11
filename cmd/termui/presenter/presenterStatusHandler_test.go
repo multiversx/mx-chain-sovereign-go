@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/cmd/termui/presenter"
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/presenter"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 func TestPresenterStatusHandler_NewPresenterStatusHandler(t *testing.T) {

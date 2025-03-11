@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
 )
 
 const newRoutineMarker = "\n\n"

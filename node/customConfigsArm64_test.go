@@ -5,8 +5,9 @@ package node
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestApplyArchCustomConfigs(t *testing.T) {

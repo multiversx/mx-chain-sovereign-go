@@ -6,10 +6,11 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/factory/peerSignatureHandler"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+
+	"github.com/multiversx/mx-chain-sovereign-go/factory/peerSignatureHandler"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 // TestWalletAccount creates and account with balance and crypto necessary to sign transactions

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	p2pConfig "github.com/multiversx/mx-chain-go/p2p/config"
+	p2pConfig "github.com/multiversx/mx-chain-sovereign-go/p2p/config"
 )
 
 func TestTomlParser(t *testing.T) {

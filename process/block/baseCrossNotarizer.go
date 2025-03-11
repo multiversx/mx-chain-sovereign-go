@@ -1,8 +1,8 @@
 package block
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/bootstrapStorage"
 )
 
 type baseBlockNotarizer struct {

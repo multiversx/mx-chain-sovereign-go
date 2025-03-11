@@ -8,9 +8,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/common/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
 )
 
 func TestGetResultsHashesByTxHashShouldErr(t *testing.T) {

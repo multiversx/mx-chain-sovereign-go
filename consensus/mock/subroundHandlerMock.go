@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
 )
 
 // SubroundHandlerMock -

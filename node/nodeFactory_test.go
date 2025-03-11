@@ -2,9 +2,11 @@ package node_test
 
 import (
 	"fmt"
-	"github.com/multiversx/mx-chain-go/node"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node"
 )
 
 func TestNewNodeFactory(t *testing.T) {

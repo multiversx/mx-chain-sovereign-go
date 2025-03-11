@@ -5,14 +5,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory/mock"
-	"github.com/multiversx/mx-chain-go/node"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
-	"github.com/multiversx/mx-chain-go/testscommon/consensus/factoryMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/factory"
-	"github.com/multiversx/mx-chain-go/testscommon/mainFactoryMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/consensus/factoryMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/mainFactoryMocks"
 )
 
 func TestCreateNode(t *testing.T) {

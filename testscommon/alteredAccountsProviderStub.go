@@ -3,7 +3,8 @@ package testscommon
 import (
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts/shared"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/alteredaccounts/shared"
 )
 
 // AlteredAccountsProviderStub -

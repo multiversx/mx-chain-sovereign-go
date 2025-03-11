@@ -1,7 +1,7 @@
 package hooks
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // sovereignBlockChainHookFactory - factory for blockchain hook chain run type sovereign

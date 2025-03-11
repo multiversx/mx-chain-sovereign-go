@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	wasmvm "github.com/multiversx/mx-chain-go/integrationTests/vm/wasm/wasmvm"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm/wasmvm"
 )
 
 // ArgErc20Benchmark is the erc20 type benchmark argument used in constructor

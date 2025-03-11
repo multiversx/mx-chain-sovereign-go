@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/cmd/node/factory"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/node/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // BootstrapComponentsMock -

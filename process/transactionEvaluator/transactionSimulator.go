@@ -13,13 +13,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/node/external/transactionAPI"
-	"github.com/multiversx/mx-chain-go/process"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/storage"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node/external/transactionAPI"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 var log = logger.GetOrCreate("process/txSimulator")

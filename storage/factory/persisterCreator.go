@@ -1,11 +1,12 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-storage-go/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 const minNumShards = 2

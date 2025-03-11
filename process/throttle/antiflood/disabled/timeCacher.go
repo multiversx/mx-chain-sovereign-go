@@ -3,7 +3,7 @@ package disabled
 import (
 	"time"
 
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 var _ process.TimeCacher = (*TimeCache)(nil)

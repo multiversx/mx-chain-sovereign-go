@@ -1,7 +1,7 @@
 package bls
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
 )
 
 type subRoundEndV2Creator struct {

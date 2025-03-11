@@ -4,10 +4,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	hasherFactory "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	marshallerFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // CreateIncomingHeaderProcessor creates the incoming header processor

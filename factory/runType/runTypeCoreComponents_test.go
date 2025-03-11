@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/factory/runType"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/runType"
 )
 
 func TestNewRunTypeCoreComponentsFactory(t *testing.T) {

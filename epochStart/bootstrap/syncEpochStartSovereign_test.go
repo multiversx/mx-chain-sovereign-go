@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 func TestNewEpochStartSovereignSyncer(t *testing.T) {

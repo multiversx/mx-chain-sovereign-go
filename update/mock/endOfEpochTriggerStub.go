@@ -2,7 +2,8 @@ package mock
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/epochStart"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
 )
 
 // EpochStartTriggerStub -

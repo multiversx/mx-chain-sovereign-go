@@ -2,7 +2,8 @@ package subRounds
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/consensus"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
 )
 
 // SubRoundSignatureExtraSignatureHandlerMock -

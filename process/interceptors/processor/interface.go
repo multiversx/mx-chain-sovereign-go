@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 type interceptedDataSizeHandler interface {

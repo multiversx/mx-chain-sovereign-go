@@ -3,9 +3,10 @@ package nodesCoordinator
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
 )
 
 func TestSelectionBasedProvider_AddToSortedSlice(t *testing.T) {

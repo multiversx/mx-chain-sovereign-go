@@ -5,9 +5,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/floodPreventers"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/floodPreventers"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 // DurationBootstrapingTime -

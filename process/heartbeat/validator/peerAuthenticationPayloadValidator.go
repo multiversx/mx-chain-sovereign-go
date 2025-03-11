@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 const (

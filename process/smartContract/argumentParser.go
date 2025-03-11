@@ -1,9 +1,10 @@
 package smartContract
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type argumentParser struct {

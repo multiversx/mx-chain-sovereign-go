@@ -7,8 +7,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/container"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 var _ dataRetriever.ResolversContainer = (*resolversContainer)(nil)

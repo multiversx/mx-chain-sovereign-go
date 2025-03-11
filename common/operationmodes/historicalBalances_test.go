@@ -3,9 +3,10 @@ package operationmodes
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestProcessHistoricalBalancesMode(t *testing.T) {

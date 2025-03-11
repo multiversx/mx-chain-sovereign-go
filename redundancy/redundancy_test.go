@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/redundancy"
-	"github.com/multiversx/mx-chain-go/redundancy/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/redundancy"
+	"github.com/multiversx/mx-chain-sovereign-go/redundancy/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
 )
 
 func createMockArguments(maxRoundsOfInactivity int) redundancy.ArgNodeRedundancy {

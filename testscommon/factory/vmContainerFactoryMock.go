@@ -1,9 +1,9 @@
 package factory
 
 import (
-	factoryVm "github.com/multiversx/mx-chain-go/factory/vm"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/process"
+	factoryVm "github.com/multiversx/mx-chain-sovereign-go/factory/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // VMContainerFactoryMock -

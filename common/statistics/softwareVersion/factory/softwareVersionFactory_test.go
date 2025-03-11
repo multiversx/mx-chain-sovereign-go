@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	statusHandlerMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func TestNewSoftwareVersionFactory_NilStatusHandlerShouldErr(t *testing.T) {

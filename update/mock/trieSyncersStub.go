@@ -3,8 +3,8 @@ package mock
 import (
 	"context"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/update"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
 )
 
 // TrieSyncersStub -

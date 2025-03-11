@@ -3,10 +3,10 @@ package runType_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory/runType"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/runType"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
 
 	"github.com/stretchr/testify/require"
 )

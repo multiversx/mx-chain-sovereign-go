@@ -6,9 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/heartbeat"
-	"github.com/multiversx/mx-chain-go/process/heartbeat/validator"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process/heartbeat/validator"
 )
 
 const minDurationInSec = 10

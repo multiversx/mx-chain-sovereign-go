@@ -6,15 +6,16 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	globalErrors "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/node/nodeDebugFactory"
-	"github.com/multiversx/mx-chain-go/p2p"
-	procFactory "github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/blackList"
-	"github.com/multiversx/mx-chain-go/sharding"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	globalErrors "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/node/nodeDebugFactory"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	procFactory "github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/blackList"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // prepareOpenTopics will set to the anti flood handler the topics for which

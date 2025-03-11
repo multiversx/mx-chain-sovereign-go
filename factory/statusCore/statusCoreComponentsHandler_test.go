@@ -3,11 +3,12 @@ package statusCore_test
 import (
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/factory/statusCore"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/statusCore"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewManagedStatusCoreComponents(t *testing.T) {

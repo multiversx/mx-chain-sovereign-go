@@ -6,7 +6,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/epochStart"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
 )
 
 type metaTriggerRegistryCreator struct {

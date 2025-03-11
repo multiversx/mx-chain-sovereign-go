@@ -1,6 +1,6 @@
 package dataRetriever
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 // RequestersContainerStub -
 type RequestersContainerStub struct {

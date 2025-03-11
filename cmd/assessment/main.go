@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/cmd/assessment/benchmarks"
-	"github.com/multiversx/mx-chain-go/cmd/assessment/benchmarks/factory"
-	"github.com/multiversx/mx-chain-go/common/hostParameters"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/assessment/benchmarks"
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/assessment/benchmarks/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/common/hostParameters"
 )
 
 const hostPlaceholder = "%host"

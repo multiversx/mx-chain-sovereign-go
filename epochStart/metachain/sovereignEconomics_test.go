@@ -3,8 +3,9 @@ package metachain
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestNewSovereignEconomics(t *testing.T) {

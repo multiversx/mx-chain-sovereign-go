@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/process/sync"
+	"github.com/multiversx/mx-chain-sovereign-go/process/sync"
 )
 
 func TestNewSovereignShardBootstrapFactory(t *testing.T) {

@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/node/mock"
-	"github.com/multiversx/mx-chain-go/node/trieIterators"
-	trieIteratorsFactory "github.com/multiversx/mx-chain-go/node/trieIterators/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/node/trieIterators"
+	trieIteratorsFactory "github.com/multiversx/mx-chain-sovereign-go/node/trieIterators/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	stateMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
 )
 
 func createMockArgs(shardId uint32) trieIterators.ArgTrieIteratorProcessor {

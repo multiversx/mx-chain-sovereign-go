@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 // SmartContractParserStub -

@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/debug"
-	"github.com/multiversx/mx-chain-go/debug/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/debug/mock"
 )
 
 func TestGoRoutinesAnalyser_NewGoRoutinesAnalyser(t *testing.T) {

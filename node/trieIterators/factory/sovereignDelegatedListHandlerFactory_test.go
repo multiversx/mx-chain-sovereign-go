@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	trieIteratorsFactory "github.com/multiversx/mx-chain-go/node/trieIterators/factory"
 	"github.com/stretchr/testify/require"
+
+	trieIteratorsFactory "github.com/multiversx/mx-chain-sovereign-go/node/trieIterators/factory"
 )
 
 func TestNewSovereignDelegatedListProcessorFactory(t *testing.T) {

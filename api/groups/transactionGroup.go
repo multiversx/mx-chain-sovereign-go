@@ -12,13 +12,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/middleware"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/api/shared/logging"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/node/external"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/middleware"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared/logging"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
 )
 
 const (

@@ -7,8 +7,8 @@ import (
 	"github.com/multiversx/mx-chain-communication-go/websocket/data"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
 )
 
 func TestCreateHostDriver(t *testing.T) {

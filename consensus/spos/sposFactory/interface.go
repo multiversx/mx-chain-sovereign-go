@@ -1,8 +1,8 @@
 package sposFactory
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/broadcast"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/broadcast"
 )
 
 // BroadCastShardMessengerFactoryHandler defines a shard messenger factory handler

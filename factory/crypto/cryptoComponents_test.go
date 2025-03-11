@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-crypto-go/signing"
-	"github.com/multiversx/mx-chain-go/config"
-	errErd "github.com/multiversx/mx-chain-go/errors"
-	cryptoComp "github.com/multiversx/mx-chain-go/factory/crypto"
-	"github.com/multiversx/mx-chain-go/factory/mock"
-	integrationTestsMock "github.com/multiversx/mx-chain-go/integrationTests/mock"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	errErd "github.com/multiversx/mx-chain-sovereign-go/errors"
+	cryptoComp "github.com/multiversx/mx-chain-sovereign-go/factory/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	integrationTestsMock "github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewCryptoComponentsFactory_NilCoreComponentsHandlerShouldErr(t *testing.T) {

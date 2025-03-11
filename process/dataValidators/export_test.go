@@ -1,8 +1,9 @@
 package dataValidators
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // CheckAccount -

@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 // StateUserAccountHandlerStub -

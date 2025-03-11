@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/esdt"
-	multitransfer "github.com/multiversx/mx-chain-go/integrationTests/vm/esdt/multi-transfer"
-	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/esdt"
+	multitransfer "github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/esdt/multi-transfer"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txDataBuilder"
 )
 
 func TestESDTMultiTransferThroughForwarder(t *testing.T) {

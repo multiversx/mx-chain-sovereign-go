@@ -3,8 +3,9 @@ package consensus_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
 )
 
 func TestConsensusMessage_NewConsensusMessageShouldWork(t *testing.T) {

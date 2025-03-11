@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/debug"
+import "github.com/multiversx/mx-chain-sovereign-go/debug"
 
 // NodeWrapperStub -
 type NodeWrapperStub struct {

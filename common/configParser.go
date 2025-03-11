@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	p2pConfig "github.com/multiversx/mx-chain-go/p2p/config"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	p2pConfig "github.com/multiversx/mx-chain-sovereign-go/p2p/config"
 )
 
 // LoadP2PConfig returns a P2PConfig by reading the config file provided

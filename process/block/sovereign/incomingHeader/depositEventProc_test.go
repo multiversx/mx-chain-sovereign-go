@@ -9,8 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	sovTests "github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
 )
 
 func TestDepositEventProc_createEventData(t *testing.T) {

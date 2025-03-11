@@ -3,8 +3,9 @@ package logs_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/api/logs"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/logs"
 )
 
 func TestNewLogWriter(t *testing.T) {

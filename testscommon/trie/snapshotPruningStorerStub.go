@@ -3,7 +3,7 @@ package trie
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 // SnapshotPruningStorerStub -

@@ -3,13 +3,13 @@ package factory
 import (
 	"context"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/disabled"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/floodPreventers"
-	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/floodPreventers"
+	storageFactory "github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 const outputReservedPercent = float32(0)

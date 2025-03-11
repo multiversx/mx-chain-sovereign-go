@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/nodesCoordinator"
 )
 
 func getAddressFromUint32(address uint32) []byte {

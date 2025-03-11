@@ -4,13 +4,14 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm/wasmvm"
-	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 	mock "github.com/multiversx/mx-chain-vm-go/mock/context"
 	test "github.com/multiversx/mx-chain-vm-go/testcommon"
-	vmhooks "github.com/multiversx/mx-chain-vm-go/vmhost/vmhooks"
+	"github.com/multiversx/mx-chain-vm-go/vmhost/vmhooks"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm/wasmvm"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txDataBuilder"
 )
 
 // MultiTransferViaAsyncMock is an exposed mock contract method

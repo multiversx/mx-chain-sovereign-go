@@ -1,6 +1,6 @@
 package config
 
-import p2pConfig "github.com/multiversx/mx-chain-go/p2p/config"
+import p2pConfig "github.com/multiversx/mx-chain-sovereign-go/p2p/config"
 
 // CacheConfig will map the cache configuration
 type CacheConfig struct {

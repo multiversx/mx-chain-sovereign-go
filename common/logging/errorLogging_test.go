@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestLogErrAsLevelExceptAsDebugIfClosingError(t *testing.T) {

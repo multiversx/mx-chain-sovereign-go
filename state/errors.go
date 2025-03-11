@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 // ErrAccountNotFoundAtBlock is an error-compatible struct holding the block info at which an account was not found

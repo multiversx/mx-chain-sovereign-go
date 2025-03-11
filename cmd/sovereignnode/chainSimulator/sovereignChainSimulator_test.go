@@ -7,10 +7,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"
 
-	chainSimulatorCommon "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	chainSim "github.com/multiversx/mx-chain-go/node/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	chainSimulatorCommon "github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	chainSim "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/components/api"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
 )
 
 const (

@@ -8,20 +8,21 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/display"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/blackList"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/factory"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/blackList"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/factory"
+	statusHandlerMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 var log = logger.GetOrCreate("integrationtests/longtests/antiflood") //nolint
 
-//nolint
+// nolint
 func createWorkableConfig() config.Config {
 	return config.Config{
 		Antiflood: config.AntifloodConfig{
@@ -80,7 +81,7 @@ func createWorkableConfig() config.Config {
 	}
 }
 
-//nolint
+// nolint
 func createDisabledConfig() config.Config {
 	return config.Config{
 		Antiflood: config.AntifloodConfig{
@@ -114,7 +115,7 @@ func TestAntifloodingForLargerPeriodOfTime(t *testing.T) {
 	}
 }
 
-//nolint
+// nolint
 func createProcessors(peers []p2p.Messenger, topic string, idxBadPeers []int, idxGoodPeers []int) []*messageProcessor {
 	processors := make([]*messageProcessor, 0, len(peers))
 	ctx := context.Background()
@@ -155,7 +156,7 @@ func createProcessors(peers []p2p.Messenger, topic string, idxBadPeers []int, id
 	return processors
 }
 
-//nolint
+// nolint
 func intInSlice(searchFor int, slice []int) bool {
 	for _, val := range slice {
 		if searchFor == val {
@@ -166,7 +167,7 @@ func intInSlice(searchFor int, slice []int) bool {
 	return false
 }
 
-//nolint
+// nolint
 func displayProcessors(processors []*messageProcessor, idxBadPeers []int, idxRound int) {
 	header := []string{"idx", "pid", "received", "processed", "received/s", "connections"}
 	data := make([]*display.LineData, 0, len(processors))
@@ -199,7 +200,7 @@ func displayProcessors(processors []*messageProcessor, idxBadPeers []int, idxRou
 	time.Sleep(timeBetweenPrints)
 }
 
-//nolint
+// nolint
 func startFlooding(peers []p2p.Messenger, topic string, idxBadPeers []int, maxSize int, msgSize int) {
 	lastUpdated := time.Now()
 	m := make(map[core.PeerID]int)

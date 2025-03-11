@@ -1,6 +1,6 @@
 package testscommon
 
-import "github.com/multiversx/mx-chain-go/common"
+import "github.com/multiversx/mx-chain-sovereign-go/common"
 
 // IteratorChannelsProviderStub -
 type IteratorChannelsProviderStub struct {

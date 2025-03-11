@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
 )
 
 const goRoutineFormat = "goroutine %s\n%s"

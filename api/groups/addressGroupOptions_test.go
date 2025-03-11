@@ -5,9 +5,10 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestExtractAccountQueryOptions(t *testing.T) {

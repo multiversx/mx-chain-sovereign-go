@@ -3,9 +3,10 @@ package processorV2_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process/smartContract/processorV2"
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/processorV2"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
 )
 
 func TestNewSovereignSCProcessFactory(t *testing.T) {

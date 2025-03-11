@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestSovereignVMContextCreator_CreateVmContext(t *testing.T) {

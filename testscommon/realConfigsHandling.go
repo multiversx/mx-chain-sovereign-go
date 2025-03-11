@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 // CreateTestConfigs will try to copy the whole configs directory to a temp directory and return the configs after load

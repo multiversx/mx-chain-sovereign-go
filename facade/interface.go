@@ -11,14 +11,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/debug"
-	"github.com/multiversx/mx-chain-go/heartbeat/data"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/process"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
-	"github.com/multiversx/mx-chain-go/state"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat/data"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // NodeHandler contains all functions that a node should contain.

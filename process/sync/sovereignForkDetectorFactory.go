@@ -2,7 +2,8 @@ package sync
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type sovereignForkDetectorFactory struct {

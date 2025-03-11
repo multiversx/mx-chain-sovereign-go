@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/process/transactionLog"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process/transactionLog"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	storageStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestNewTxLogProcessor_NilParameters(t *testing.T) {

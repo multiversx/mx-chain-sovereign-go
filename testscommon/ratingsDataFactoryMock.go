@@ -1,8 +1,8 @@
 package testscommon
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/rating"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/rating"
 )
 
 // RatingsDataFactoryMock -

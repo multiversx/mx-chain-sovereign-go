@@ -6,7 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	customErrors "github.com/multiversx/mx-chain-go/api/errors"
+
+	customErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
 )
 
 func extractAccountQueryOptions(c *gin.Context) (api.AccountQueryOptions, error) {

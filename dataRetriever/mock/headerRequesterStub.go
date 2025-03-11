@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 // HeaderRequesterStub -
 type HeaderRequesterStub struct {

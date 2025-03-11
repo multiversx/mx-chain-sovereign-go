@@ -5,10 +5,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/hashing/factory"
-	mxErrors "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign"
-	processFactory "github.com/multiversx/mx-chain-go/process/factory"
+
+	mxErrors "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/sovereign"
+	processFactory "github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 type sovereignBlockProcessorFactory struct {

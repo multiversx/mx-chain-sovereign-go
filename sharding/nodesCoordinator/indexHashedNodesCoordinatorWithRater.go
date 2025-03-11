@@ -2,7 +2,8 @@ package nodesCoordinator
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/state"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 var _ NodesCoordinatorHelper = (*indexHashedNodesCoordinatorWithRater)(nil)

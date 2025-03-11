@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestCreateBlockProcessingCutoffHandler(t *testing.T) {

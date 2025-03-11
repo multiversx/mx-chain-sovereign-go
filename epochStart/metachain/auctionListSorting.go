@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 func (als *auctionListSelector) selectNodes(

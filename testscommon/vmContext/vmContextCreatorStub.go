@@ -1,9 +1,9 @@
 package vmContext
 
 import (
-	"github.com/multiversx/mx-chain-go/vm"
-	"github.com/multiversx/mx-chain-go/vm/mock"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 // VMContextCreatorStub -

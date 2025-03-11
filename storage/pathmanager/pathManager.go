@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multiversx/mx-chain-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 var _ storage.PathManagerHandler = (*PathManager)(nil)

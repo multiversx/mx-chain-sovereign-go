@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/database"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/database"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 var log = logger.GetOrCreate("integrationTests/longTests/storage")
@@ -58,7 +59,7 @@ func TestPutRemove(t *testing.T) {
 	}
 }
 
-//nolint
+// nolint
 func generateValues(numPuts int, valuesPayloadSize int) map[string][]byte {
 	m := make(map[string][]byte)
 	for i := 0; i < numPuts; i++ {
@@ -74,7 +75,7 @@ func generateValues(numPuts int, valuesPayloadSize int) map[string][]byte {
 	return m
 }
 
-//nolint
+// nolint
 func putValues(store storage.Storer, values map[string][]byte, rmv map[int][][]byte, idx int) {
 	hashes := make([][]byte, 0, len(rmv))
 	for key, val := range values {
@@ -86,7 +87,7 @@ func putValues(store storage.Storer, values map[string][]byte, rmv map[int][][]b
 	rmv[idx] = hashes
 }
 
-//nolint
+// nolint
 func removeOld(store storage.Storer, rmv map[int][][]byte, idx int) {
 	hashes, found := rmv[idx-2]
 	if !found {

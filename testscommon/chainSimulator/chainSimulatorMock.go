@@ -1,6 +1,6 @@
 package chainSimulator
 
-import "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
+import "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
 
 // ChainSimulatorMock -
 type ChainSimulatorMock struct {

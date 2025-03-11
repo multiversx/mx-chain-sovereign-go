@@ -5,11 +5,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/statusHandler"
-	"github.com/multiversx/mx-chain-go/statusHandler/p2pQuota"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler/p2pQuota"
+	statusHandlerMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func TestNewP2PQuotaProcessor_NilStatusHandlerShouldErr(t *testing.T) {

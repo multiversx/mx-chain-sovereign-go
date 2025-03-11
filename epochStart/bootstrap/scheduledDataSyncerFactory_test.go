@@ -3,12 +3,13 @@ package bootstrap
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/types"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
-	"github.com/multiversx/mx-chain-go/testscommon/syncer"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/types"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	epochStartMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/bootstrapMocks/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/syncer"
 )
 
 func TestNewScheduledDataSyncerFactory(t *testing.T) {

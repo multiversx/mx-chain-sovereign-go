@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/latestData"
-	storageMock "github.com/multiversx/mx-chain-go/storage/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/latestData"
+	storageMock "github.com/multiversx/mx-chain-sovereign-go/storage/mock"
 )
 
 // LatestDataProviderFactoryMock -

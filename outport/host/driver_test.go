@@ -8,9 +8,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	outportStubs "github.com/multiversx/mx-chain-go/testscommon/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/require"
+
+	outportStubs "github.com/multiversx/mx-chain-sovereign-go/testscommon/outport"
 )
 
 var cannotSendOnRouteErr = errors.New("cannot send on route")

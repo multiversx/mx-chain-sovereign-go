@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/update/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/update/mock"
 )
 
 // GenesisNodesSetupFactoryMock -

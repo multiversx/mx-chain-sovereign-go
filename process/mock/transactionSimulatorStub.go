@@ -3,7 +3,8 @@ package mock
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
+
+	txSimData "github.com/multiversx/mx-chain-sovereign-go/process/transactionEvaluator/data"
 )
 
 // TransactionSimulatorStub -

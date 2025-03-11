@@ -14,10 +14,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/proto"
 	"github.com/urfave/cli"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 var (

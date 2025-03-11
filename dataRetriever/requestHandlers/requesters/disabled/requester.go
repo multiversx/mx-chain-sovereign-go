@@ -1,6 +1,6 @@
 package disabled
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 type requester struct {
 }

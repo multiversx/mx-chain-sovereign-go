@@ -4,13 +4,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/storage"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 // ArgsNewSmartContractProcessor defines the arguments needed for new smart contract processor
@@ -38,7 +39,7 @@ type ArgsNewSmartContractProcessor struct {
 	VMOutputCacher      storage.Cacher
 	WasmVMChangeLocker  common.Locker
 	IsGenesisProcessing bool
-	EpochNotifier           vmcommon.EpochNotifier
+	EpochNotifier       vmcommon.EpochNotifier
 }
 
 // ScrProcessingData is a struct placeholder for scr data to be processed after validation checks

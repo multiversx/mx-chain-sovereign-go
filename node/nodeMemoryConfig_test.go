@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/pelletier/go-toml"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestMemoryConfig(t *testing.T) {

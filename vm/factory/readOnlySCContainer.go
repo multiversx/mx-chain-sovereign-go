@@ -2,7 +2,8 @@ package factory
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/vm"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // readOnlySCContainer is a wrapper over a scContainer which works read-only. write operations are disabled

@@ -1,6 +1,6 @@
 package consensus
 
-import "github.com/multiversx/mx-chain-go/consensus"
+import "github.com/multiversx/mx-chain-sovereign-go/consensus"
 
 // SigningHandlerStub implements SigningHandler interface
 type SigningHandlerStub struct {

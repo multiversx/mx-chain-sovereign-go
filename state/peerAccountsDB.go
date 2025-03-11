@@ -2,7 +2,8 @@ package state
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 // PeerAccountsDB will save and synchronize data from peer processor, plus will synchronize with nodesCoordinator

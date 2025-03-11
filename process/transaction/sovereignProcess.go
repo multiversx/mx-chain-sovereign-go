@@ -1,6 +1,6 @@
 package transaction
 
-import "github.com/multiversx/mx-chain-go/process"
+import "github.com/multiversx/mx-chain-sovereign-go/process"
 
 // sovereignTransactionProcessor implements the transaction processor for sovereign shards
 type sovereignTransactionProcessor struct {

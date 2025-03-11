@@ -7,7 +7,8 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 type trieStatistics struct {

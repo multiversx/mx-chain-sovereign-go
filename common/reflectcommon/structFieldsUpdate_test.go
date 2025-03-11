@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/testscommon/toml"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/toml"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"

@@ -7,11 +7,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-crypto-go"
-	errorsErd "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory/peerSignatureHandler"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	"github.com/stretchr/testify/assert"
+
+	errorsErd "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/peerSignatureHandler"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/cryptoMocks"
 )
 
 func TestNewPeerSignatureHandler_NilCacherShouldErr(t *testing.T) {

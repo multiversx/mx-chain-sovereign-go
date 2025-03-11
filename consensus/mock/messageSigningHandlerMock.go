@@ -3,8 +3,8 @@ package mock
 import (
 	"encoding/json"
 
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/p2p/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p/factory"
 )
 
 // MessageSignerMock implements P2PSigningHandler interface but it does nothing as it is disabled

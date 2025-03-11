@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	procMock "github.com/multiversx/mx-chain-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	procMock "github.com/multiversx/mx-chain-sovereign-go/process/mock"
 )
 
 // PreProcessorsContainerFactoryMock -

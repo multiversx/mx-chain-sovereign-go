@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
 )
 
 // MemDbMock represents the memory database storage. It holds a map of key value pairs

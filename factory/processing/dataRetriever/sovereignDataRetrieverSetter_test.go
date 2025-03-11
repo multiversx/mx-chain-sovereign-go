@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
-	mockRetriever "github.com/multiversx/mx-chain-go/dataRetriever/mock"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/stretchr/testify/require"
+
+	retriever "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	mockRetriever "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
 )
 
 func TestDataRetrieverContainersSetter_SetEpochHandlerToMetaBlockContainers(t *testing.T) {

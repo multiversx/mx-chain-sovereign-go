@@ -3,8 +3,9 @@ package bootstrapStorage
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 func TestMiniBlocksInMeta_IsFullyProcessedShouldWork(t *testing.T) {

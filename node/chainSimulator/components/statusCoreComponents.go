@@ -4,11 +4,12 @@ import (
 	"io"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/factory/statusCore"
-	"github.com/multiversx/mx-chain-go/node/external"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/statusCore"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
 )
 
 type statusCoreComponentsHolder struct {

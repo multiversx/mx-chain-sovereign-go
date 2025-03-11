@@ -2,9 +2,10 @@ package factory
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/node/trieIterators"
-	"github.com/multiversx/mx-chain-go/node/trieIterators/disabled"
+
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
+	"github.com/multiversx/mx-chain-sovereign-go/node/trieIterators"
+	"github.com/multiversx/mx-chain-sovereign-go/node/trieIterators/disabled"
 )
 
 type directStakedListProcessorFactory struct {

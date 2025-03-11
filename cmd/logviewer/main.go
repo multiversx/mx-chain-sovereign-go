@@ -14,9 +14,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 const (

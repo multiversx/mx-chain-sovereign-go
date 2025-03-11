@@ -3,17 +3,18 @@ package status_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/common"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/factory/mock"
-	statusComp "github.com/multiversx/mx-chain-go/factory/status"
-	"github.com/multiversx/mx-chain-go/p2p"
-	factoryMocks "github.com/multiversx/mx-chain-go/testscommon/factory"
-	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/processMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	statusComp "github.com/multiversx/mx-chain-sovereign-go/factory/status"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	factoryMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/p2pmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/processMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/statusHandler"
 )
 
 func TestNewManagedStatusComponents(t *testing.T) {

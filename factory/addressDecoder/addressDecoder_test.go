@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	chainError "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	chainError "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/addressDecoder"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func Test_DecodeAddressesError(t *testing.T) {

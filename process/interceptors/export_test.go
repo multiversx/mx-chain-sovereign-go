@@ -1,6 +1,6 @@
 package interceptors
 
-import "github.com/multiversx/mx-chain-go/process"
+import "github.com/multiversx/mx-chain-sovereign-go/process"
 
 // Topic -
 func (mdi *MultiDataInterceptor) Topic() string {

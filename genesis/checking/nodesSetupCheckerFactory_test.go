@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/genesis/checking"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/checking"
 )
 
 func TestNodesSetupCheckerFactory_CreateNodesSetupChecker(t *testing.T) {

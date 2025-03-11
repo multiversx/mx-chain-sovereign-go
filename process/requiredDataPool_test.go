@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestRequiredDataPool_ExpectedData(t *testing.T) {

@@ -3,18 +3,19 @@ package factory
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/outport/process"
-	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts"
-	"github.com/multiversx/mx-chain-go/outport/process/transactionsfee"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	commonMocks "github.com/multiversx/mx-chain-go/testscommon/common"
-	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/alteredaccounts"
+	"github.com/multiversx/mx-chain-sovereign-go/outport/process/transactionsfee"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	commonMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/common"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/economicsmocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/genericMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/marshallerMock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
 )
 
 func createArgOutportDataProviderFactory() ArgOutportDataProviderFactory {

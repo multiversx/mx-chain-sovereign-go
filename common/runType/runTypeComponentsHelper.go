@@ -1,8 +1,8 @@
 package runType
 
 import (
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/genesis/data"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/data"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 )

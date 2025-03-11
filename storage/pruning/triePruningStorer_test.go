@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/mock"
-	"github.com/multiversx/mx-chain-go/storage/pruning"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/pruning"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestNewTriePruningStorer(t *testing.T) {

@@ -1,6 +1,6 @@
 package scheduledDataSyncer
 
-import "github.com/multiversx/mx-chain-go/epochStart/bootstrap/types"
+import "github.com/multiversx/mx-chain-sovereign-go/epochStart/bootstrap/types"
 
 // ScheduledSyncerFactoryStub -
 type ScheduledSyncerFactoryStub struct {

@@ -1,9 +1,9 @@
 package factory
 
 import (
-	mxFactory "github.com/multiversx/mx-chain-go/factory"
-	"github.com/multiversx/mx-chain-go/update"
-	updateMock "github.com/multiversx/mx-chain-go/update/mock"
+	mxFactory "github.com/multiversx/mx-chain-sovereign-go/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/update"
+	updateMock "github.com/multiversx/mx-chain-sovereign-go/update/mock"
 )
 
 // ExportHandlerFactoryCreatorMock -

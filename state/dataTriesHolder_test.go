@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/state"
-	trieMock "github.com/multiversx/mx-chain-go/testscommon/trie"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	trieMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewDataTriesHolder(t *testing.T) {

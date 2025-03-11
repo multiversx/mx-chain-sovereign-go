@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
-	dataRetrieverMocks "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	requesterscontainer "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/requestersContainer"
+	dataRetrieverMocks "github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
 )
 
 // RequestersContainerFactoryMock -

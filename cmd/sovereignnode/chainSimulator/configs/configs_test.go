@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/configs"
 )
 
 func TestCreateChainSimulatorConfigsWithSovereignGenesisFile(t *testing.T) {

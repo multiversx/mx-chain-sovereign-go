@@ -4,11 +4,12 @@ import (
 	"math/big"
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	"github.com/multiversx/mx-chain-go/testscommon/trie"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/sovereign"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/trie"
 )
 
 func TestNewSovereignAccount(t *testing.T) {

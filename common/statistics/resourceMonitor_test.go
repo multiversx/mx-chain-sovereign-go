@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
-	stats "github.com/multiversx/mx-chain-go/common/statistics"
-	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
-	"github.com/multiversx/mx-chain-go/config"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	stats "github.com/multiversx/mx-chain-sovereign-go/common/statistics"
+	"github.com/multiversx/mx-chain-sovereign-go/common/statistics/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 var log = logger.GetOrCreate("common/statistics.test")

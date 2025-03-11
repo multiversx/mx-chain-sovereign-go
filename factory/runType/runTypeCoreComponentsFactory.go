@@ -1,9 +1,9 @@
 package runType
 
 import (
-	"github.com/multiversx/mx-chain-go/common/enablers"
-	"github.com/multiversx/mx-chain-go/process/rating"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/common/enablers"
+	"github.com/multiversx/mx-chain-sovereign-go/process/rating"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 )
 
 type runTypeCoreComponentsFactory struct {

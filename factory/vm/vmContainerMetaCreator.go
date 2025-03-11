@@ -3,10 +3,10 @@ package vm
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory/metachain"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/metachain"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 type vmContainerMetaFactory struct {

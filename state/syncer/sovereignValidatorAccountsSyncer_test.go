@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/state/syncer"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/state/syncer"
 )
 
 func TestNewSovereignValidatorAccountsSyncer(t *testing.T) {

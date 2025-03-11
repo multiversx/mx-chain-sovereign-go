@@ -4,7 +4,8 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // TestSmartContractProcessor is a SmartContractProcessor used in integration tests

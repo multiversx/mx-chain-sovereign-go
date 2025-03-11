@@ -3,8 +3,8 @@ package requestHandlers
 import (
 	"time"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // HashSliceRequester can request multiple hashes at once

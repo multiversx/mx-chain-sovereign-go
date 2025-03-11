@@ -12,13 +12,14 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/groups"
-	"github.com/multiversx/mx-chain-go/api/mock"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	apiErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/groups"
+	"github.com/multiversx/mx-chain-sovereign-go/api/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestNewBlockGroup(t *testing.T) {

@@ -3,13 +3,14 @@ package incomingHeader
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
-	"github.com/multiversx/mx-chain-go/testscommon/pool"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	retriever "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/pool"
 )
 
 func createWSCfg() config.WebSocketConfig {

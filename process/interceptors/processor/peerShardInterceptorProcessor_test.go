@@ -6,13 +6,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	heartbeatMessages "github.com/multiversx/mx-chain-go/heartbeat"
-	p2pFactory "github.com/multiversx/mx-chain-go/p2p/factory"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/heartbeat"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	processP2P "github.com/multiversx/mx-chain-go/process/p2p"
 	"github.com/stretchr/testify/assert"
+
+	heartbeatMessages "github.com/multiversx/mx-chain-sovereign-go/heartbeat"
+	p2pFactory "github.com/multiversx/mx-chain-sovereign-go/p2p/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/heartbeat"
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	processP2P "github.com/multiversx/mx-chain-sovereign-go/process/p2p"
 )
 
 func createMockArgPeerShardInterceptorProcessor() ArgPeerShardInterceptorProcessor {

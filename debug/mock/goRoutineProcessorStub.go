@@ -3,7 +3,7 @@ package mock
 import (
 	"bytes"
 
-	"github.com/multiversx/mx-chain-go/debug"
+	"github.com/multiversx/mx-chain-sovereign-go/debug"
 )
 
 // GoRoutineHandlerMap is an alias on the map of GoRoutineHandler

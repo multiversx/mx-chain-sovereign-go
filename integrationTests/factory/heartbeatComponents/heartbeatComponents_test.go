@@ -8,12 +8,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common/forking"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	bootstrapComp "github.com/multiversx/mx-chain-go/factory/bootstrap"
-	"github.com/multiversx/mx-chain-go/integrationTests/factory"
-	"github.com/multiversx/mx-chain-go/node"
-	"github.com/multiversx/mx-chain-go/testscommon/goroutines"
+	"github.com/multiversx/mx-chain-sovereign-go/common/forking"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	bootstrapComp "github.com/multiversx/mx-chain-sovereign-go/factory/bootstrap"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/goroutines"
 )
 
 // ------------ Test TestHeartbeatComponents --------------------

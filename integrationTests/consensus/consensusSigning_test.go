@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
 )
 
 func initNodesWithTestSigner(

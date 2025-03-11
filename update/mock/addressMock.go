@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/hashingMocks"
 )
 
 // AddressMock implements a mock address generator used in testing

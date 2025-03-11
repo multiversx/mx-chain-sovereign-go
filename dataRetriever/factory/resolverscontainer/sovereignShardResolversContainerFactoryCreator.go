@@ -1,6 +1,6 @@
 package resolverscontainer
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 type sovereignShardResolversContainerFactoryCreator struct {
 }

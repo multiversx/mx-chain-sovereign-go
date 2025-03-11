@@ -1,7 +1,7 @@
 package processMocks
 
 import (
-	"github.com/multiversx/mx-chain-go/process/block/preprocess"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/preprocess"
 )
 
 // RunTypeComponentsStub -

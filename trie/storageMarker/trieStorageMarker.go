@@ -1,8 +1,9 @@
 package storageMarker
 
 import (
-	"github.com/multiversx/mx-chain-go/common"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 var log = logger.GetOrCreate("trie")

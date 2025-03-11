@@ -6,14 +6,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/smartContract"
-	"github.com/multiversx/mx-chain-go/process/smartContract/processorV2"
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
-	"github.com/multiversx/mx-chain-go/state"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/processorV2"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 var log = logger.GetOrCreate("processProxy")
@@ -46,30 +47,30 @@ func NewSmartContractProcessorProxy(args scrCommon.ArgsNewSmartContractProcessor
 
 	proxy := &scProcessorProxy{
 		args: scrCommon.ArgsNewSmartContractProcessor{
-			VmContainer:             args.VmContainer,
-			ArgsParser:              args.ArgsParser,
-			Hasher:                  args.Hasher,
-			Marshalizer:             args.Marshalizer,
-			AccountsDB:              args.AccountsDB,
-			BlockChainHook:          args.BlockChainHook,
-			BuiltInFunctions:        args.BuiltInFunctions,
-			PubkeyConv:              args.PubkeyConv,
-			ShardCoordinator:        args.ShardCoordinator,
-			ScrForwarder:            args.ScrForwarder,
-			TxFeeHandler:            args.TxFeeHandler,
-			EconomicsFee:            args.EconomicsFee,
-			TxTypeHandler:           args.TxTypeHandler,
-			GasHandler:              args.GasHandler,
-			GasSchedule:             args.GasSchedule,
-			TxLogsProcessor:         args.TxLogsProcessor,
-			BadTxForwarder:          args.BadTxForwarder,
-			EnableRoundsHandler:     args.EnableRoundsHandler,
-			EnableEpochsHandler:     args.EnableEpochsHandler,
-			EnableEpochs:            args.EnableEpochs,
-			VMOutputCacher:          args.VMOutputCacher,
-			WasmVMChangeLocker:      args.WasmVMChangeLocker,
-			IsGenesisProcessing:     args.IsGenesisProcessing,
-			EpochNotifier:           args.EpochNotifier,
+			VmContainer:         args.VmContainer,
+			ArgsParser:          args.ArgsParser,
+			Hasher:              args.Hasher,
+			Marshalizer:         args.Marshalizer,
+			AccountsDB:          args.AccountsDB,
+			BlockChainHook:      args.BlockChainHook,
+			BuiltInFunctions:    args.BuiltInFunctions,
+			PubkeyConv:          args.PubkeyConv,
+			ShardCoordinator:    args.ShardCoordinator,
+			ScrForwarder:        args.ScrForwarder,
+			TxFeeHandler:        args.TxFeeHandler,
+			EconomicsFee:        args.EconomicsFee,
+			TxTypeHandler:       args.TxTypeHandler,
+			GasHandler:          args.GasHandler,
+			GasSchedule:         args.GasSchedule,
+			TxLogsProcessor:     args.TxLogsProcessor,
+			BadTxForwarder:      args.BadTxForwarder,
+			EnableRoundsHandler: args.EnableRoundsHandler,
+			EnableEpochsHandler: args.EnableEpochsHandler,
+			EnableEpochs:        args.EnableEpochs,
+			VMOutputCacher:      args.VMOutputCacher,
+			WasmVMChangeLocker:  args.WasmVMChangeLocker,
+			IsGenesisProcessing: args.IsGenesisProcessing,
+			EpochNotifier:       args.EpochNotifier,
 		},
 	}
 

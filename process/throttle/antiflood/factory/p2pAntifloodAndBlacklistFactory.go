@@ -7,19 +7,20 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/config"
-	antifloodDebug "github.com/multiversx/mx-chain-go/debug/antiflood"
-	"github.com/multiversx/mx-chain-go/p2p"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/blackList"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/disabled"
-	"github.com/multiversx/mx-chain-go/process/throttle/antiflood/floodPreventers"
-	"github.com/multiversx/mx-chain-go/statusHandler/p2pQuota"
-	"github.com/multiversx/mx-chain-go/storage/cache"
-	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	antifloodDebug "github.com/multiversx/mx-chain-sovereign-go/debug/antiflood"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/blackList"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle/antiflood/floodPreventers"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler/p2pQuota"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/cache"
+	storageFactory "github.com/multiversx/mx-chain-sovereign-go/storage/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 var log = logger.GetOrCreate("p2p/antiflood/factory")

@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/cmd/termui/provider"
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/provider"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 func TestPresenterStatusHandler_GetNonce(t *testing.T) {

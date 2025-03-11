@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	vmData "github.com/multiversx/mx-chain-core-go/data/vm"
-	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestCheckIfNil_NilArgs(t *testing.T) {

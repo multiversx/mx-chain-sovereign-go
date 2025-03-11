@@ -3,7 +3,7 @@ package testscommon
 import (
 	"time"
 
-	"github.com/multiversx/mx-chain-go/storage/txcache"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/txcache"
 )
 
 type TxCacherStub struct {

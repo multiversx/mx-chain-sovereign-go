@@ -3,9 +3,10 @@ package processProxy_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process/smartContract/processProxy"
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/processProxy"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
 )
 
 func TestNewSCProcessProcessFactory(t *testing.T) {

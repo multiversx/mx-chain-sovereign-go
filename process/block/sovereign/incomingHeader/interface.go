@@ -4,8 +4,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 
-	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
-	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
+	sovereignBlock "github.com/multiversx/mx-chain-sovereign-go/dataRetriever/dataPool/sovereign"
+	sovBlock "github.com/multiversx/mx-chain-sovereign-go/process/block/sovereign"
 )
 
 // HeadersPool should be able to add new headers in pool

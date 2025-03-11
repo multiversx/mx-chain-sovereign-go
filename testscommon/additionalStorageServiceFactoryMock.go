@@ -1,6 +1,6 @@
 package testscommon
 
-import "github.com/multiversx/mx-chain-go/dataRetriever"
+import "github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 // AdditionalStorageServiceFactoryMock is a mock for AdditionalStorageServiceFactory
 type AdditionalStorageServiceFactoryMock struct {

@@ -1,8 +1,8 @@
 package nodesCoordinator
 
 import (
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 type baseNodesCoordinatorWithRater struct {

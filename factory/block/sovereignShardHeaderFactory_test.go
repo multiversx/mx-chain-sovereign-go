@@ -8,7 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
 )
 
 func TestNewSovereignShardHeaderFactory(t *testing.T) {

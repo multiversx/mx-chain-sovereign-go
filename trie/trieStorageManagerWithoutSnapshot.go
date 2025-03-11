@@ -2,7 +2,8 @@ package trie
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 type trieStorageManagerWithoutSnapshot struct {

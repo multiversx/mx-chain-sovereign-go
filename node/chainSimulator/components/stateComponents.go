@@ -3,11 +3,11 @@ package components
 import (
 	"io"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/factory"
-	factoryState "github.com/multiversx/mx-chain-go/factory/state"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	factoryState "github.com/multiversx/mx-chain-sovereign-go/factory/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // ArgsStateComponents will hold the components needed for state components

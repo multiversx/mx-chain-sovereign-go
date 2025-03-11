@@ -3,7 +3,8 @@ package resolvers
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 // ArgBaseResolver is the argument structure used as base to create a new a resolver instance

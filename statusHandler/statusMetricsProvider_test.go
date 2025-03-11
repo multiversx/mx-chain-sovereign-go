@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/statusHandler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/statusHandler"
 )
 
 func TestNewStatusMetricsProvider(t *testing.T) {

@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/interceptorscontainer"
 )
 
 func TestNewShardInterceptorsContainerFactoryCreator(t *testing.T) {

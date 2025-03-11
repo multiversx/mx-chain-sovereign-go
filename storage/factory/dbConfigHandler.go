@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 const (

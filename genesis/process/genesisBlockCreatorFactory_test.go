@@ -6,8 +6,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/genesis/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/mock"
 )
 
 func TestNewGenesisBlockCreatorFactory(t *testing.T) {

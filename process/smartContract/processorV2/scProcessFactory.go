@@ -1,7 +1,7 @@
 package processorV2
 
 import (
-	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/scrCommon"
 )
 
 type scProcessFactory struct {

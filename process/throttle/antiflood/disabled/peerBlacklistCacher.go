@@ -4,7 +4,8 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 var _ process.PeerBlackListCacher = (*PeerBlacklistCacher)(nil)

@@ -3,8 +3,8 @@ package stakingcommon
 import (
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // StakingDataProviderStub -

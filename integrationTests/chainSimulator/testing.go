@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/errors"
-	chainSimulatorProcess "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/errors"
+	chainSimulatorProcess "github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // GenerateBlocksAndEpochChange -

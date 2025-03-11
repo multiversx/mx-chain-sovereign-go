@@ -1,8 +1,8 @@
 package broadcastFactory
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/broadcast"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/broadcast"
 )
 
 type shardChainMessengerFactory struct {

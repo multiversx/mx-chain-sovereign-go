@@ -9,14 +9,15 @@ import (
 	"github.com/klauspost/cpuid/v2"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/cmd/node/factory"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/config/overridableConfig"
-	"github.com/multiversx/mx-chain-go/node"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/file"
 	"github.com/urfave/cli"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/node/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config/overridableConfig"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
 	// test point 1 for custom profiler
 )
 

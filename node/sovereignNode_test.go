@@ -6,8 +6,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/node"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/node"
 )
 
 var nativeESDT = "WEGLD-bd4d79"

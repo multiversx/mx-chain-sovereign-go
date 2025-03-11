@@ -6,8 +6,8 @@ import (
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/state"
-	testState "github.com/multiversx/mx-chain-go/testscommon/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
+	testState "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
 )
 
 func TestNewAccountsAdapter(t *testing.T) {

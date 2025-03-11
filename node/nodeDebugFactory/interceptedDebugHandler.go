@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/debug/factory"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/debug/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // InterceptorDebugger is the constant string for the debugger

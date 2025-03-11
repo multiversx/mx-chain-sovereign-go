@@ -5,7 +5,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/heartbeat"
+
+	"github.com/multiversx/mx-chain-sovereign-go/heartbeat"
 )
 
 type argHeartbeatSenderFactory struct {

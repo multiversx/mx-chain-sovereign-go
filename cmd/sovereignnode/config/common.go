@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 // LoadSovereignGeneralConfig returns the extra config necessary by sovereign by reading it from the provided file

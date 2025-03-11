@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestCustomDatabaseRemover(t *testing.T) {

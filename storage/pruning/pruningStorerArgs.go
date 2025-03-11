@@ -1,10 +1,10 @@
 package pruning
 
 import (
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/clean"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/clean"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 // StorerArgs will hold the arguments needed for PruningStorer

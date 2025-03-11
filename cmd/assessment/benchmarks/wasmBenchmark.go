@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	wasmvm "github.com/multiversx/mx-chain-go/integrationTests/vm/wasm/wasmvm"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts/defaults"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/wasm/wasmvm"
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts/defaults"
 )
 
 // ArgWasmBenchmark is the wasm type benchmark argument used in constructor

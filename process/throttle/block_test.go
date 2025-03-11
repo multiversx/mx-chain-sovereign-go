@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/process/throttle"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/throttle"
 )
 
 const minSizeInBytes = uint32(core.MegabyteSize * 10 / 100)

@@ -2,8 +2,9 @@ package initial
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/facade"
-	"github.com/multiversx/mx-chain-go/node/external"
+
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
+	"github.com/multiversx/mx-chain-sovereign-go/node/external"
 )
 
 type initialStatusMetricsProvider struct {

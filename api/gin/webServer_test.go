@@ -8,15 +8,16 @@ import (
 	"testing"
 	"time"
 
-	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
-	"github.com/multiversx/mx-chain-go/api/middleware"
-	"github.com/multiversx/mx-chain-go/api/mock"
-	"github.com/multiversx/mx-chain-go/api/shared"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/facade"
-	"github.com/multiversx/mx-chain-go/testscommon/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	apiErrors "github.com/multiversx/mx-chain-sovereign-go/api/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/api/middleware"
+	"github.com/multiversx/mx-chain-sovereign-go/api/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/facade"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/api"
 )
 
 func createMockArgsNewWebServer() ArgsNewWebServer {

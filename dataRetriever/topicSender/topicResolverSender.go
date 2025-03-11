@@ -2,8 +2,9 @@ package topicsender
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/p2p"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/p2p"
 )
 
 var _ dataRetriever.TopicResolverSender = (*topicResolverSender)(nil)

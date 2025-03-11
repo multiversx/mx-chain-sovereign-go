@@ -1,7 +1,7 @@
 package metachain
 
 import (
-	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 // LoadState loads into trigger the saved state

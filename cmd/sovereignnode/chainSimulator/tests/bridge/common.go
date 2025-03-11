@@ -11,9 +11,9 @@ import (
 	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 
-	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
+	chainSim "github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/process"
 )
 
 const (

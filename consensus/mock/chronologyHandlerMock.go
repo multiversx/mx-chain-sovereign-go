@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
 )
 
 // ChronologyHandlerMock -

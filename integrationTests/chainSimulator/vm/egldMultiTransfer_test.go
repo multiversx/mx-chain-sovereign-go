@@ -10,14 +10,15 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/txsFee"
-	"github.com/multiversx/mx-chain-go/integrationTests/vm/txsFee/utils"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
-	"github.com/multiversx/mx-chain-go/vm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/txsFee"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/vm/txsFee/utils"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/components/api"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestChainSimulator_EGLD_MultiTransfer(t *testing.T) {

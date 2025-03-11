@@ -7,8 +7,9 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/multiversx/mx-chain-go/api/shared"
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/shared"
 )
 
 var log = logger.GetOrCreate("api/middleware")

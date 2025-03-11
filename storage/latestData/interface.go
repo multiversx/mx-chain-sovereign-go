@@ -3,7 +3,8 @@ package latestData
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/storage"
+
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
 )
 
 // LatestDataProviderFactory defines the factory for latest data provider

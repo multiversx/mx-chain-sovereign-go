@@ -7,9 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/api/logs"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/multiversx/mx-chain-sovereign-go/api/logs"
 )
 
 var log = logger.GetOrCreate("seednode/api")

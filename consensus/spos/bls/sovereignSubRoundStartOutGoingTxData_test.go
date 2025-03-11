@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
-	cnsTest "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
+	cnsTest "github.com/multiversx/mx-chain-sovereign-go/testscommon/consensus"
 )
 
 func TestNewSovereignSubRoundStartOutGoingTxData(t *testing.T) {

@@ -3,7 +3,7 @@ package components
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 
 	"github.com/stretchr/testify/require"
 )

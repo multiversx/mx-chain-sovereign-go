@@ -1,6 +1,6 @@
 package validatorInfoCacherStub
 
-import "github.com/multiversx/mx-chain-go/state"
+import "github.com/multiversx/mx-chain-sovereign-go/state"
 
 // ValidatorInfoCacherStub -
 type ValidatorInfoCacherStub struct {

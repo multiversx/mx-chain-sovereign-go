@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/multiversx/mx-chain-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
 )
 
 const decodeBase = 10

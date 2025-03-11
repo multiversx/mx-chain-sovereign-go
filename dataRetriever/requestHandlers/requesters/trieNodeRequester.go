@@ -1,7 +1,7 @@
 package requesters
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
 )
 
 // ArgTrieNodeRequester is the argument structure used to create a new trie node requester instance

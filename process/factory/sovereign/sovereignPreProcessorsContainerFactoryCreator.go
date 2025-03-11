@@ -1,8 +1,8 @@
 package sovereign
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory/shard/data"
 )
 
 type sovereignPreProcessorContainerFactoryCreator struct {

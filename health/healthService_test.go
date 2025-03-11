@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestHealthService_RegisterComponent_BadComponentsShouldErr(t *testing.T) {

@@ -19,9 +19,10 @@ import (
 	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
 	"github.com/multiversx/mx-chain-crypto-go/signing/mcl"
 	"github.com/multiversx/mx-chain-crypto-go/signing/secp256k1"
-	"github.com/multiversx/mx-chain-go/cmd/keygenerator/converter"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/keygenerator/converter"
 )
 
 type cfg struct {

@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
-	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
-	"github.com/multiversx/mx-chain-go/process"
-	sovereignChainSimulator "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator"
+	sovereignChainSimulator "github.com/multiversx/mx-chain-sovereign-go/cmd/sovereignnode/chainSimulator"
+
+	chainSim "github.com/multiversx/mx-chain-sovereign-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator"
+	"github.com/multiversx/mx-chain-sovereign-go/node/chainSimulator/components/api"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"

@@ -9,9 +9,10 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
-	"github.com/multiversx/mx-chain-go/cmd/termui/view"
-	"github.com/multiversx/mx-chain-go/cmd/termui/view/termuic/termuiRenders"
 	"github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/view"
+	"github.com/multiversx/mx-chain-sovereign-go/cmd/termui/view/termuic/termuiRenders"
 )
 
 // numOfTicksBeforeRedrawing represents the number of ticks which have to pass until a fake resize will be made

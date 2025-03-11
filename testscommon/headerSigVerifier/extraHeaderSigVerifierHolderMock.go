@@ -3,7 +3,8 @@ package headerSigVerifier
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // ExtraHeaderSigVerifierHolderMock -

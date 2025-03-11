@@ -10,11 +10,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/integrationTests"
-	"github.com/multiversx/mx-chain-go/integrationTests/mock"
-	testBlock "github.com/multiversx/mx-chain-go/integrationTests/singleShard/block"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests"
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/mock"
+	testBlock "github.com/multiversx/mx-chain-sovereign-go/integrationTests/singleShard/block"
 )
 
 var log = logger.GetOrCreate("consensusNotAchieved")

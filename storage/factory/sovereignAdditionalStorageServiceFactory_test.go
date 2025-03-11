@@ -3,10 +3,11 @@ package factory_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/storage/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/factory"
 )
 
 func TestNewSovereignAdditionalStorageServiceFactory(t *testing.T) {

@@ -4,8 +4,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/interceptedBlocks"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/interceptedBlocks"
 )
 
 // ArgsSovereignInterceptedExtendedHeaderFactory is a struct placeholder for args needed to create an instance of sovereign extended header factory

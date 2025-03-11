@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/block/preprocess"
 )
 
 func TestNewBalanceComputation_ShouldWork(t *testing.T) {

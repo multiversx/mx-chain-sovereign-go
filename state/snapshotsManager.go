@@ -9,9 +9,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/atomic"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/storage/storageEpochChange"
-	"github.com/multiversx/mx-chain-go/trie/storageMarker"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageEpochChange"
+	"github.com/multiversx/mx-chain-sovereign-go/trie/storageMarker"
 )
 
 // ArgsNewSnapshotsManager are the args needed for creating a new snapshots manager

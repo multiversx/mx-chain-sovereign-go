@@ -3,11 +3,12 @@ package network_test
 import (
 	"testing"
 
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	networkComp "github.com/multiversx/mx-chain-go/factory/network"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/require"
+
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	networkComp "github.com/multiversx/mx-chain-sovereign-go/factory/network"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewManagedNetworkComponents(t *testing.T) {

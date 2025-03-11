@@ -1,7 +1,7 @@
 package metachain
 
 import (
-	"github.com/multiversx/mx-chain-go/state"
+	"github.com/multiversx/mx-chain-sovereign-go/state"
 )
 
 // GetAllNodeKeys returns all <shard,pubKeys> from the provided map

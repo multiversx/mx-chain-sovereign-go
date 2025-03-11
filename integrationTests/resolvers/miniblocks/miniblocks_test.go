@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/integrationTests/resolvers"
-	"github.com/multiversx/mx-chain-go/process/factory"
+
+	"github.com/multiversx/mx-chain-sovereign-go/integrationTests/resolvers"
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
 )
 
 func TestRequestResolveMiniblockByHashRequestingShardResolvingSameShard(t *testing.T) {

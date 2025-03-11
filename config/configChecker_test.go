@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon/nodesSetupMock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/nodesSetupMock"
 )
 
 const numOfShards = 3

@@ -1,6 +1,6 @@
 package testscommon
 
-import "github.com/multiversx/mx-chain-go/config"
+import "github.com/multiversx/mx-chain-sovereign-go/config"
 
 // MaxNodesChangeConfigProviderStub -
 type MaxNodesChangeConfigProviderStub struct {

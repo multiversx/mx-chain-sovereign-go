@@ -5,11 +5,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/errors"
-	cnsTest "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus/spos"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	cnsTest "github.com/multiversx/mx-chain-sovereign-go/testscommon/consensus"
 )
 
 func TestNewSovereignSubRoundSignatureOutGoingTxData(t *testing.T) {

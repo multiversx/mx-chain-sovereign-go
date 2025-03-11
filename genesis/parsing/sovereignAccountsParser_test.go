@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/genesis"
-	"github.com/multiversx/mx-chain-go/genesis/parsing"
-	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis"
+	"github.com/multiversx/mx-chain-sovereign-go/genesis/parsing"
+	"github.com/multiversx/mx-chain-sovereign-go/sharding"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"

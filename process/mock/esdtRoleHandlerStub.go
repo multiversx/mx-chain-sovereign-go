@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/multiversx/mx-chain-go/state"
+import "github.com/multiversx/mx-chain-sovereign-go/state"
 
 // ESDTRoleHandlerStub -
 type ESDTRoleHandlerStub struct {

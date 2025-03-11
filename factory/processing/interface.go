@@ -1,13 +1,13 @@
 package processing
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block"
-	"github.com/multiversx/mx-chain-go/process/coordinator"
-	"github.com/multiversx/mx-chain-go/process/peer"
-	"github.com/multiversx/mx-chain-go/process/sync"
-	"github.com/multiversx/mx-chain-go/process/track"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/requestHandlers"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process/block"
+	"github.com/multiversx/mx-chain-sovereign-go/process/coordinator"
+	"github.com/multiversx/mx-chain-sovereign-go/process/peer"
+	"github.com/multiversx/mx-chain-sovereign-go/process/sync"
+	"github.com/multiversx/mx-chain-sovereign-go/process/track"
 )
 
 // TransactionCoordinatorCreator defines the transaction coordinator factory creator

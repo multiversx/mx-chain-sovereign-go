@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storageManager"
 )
 
 func getDefaultArgs() StorageEpochChangeWaitArgs {

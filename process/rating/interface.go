@@ -1,6 +1,6 @@
 package rating
 
-import "github.com/multiversx/mx-chain-go/process"
+import "github.com/multiversx/mx-chain-sovereign-go/process"
 
 // RatingsDataFactory defines a ratings info handler factory behavior
 type RatingsDataFactory interface {

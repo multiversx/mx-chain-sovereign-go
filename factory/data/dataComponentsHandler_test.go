@@ -3,14 +3,15 @@ package data_test
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/factory"
-	dataComp "github.com/multiversx/mx-chain-go/factory/data"
-	"github.com/multiversx/mx-chain-go/factory/mock"
-	"github.com/multiversx/mx-chain-go/testscommon"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/factory"
+	dataComp "github.com/multiversx/mx-chain-sovereign-go/factory/data"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
 )
 
 func TestNewManagedDataComponents(t *testing.T) {

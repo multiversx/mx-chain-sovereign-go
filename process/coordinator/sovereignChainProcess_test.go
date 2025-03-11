@@ -3,8 +3,9 @@ package coordinator
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 func TestNewSovereignChainTransactionCoordinator_ShouldErrNilTransactionCoordinator(t *testing.T) {

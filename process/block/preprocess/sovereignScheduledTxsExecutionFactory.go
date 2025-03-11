@@ -1,8 +1,8 @@
 package preprocess
 
 import (
-	processDisabled "github.com/multiversx/mx-chain-go/genesis/process/disabled"
-	"github.com/multiversx/mx-chain-go/process"
+	processDisabled "github.com/multiversx/mx-chain-sovereign-go/genesis/process/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 type sovereignScheduledTxsExecutionFactory struct {

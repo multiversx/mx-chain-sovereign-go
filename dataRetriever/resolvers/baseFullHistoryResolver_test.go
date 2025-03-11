@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/storage"
 )
 
 func TestBaseFullHistoryResolver_SearchFirst(t *testing.T) {

@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/hashing"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/factory"
+	"github.com/multiversx/mx-chain-sovereign-go/process/smartContract/hooks"
 )
 
 var errNilValue = errors.New("nil value provided")
@@ -22,21 +23,22 @@ const getFunc = "get"
 var variableA = []byte("a")
 
 // OneSCExecutorMockVM contains one hardcoded SC with the following behaviour (written in golang):
-//-------------------------------------
+// -------------------------------------
 // var a int
 //
-// func init(initial int){
-//     a = initial
-// }
+//	func init(initial int){
+//	    a = initial
+//	}
 //
-// func Add(value int){
-//     a += value
-// }
+//	func Add(value int){
+//	    a += value
+//	}
 //
-// func Get() int{
-//     return a
-// }
-//-------------------------------------
+//	func Get() int{
+//	    return a
+//	}
+//
+// -------------------------------------
 type OneSCExecutorMockVM struct {
 	blockchainHook  vmcommon.BlockchainHook
 	hasher          hashing.Hasher

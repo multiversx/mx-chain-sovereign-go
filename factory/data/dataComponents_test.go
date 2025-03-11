@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/config"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
-	dataComp "github.com/multiversx/mx-chain-go/factory/data"
-	"github.com/multiversx/mx-chain-go/factory/mock"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
-	"github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	errorsMx "github.com/multiversx/mx-chain-sovereign-go/errors"
+	dataComp "github.com/multiversx/mx-chain-sovereign-go/factory/data"
+	"github.com/multiversx/mx-chain-sovereign-go/factory/mock"
+	componentsMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/components"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/factory"
 )
 
 func TestNewDataComponentsFactory(t *testing.T) {

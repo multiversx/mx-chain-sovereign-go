@@ -3,9 +3,10 @@ package bls
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/subRounds"
 )
 
 func TestNewEmptyExtraSignersHolder(t *testing.T) {

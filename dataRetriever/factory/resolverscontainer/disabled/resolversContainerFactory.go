@@ -1,8 +1,8 @@
 package disabled
 
 import (
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers/disabled"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever"
+	"github.com/multiversx/mx-chain-sovereign-go/dataRetriever/factory/containers/disabled"
 )
 
 type resolversContainerFactory struct {

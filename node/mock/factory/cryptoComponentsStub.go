@@ -5,10 +5,11 @@ import (
 	"sync"
 
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/common"
-	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
-	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/vm"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	cryptoCommon "github.com/multiversx/mx-chain-sovereign-go/common/crypto"
+	"github.com/multiversx/mx-chain-sovereign-go/consensus"
+	"github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 // CryptoComponentsMock -

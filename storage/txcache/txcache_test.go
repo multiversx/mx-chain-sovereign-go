@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
 	"github.com/multiversx/mx-chain-storage-go/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/testscommon/txcachemocks"
 )
 
 func TestNewTxCache(t *testing.T) {

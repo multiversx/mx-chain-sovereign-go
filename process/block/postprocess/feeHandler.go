@@ -5,7 +5,8 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	"github.com/multiversx/mx-chain-go/process"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 var _ process.TransactionFeeHandler = (*feeHandler)(nil)

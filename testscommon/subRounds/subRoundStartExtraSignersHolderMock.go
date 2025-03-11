@@ -1,6 +1,6 @@
 package subRounds
 
-import "github.com/multiversx/mx-chain-go/consensus"
+import "github.com/multiversx/mx-chain-sovereign-go/consensus"
 
 // SubRoundStartExtraSignersHolderMock -
 type SubRoundStartExtraSignersHolderMock struct {

@@ -8,11 +8,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
-	"github.com/multiversx/mx-chain-go/process/mock"
-	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	systemVm "github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/process/mock"
+	stateMock "github.com/multiversx/mx-chain-sovereign-go/testscommon/state"
+	systemVm "github.com/multiversx/mx-chain-sovereign-go/vm"
 )
 
 func TestSovereignSystemSC_ProcessDelegationRewards(t *testing.T) {

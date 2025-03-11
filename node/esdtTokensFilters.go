@@ -4,7 +4,8 @@ import (
 	"bytes"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
+
+	"github.com/multiversx/mx-chain-sovereign-go/vm/systemSmartContracts"
 )
 
 type getRegisteredNftsFilter struct {

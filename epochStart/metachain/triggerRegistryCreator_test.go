@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart"
 )
 
 func TestMetaTriggerRegistryCreator_UnmarshalTriggerAndCreateRegistry(t *testing.T) {

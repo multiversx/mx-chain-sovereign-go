@@ -3,8 +3,9 @@ package nodesCoordinator
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/sharding/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-sovereign-go/sharding/mock"
 )
 
 func TestNewIndexHashedNodesCoordinatorWithRaterFactory(t *testing.T) {

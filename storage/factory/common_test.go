@@ -3,9 +3,10 @@ package factory
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-sovereign-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/storageunit"
 )
 
 func TestGetCacherFromConfig(t *testing.T) {

@@ -3,7 +3,7 @@ package disabled
 import (
 	"context"
 
-	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/common"
 )
 
 type disabledDataTrieHandler struct {

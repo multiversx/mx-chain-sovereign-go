@@ -1,7 +1,7 @@
 package vm
 
 import (
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 // VmContainerCreator can create vm container and factory for metachain/shard/sovereign

@@ -10,7 +10,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
-	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
 )
 
 const baseESDTKeyPrefix = core.ProtectedKeyPrefix + core.ESDTKeyIdentifier

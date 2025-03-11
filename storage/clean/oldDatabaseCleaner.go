@@ -11,12 +11,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/epochStart/notifier"
-	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/storage/directoryhandler"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	storageErrors "github.com/multiversx/mx-chain-storage-go/common"
+
+	"github.com/multiversx/mx-chain-sovereign-go/common"
+	"github.com/multiversx/mx-chain-sovereign-go/epochStart/notifier"
+	"github.com/multiversx/mx-chain-sovereign-go/storage"
+	"github.com/multiversx/mx-chain-sovereign-go/storage/directoryhandler"
 )
 
 var log = logger.GetOrCreate("storage/clean")

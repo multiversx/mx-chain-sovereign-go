@@ -10,8 +10,8 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-sovereign-go/errors"
+	"github.com/multiversx/mx-chain-sovereign-go/process"
 )
 
 const roundsThreshold = process.MaxRoundsWithoutNewBlockReceived + 1

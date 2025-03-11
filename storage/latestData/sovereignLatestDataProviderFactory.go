@@ -1,6 +1,6 @@
 package latestData
 
-import "github.com/multiversx/mx-chain-go/storage"
+import "github.com/multiversx/mx-chain-sovereign-go/storage"
 
 type sovereignLatestDataProviderFactory struct {
 }

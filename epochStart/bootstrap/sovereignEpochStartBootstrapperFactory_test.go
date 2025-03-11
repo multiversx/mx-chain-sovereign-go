@@ -7,7 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-sovereign-go/config"
 )
 
 func TestNewSovereignEpochStartBootstrapperFactory(t *testing.T) {
