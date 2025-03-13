@@ -136,10 +136,10 @@ func (scf *statusComponentsFactory) Create() (*statusComponents, error) {
 
 	softwareVersionChecker.StartCheckSoftwareVersion()
 
-	roundDurationSec := scf.coreComponents.GenesisNodesSetup().GetRoundDuration() / 1000
-	if roundDurationSec < 1 {
-		return nil, errors.ErrInvalidRoundDuration
-	}
+	//roundDurationSec := scf.coreComponents.GenesisNodesSetup().GetRoundDuration() / 1000
+	//if roundDurationSec < 1 {
+	//	return nil, errors.ErrInvalidRoundDuration
+	//}
 
 	outportHandler, err := scf.createOutportDriver()
 	if err != nil {
