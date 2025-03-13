@@ -105,7 +105,7 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	nonceDif := int64(header.GetNonce()) - int64(bfd.finalCheckpoint().nonce)
 	//TODO: Analyze if the acceptance of some headers which came for the next round could generate some attack vectors
 	nextRound := bfd.roundHandler.Index() + 1
-	genesisTimeFromHeader := bfd.computeGenesisTimeFromHeader(header)
+	//genesisTimeFromHeader := bfd.computeGenesisTimeFromHeader(header)
 
 	bfd.blackListHandler.Sweep()
 	if bfd.blackListHandler.Has(string(header.GetPrevHash())) {
@@ -113,10 +113,10 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 		return process.ErrHeaderIsBlackListed
 	}
 	//TODO: This check could be removed when this protection mechanism would be implemented on interceptors side
-	if genesisTimeFromHeader != bfd.genesisTime {
-		process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-		return ErrGenesisTimeMissmatch
-	}
+	//if genesisTimeFromHeader != bfd.genesisTime {
+	//	process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+	//	return ErrGenesisTimeMissmatch
+	//}
 	if roundDif < 0 {
 		return ErrLowerRoundInBlock
 	}
@@ -661,7 +661,7 @@ func (bfd *baseForkDetector) cleanupReceivedHeadersHigherThanNonce(nonce uint64)
 }
 
 func (bfd *baseForkDetector) computeGenesisTimeFromHeader(headerHandler data.HeaderHandler) int64 {
-	genesisTime := int64(headerHandler.GetTimeStamp() - (headerHandler.GetRound()-bfd.genesisRound)*uint64(bfd.roundHandler.TimeDuration().Seconds()))
+	genesisTime := int64(headerHandler.GetTimeStamp() - (headerHandler.GetRound()-bfd.genesisRound)*uint64(bfd.roundHandler.TimeDuration().Milliseconds()))
 	return genesisTime
 }
 
