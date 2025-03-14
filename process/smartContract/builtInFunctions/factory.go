@@ -6,11 +6,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
 
+	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
@@ -75,7 +75,7 @@ func CreateBuiltInFunctionsFactory(args ArgsCreateBuiltInFunctionContainer) (vmc
 		return nil, process.ErrWrongTypeAssertion
 	}
 
-	crawlerAllowedAddress, err := GetAllowedAddress(
+	crawlerAllowedAddress, err := GetSovereignAllowedAddress(
 		args.ShardCoordinator,
 		args.AutomaticCrawlerAddresses)
 	if err != nil {
@@ -165,4 +165,17 @@ func GetAllowedAddress(coordinator sharding.Coordinator, addresses [][]byte) ([]
 	}
 
 	return nil, fmt.Errorf("%w for shard %d, provided count is %d", process.ErrNilCrawlerAllowedAddress, coordinator.SelfId(), len(addresses))
+}
+
+// GetSovereignAllowedAddress returns the allowed crawler address for sovereign shard
+func GetSovereignAllowedAddress(coordinator sharding.Coordinator, addresses [][]byte) ([]byte, error) {
+	if check.IfNil(coordinator) {
+		return nil, process.ErrNilShardCoordinator
+	}
+
+	if len(addresses) != 0 {
+		log.Debug("found automatic crawler addresses set in sovereign config, these will not be used")
+	}
+
+	return core.SystemAccountAddress, nil
 }
