@@ -111,7 +111,7 @@ jobs:
       - name: Checkout mx-chain-go
         uses: actions/checkout@v4
         with:
-          repository: 'multiversx/mx-chain-go'
+          repository: 'multiversx/mx-chain-sovereign-go'
           ref: ${{ github.head_ref }}
           fetch-depth: 0
           path: 'mx-chain-go'
