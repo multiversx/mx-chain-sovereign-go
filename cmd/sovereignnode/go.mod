@@ -1,6 +1,6 @@
 module github.com/multiversx/mx-chain-go/sovereignnode
 
-replace github.com/multiversx/mx-chain-go => ../../../mx-chain-go
+replace github.com/multiversx/mx-chain-go => ../../../mx-chain-sovereign-go
 
 go 1.20
 
