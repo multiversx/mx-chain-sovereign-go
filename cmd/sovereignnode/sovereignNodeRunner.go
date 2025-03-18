@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"path"
@@ -32,8 +31,12 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
+
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
+	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
@@ -73,9 +76,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 	"github.com/multiversx/mx-chain-go/process/interceptors"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	sovereignConfig "github.com/multiversx/mx-chain-go/sovereignnode/config"
-	"github.com/multiversx/mx-chain-go/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/state/syncer"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
@@ -441,6 +441,9 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		configs.SovereignExtraConfig.MainChainNotarization.MainChainNotarizationStartRound,
 		managedRunTypeComponents,
 	)
+	if err != nil {
+		return true, err
+	}
 
 	managedProcessComponents, err := snr.CreateManagedProcessComponents(
 		managedRunTypeComponents,
@@ -1288,7 +1291,7 @@ func (snr *sovereignNodeRunner) logSessionInformation(
 		})
 
 	statsFile := filepath.Join(statsFolder, "session.info")
-	err := ioutil.WriteFile(statsFile, []byte(sessionInfoFileOutput), core.FileModeReadWrite)
+	err := os.WriteFile(statsFile, []byte(sessionInfoFileOutput), core.FileModeReadWrite)
 	log.LogIfError(err)
 
 	computedRatingsDataStr := createStringFromRatingsData(coreComponents.RatingsData())
@@ -1820,9 +1823,8 @@ func copyConfigToStatsFolder(statsFolder string, gasScheduleDirectory string, co
 	}
 }
 
-// TODO: add some unit tests
 func copyDirectory(source string, destination string) error {
-	fileDescriptors, err := ioutil.ReadDir(source)
+	fileDescriptors, err := os.ReadDir(source)
 	if err != nil {
 		return err
 	}

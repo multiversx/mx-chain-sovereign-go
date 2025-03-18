@@ -13,10 +13,10 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
+	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/config/overridableConfig"
-	sovereignConfig "github.com/multiversx/mx-chain-go/sovereignnode/config"
 	// test point 1 for custom profiler
 )
 
