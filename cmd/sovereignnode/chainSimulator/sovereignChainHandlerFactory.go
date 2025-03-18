@@ -1,9 +1,9 @@
 package chainSimulator
 
 import (
+	sovProcess "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/process"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	sovProcess "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/process"
 )
 
 type sovereignProcessorFactory struct {
