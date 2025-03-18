@@ -2,11 +2,12 @@ package common
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/factory/runType"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
-	sovRunType "github.com/multiversx/mx-chain-go/sovereignnode/runType"
 )
 
 // GetCurrentSovereignHeader returns current sovereign chain block handler from blockchain hook
