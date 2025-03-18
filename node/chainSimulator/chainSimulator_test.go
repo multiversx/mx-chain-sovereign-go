@@ -131,7 +131,7 @@ func TestSimulator_TriggerChangeOfEpoch(t *testing.T) {
 	roundDurationInMillis := uint64(6000)
 	roundsPerEpoch := core.OptionalUint64{
 		HasValue: true,
-		Value:    15000,
+		Value:    150,
 	}
 	chainSimulator, err := NewChainSimulator(ArgsChainSimulator{
 		BypassTxSignatureCheck: true,
