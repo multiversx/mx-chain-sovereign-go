@@ -6,7 +6,6 @@ on:
       - 'main'
       - 'master'
       - 'rc/*'
-      - 'feat/chain-go-sdk'
   workflow_dispatch:
   issue_comment:
     types: [created]
@@ -31,7 +30,7 @@ jobs:
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
       TARGET_BRANCH: ""
-      MX_CHAIN_GO_TARGET_BRANCH: ""
+      MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH: ""
       MX_CHAIN_SIMULATOR_TARGET_BRANCH: ""
       MX_CHAIN_TESTING_SUITE_TARGET_BRANCH: ""
 
@@ -43,21 +42,18 @@ jobs:
 
           # Default target branches based on the PR base branch
           if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=main" >> $GITHUB_ENV
+            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
             echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
           elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=main" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
-          elif [[ "${{ github.event.pull_request.base.ref }}" == "feat/chain-go-sdk" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=main" >> $GITHUB_ENV
+            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
             echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
           else
             echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
             echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
           fi
 
-          # Always set MX_CHAIN_GO_TARGET_BRANCH based on the PR base branch
-          echo "MX_CHAIN_GO_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+          # Always set MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH based on the PR base branch
+          echo "MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
 
 
       - name: Fetch and Parse Last Comment for Branches
@@ -98,7 +94,7 @@ jobs:
       - name: Print Target Branches
         run: |
           echo "Current branch mx-chain-sovereign-go: ${{ env.CURRENT_BRANCH }}"
-          echo "mx-chain-sovereign-go target branch: ${{ env.MX_CHAIN_GO_TARGET_BRANCH }}"
+          echo "mx-chain-sovereign-go target branch: ${{ env.MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH }}"
           echo "mx-chain-simulator-go target branch: ${{ env.MX_CHAIN_SIMULATOR_TARGET_BRANCH }}"
           echo "mx-chain-testing-suite target branch: ${{ env.MX_CHAIN_TESTING_SUITE_TARGET_BRANCH }}"
 
@@ -125,6 +121,12 @@ jobs:
           latest_commit_hash=$(git rev-parse origin/${current_branch})
           echo "LATEST_COMMIT_HASH=${latest_commit_hash}" >> $GITHUB_ENV
           echo "Latest commit hash: ${latest_commit_hash}"
+
+      - name: Install Python Dependencies and Update go.mod
+        run: |
+          cd mx-chain-simulator-go
+          pip install -r scripts/update-go-mod/requirements.txt
+          python scripts/update-go-mod/update-go-mod.py $LATEST_COMMIT_HASH
 
       - name: Checkout mx-chain-simulator-go
         uses: actions/checkout@v4
@@ -253,7 +255,7 @@ jobs:
           TIMESTAMP: ${{ env.TIMESTAMP }}
           BRANCH_NAME: ${{ env.BRANCH_NAME }}
           CURRENT_BRANCH: ${{ env.CURRENT_BRANCH }}
-          MX_CHAIN_GO_TARGET_BRANCH: ${{ env.MX_CHAIN_GO_TARGET_BRANCH }}
+          MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH: ${{ env.MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH }}
           MX_CHAIN_SIMULATOR_TARGET_BRANCH: ${{ env.MX_CHAIN_SIMULATOR_TARGET_BRANCH }}
           MX_CHAIN_TESTING_SUITE_TARGET_BRANCH: ${{ env.MX_CHAIN_TESTING_SUITE_TARGET_BRANCH }}
           LATEST_COMMIT_HASH: ${{ env.LATEST_COMMIT_HASH }}
@@ -265,7 +267,7 @@ jobs:
             const timestamp = process.env.TIMESTAMP;
             const branchName = process.env.BRANCH_NAME;
             const currentBranch = process.env.CURRENT_BRANCH;
-            const goTargetBranch = process.env.MX_CHAIN_GO_TARGET_BRANCH;
+            const goTargetBranch = process.env.MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH;
             const simulatorTargetBranch = process.env.MX_CHAIN_SIMULATOR_TARGET_BRANCH;
             const testingSuiteTargetBranch = process.env.MX_CHAIN_TESTING_SUITE_TARGET_BRANCH;
             const commitHash = process.env.LATEST_COMMIT_HASH;
