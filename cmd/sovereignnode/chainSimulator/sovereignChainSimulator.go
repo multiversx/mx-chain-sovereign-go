@@ -3,6 +3,9 @@ package chainSimulator
 import (
 	"path"
 
+	sovCommon "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
+	sovChainSimConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/configs"
+	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -15,9 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
-	sovCommon "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/common"
-	sovChainSimConfig "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/configs"
-	sovereignConfig "github.com/multiversx/mx-chain-go/sovereignnode/config"
 )
 
 const (
