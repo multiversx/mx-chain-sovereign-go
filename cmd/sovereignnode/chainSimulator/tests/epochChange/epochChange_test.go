@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
@@ -28,8 +30,6 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	proc "github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
-	sovereignChainSimulator "github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator"
-	"github.com/multiversx/mx-chain-go/sovereignnode/chainSimulator/common"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/components"

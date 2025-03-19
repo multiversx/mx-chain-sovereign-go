@@ -97,8 +97,8 @@ jobs:
 
       - name: Print Target Branches
         run: |
-          echo "Current branch mx-chain-go: ${{ env.CURRENT_BRANCH }}"
-          echo "mx-chain-go target branch: ${{ env.MX_CHAIN_GO_TARGET_BRANCH }}"
+          echo "Current branch mx-chain-sovereign-go: ${{ env.CURRENT_BRANCH }}"
+          echo "mx-chain-sovereign-go target branch: ${{ env.MX_CHAIN_GO_TARGET_BRANCH }}"
           echo "mx-chain-simulator-go target branch: ${{ env.MX_CHAIN_SIMULATOR_TARGET_BRANCH }}"
           echo "mx-chain-testing-suite target branch: ${{ env.MX_CHAIN_TESTING_SUITE_TARGET_BRANCH }}"
 
@@ -108,17 +108,17 @@ jobs:
           go-version: 1.20.7
         id: go
 
-      - name: Checkout mx-chain-go
+      - name: Checkout mx-chain-sovereign-go
         uses: actions/checkout@v4
         with:
-          repository: 'multiversx/mx-chain-go'
+          repository: 'multiversx/mx-chain-sovereign-go'
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-          path: 'mx-chain-go'
+          path: 'mx-chain-sovereign-go'
 
-      - name: Get Latest mx-chain-go Commit Hash
+      - name: Get Latest mx-chain-sovereign-go Commit Hash
         run: |
-          cd mx-chain-go
+          cd mx-chain-sovereign-go
           current_branch=$(git symbolic-ref --short HEAD)
           echo "CURRENT_BRANCH=${current_branch}" >> $GITHUB_ENV
           git fetch origin ${current_branch} --prune
@@ -137,12 +137,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-
-      - name: Install Python Dependencies and Update go.mod
-        run: |
-          cd mx-chain-simulator-go
-          pip install -r scripts/update-go-mod/requirements.txt
-          python scripts/update-go-mod/update-go-mod.py $LATEST_COMMIT_HASH
 
       - name: Run go build
         run: |
@@ -287,9 +281,9 @@ jobs:
               📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
             
               🔄 **Build Details:**
-              - **mx-chain-go Commit Hash:** \`${commitHash}\`
+              - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`
               - **Current Branch:** \`${currentBranch}\`
-              - **mx-chain-go Target Branch:** \`${goTargetBranch}\`
+              - **mx-chain-sovereign-go Target Branch:** \`${goTargetBranch}\`
               - **mx-chain-simulator-go Target Branch:** \`${simulatorTargetBranch}\`
               - **mx-chain-testing-suite Target Branch:** \`${testingSuiteTargetBranch}\`
             
