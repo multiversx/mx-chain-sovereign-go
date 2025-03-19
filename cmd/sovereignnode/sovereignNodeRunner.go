@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"path"
@@ -439,6 +438,9 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		configs.SovereignExtraConfig.MainChainNotarization.MainChainNotarizationStartRound,
 		managedRunTypeComponents,
 	)
+	if err != nil {
+		return true, err
+	}
 
 	managedProcessComponents, err := snr.CreateManagedProcessComponents(
 		managedRunTypeComponents,
@@ -1280,7 +1282,7 @@ func (snr *sovereignNodeRunner) logSessionInformation(
 		})
 
 	statsFile := filepath.Join(statsFolder, "session.info")
-	err := ioutil.WriteFile(statsFile, []byte(sessionInfoFileOutput), core.FileModeReadWrite)
+	err := os.WriteFile(statsFile, []byte(sessionInfoFileOutput), core.FileModeReadWrite)
 	log.LogIfError(err)
 
 	computedRatingsDataStr := createStringFromRatingsData(coreComponents.RatingsData())
@@ -1812,9 +1814,8 @@ func copyConfigToStatsFolder(statsFolder string, gasScheduleDirectory string, co
 	}
 }
 
-// TODO: add some unit tests
 func copyDirectory(source string, destination string) error {
-	fileDescriptors, err := ioutil.ReadDir(source)
+	fileDescriptors, err := os.ReadDir(source)
 	if err != nil {
 		return err
 	}
