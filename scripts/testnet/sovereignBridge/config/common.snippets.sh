@@ -33,30 +33,30 @@ gitPullAllChanges()
 {
     pushd .
 
-    # Traverse up to the parent directory of "mx-chain-go"
-    while [[ ! -d "mx-chain-go" && $(pwd) != "/" ]]; do
+    # Traverse up to the parent directory of "mx-chain-sovereign-go"
+    while [[ ! -d "mx-chain-sovereign-go" && $(pwd) != "/" ]]; do
       cd ..
     done
 
     # Check if we found the directory
-    if [[ ! -d "mx-chain-go" ]]; then
-      echo "mx-chain-go directory not found"
+    if [[ ! -d "mx-chain-sovereign-go" ]]; then
+      echo "mx-chain-sovereign-go directory not found"
       popd
       return 1
     fi
 
-    echo -e "Pulling changes for mx-chain-go..."
-    cd mx-chain-go
+    echo -e "Pulling changes for mx-chain-sovereign-go..."
+    cd mx-chain-sovereign-go
     git pull
     cd ..
 
-    echo -e "Pulling changes for mx-chain-deploy-go..."
-    cd mx-chain-deploy-go
+    echo -e "Pulling changes for mx-chain-deploy-sovereign-go..."
+    cd mx-chain-deploy-sovereign-go
     git pull
     cd ..
 
-    echo -e "Pulling changes for mx-chain-proxy-go..."
-    cd mx-chain-proxy-go
+    echo -e "Pulling changes for mx-chain-proxy-sovereign-go..."
+    cd mx-chain-proxy-sovereign-go
     git pull
     cd ..
 
