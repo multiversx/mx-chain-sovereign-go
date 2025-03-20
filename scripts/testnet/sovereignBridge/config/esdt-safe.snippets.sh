@@ -187,6 +187,7 @@ setFeeMarketAddressCall() {
 }
 
 registerNativeToken() {
+    echo "Registering new native token in ESDT Safe contract on main chain..."
     checkVariables ESDT_SAFE_ADDRESS || return
 
     local OUTFILE="${OUTFILE_PATH}/register-native-token.interaction.json"
