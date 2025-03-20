@@ -105,7 +105,8 @@ def update_external_config(file_path, main_chain_elastic):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
-    updated_lines = update_main_chain_elastic_url(lines, "MainChainElasticSearchConnector", "URL", main_chain_elastic)
+    updated_lines = enable_key(lines, "MainChainElasticSearchConnector")
+    updated_lines = update_main_chain_elastic_url(updated_lines, "MainChainElasticSearchConnector", "URL", main_chain_elastic)
 
     with open(file_path, 'w') as file:
         file.writelines(updated_lines)
@@ -116,8 +117,9 @@ def main():
     main_chain_address = sys.argv[1]
     sovereign_chain_address = sys.argv[2]
     esdt_prefix = sys.argv[3]
-    main_chain_elastic = sys.argv[4]
-    native_esdt = sys.argv[5]
+    use_elasticsearch = sys.argv[4]
+    main_chain_elastic = sys.argv[5]
+    native_esdt = sys.argv[6]
 
     current_path = os.getcwd()
     project = 'mx-chain-sovereign-go'
@@ -129,8 +131,9 @@ def main():
     config_path = project_path + "/cmd/node/config"
     update_node_configs(config_path, esdt_prefix, sovereign_chain_address)
 
-    external_path = project_path + "/cmd/node/config/external.toml"
-    update_external_config(external_path, main_chain_elastic)
+    if use_elasticsearch == "1":
+        external_path = project_path + "/cmd/node/config/external.toml"
+        update_external_config(external_path, main_chain_elastic)
 
 
 if __name__ == "__main__":
