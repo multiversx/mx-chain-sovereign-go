@@ -11,6 +11,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/extendedHeader"
 )
 
 type extendedHeaderProcessor struct {
@@ -18,23 +19,61 @@ type extendedHeaderProcessor struct {
 	txPool      TransactionPool
 	marshaller  marshal.Marshalizer
 	hasher      hashing.Hasher
+	container   EmptyBlockCreatorsContainerHandler
 }
 
-func createExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler, scrs []*dto.SCRInfo) (*block.ShardHeaderExtended, error) {
-	headerV2, castOk := incomingHeader.GetHeaderHandler().(*block.HeaderV2)
-	if !castOk {
-		return nil, errInvalidHeaderType
+func newExtendedHeaderProcessor(
+	headersPool HeadersPool,
+	txPool TransactionPool,
+	marshaller marshal.Marshalizer,
+	hasher hashing.Hasher,
+) (*extendedHeaderProcessor, error) {
+	container := extendedHeader.NewEmptyBlockCreatorsContainer()
+	mvxHeaderCreator, err := extendedHeader.NewEmptyHeaderV2Creator(marshaller)
+	if err != nil {
+		return nil, err
 	}
+
+	err = container.Add(sovereign.MVX, mvxHeaderCreator)
+	if err != nil {
+		return nil, err
+	}
+	return &extendedHeaderProcessor{
+		headersPool: headersPool,
+		txPool:      txPool,
+		marshaller:  marshaller,
+		hasher:      hasher,
+		container:   container,
+	}, nil
+}
+
+func (ehp *extendedHeaderProcessor) createExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler, scrs []*dto.SCRInfo) (data.ShardHeaderExtendedHandler, error) {
+	extendedShardHeader, err := ehp.createChainSpecificExtendedHeader(incomingHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	// todo: here have setters on interface
+	ret := extendedShardHeader.(*block.ShardHeaderExtended)
+
 	events, err := getEvents(incomingHeader.GetIncomingEventHandlers())
 	if err != nil {
 		return nil, err
 	}
 
-	return &block.ShardHeaderExtended{
-		Header:             headerV2,
-		IncomingMiniBlocks: createIncomingMb(scrs),
-		IncomingEvents:     events,
-	}, nil
+	ret.IncomingEvents = events
+	ret.IncomingMiniBlocks = createIncomingMb(scrs)
+
+	return ret, nil
+}
+
+func (ehp *extendedHeaderProcessor) createChainSpecificExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
+	shardExtendedHeaderCreator, err := ehp.container.Get(incomingHeader.GetChainID())
+	if err != nil {
+		return nil, err
+	}
+
+	return shardExtendedHeaderCreator.CreateNewExtendedHeader(incomingHeader.GetProof())
 }
 
 func getEvents(events []data.EventHandler) ([]*transaction.Event, error) {
@@ -73,18 +112,12 @@ func createIncomingMb(scrs []*dto.SCRInfo) []*block.MiniBlock {
 }
 
 func (ehp *extendedHeaderProcessor) addPreGenesisExtendedHeaderToPool(incomingHeader sovereign.IncomingHeaderHandler) error {
-	headerV2, castOk := incomingHeader.GetHeaderHandler().(*block.HeaderV2)
-	if !castOk {
-		return errInvalidHeaderType
+	extendedShardHeader, err := ehp.createChainSpecificExtendedHeader(incomingHeader)
+	if err != nil {
+		return err
 	}
 
-	extendedHeader := &block.ShardHeaderExtended{
-		Header:             headerV2,
-		IncomingMiniBlocks: []*block.MiniBlock{},
-		IncomingEvents:     []*transaction.Event{},
-	}
-
-	return ehp.addExtendedHeaderAndSCRsToPool(extendedHeader, make([]*dto.SCRInfo, 0))
+	return ehp.addExtendedHeaderAndSCRsToPool(extendedShardHeader, make([]*dto.SCRInfo, 0))
 }
 
 func (ehp *extendedHeaderProcessor) addExtendedHeaderAndSCRsToPool(extendedHeader data.ShardHeaderExtendedHandler, scrs []*dto.SCRInfo) error {

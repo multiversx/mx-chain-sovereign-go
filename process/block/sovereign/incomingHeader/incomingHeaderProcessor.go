@@ -99,11 +99,14 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		return nil, nil
 	}
 
-	extendedHearProc := &extendedHeaderProcessor{
-		headersPool: args.HeadersPool,
-		txPool:      args.TxPool,
-		marshaller:  args.Marshaller,
-		hasher:      args.Hasher,
+	extendedHearProc, err := newExtendedHeaderProcessor(
+		args.HeadersPool,
+		args.TxPool,
+		args.Marshaller,
+		args.Hasher,
+	)
+	if err != nil {
+		return nil, nil
 	}
 
 	log.Debug("NewIncomingHeaderProcessor", "starting round to notarize main chain headers", args.MainChainNotarizationStartRound)
@@ -118,28 +121,30 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 
 // AddHeader will receive the incoming header, validate it, create incoming mbs and transactions and add them to pool
 func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereign.IncomingHeaderHandler) error {
-	if check.IfNil(header) || check.IfNil(header.GetHeaderHandler()) {
+	// todo: here check all fields and return separate errors
+	if check.IfNil(header) || header.GetProof() == nil || header.GetNonce() == nil {
 		return data.ErrNilHeader
 	}
 
+	// todo: here use big int and compare with big ints
+	incomingHeaderNonce := uint64(header.GetNonce().Int64())
+
 	log.Info("received incoming header",
 		"hash", hex.EncodeToString(headerHash),
-		"nonce", header.GetHeaderHandler().GetNonce(),
-		"round", header.GetHeaderHandler().GetRound(),
+		"nonce", incomingHeaderNonce,
 	)
-	round := header.GetHeaderHandler().GetRound()
 
 	// pre-genesis header, needed to track/link genesis header on top of this one. Every node with an enabled notifier
 	// will validate that the next genesis header with round == mainChainNotarizationStartRound is on top of pre-genesis header.
 	// just save internal header to tracker, no need to process anything from it
-	if round == ihp.mainChainNotarizationStartRound-1 {
-		log.Debug("received pre-genesis header", "round", header.GetHeaderHandler().GetRound())
+	if incomingHeaderNonce == ihp.mainChainNotarizationStartRound-1 {
+		log.Debug("received pre-genesis header", "round", incomingHeaderNonce)
 		return ihp.extendedHeaderProc.addPreGenesisExtendedHeaderToPool(header)
 	}
 
-	if round < ihp.mainChainNotarizationStartRound {
+	if incomingHeaderNonce < ihp.mainChainNotarizationStartRound {
 		log.Debug("do not notarize incoming header, round lower than main chain notarization start round",
-			"round", round,
+			"round", incomingHeaderNonce,
 			"start round", ihp.mainChainNotarizationStartRound)
 		return nil
 	}
@@ -149,7 +154,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 		return err
 	}
 
-	extendedHeader, err := createExtendedHeader(header, res.Scrs)
+	extendedHeader, err := ihp.extendedHeaderProc.createExtendedHeader(header, res.Scrs)
 	if err != nil {
 		return err
 	}
@@ -186,7 +191,7 @@ func (ihp *incomingHeaderProcessor) CreateExtendedHeader(header sovereign.Incomi
 		return nil, err
 	}
 
-	return createExtendedHeader(header, res.Scrs)
+	return ihp.extendedHeaderProc.createExtendedHeader(header, res.Scrs)
 }
 
 // RegisterEventHandler will register an extra incoming event processor. For the registered processor, a subscription
