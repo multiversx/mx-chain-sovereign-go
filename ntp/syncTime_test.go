@@ -8,10 +8,11 @@ import (
 	"time"
 
 	beevikNtp "github.com/beevik/ntp"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/ntp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/ntp"
 )
 
 var responseMock1 *beevikNtp.Response
@@ -319,4 +320,60 @@ func TestCallQueryShouldNotUpdateOnOutOfBoundValuesNegative(t *testing.T) {
 	st.Sync()
 
 	assert.Equal(t, currentValue, st.ClockOffset())
+}
+
+// On local machine, seems like average query time is ~35ms, e.g.:
+// Avg response time from host: time.google.com is 42.928837ms
+// Avg response time from host: time.cloudflare.com is 13.877162ms
+// Avg response time from host: time.apple.com is 37.257168ms
+// Avg response time from host: time.windows.com is 48.33448ms
+// Global average response time is 35.599412ms
+func TestCallQueryShouldWorkMeasurements(t *testing.T) {
+	t.Skip("use this test only for local benchmarks, not for remote tests, since it relies on internet connection")
+	t.Parallel()
+
+	ntpConfig := ntp.NewNTPGoogleConfig()
+	ntpOptions := ntp.NewNTPOptions(ntpConfig)
+	st := ntp.NewSyncTime(ntpConfig, nil)
+
+	query := st.Query()
+
+	numRequestsFromHost := 10
+	timeDurations := make(map[string][]time.Duration, len(ntpOptions.Hosts))
+
+	var totalGlobalDuration time.Duration
+	var totalRequests int
+
+	for hostIndex := 0; hostIndex < len(ntpOptions.Hosts); hostIndex++ {
+		for requests := 0; requests < numRequestsFromHost; requests++ {
+
+			hostName := ntpOptions.Hosts[hostIndex]
+			startTime := time.Now()
+			response, err := query(ntpOptions, hostIndex)
+			duration := time.Since(startTime)
+
+			fmt.Printf("-> Query from host: %s function execution time: %s\n", hostName, duration)
+
+			require.NotNil(t, response)
+			require.Nil(t, err)
+
+			timeDurations[hostName] = append(timeDurations[hostName], duration)
+
+			totalGlobalDuration += duration
+			totalRequests++
+		}
+	}
+
+	for _, hostName := range ntpOptions.Hosts {
+		durations := timeDurations[hostName]
+		var totalDuration time.Duration
+		for _, d := range durations {
+			totalDuration += d
+		}
+		avgTimePerHost := totalDuration / time.Duration(len(durations))
+		fmt.Printf("Avg response time from host: %s is %s\n", hostName, avgTimePerHost)
+	}
+
+	avgGlobalTime := totalGlobalDuration / time.Duration(totalRequests)
+	fmt.Printf("Global average response time is %s\n", avgGlobalTime)
 }
