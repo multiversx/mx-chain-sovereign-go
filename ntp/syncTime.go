@@ -234,7 +234,7 @@ func (s *syncTime) sync() {
 
 	s.setClockOffset(clockOffsetHarmonicMean)
 
-	log.Error("sync.setClockOffset done",
+	log.Debug("sync.setClockOffset done",
 		"num clock offsets", len(clockOffsets),
 		"num clock offsets without edges", len(clockOffsetsWithoutEdges),
 		"clock offset harmonic mean", clockOffsetHarmonicMean)
