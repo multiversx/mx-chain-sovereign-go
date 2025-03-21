@@ -1,6 +1,5 @@
 ESDT_SAFE_ADDRESS=$(mxpy data load --use-global --partition=${CHAIN_ID} --key=address-esdt-safe-contract)
 ESDT_SAFE_ADDRESS_SOVEREIGN=$(mxpy data load --use-global --partition=sovereign --key=address-esdt-safe-contract)
-NATIVE_ESDT=
 
 deployEsdtSafeContract() {
     echo "Deploying ESDT Safe contract on main chain..."
@@ -209,8 +208,9 @@ registerNativeToken() {
     printTxStatus ${OUTFILE}
 
     local RESULT=$(readNativeToken)
-    TOKEN_HEX=$(echo "$RESULT" | jq -r '.[0]')
+    local TOKEN_HEX=$(echo "$RESULT" | jq -r '.[0]')
     NATIVE_ESDT=$(hex_to_string "$TOKEN_HEX")
+    echo "Native Token identifier: ${NATIVE_ESDT}"
 }
 
 readNativeToken() {

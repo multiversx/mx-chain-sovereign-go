@@ -44,6 +44,11 @@ updateSovereignConfig() {
         ESDT_PREFIX=$1
     fi
 
+    if [ -z "$NATIVE_ESDT" ]; then
+        echo "Error: NATIVE_ESDT was not registered"
+        return 1
+    fi
+
     python3 $SCRIPT_PATH/pyScripts/update_toml.py $ESDT_SAFE_ADDRESS $ESDT_SAFE_ADDRESS_SOVEREIGN $ESDT_PREFIX $USE_ELASTICSEARCH $MAIN_CHAIN_ELASTIC $NATIVE_ESDT
 }
 

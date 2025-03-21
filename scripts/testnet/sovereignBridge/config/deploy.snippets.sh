@@ -26,7 +26,7 @@ deployMainChainContractsAndSetupObserver() {
 
     setGenesisContract
 
-    updateSovereignConfig $1
+    updateSovereignConfig $1 || return
 
     prepareObserver
 }
