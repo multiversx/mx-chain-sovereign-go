@@ -53,7 +53,7 @@ def main():
     fee_market_init_params = sys.argv[5]
 
     current_path = os.getcwd()
-    project = 'mx-chain-go'
+    project = 'mx-chain-sovereign-go'
     index = current_path.find(project)
     project_path = current_path[:index + len(project)]
     json_path = project_path + "/cmd/node/config/genesisSmartContracts.json"

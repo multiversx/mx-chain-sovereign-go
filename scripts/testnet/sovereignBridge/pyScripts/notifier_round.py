@@ -41,7 +41,7 @@ def main():
     shard = sys.argv[2]
 
     current_path = os.getcwd()
-    project = 'mx-chain-go'
+    project = 'mx-chain-sovereign-go'
     index = current_path.find(project)
     project_path = current_path[:index + len(project)]
     toml_path = project_path + "/cmd/sovereignnode/config/sovereignConfig.toml"

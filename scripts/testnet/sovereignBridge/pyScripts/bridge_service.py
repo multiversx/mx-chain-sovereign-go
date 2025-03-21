@@ -51,7 +51,7 @@ def main():
     header_verifier_address = sys.argv[4]
 
     current_path = os.getcwd()
-    project = 'mx-chain-go'
+    project = 'mx-chain-sovereign-go'
     index = current_path.find(project)
     project_path = current_path[:index]
     bridge_service_path = os.path.join(project_path, 'mx-chain-sovereign-bridge-go')
