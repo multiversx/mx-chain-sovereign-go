@@ -135,8 +135,6 @@ copySovereignNodeConfig() {
   pushd $TESTNETDIR
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./txgen/config/nodeConfig/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./node/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./txgen/config
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
 
