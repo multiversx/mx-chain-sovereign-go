@@ -86,7 +86,7 @@ func queryMock6(_ ntp.NTPOptions, hostIndex int) (*beevikNtp.Response, error) {
 
 func TestHandleErrorInDoSync(t *testing.T) {
 	failNtpMock1 = true
-	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock1)
+	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock1, time.Second)
 
 	st.Sync()
 
@@ -104,7 +104,7 @@ func TestValueInDoSync(t *testing.T) {
 	responseMock2 = &beevikNtp.Response{ClockOffset: 23456}
 
 	failNtpMock2 = false
-	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock2)
+	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock2, time.Second)
 
 	assert.Equal(t, st.ClockOffset(), time.Millisecond*0)
 	st.Sync()
@@ -121,7 +121,7 @@ func TestGetOffset(t *testing.T) {
 	responseMock3 = &beevikNtp.Response{ClockOffset: 23456}
 
 	failNtpMock3 = false
-	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock3)
+	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock3, time.Second)
 
 	assert.Equal(t, st.ClockOffset(), time.Millisecond*0)
 	st.Sync()
@@ -130,7 +130,7 @@ func TestGetOffset(t *testing.T) {
 }
 
 func TestCallQuery(t *testing.T) {
-	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock4)
+	st := ntp.NewSyncTime(config.NTPConfig{Hosts: []string{""}, SyncPeriodSeconds: 1}, queryMock4, time.Second)
 	st.StartSyncingTime()
 
 	assert.NotNil(t, st.Query())
@@ -152,7 +152,7 @@ func TestCallQuery(t *testing.T) {
 func TestCallQueryShouldErrIndexOutOfBounds(t *testing.T) {
 	t.Parallel()
 
-	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 3600}, nil)
+	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 3600}, nil, time.Second)
 	query := st.Query()
 	response, err := query(ntp.NTPOptions{Hosts: []string{"host1", "host2", "host3"}}, 3)
 
@@ -167,7 +167,7 @@ func TestCallQueryShouldWork(t *testing.T) {
 
 	ntpConfig := ntp.NewNTPGoogleConfig()
 	ntpOptions := ntp.NewNTPOptions(ntpConfig)
-	st := ntp.NewSyncTime(ntpConfig, nil)
+	st := ntp.NewSyncTime(ntpConfig, nil, time.Second)
 	query := st.Query()
 	response, err := query(ntpOptions, 0)
 
@@ -179,7 +179,7 @@ func TestNtpHostIsChange(t *testing.T) {
 	t.Parallel()
 
 	ntpConfig := config.NTPConfig{Hosts: []string{"host1", "host2", "host3"}, SyncPeriodSeconds: 1}
-	st := ntp.NewSyncTime(ntpConfig, queryMock5)
+	st := ntp.NewSyncTime(ntpConfig, queryMock5, time.Second*6)
 	st.Sync()
 
 	//HostIndex will be equal with 1 and time offset will be a second
@@ -190,7 +190,7 @@ func TestSyncShouldNotUpdateClockOffset(t *testing.T) {
 	t.Parallel()
 
 	ntpConfig := config.NTPConfig{Hosts: []string{"host1", "host2", "host3"}, SyncPeriodSeconds: 1}
-	st := ntp.NewSyncTime(ntpConfig, queryMock6)
+	st := ntp.NewSyncTime(ntpConfig, queryMock6, time.Second)
 	st.SetClockOffset(time.Millisecond)
 	st.Sync()
 
@@ -200,7 +200,7 @@ func TestSyncShouldNotUpdateClockOffset(t *testing.T) {
 func TestGetClockOffsetsWithoutEdges(t *testing.T) {
 	t.Parallel()
 
-	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 1}, nil)
+	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 1}, nil, time.Second)
 
 	clockOffsets := make([]time.Duration, 0)
 	clockOffsetsWithoutEdges := st.GetClockOffsetsWithoutEdges(clockOffsets)
@@ -244,7 +244,7 @@ func TestGetClockOffsetsWithoutEdges(t *testing.T) {
 func TestGetHarmonicMean(t *testing.T) {
 	t.Parallel()
 
-	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 1}, nil)
+	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: 1}, nil, time.Second)
 
 	clockOffsets := make([]time.Duration, 0)
 	harmonicMean := st.GetHarmonicMean(clockOffsets)
@@ -265,7 +265,7 @@ func TestGetSleepTime(t *testing.T) {
 
 	syncPeriodSeconds := 3600
 	givenTime := time.Duration(syncPeriodSeconds) * time.Second
-	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: syncPeriodSeconds}, nil)
+	st := ntp.NewSyncTime(config.NTPConfig{SyncPeriodSeconds: syncPeriodSeconds}, nil, time.Second)
 	minSleepTime := time.Duration(float64(givenTime) - float64(givenTime)*0.2)
 	maxSleepTime := time.Duration(float64(givenTime) + float64(givenTime)*0.2)
 
@@ -291,6 +291,7 @@ func TestCallQueryShouldNotUpdateOnOutOfBoundValuesPositive(t *testing.T) {
 				ClockOffset: ntp.OutOfBoundsDuration + time.Nanosecond,
 			}, nil
 		},
+		time.Nanosecond,
 	)
 
 	currentValue := time.Microsecond
@@ -313,6 +314,7 @@ func TestCallQueryShouldNotUpdateOnOutOfBoundValuesNegative(t *testing.T) {
 				ClockOffset: -ntp.OutOfBoundsDuration - 2*time.Nanosecond,
 			}, nil
 		},
+		2*time.Nanosecond,
 	)
 
 	currentValue := time.Microsecond
@@ -334,7 +336,7 @@ func TestCallQueryShouldWorkMeasurements(t *testing.T) {
 
 	ntpConfig := ntp.NewNTPGoogleConfig()
 	ntpOptions := ntp.NewNTPOptions(ntpConfig)
-	st := ntp.NewSyncTime(ntpConfig, nil)
+	st := ntp.NewSyncTime(ntpConfig, nil, time.Second)
 
 	query := st.Query()
 
