@@ -828,10 +828,6 @@ func (s *legacySystemSCProcessor) processSCOutputAccounts(
 			return err
 		}
 
-		if bytes.Equal(acc.AddressBytes(), vm.EndOfEpochAddress) {
-			continue
-		}
-
 		storageUpdates := process.GetSortedStorageUpdates(outAcc)
 		for _, storeUpdate := range storageUpdates {
 			err = acc.SaveKeyValue(storeUpdate.Offset, storeUpdate.Data)
