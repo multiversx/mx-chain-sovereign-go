@@ -2,10 +2,12 @@ package incomingHeader
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/extendedHeader"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/incomingEventsProc"
 )
 
@@ -32,4 +34,10 @@ type RunTypeComponentsHolder interface {
 type IncomingEventsProcessor interface {
 	RegisterProcessor(event string, proc incomingEventsProc.IncomingEventHandler) error
 	ProcessIncomingEvents(events []data.EventHandler) (*dto.EventsResult, error)
+}
+
+type EmptyBlockCreatorsContainerHandler interface {
+	Add(headerType sovereign.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
+	Get(headerType sovereign.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
+	IsInterfaceNil() bool
 }

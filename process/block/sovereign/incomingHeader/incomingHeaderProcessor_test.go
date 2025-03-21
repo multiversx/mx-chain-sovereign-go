@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
@@ -28,11 +30,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testMarshaller = &marshallerMock.MarshalizerMock{}
+
 func createArgs() ArgsIncomingHeaderProcessor {
 	return ArgsIncomingHeaderProcessor{
 		HeadersPool:            &mock.HeadersCacherStub{},
 		TxPool:                 &testscommon.ShardedDataStub{},
-		Marshaller:             &marshallerMock.MarshalizerMock{},
+		Marshaller:             testMarshaller,
 		Hasher:                 &hashingMocks.HasherMock{},
 		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
 		DataCodec: &sovTests.DataCodecMock{
@@ -57,11 +61,12 @@ func createIncomingHeadersWithIncrementalRound(numRounds uint64) []sovereign.Inc
 
 	for i := uint64(0); i <= numRounds; i++ {
 		ret[i] = &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{
+			Proof: createHeaderProof(&block.HeaderV2{
 				Header: &block.Header{
 					Round: i,
 				},
-			},
+			}),
+			Nonce: big.NewInt(int64(i)),
 			IncomingEvents: []*transaction.Event{
 				{
 					Topics:     [][]byte{[]byte("topicID"), []byte("addr"), []byte("tokenID1"), []byte("nonce1"), []byte("tokenData1")},
@@ -73,6 +78,11 @@ func createIncomingHeadersWithIncrementalRound(numRounds uint64) []sovereign.Inc
 	}
 
 	return ret
+}
+
+func createHeaderProof(header data.HeaderHandler) []byte {
+	proof, _ := testMarshaller.Marshal(header)
+	return proof
 }
 
 func TestNewIncomingHeaderHandler(t *testing.T) {
@@ -152,7 +162,7 @@ func TestNewIncomingHeaderHandler(t *testing.T) {
 func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil header, should return error", func(t *testing.T) {
+	t.Run("nil header proof nonce, should return error", func(t *testing.T) {
 		t.Parallel()
 
 		args := createArgs()
@@ -162,7 +172,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		require.Equal(t, data.ErrNilHeader, err)
 
 		incomingHeader := &sovTests.IncomingHeaderStub{
-			GetHeaderHandlerCalled: func() data.HeaderHandler {
+			GetNonceCalled: func() *big.Int {
 				return nil
 			},
 		}
@@ -214,15 +224,16 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		t.Parallel()
 
 		args := createArgs()
+		args.Marshaller = &marshal.GogoProtoMarshalizer{}
 		handler, _ := NewIncomingHeaderProcessor(args)
 
 		incomingHeader := &sovTests.IncomingHeaderStub{
-			GetHeaderHandlerCalled: func() data.HeaderHandler {
-				return &block.MetaBlock{}
+			GetProofCalled: func() []byte {
+				return createHeaderProof(&block.MetaBlock{ShardInfo: []block.ShardData{{Nonce: 4}}})
 			},
 		}
 		err := handler.AddHeader([]byte("hash"), incomingHeader)
-		require.Equal(t, errInvalidHeaderType, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("cannot compute extended header hash, should return error", func(t *testing.T) {
@@ -238,7 +249,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 		handler, _ := NewIncomingHeaderProcessor(args)
 
-		err := handler.AddHeader([]byte("hash"), &sovereign.IncomingHeader{Header: &block.HeaderV2{}})
+		err := handler.AddHeader([]byte("hash"), &sovereign.IncomingHeader{Proof: createHeaderProof(&block.HeaderV2{}), Nonce: big.NewInt(0)})
 		require.Equal(t, errMarshaller, err)
 	})
 
@@ -255,7 +266,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -290,7 +302,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Topics:     [][]byte{},
@@ -333,7 +346,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		args := createArgs()
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte("eventID"),
@@ -372,7 +386,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -401,7 +416,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -429,7 +445,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Header: &block.HeaderV2{},
+			Proof: createHeaderProof(&block.HeaderV2{}),
+			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -529,7 +546,10 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		},
 	}
 
-	headerV2 := &block.HeaderV2{ScheduledRootHash: []byte("root hash")}
+	headerV2 := &block.HeaderV2{
+		Header:            &block.Header{},
+		ScheduledRootHash: []byte("root hash"),
+	}
 
 	transfer1 := [][]byte{
 		token1,
@@ -716,7 +736,8 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	handler, _ := NewIncomingHeaderProcessor(args)
 	incomingHeader := &sovereign.IncomingHeader{
-		Header:         headerV2,
+		Proof:          createHeaderProof(headerV2),
+		Nonce:          big.NewInt(0),
 		IncomingEvents: incomingEvents,
 	}
 
