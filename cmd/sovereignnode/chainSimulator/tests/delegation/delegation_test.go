@@ -189,7 +189,7 @@ func TestSovereignChainSimulator_DelegateAndClaimRewards(t *testing.T) {
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	// wait some epochs to generate rewards
-	err = cs.GenerateBlocksUntilEpochIsReached(4)
+	err = cs.GenerateBlocksUntilEpochIsReached(6)
 	require.Nil(t, err)
 
 	claimRewardsAndCheckBalance(t, cs, delegator1, &delegator1Nonce, delegationSCAddress1.Bytes)
