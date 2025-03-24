@@ -12,8 +12,6 @@ deploySovereignWithCrossChainContracts() {
 # - update sovereign configs
 # - prepare a main chain observer for sovereign nodes
 deployMainChainContractsAndSetupObserver() {
-    checkWalletBalanceOnMainChain || return
-
     deployHeaderVerifierContract || return
 
     deployEsdtSafeContract || return
@@ -24,9 +22,11 @@ deployMainChainContractsAndSetupObserver() {
 
     setFeeMarketAddress
 
+    registerNativeToken
+
     setGenesisContract
 
-    updateSovereignConfig $1
+    updateSovereignConfig $1 || return
 
     prepareObserver
 }
@@ -38,8 +38,6 @@ deployMainChainContractsAndSetupObserver() {
 # - start the bridge service, nodes and the observer
 # - do other transactions in sovereign contracts
 sovereignDeploy() {
-    checkWalletBalanceOnMainChain || return
-
     updateNotifierNotarizationRound
 
     $TESTNET_DIR/config.sh
