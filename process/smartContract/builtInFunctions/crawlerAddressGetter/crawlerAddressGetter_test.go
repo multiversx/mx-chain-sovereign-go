@@ -9,6 +9,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
@@ -20,6 +21,7 @@ func TestCreateBuiltInFunctionContainerGetAllowedAddress_Errors(t *testing.T) {
 	t.Parallel()
 
 	crawlerGetter := NewCrawlerAddressGetter()
+	require.False(t, crawlerGetter.IsInterfaceNil())
 	t.Run("nil shardCoordinator", func(t *testing.T) {
 		t.Parallel()
 

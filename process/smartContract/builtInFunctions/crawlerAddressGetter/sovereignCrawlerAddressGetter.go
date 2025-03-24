@@ -16,7 +16,6 @@ func NewSovereignCrawlerAddressGetter() *sovereignCrawlerAddressGetter {
 
 // GetAllowedAddress returns the allowed crawler address on the current shard
 func (scag *sovereignCrawlerAddressGetter) GetAllowedAddress(_ sharding.Coordinator, addresses [][]byte) ([]byte, error) {
-
 	if len(addresses) != 0 {
 		log.Debug("found automatic crawler addresses set in sovereign config, these will not be used")
 	}
