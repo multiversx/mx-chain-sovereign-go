@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -34,7 +35,7 @@ func newExtendedHeaderProcessor(
 		return nil, err
 	}
 
-	err = container.Add(sovereign.MVX, mvxHeaderCreator)
+	err = container.Add(sovDto.MVX, mvxHeaderCreator)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (ehp *extendedHeaderProcessor) createExtendedHeader(incomingHeader sovereig
 }
 
 func (ehp *extendedHeaderProcessor) createChainSpecificExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
-	shardExtendedHeaderCreator, err := ehp.container.Get(incomingHeader.GetChainID())
+	shardExtendedHeaderCreator, err := ehp.container.Get(incomingHeader.GetSourceChainID())
 	if err != nil {
 		return nil, err
 	}

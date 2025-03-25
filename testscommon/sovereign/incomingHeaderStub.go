@@ -4,13 +4,13 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 )
 
 type IncomingHeaderStub struct {
-	GetProofCalled   func() []byte
-	GetNonceCalled   func() *big.Int
-	GetChainIDCalled func() sovereign.ChainID
+	GetProofCalled         func() []byte
+	GetNonceBICalled       func() *big.Int
+	GetSourceChainIDCalled func() dto.ChainID
 }
 
 func (ihs *IncomingHeaderStub) GetIncomingEventHandlers() []data.EventHandler {
@@ -25,20 +25,20 @@ func (ihs *IncomingHeaderStub) GetProof() []byte {
 	return nil
 }
 
-func (ihs *IncomingHeaderStub) GetNonce() *big.Int {
-	if ihs.GetNonceCalled != nil {
-		return ihs.GetNonceCalled()
+func (ihs *IncomingHeaderStub) GetNonceBI() *big.Int {
+	if ihs.GetNonceBICalled != nil {
+		return ihs.GetNonceBICalled()
 	}
 
 	return big.NewInt(0)
 }
 
-func (ihs *IncomingHeaderStub) GetChainID() sovereign.ChainID {
-	if ihs.GetChainIDCalled != nil {
-		return ihs.GetChainIDCalled()
+func (ihs *IncomingHeaderStub) GetSourceChainID() dto.ChainID {
+	if ihs.GetSourceChainIDCalled != nil {
+		return ihs.GetSourceChainIDCalled()
 	}
 
-	return sovereign.MVX
+	return dto.MVX
 }
 
 func (ihs *IncomingHeaderStub) IsInterfaceNil() bool {

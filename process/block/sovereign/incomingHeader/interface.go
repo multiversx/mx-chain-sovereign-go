@@ -2,7 +2,7 @@ package incomingHeader
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
@@ -37,7 +37,7 @@ type IncomingEventsProcessor interface {
 }
 
 type EmptyBlockCreatorsContainerHandler interface {
-	Add(headerType sovereign.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
-	Get(headerType sovereign.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
+	Add(headerType sovDto.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
+	Get(headerType sovDto.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
 	IsInterfaceNil() bool
 }

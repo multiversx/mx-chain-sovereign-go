@@ -172,7 +172,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		require.Equal(t, data.ErrNilHeader, err)
 
 		incomingHeader := &sovTests.IncomingHeaderStub{
-			GetNonceCalled: func() *big.Int {
+			GetNonceBICalled: func() *big.Int {
 				return nil
 			},
 		}

@@ -122,12 +122,12 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 // AddHeader will receive the incoming header, validate it, create incoming mbs and transactions and add them to pool
 func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereign.IncomingHeaderHandler) error {
 	// todo: here check all fields and return separate errors
-	if check.IfNil(header) || header.GetProof() == nil || header.GetNonce() == nil {
+	if check.IfNil(header) || header.GetProof() == nil || header.GetNonceBI() == nil {
 		return data.ErrNilHeader
 	}
 
 	// todo: here use big int and compare with big ints
-	incomingHeaderNonce := uint64(header.GetNonce().Int64())
+	incomingHeaderNonce := uint64(header.GetNonceBI().Int64())
 
 	log.Info("received incoming header",
 		"hash", hex.EncodeToString(headerHash),

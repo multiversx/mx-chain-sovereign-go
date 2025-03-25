@@ -5,23 +5,23 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 )
 
 type emptyBlockCreatorsContainer struct {
 	mut           sync.RWMutex
-	blockCreators map[sovereign.ChainID]EmptyExtendedHeaderCreator
+	blockCreators map[dto.ChainID]EmptyExtendedHeaderCreator
 }
 
 // NewEmptyBlockCreatorsContainer creates a new extended block creators container
 func NewEmptyBlockCreatorsContainer() *emptyBlockCreatorsContainer {
 	return &emptyBlockCreatorsContainer{
-		blockCreators: make(map[sovereign.ChainID]EmptyExtendedHeaderCreator),
+		blockCreators: make(map[dto.ChainID]EmptyExtendedHeaderCreator),
 	}
 }
 
 // Add will add a new empty extended block creator
-func (container *emptyBlockCreatorsContainer) Add(headerType sovereign.ChainID, creator EmptyExtendedHeaderCreator) error {
+func (container *emptyBlockCreatorsContainer) Add(headerType dto.ChainID, creator EmptyExtendedHeaderCreator) error {
 	if check.IfNil(creator) {
 		return data.ErrNilEmptyBlockCreator
 	}
@@ -34,7 +34,7 @@ func (container *emptyBlockCreatorsContainer) Add(headerType sovereign.ChainID, 
 }
 
 // Get will try to get an existing empty extended block creator. Errors if the type is not found
-func (container *emptyBlockCreatorsContainer) Get(headerType sovereign.ChainID) (EmptyExtendedHeaderCreator, error) {
+func (container *emptyBlockCreatorsContainer) Get(headerType dto.ChainID) (EmptyExtendedHeaderCreator, error) {
 	container.mut.RLock()
 	creator, ok := container.blockCreators[headerType]
 	container.mut.RUnlock()
