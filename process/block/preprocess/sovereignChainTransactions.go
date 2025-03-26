@@ -221,14 +221,15 @@ func (sct *sovereignChainTransactions) isTransactionEligibleForExecution(tx *tra
 				"fee needed", txFee.String())
 			return process.ErrInsufficientFee, false
 		}
-		cost = big.NewInt(0).Add(txFee, tx.GetValue())
+		cost = new(big.Int).Add(txFee, tx.GetValue())
 	}
 
 	if accntInfo.balance.Cmp(cost) < 0 {
 		log.Trace("sovereignChainTransactions.isTransactionEligibleForExecution", "error", process.ErrInsufficientFunds,
 			"account balance", accntInfo.balance.String(),
 			"cost", cost.String())
-		cost = txFee // revert cost for accntsTracker
+		cost = txFee // revert cost for accntsTracker, to have it for next transactions if any
+		// do not return error here because you want this tx to be added in the miniblock and executed as INVALID
 	}
 
 	accntInfo.nonce++
