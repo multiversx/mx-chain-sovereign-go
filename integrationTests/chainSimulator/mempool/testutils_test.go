@@ -8,7 +8,11 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/require"
+
+	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
 	"github.com/multiversx/mx-chain-go/config"
 	testsChainSimulator "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
@@ -18,7 +22,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/storage/txcache"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -46,6 +49,35 @@ func startChainSimulator(t *testing.T, alterConfigsFunction func(cfg *config.Con
 		NumNodesWaitingListMeta:  0,
 		NumNodesWaitingListShard: 0,
 		AlterConfigsFunction:     alterConfigsFunction,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, simulator)
+
+	err = simulator.GenerateBlocksUntilEpochIsReached(1)
+	require.NoError(t, err)
+
+	return simulator
+}
+
+func startSovereignChainSimulator(t *testing.T, alterConfigsFunction func(cfg *config.Configs)) testsChainSimulator.ChainSimulator {
+	simulator, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: "../../../cmd/sovereignnode/config/",
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck: true,
+			TempDir:                t.TempDir(),
+			PathToInitialConfig:    "../../../cmd/node/config/",
+			NumOfShards:            1,
+			GenesisTimestamp:       time.Now().Unix(),
+			RoundDurationInMillis:  uint64(4000),
+			RoundsPerEpoch: core.OptionalUint64{
+				HasValue: true,
+				Value:    10,
+			},
+			ApiInterface:             api.NewNoApiInterface(),
+			MinNodesPerShard:         1,
+			NumNodesWaitingListShard: 0,
+			AlterConfigsFunction:     alterConfigsFunction,
+		},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, simulator)
@@ -182,7 +214,10 @@ func getNumTransactionsInPool(simulator testsChainSimulator.ChainSimulator, shar
 func getNumTransactionsInCurrentBlock(simulator testsChainSimulator.ChainSimulator, shard int) int {
 	node := simulator.GetNodeHandler(uint32(shard))
 	currentBlock := node.GetDataComponents().Blockchain().GetCurrentBlockHeader()
-	return int(currentBlock.GetTxCount())
+
+	sovereignChainBlock, _ := currentBlock.(data.SovereignChainHeaderHandler)
+
+	return int(sovereignChainBlock.GetTxCount())
 }
 
 func getTransaction(t *testing.T, simulator testsChainSimulator.ChainSimulator, shard int, hash []byte) *transaction.ApiTransactionResult {
