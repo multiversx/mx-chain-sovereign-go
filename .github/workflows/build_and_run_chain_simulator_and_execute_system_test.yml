@@ -26,6 +26,7 @@ jobs:
       matrix:
         #TODO Include Macos support later on
         runs-on: [ubuntu-latest]
+        is_sovereign: [ False, True ]
     runs-on: ${{ matrix.runs-on }}
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -160,6 +161,8 @@ jobs:
           pip install -r mx-chain-testing-suite/requirements.txt
           echo "PYTHONPATH=mx-chain-testing-suite" >> $GITHUB_ENV
 
+      - name: Set up chain simulator type
+        run: echo "IS_SOVEREIGN=${{ matrix.is_sovereign }}" >> $GITHUB_ENV
 
       - name: Run tests and generate HTML report
         run: |
