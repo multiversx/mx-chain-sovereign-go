@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 
@@ -214,10 +213,7 @@ func getNumTransactionsInPool(simulator testsChainSimulator.ChainSimulator, shar
 func getNumTransactionsInCurrentBlock(simulator testsChainSimulator.ChainSimulator, shard int) int {
 	node := simulator.GetNodeHandler(uint32(shard))
 	currentBlock := node.GetDataComponents().Blockchain().GetCurrentBlockHeader()
-
-	sovereignChainBlock, _ := currentBlock.(data.SovereignChainHeaderHandler)
-
-	return int(sovereignChainBlock.GetTxCount())
+	return int(currentBlock.GetTxCount())
 }
 
 func getTransaction(t *testing.T, simulator testsChainSimulator.ChainSimulator, shard int, hash []byte) *transaction.ApiTransactionResult {
