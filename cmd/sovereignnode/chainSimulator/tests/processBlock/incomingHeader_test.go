@@ -467,7 +467,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 	incomingHdrNonce := uint64(1)
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
-	incomingHeader, headerV2, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, nil)
+	incomingHeader, _, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, nil)
 	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
 	require.Nil(t, err)
 
@@ -491,8 +491,8 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 
-		incomingHeader, headerV2, headerHash = createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
-		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
+		currIncomingHeader, headerV2, currHeaderHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
+		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(currHeaderHash, currIncomingHeader)
 		require.Nil(t, err)
 
 		prevHeader = headerV2

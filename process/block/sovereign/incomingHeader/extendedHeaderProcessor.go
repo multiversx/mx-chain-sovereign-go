@@ -54,18 +54,23 @@ func (ehp *extendedHeaderProcessor) createExtendedHeader(incomingHeader sovereig
 		return nil, err
 	}
 
-	// todo: here have setters on interface
-	ret := extendedShardHeader.(*block.ShardHeaderExtended)
-
 	events, err := getEvents(incomingHeader.GetIncomingEventHandlers())
 	if err != nil {
 		return nil, err
 	}
 
-	ret.IncomingEvents = events
-	ret.IncomingMiniBlocks = createIncomingMb(scrs)
+	err = extendedShardHeader.SetIncomingEventHandlers(events)
+	if err != nil {
+		return nil, err
+	}
 
-	return ret, nil
+	incomingMBs := createIncomingMb(scrs)
+	err = extendedShardHeader.SetIncomingMiniBlockHandlers(incomingMBs)
+	if err != nil {
+		return nil, err
+	}
+
+	return extendedShardHeader, nil
 }
 
 func (ehp *extendedHeaderProcessor) createChainSpecificExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
@@ -77,8 +82,8 @@ func (ehp *extendedHeaderProcessor) createChainSpecificExtendedHeader(incomingHe
 	return shardExtendedHeaderCreator.CreateNewExtendedHeader(incomingHeader.GetProof())
 }
 
-func getEvents(events []data.EventHandler) ([]*transaction.Event, error) {
-	ret := make([]*transaction.Event, len(events))
+func getEvents(events []data.EventHandler) ([]data.EventHandler, error) {
+	ret := make([]data.EventHandler, len(events))
 
 	for idx, eventHandler := range events {
 		event, castOk := eventHandler.(*transaction.Event)
@@ -92,9 +97,9 @@ func getEvents(events []data.EventHandler) ([]*transaction.Event, error) {
 	return ret, nil
 }
 
-func createIncomingMb(scrs []*dto.SCRInfo) []*block.MiniBlock {
+func createIncomingMb(scrs []*dto.SCRInfo) []data.MiniBlockHandler {
 	if len(scrs) == 0 {
-		return make([]*block.MiniBlock, 0)
+		return make([]data.MiniBlockHandler, 0)
 	}
 
 	scrHashes := make([][]byte, len(scrs))
@@ -102,8 +107,8 @@ func createIncomingMb(scrs []*dto.SCRInfo) []*block.MiniBlock {
 		scrHashes[idx] = scrData.Hash
 	}
 
-	return []*block.MiniBlock{
-		{
+	return []data.MiniBlockHandler{
+		&block.MiniBlock{
 			TxHashes:        scrHashes,
 			ReceiverShardID: core.SovereignChainShardId,
 			SenderShardID:   core.MainChainShardId,
