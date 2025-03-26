@@ -342,20 +342,16 @@ func (txProc *baseTxProcessor) GetSenderAndReceiverAccounts(tx *transaction.Tran
 		return nil, nil, process.ErrNilTransaction
 	}
 
-	accSnd, accRcv, err := txProc.getAccounts(tx.SndAddr, tx.RcvAddr)
-	if err != nil {
-		return nil, nil, err
+	return txProc.getAccounts(tx.SndAddr, tx.RcvAddr)
+}
+
+// GetRelayerAccount gets the accounts for relayer
+func (txProc *baseTxProcessor) GetRelayerAccount(tx *transaction.Transaction) (state.UserAccountHandler, error) {
+	if check.IfNil(tx) {
+		return nil, process.ErrNilTransaction
 	}
 
-	if common.IsRelayedTxV3(tx) {
-		relayerAccount, err := txProc.getAccountFromAddress(tx.RelayerAddr)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		accSnd = relayerAccount
-	}
-	return accSnd, accRcv, nil
+	return txProc.getAccountFromAddress(tx.RelayerAddr)
 }
 
 // Setting a guardian is allowed with regular transactions on a guarded account
