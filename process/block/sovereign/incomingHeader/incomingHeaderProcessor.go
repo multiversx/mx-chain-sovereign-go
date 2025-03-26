@@ -2,6 +2,8 @@ package incomingHeader
 
 import (
 	"encoding/hex"
+	"fmt"
+	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -22,11 +24,12 @@ var log = logger.GetOrCreate("headerSubscriber")
 
 // ArgsIncomingHeaderProcessor is a struct placeholder for args needed to create a new incoming header processor
 type ArgsIncomingHeaderProcessor struct {
-	HeadersPool                     HeadersPool
-	OutGoingOperationsPool          sovereignBlock.OutGoingOperationsPool
-	TxPool                          TransactionPool
-	Marshaller                      marshal.Marshalizer
-	Hasher                          hashing.Hasher
+	HeadersPool            HeadersPool
+	OutGoingOperationsPool sovereignBlock.OutGoingOperationsPool
+	TxPool                 TransactionPool
+	Marshaller             marshal.Marshalizer
+	Hasher                 hashing.Hasher
+	// TODO: Here we need to load string from config and convert to big Int
 	MainChainNotarizationStartRound uint64
 	DataCodec                       sovBlock.DataCodecHandler
 	TopicsChecker                   sovBlock.TopicsCheckerHandler
@@ -37,7 +40,8 @@ type incomingHeaderProcessor struct {
 	extendedHeaderProc *extendedHeaderProcessor
 
 	outGoingPool                    sovereignBlock.OutGoingOperationsPool
-	mainChainNotarizationStartRound uint64
+	mainChainNotarizationStartRound *big.Int
+	preGenesisMainChainRound        *big.Int
 }
 
 // NewIncomingHeaderProcessor creates an incoming header processor which should be able to receive incoming headers and events
@@ -115,36 +119,35 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		eventsProc:                      eventsProc,
 		extendedHeaderProc:              extendedHearProc,
 		outGoingPool:                    args.OutGoingOperationsPool,
-		mainChainNotarizationStartRound: args.MainChainNotarizationStartRound,
+		mainChainNotarizationStartRound: big.NewInt(int64(args.MainChainNotarizationStartRound)),
+		preGenesisMainChainRound:        big.NewInt(int64(args.MainChainNotarizationStartRound) - 1),
 	}, nil
 }
 
 // AddHeader will receive the incoming header, validate it, create incoming mbs and transactions and add them to pool
 func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereign.IncomingHeaderHandler) error {
-	// todo: here check all fields and return separate errors
-	if check.IfNil(header) || header.GetProof() == nil || header.GetNonceBI() == nil {
-		return data.ErrNilHeader
+	err := checkNilInputs(header)
+	if err != nil {
+		return err
 	}
 
-	// todo: here use big int and compare with big ints
-	incomingHeaderNonce := uint64(header.GetNonceBI().Int64())
-
+	incomingHeaderNonce := header.GetNonceBI()
 	log.Info("received incoming header",
 		"hash", hex.EncodeToString(headerHash),
-		"nonce", incomingHeaderNonce,
+		"nonce", incomingHeaderNonce.String(),
 	)
 
 	// pre-genesis header, needed to track/link genesis header on top of this one. Every node with an enabled notifier
 	// will validate that the next genesis header with round == mainChainNotarizationStartRound is on top of pre-genesis header.
 	// just save internal header to tracker, no need to process anything from it
-	if incomingHeaderNonce == ihp.mainChainNotarizationStartRound-1 {
+	if incomingHeaderNonce.Cmp(ihp.preGenesisMainChainRound) == 0 {
 		log.Debug("received pre-genesis header", "round", incomingHeaderNonce)
 		return ihp.extendedHeaderProc.addPreGenesisExtendedHeaderToPool(header)
 	}
 
-	if incomingHeaderNonce < ihp.mainChainNotarizationStartRound {
+	if incomingHeaderNonce.Cmp(ihp.mainChainNotarizationStartRound) < 0 {
 		log.Debug("do not notarize incoming header, round lower than main chain notarization start round",
-			"round", incomingHeaderNonce,
+			"round", incomingHeaderNonce.String(),
 			"start round", ihp.mainChainNotarizationStartRound)
 		return nil
 	}
@@ -166,6 +169,21 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 
 	ihp.addConfirmedBridgeOpsToPool(res.ConfirmedBridgeOps)
 	return nil
+}
+
+func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
+	if check.IfNil(header) || header.GetProof() == nil || header.GetNonceBI() == nil {
+		return data.ErrNilHeader
+	}
+	if header.GetProof() == nil {
+		return errNilProof
+	}
+	if header.GetNonceBI() == nil {
+		return fmt.Errorf("%w for nonce in incoming header", data.ErrNilValue)
+	}
+
+	return nil
+
 }
 
 func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.ConfirmedBridgeOp) {
