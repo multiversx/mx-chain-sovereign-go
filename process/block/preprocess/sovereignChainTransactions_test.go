@@ -608,4 +608,144 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		assert.Equal(t, uint64(3), nonce)
 		assert.Equal(t, big.NewInt(1), balance)
 	})
+
+	t.Run("isTransactionEligibleForExecution should return false when relayer account is nil", func(t *testing.T) {
+		t.Parallel()
+
+		args := createDefaultTransactionsProcessorArgs()
+		args.TxProcessor = &testscommon.TxProcessorMock{
+			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
+				return &state.UserAccountStub{
+					Nonce:   1,
+					Balance: big.NewInt(10),
+				}, nil, nil
+			},
+			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
+				return nil, nil
+			},
+		}
+
+		tp, _ := NewTransactionPreprocessor(args)
+		sctp, _ := NewSovereignChainTransactionPreprocessor(tp)
+
+		tx := &transaction.Transaction{
+			SndAddr:          []byte("X"),
+			Nonce:            1,
+			Value:            big.NewInt(2),
+			RelayerAddr:      []byte("R"),
+			RelayerSignature: []byte("RS"),
+		}
+		err, value := sctp.isTransactionEligibleForExecution(tx, nil)
+		require.Nil(t, err)
+		require.False(t, value)
+	})
+
+	t.Run("isTransactionEligibleForExecution should return false if relayer doesn't have sufficient funds for fee", func(t *testing.T) {
+		t.Parallel()
+
+		args := createDefaultTransactionsProcessorArgs()
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
+				return big.NewInt(10)
+			},
+		}
+		args.TxProcessor = &testscommon.TxProcessorMock{
+			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
+				return &state.UserAccountStub{
+					Nonce:   1,
+					Balance: big.NewInt(10),
+				}, nil, nil
+			},
+			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
+				relayerAccount := &state.UserAccountStub{
+					Balance: big.NewInt(1),
+				}
+				return relayerAccount, nil
+			},
+		}
+
+		tp, _ := NewTransactionPreprocessor(args)
+		sctp, _ := NewSovereignChainTransactionPreprocessor(tp)
+
+		tx := &transaction.Transaction{
+			SndAddr:          []byte("X"),
+			Nonce:            1,
+			Value:            big.NewInt(2),
+			RelayerAddr:      []byte("R"),
+			RelayerSignature: []byte("RS"),
+		}
+		err, value := sctp.isTransactionEligibleForExecution(tx, nil)
+		require.Error(t, err, process.ErrInsufficientFee)
+		require.False(t, value)
+	})
+
+	t.Run("isTransactionEligibleForExecution should return true if relayed transaction", func(t *testing.T) {
+		t.Parallel()
+
+		args := createDefaultTransactionsProcessorArgs()
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
+				return big.NewInt(1)
+			},
+		}
+		args.TxProcessor = &testscommon.TxProcessorMock{
+			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
+				senderAccount := &state.UserAccountStub{
+					Nonce:   1,
+					Balance: big.NewInt(10),
+				}
+				return senderAccount, nil, nil
+			},
+			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
+				relayerAccount := &state.UserAccountStub{
+					Balance: big.NewInt(10),
+				}
+				return relayerAccount, nil
+			},
+		}
+
+		tp, _ := NewTransactionPreprocessor(args)
+		sctp, _ := NewSovereignChainTransactionPreprocessor(tp)
+
+		tx := &transaction.Transaction{
+			SndAddr:          []byte("X"),
+			Nonce:            1,
+			Value:            big.NewInt(2),
+			RelayerAddr:      []byte("R"),
+			RelayerSignature: []byte("RS"),
+		}
+		err, value := sctp.isTransactionEligibleForExecution(tx, nil)
+
+		require.Nil(t, err)
+		require.True(t, value)
+
+		accntInfo, found := sctp.accntsTracker.getAccountInfo(tx.GetSndAddr())
+		require.True(t, found)
+		require.Equal(t, uint64(2), accntInfo.nonce)
+		require.Equal(t, big.NewInt(8), accntInfo.balance)
+
+		relayerAccntInfo, found := sctp.accntsTracker.getAccountInfo(tx.GetRelayerAddr())
+		require.True(t, found)
+		require.Equal(t, big.NewInt(9), relayerAccntInfo.balance)
+
+		tx2 := &transaction.Transaction{
+			SndAddr:          []byte("X"),
+			Nonce:            2,
+			Value:            big.NewInt(5),
+			RelayerAddr:      []byte("R"),
+			RelayerSignature: []byte("RS"),
+		}
+		err, value = sctp.isTransactionEligibleForExecution(tx2, nil)
+		require.Nil(t, err)
+		require.True(t, value)
+
+		accntInfo, found = sctp.accntsTracker.getAccountInfo(tx.GetSndAddr())
+		require.True(t, found)
+		require.Equal(t, uint64(3), accntInfo.nonce)
+		require.Equal(t, big.NewInt(3), accntInfo.balance)
+
+		relayerAccntInfo, found = sctp.accntsTracker.getAccountInfo(tx.GetRelayerAddr())
+		require.True(t, found)
+		require.Equal(t, big.NewInt(8), relayerAccntInfo.balance)
+	})
 }

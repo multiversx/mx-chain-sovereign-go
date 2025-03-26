@@ -12,6 +12,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/storage/txcache"
 )
 
@@ -176,18 +177,10 @@ func (sct *sovereignChainTransactions) isTransactionEligibleForExecution(tx *tra
 		return err, false
 	}
 
-	senderAccount, _, errGetAccounts := sct.txProcessor.GetSenderAndReceiverAccounts(tx)
+	senderAccount, accntInfo, errGetAccounts := sct.getSenderAccountInfo(tx)
 	if check.IfNil(senderAccount) {
 		log.Debug("sovereignChainTransactions.isTransactionEligibleForExecution: GetSenderAndReceiverAccounts", "error", errGetAccounts)
 		return errGetAccounts, false
-	}
-
-	accntInfo, found := sct.accntsTracker.getAccountInfo(tx.GetSndAddr())
-	if !found {
-		accntInfo = accountInfo{
-			nonce:   senderAccount.GetNonce(),
-			balance: big.NewInt(0).Set(senderAccount.GetBalance()),
-		}
 	}
 
 	if accntInfo.nonce < tx.GetNonce() {
@@ -208,17 +201,10 @@ func (sct *sovereignChainTransactions) isTransactionEligibleForExecution(tx *tra
 	var cost *big.Int
 
 	if common.IsRelayedTxV3(tx) {
-		relayerAccount, errGetRelayer := sct.txProcessor.GetRelayerAccount(tx)
+		relayerAccount, relayerAccntInfo, errGetRelayer := sct.getRelayerAccountInfo(tx)
 		if check.IfNil(relayerAccount) {
-			log.Debug("sovereignChainTransactions.getRelayerAccountInfo: GetRelayerAccount", "error", errGetRelayer)
+			log.Debug("sovereignChainTransactions.getRelayerAccountInfo: GetRelayerAccount", "error", err)
 			return errGetRelayer, false
-		}
-
-		relayerAccntInfo, found := sct.accntsTracker.getAccountInfo(tx.GetRelayerAddr())
-		if !found {
-			relayerAccntInfo = accountInfo{
-				balance: big.NewInt(0).Set(relayerAccount.GetBalance()),
-			}
 		}
 
 		if relayerAccntInfo.balance.Cmp(txFee) < 0 {
@@ -260,4 +246,37 @@ func isCriticalError(err error) bool {
 	return err != nil &&
 		!errors.Is(err, process.ErrHigherNonceInTransaction) && // this error should be validated by accntsTracker, is skipped here
 		!errors.Is(err, process.ErrInsufficientFunds) // is skipped because you want to put it in the miniblock to be executed as INVALID
+}
+
+func (sct *sovereignChainTransactions) getSenderAccountInfo(tx *transaction.Transaction) (state.UserAccountHandler, accountInfo, error) {
+	senderAccount, _, err := sct.txProcessor.GetSenderAndReceiverAccounts(tx)
+	if check.IfNil(senderAccount) {
+		return nil, accountInfo{}, err
+	}
+
+	accntInfo, found := sct.accntsTracker.getAccountInfo(tx.GetSndAddr())
+	if !found {
+		accntInfo = accountInfo{
+			nonce:   senderAccount.GetNonce(),
+			balance: big.NewInt(0).Set(senderAccount.GetBalance()),
+		}
+	}
+
+	return senderAccount, accntInfo, nil
+}
+
+func (sct *sovereignChainTransactions) getRelayerAccountInfo(tx *transaction.Transaction) (state.UserAccountHandler, accountInfo, error) {
+	relayerAccount, err := sct.txProcessor.GetRelayerAccount(tx)
+	if check.IfNil(relayerAccount) {
+		return nil, accountInfo{}, err
+	}
+
+	relayerAccntInfo, found := sct.accntsTracker.getAccountInfo(tx.GetRelayerAddr())
+	if !found {
+		relayerAccntInfo = accountInfo{
+			balance: big.NewInt(0).Set(relayerAccount.GetBalance()),
+		}
+	}
+
+	return relayerAccount, relayerAccntInfo, nil
 }
