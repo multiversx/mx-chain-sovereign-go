@@ -31,6 +31,7 @@ type RunTypeComponentsHolder interface {
 	IsInterfaceNil() bool
 }
 
+// IncomingEventsProcessor is a container for multiple event processors that can register and execute events.
 type IncomingEventsProcessor interface {
 	RegisterProcessor(event string, proc incomingEventsProc.IncomingEventHandler) error
 	ProcessIncomingEvents(events []data.EventHandler) (*dto.EventsResult, error)

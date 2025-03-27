@@ -44,7 +44,7 @@ def enable_key(lines, section):
     return updated_lines
 
 
-def update_sovereign_config(file_path, main_chain_address, sovereign_chain_address):
+def update_sovereign_config(file_path, main_chain_address, sovereign_chain_address, native_esdt):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
@@ -53,6 +53,7 @@ def update_sovereign_config(file_path, main_chain_address, sovereign_chain_addre
     updated_lines = update_subscribed_addresses(updated_lines, "NotifierConfig", "execute", main_chain_address)
     updated_lines = enable_key(updated_lines, "OutGoingBridge")
     updated_lines = enable_key(updated_lines, "NotifierConfig")
+    updated_lines = update_key(updated_lines, "NativeESDT", native_esdt)
 
     with open(file_path, 'w') as file:
         file.writelines(updated_lines)
@@ -104,7 +105,8 @@ def update_external_config(file_path, main_chain_elastic):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
-    updated_lines = update_main_chain_elastic_url(lines, "MainChainElasticSearchConnector", "URL", main_chain_elastic)
+    updated_lines = enable_key(lines, "MainChainElasticSearchConnector")
+    updated_lines = update_main_chain_elastic_url(updated_lines, "MainChainElasticSearchConnector", "URL", main_chain_elastic)
 
     with open(file_path, 'w') as file:
         file.writelines(updated_lines)
@@ -115,20 +117,23 @@ def main():
     main_chain_address = sys.argv[1]
     sovereign_chain_address = sys.argv[2]
     esdt_prefix = sys.argv[3]
-    main_chain_elastic = sys.argv[4]
+    use_elasticsearch = sys.argv[4]
+    main_chain_elastic = sys.argv[5]
+    native_esdt = sys.argv[6]
 
     current_path = os.getcwd()
-    project = 'mx-chain-go'
+    project = 'mx-chain-sovereign-go'
     index = current_path.find(project)
     project_path = current_path[:index + len(project)]
     toml_path = project_path + "/cmd/sovereignnode/config/sovereignConfig.toml"
-    update_sovereign_config(toml_path, main_chain_address, sovereign_chain_address)
+    update_sovereign_config(toml_path, main_chain_address, sovereign_chain_address, native_esdt)
 
     config_path = project_path + "/cmd/node/config"
     update_node_configs(config_path, esdt_prefix, sovereign_chain_address)
 
-    external_path = project_path + "/cmd/node/config/external.toml"
-    update_external_config(external_path, main_chain_elastic)
+    if use_elasticsearch == "1":
+        external_path = project_path + "/cmd/node/config/external.toml"
+        update_external_config(external_path, main_chain_elastic)
 
 
 if __name__ == "__main__":

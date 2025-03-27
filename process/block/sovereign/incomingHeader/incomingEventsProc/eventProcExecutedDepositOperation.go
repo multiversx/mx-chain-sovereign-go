@@ -14,6 +14,7 @@ type eventProcExecutedDepositOperation struct {
 	eventProcConfirmExecutedOperation IncomingEventHandler
 }
 
+// NewEventProcExecutedDepositOperation creates a new event processor for executed deposit token operations
 func NewEventProcExecutedDepositOperation(
 	eventProcDepositTokens IncomingEventHandler,
 	eventProcConfirmExecutedOperation IncomingEventHandler,
@@ -44,7 +45,7 @@ func NewEventProcExecutedDepositOperation(
 //   - The event is treated as an **incoming deposit event**, and the tokens are returned.
 //   - The remaining topic fields follow the format defined in `eventProcDepositTokens.go`.
 //
-// - topic[0] = dto.TopicIDConfirmedOutGoingOperation → Indicates a successful operation.
+// - topic[0] = dto.TopicIDConfirmedOutGoingOperation → Indicates a processed operation, can be successful or failed.
 //   - The operation is confirmed.
 //   - The remaining topic fields follow the format defined in `eventProcConfirmExecutedOperation.go`.
 func (ep *eventProcExecutedDepositOperation) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {

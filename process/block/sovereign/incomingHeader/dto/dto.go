@@ -5,18 +5,31 @@ import (
 )
 
 const (
+	// MinTopicsInTransferEvent represents the minimum number of topics required in a transfer event.
 	MinTopicsInTransferEvent = 5
-	NumTransferTopics        = 3
-	TokensIndex              = 2
+
+	// NumTransferTopics defines the expected number of topics related to a token transfer.
+	NumTransferTopics = 3
+
+	// TokensIndex is the index position in the topics array where token-related data is stored.
+	TokensIndex = 2
 )
 
 const (
+	// EventIDExecutedOutGoingBridgeOp identifies an event related to the execution of an outgoing bridge operation.
 	EventIDExecutedOutGoingBridgeOp = "execute"
-	EventIDDepositIncomingTransfer  = "deposit"
-	EventIDChangeValidatorSet       = "changeValidatorSet"
 
+	// EventIDDepositIncomingTransfer identifies an event related to an incoming token deposit.
+	EventIDDepositIncomingTransfer = "deposit"
+
+	// EventIDChangeValidatorSet identifies an event related to validator set changes.
+	EventIDChangeValidatorSet = "changeValidatorSet"
+
+	// TopicIDConfirmedOutGoingOperation is used as a topic identifier for confirmed outgoing bridge operations.
 	TopicIDConfirmedOutGoingOperation = "executedBridgeOp"
-	TopicIDDepositIncomingTransfer    = "deposit"
+
+	// TopicIDDepositIncomingTransfer is used as a topic identifier for incoming token deposit events.
+	TopicIDDepositIncomingTransfer = "deposit"
 )
 
 // SCRInfo holds an incoming scr that is created based on an incoming cross chain event and its hash

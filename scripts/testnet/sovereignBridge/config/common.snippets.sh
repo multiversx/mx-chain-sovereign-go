@@ -1,12 +1,3 @@
-checkWalletBalanceOnMainChain() {
-    local BALANCE=$(mxpy account get --address ${WALLET_ADDRESS} --proxy ${PROXY} --balance)
-    if [ "$BALANCE" == "0" ]; then
-        echo -e "Your wallet balance is zero on main chain"
-        return 1
-    fi
-    return 0
-}
-
 fund() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: fund <address>"
@@ -18,7 +9,6 @@ fund() {
     local OUTFILE="${OUTFILE_PATH}/get-funds-sovereign.interaction.json"
     mxpy tx new \
         --pem=${WALLET_SOVEREIGN} \
-        --pem-index 0 \
         --proxy=${PROXY_SOVEREIGN} \
         --chain=${CHAIN_ID_SOVEREIGN} \
         --receiver=$1 \
@@ -34,30 +24,30 @@ gitPullAllChanges()
 {
     pushd .
 
-    # Traverse up to the parent directory of "mx-chain-go"
-    while [[ ! -d "mx-chain-go" && $(pwd) != "/" ]]; do
+    # Traverse up to the parent directory of "mx-chain-sovereign-go"
+    while [[ ! -d "mx-chain-sovereign-go" && $(pwd) != "/" ]]; do
       cd ..
     done
 
     # Check if we found the directory
-    if [[ ! -d "mx-chain-go" ]]; then
-      echo "mx-chain-go directory not found"
+    if [[ ! -d "mx-chain-sovereign-go" ]]; then
+      echo "mx-chain-sovereign-go directory not found"
       popd
       return 1
     fi
 
-    echo -e "Pulling changes for mx-chain-go..."
-    cd mx-chain-go
+    echo -e "Pulling changes for mx-chain-sovereign-go..."
+    cd mx-chain-sovereign-go
     git pull
     cd ..
 
-    echo -e "Pulling changes for mx-chain-deploy-go..."
-    cd mx-chain-deploy-go
+    echo -e "Pulling changes for mx-chain-deploy-sovereign-go..."
+    cd mx-chain-deploy-sovereign-go
     git pull
     cd ..
 
-    echo -e "Pulling changes for mx-chain-proxy-go..."
-    cd mx-chain-proxy-go
+    echo -e "Pulling changes for mx-chain-proxy-sovereign-go..."
+    cd mx-chain-proxy-sovereign-go
     git pull
     cd ..
 
