@@ -1,5 +1,6 @@
 ESDT_SAFE_ADDRESS=$(mxpy data load --use-global --partition=${CHAIN_ID} --key=address-esdt-safe-contract)
 ESDT_SAFE_ADDRESS_SOVEREIGN=$(mxpy data load --use-global --partition=sovereign --key=address-esdt-safe-contract)
+NATIVE_ESDT=$(mxpy data load --use-global --partition=sovereign --key=native-esdt)
 
 deployEsdtSafeContract() {
     echo "Deploying ESDT Safe contract on main chain..."
@@ -183,4 +184,41 @@ setFeeMarketAddressCall() {
         --send || return
 
     printTxStatus ${OUTFILE}
+}
+
+registerNativeToken() {
+    echo "Registering new native token in ESDT Safe contract on main chain..."
+    checkVariables ESDT_SAFE_ADDRESS || return
+
+    local OUTFILE="${OUTFILE_PATH}/register-native-token.interaction.json"
+    mxpy contract call ${ESDT_SAFE_ADDRESS} \
+        --pem=${WALLET} \
+        --proxy=${PROXY} \
+        --chain=${CHAIN_ID} \
+        --value=${ESDT_ISSUE_COST} \
+        --gas-limit=100000000 \
+        --function="registerNativeToken" \
+        --arguments \
+            str:${NATIVE_ESDT_TICKER} \
+            str:${NATIVE_ESDT_NAME} \
+        --outfile=${OUTFILE} \
+        --recall-nonce \
+        --wait-result \
+        --send || return
+
+    printTxStatus ${OUTFILE}
+
+    local RESULT=$(readNativeToken)
+    local TOKEN_HEX=$(echo "$RESULT" | jq -r '.[0]')
+    mxpy data store --use-global --partition=sovereign --key=native-esdt --value=$(hex_to_string "$TOKEN_HEX")
+    NATIVE_ESDT=$(mxpy data load --use-global --partition=sovereign --key=native-esdt)
+    echo "Native Token identifier: ${NATIVE_ESDT}"
+}
+
+readNativeToken() {
+    checkVariables ESDT_SAFE_ADDRESS || return
+
+    mxpy contract query ${ESDT_SAFE_ADDRESS} \
+        --proxy=${PROXY} \
+        --function="getNativeToken"
 }
