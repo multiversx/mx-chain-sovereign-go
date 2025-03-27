@@ -25,6 +25,7 @@ type eventData struct {
 	gasLimit             uint64
 }
 
+// EventProcDepositTokensArgs holds necessary args for deposit event processor
 type EventProcDepositTokensArgs struct {
 	Marshaller    marshal.Marshalizer
 	Hasher        hashing.Hasher
@@ -39,6 +40,7 @@ type eventProcDepositTokens struct {
 	topicsChecker sovBlock.TopicsCheckerHandler
 }
 
+// NewEventProcDepositTokens creates a new event processor for deposit token operations
 func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepositTokens, error) {
 	if check.IfNil(args.Marshaller) {
 		return nil, core.ErrNilMarshalizer

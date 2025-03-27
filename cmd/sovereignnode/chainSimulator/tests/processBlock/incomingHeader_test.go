@@ -472,6 +472,8 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 	for epoch := int32(1); epoch < 5; epoch++ {
 		err = cs.GenerateBlocksUntilEpochIsReached(epoch)
+		require.Nil(t, err)
+
 		time.Sleep(time.Second)
 
 		err = cs.GenerateBlocks(5)
