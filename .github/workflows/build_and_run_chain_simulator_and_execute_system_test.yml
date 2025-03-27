@@ -41,7 +41,7 @@ jobs:
         id: target_branch
         run: |
           echo "CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" >> $GITHUB_ENV
-          
+
           # Default target branches based on the PR base branch
           echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
           echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
@@ -274,7 +274,7 @@ jobs:
             let message;
 
             if (timestamp && branchName && timestamp !== "" && branchName !== "") {
-              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${timestamp}/index.html`;
+              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${timestamp}${{ matrix.is_sovereign && '-sov' }}/index.html`;
               message = `
               📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
             
