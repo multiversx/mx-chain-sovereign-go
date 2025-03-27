@@ -48,6 +48,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		cfg.GeneralConfig.VirtualMachine.Querying.WasmVMVersions = []config.WasmVMVersionByEpoch{{StartEpoch: 0, Version: "v1.5"}}
 		cfg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix = "sov"
 		cfg.GeneralConfig.Versions.VersionsByEpochs = []config.VersionByEpochs{{StartEpoch: 0, Version: string(process.SovereignHeaderVersion)}}
+		cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 0.4
 
 		if alterConfigs != nil {
 			alterConfigs(cfg)
