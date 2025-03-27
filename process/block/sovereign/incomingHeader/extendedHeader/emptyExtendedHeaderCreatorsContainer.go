@@ -20,23 +20,23 @@ func NewEmptyBlockCreatorsContainer() *emptyBlockCreatorsContainer {
 	}
 }
 
-// Add will add a new empty extended block creator
-func (container *emptyBlockCreatorsContainer) Add(headerType dto.ChainID, creator EmptyExtendedHeaderCreator) error {
+// Add will add a new empty extended block creator for a specific chain
+func (container *emptyBlockCreatorsContainer) Add(chainID dto.ChainID, creator EmptyExtendedHeaderCreator) error {
 	if check.IfNil(creator) {
 		return data.ErrNilEmptyBlockCreator
 	}
 
 	container.mut.Lock()
-	container.blockCreators[headerType] = creator
+	container.blockCreators[chainID] = creator
 	container.mut.Unlock()
 
 	return nil
 }
 
 // Get will try to get an existing empty extended block creator. Errors if the type is not found
-func (container *emptyBlockCreatorsContainer) Get(headerType dto.ChainID) (EmptyExtendedHeaderCreator, error) {
+func (container *emptyBlockCreatorsContainer) Get(chainID dto.ChainID) (EmptyExtendedHeaderCreator, error) {
 	container.mut.RLock()
-	creator, ok := container.blockCreators[headerType]
+	creator, ok := container.blockCreators[chainID]
 	container.mut.RUnlock()
 
 	if !ok {

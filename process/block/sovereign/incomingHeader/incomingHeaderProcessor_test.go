@@ -604,8 +604,12 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		},
 	}
 
+	headerProof := createHeaderProof(headerV2)
 	extendedHeader := &block.ShardHeaderExtended{
-		Header: headerV2,
+		Header:        headerV2,
+		Proof:         headerProof,
+		NonceBI:       big.NewInt(int64(headerV2.GetRound())),
+		SourceChainID: 0,
 		IncomingMiniBlocks: []*block.MiniBlock{
 			{
 				TxHashes:        [][]byte{scrHash1, scrHash2},
@@ -736,7 +740,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	handler, _ := NewIncomingHeaderProcessor(args)
 	incomingHeader := &sovereign.IncomingHeader{
-		Proof:          createHeaderProof(headerV2),
+		Proof:          headerProof,
 		Nonce:          big.NewInt(0),
 		IncomingEvents: incomingEvents,
 	}

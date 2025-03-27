@@ -37,8 +37,9 @@ type IncomingEventsProcessor interface {
 	ProcessIncomingEvents(events []data.EventHandler) (*dto.EventsResult, error)
 }
 
-type EmptyBlockCreatorsContainerHandler interface {
-	Add(headerType sovDto.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
-	Get(headerType sovDto.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
+// EmptyExtendedHeaderCreatorsContainerHandler defines a container of empty extended header creators from different chain proofs
+type EmptyExtendedHeaderCreatorsContainerHandler interface {
+	Add(chainID sovDto.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
+	Get(chainID sovDto.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
 	IsInterfaceNil() bool
 }

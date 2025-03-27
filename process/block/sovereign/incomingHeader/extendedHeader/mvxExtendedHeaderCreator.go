@@ -2,33 +2,37 @@ package extendedHeader
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 
 	"github.com/multiversx/mx-chain-go/errors"
 )
 
-type emptyMVXHeaderV2Creator struct {
-	marshaller marshal.Marshalizer
+type emptyMVXShardExtendedCreator struct {
+	marshaller           marshal.Marshalizer
+	headerV2BlockCreator block.EmptyBlockCreator
 }
 
-// NewEmptyHeaderV2Creator is able to create empty header v2 instances
-func NewEmptyHeaderV2Creator(marshaller marshal.Marshalizer) (*emptyMVXHeaderV2Creator, error) {
+// NewEmptyMVXShardExtendedCreator is able to create empty mvx header v2 instances from proofs
+func NewEmptyMVXShardExtendedCreator(marshaller marshal.Marshalizer) (*emptyMVXShardExtendedCreator, error) {
 	if check.IfNil(marshaller) {
 		return nil, data.ErrNilMarshalizer
 	}
 
-	return &emptyMVXHeaderV2Creator{
-		marshaller: marshaller,
+	return &emptyMVXShardExtendedCreator{
+		marshaller:           marshaller,
+		headerV2BlockCreator: block.NewEmptyHeaderV2Creator(),
 	}, nil
 }
 
-// CreateNewExtendedHeader creates a new empty mvx extended header
-func (creator *emptyMVXHeaderV2Creator) CreateNewExtendedHeader(proof []byte) (data.ShardHeaderExtendedHandler, error) {
-	headerHandler, err := block.GetHeaderFromBytes(creator.marshaller, block.NewEmptyHeaderV2Creator(), proof)
+// CreateNewExtendedHeader creates a new empty extended header from a MultiversX chain proof
+func (creator *emptyMVXShardExtendedCreator) CreateNewExtendedHeader(proof []byte) (data.ShardHeaderExtendedHandler, error) {
+	headerHandler, err := block.GetHeaderFromBytes(creator.marshaller, creator.headerV2BlockCreator, proof)
 	if err != nil {
 		return nil, err
 	}
@@ -39,11 +43,14 @@ func (creator *emptyMVXHeaderV2Creator) CreateNewExtendedHeader(proof []byte) (d
 	}
 
 	return &block.ShardHeaderExtended{
-		Header: headerV2,
+		Header:        headerV2,
+		Proof:         proof,
+		NonceBI:       big.NewInt(int64(headerHandler.GetRound())),
+		SourceChainID: dto.MVX,
 	}, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
-func (creator *emptyMVXHeaderV2Creator) IsInterfaceNil() bool {
+func (creator *emptyMVXShardExtendedCreator) IsInterfaceNil() bool {
 	return creator == nil
 }

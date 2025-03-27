@@ -20,7 +20,7 @@ type extendedHeaderProcessor struct {
 	txPool      TransactionPool
 	marshaller  marshal.Marshalizer
 	hasher      hashing.Hasher
-	container   EmptyBlockCreatorsContainerHandler
+	container   EmptyExtendedHeaderCreatorsContainerHandler
 }
 
 func newExtendedHeaderProcessor(
@@ -30,7 +30,7 @@ func newExtendedHeaderProcessor(
 	hasher hashing.Hasher,
 ) (*extendedHeaderProcessor, error) {
 	container := extendedHeader.NewEmptyBlockCreatorsContainer()
-	mvxHeaderCreator, err := extendedHeader.NewEmptyHeaderV2Creator(marshaller)
+	mvxHeaderCreator, err := extendedHeader.NewEmptyMVXShardExtendedCreator(marshaller)
 	if err != nil {
 		return nil, err
 	}
