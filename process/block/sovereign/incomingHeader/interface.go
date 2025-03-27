@@ -2,10 +2,12 @@ package incomingHeader
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/extendedHeader"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/incomingEventsProc"
 )
 
@@ -33,4 +35,11 @@ type RunTypeComponentsHolder interface {
 type IncomingEventsProcessor interface {
 	RegisterProcessor(event string, proc incomingEventsProc.IncomingEventHandler) error
 	ProcessIncomingEvents(events []data.EventHandler) (*dto.EventsResult, error)
+}
+
+// EmptyExtendedHeaderCreatorsContainerHandler defines a container of empty extended header creators from different chain proofs
+type EmptyExtendedHeaderCreatorsContainerHandler interface {
+	Add(chainID sovDto.ChainID, creator extendedHeader.EmptyExtendedHeaderCreator) error
+	Get(chainID sovDto.ChainID) (extendedHeader.EmptyExtendedHeaderCreator, error)
+	IsInterfaceNil() bool
 }

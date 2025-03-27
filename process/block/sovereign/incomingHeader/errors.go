@@ -9,3 +9,5 @@ var errNilTxPool = errors.New("nil tx pool provided")
 var errInvalidHeaderType = errors.New("incoming header is not of type HeaderV2")
 
 var errInvalidEventType = errors.New("incoming event is not of type transaction event")
+
+var errNilProof = errors.New("nil proof in incoming header")
