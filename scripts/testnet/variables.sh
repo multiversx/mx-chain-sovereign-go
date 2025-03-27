@@ -98,6 +98,7 @@ export DEFAULT_CHAIN_ID="local-testnet"
 export ROUNDS_PER_EPOCH=0
 
 # ADDRESS_HRP represents the human-readable prefix for addresses
+# Changing the HRP requires changes in all config files
 export ADDRESS_HRP="erd"
 
 # HYSTERESIS defines the hysteresis value for number of nodes in shard
