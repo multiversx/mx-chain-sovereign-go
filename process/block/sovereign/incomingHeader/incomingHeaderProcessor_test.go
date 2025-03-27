@@ -162,7 +162,7 @@ func TestNewIncomingHeaderHandler(t *testing.T) {
 func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil header proof nonce, should return error", func(t *testing.T) {
+	t.Run("nil incoming header data, should return error", func(t *testing.T) {
 		t.Parallel()
 
 		args := createArgs()
@@ -173,11 +173,22 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovTests.IncomingHeaderStub{
 			GetNonceBICalled: func() *big.Int {
-				return nil
+				return big.NewInt(0)
 			},
 		}
 		err = handler.AddHeader([]byte("hash"), incomingHeader)
-		require.Equal(t, data.ErrNilHeader, err)
+		require.Equal(t, errNilProof, err)
+
+		incomingHeader = &sovTests.IncomingHeaderStub{
+			GetNonceBICalled: func() *big.Int {
+				return nil
+			},
+			GetProofCalled: func() []byte {
+				return createHeaderProof(&block.HeaderV2{})
+			},
+		}
+		err = handler.AddHeader([]byte("hash"), incomingHeader)
+		require.ErrorContains(t, err, data.ErrNilValue.Error())
 	})
 
 	t.Run("should not add header before start round", func(t *testing.T) {

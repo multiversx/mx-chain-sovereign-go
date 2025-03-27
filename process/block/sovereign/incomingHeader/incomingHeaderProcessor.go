@@ -172,7 +172,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 }
 
 func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
-	if check.IfNil(header) || header.GetProof() == nil || header.GetNonceBI() == nil {
+	if check.IfNil(header) {
 		return data.ErrNilHeader
 	}
 	if header.GetProof() == nil {
