@@ -21,6 +21,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	shardData "github.com/multiversx/mx-chain-go/process/factory/shard/data"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	"github.com/multiversx/mx-chain-go/sharding"
@@ -66,6 +67,7 @@ type runTypeComponentsHandler interface {
 	VmContainerMetaFactoryCreator() factoryVm.VmContainerCreator
 	PreProcessorsContainerFactoryCreator() shardData.PreProcessorsContainerFactoryCreator
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
+	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
 	IsInterfaceNil() bool
 }
 

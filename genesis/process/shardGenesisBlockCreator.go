@@ -387,6 +387,7 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 		GuardedAccountHandler:          disabledGuardian.NewDisabledGuardedAccountHandler(),
 		SelfESDTPrefix:                 []byte(arg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		PubKeyConverter:                arg.Core.AddressPubKeyConverter(),
+		CrawlerAddressGetterHandler:    arg.RunTypeComponents.CrawlerAddressGetter(),
 	}
 	builtInFuncFactory, err := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 	if err != nil {

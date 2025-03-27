@@ -31,6 +31,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	processSync "github.com/multiversx/mx-chain-go/process/sync"
@@ -266,6 +267,9 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	}
 	if check.IfNil(mrc.versionedHeaderFactory) {
 		return process.ErrNilVersionedHeaderFactory
+	}
+	if check.IfNil(mrc.crawlerAddressGetter) {
+		return process.ErrNilCrawlerAllowedAddress
 	}
 
 	return nil
@@ -917,6 +921,18 @@ func (mrc *managedRunTypeComponents) VersionedHeaderFactory() genesis.VersionedH
 	}
 
 	return mrc.runTypeComponents.versionedHeaderFactory
+}
+
+// CrawlerAddressGetter returns the crawler address getter
+func (mrc *managedRunTypeComponents) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.crawlerAddressGetter
 }
 
 // IsInterfaceNil returns true if the interface is nil
