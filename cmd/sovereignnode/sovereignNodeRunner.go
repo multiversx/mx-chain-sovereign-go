@@ -30,12 +30,11 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
-
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
@@ -543,6 +542,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedProcessComponents.ForkDetector(),
 		managedConsensusComponents.Bootstrapper(),
 		sigs,
+		managedCoreComponents.AddressPubKeyConverter(),
 	)
 	if err != nil {
 		return true, err
@@ -1900,13 +1900,14 @@ func createNotifierWSReceiverServicesIfNeeded(
 	forkDetector process.ForkDetector,
 	bootstrapper process.Bootstrapper,
 	sigStopNode chan os.Signal,
+	addressPubKeyConverter core.PubkeyConverter,
 ) ([]mainFactory.Closer, error) {
 	if !config.Enabled {
 		log.Info("running without any notifier attached")
 		return make([]mainFactory.Closer, 0), nil
 	}
 
-	sovereignNotifier, err := createSovereignNotifier(config)
+	sovereignNotifier, err := createSovereignNotifier(config, addressPubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
@@ -1954,11 +1955,12 @@ func createSovereignWsReceiver(
 	return factory.CreateWsClientReceiverNotifier(argsWsReceiver)
 }
 
-func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.SovereignNotifier, error) {
+func createSovereignNotifier(config *config.NotifierConfig, addressPubKeyConverter core.PubkeyConverter) (notifierProcess.SovereignNotifier, error) {
 	argsNotifier := factory.ArgsCreateSovereignNotifier{
-		MarshallerType:   config.WebSocketConfig.MarshallerType,
-		SubscribedEvents: getNotifierSubscribedEvents(config.SubscribedEvents),
-		HasherType:       config.WebSocketConfig.HasherType,
+		MarshallerType:         config.WebSocketConfig.MarshallerType,
+		SubscribedEvents:       getNotifierSubscribedEvents(config.SubscribedEvents),
+		HasherType:             config.WebSocketConfig.HasherType,
+		AddressPubkeyConverter: addressPubKeyConverter,
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)

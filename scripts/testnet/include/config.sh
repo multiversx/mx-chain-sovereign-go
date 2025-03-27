@@ -189,6 +189,9 @@ updateNodeConfig() {
 
   updateConfigsForStakingV4
 
+  updateTOMLValue config_validator.toml "Hrp" "\"$ADDRESS_HRP"\"
+  updateTOMLValue config_observer.toml "Hrp" "\"$ADDRESS_HRP"\"
+
   echo "Updated configuration for Nodes."
   popd
 }
@@ -274,6 +277,7 @@ updateSovereignProxyConfig() {
   sed -i -n '/\[\[Observers\]\]/q;p' config_edit.toml
 
   updateTOMLValue config_edit.toml "ServerPort" $PORT_PROXY
+  updateTOMLValue config_edit.toml "Hrp" "\"$ADDRESS_HRP"\"
   generateSovereignProxyObserverList config_edit.toml
 
   cp config_edit.toml config.toml
