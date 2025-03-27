@@ -17,6 +17,7 @@ const (
 type eventProcConfirmExecutedOperation struct {
 }
 
+// NewEventProcConfirmExecutedOperation creates a new event processor for confirmed executed operations
 func NewEventProcConfirmExecutedOperation() *eventProcConfirmExecutedOperation {
 	return &eventProcConfirmExecutedOperation{}
 }
