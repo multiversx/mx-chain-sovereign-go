@@ -26,7 +26,7 @@ jobs:
       matrix:
         #TODO Include Macos support later on
         runs-on: [ubuntu-latest]
-        is_sovereign: [ False, True ]
+        is_sovereign: [false, true]
     runs-on: ${{ matrix.runs-on }}
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -41,18 +41,10 @@ jobs:
         id: target_branch
         run: |
           echo "CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" >> $GITHUB_ENV
-
+          
           # Default target branches based on the PR base branch
-          if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
-          elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
-          else
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
-          fi
+          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
+          echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
 
           # Always set MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH based on the PR base branch
           echo "MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
