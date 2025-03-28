@@ -33,6 +33,7 @@ if [ -z "$INSTALL_PACKAGES_COMMAND" ]; then
 else
   echo "Using $PACKAGE_MANAGER to install required packages: $REQUIRED_PACKAGES"
   $INSTALL_PACKAGES_COMMAND
+  pip install multiversx-sdk
 fi
 
 if [[ "$DISTRIBUTION" =~ ^(ubuntu|debian)$ ]]; then

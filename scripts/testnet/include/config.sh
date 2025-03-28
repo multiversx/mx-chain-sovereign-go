@@ -107,6 +107,27 @@ updateElasticsearchIndices() {
   popd
 }
 
+updateConfigAddresses() {
+  updateConfigFile $NODEDIR/config/config.toml
+  updateConfigFile $NODEDIR/config/economics.toml
+  updateConfigFile $NODEDIR/config/systemSmartContractsConfig.toml
+}
+
+updateConfigFile() {
+  file="$1"
+
+  grep -o '"erd1[^"]*"' "$file" | tr -d '"' | sort -u | while read -r addr; do
+    new_addr=$(convertBech32Address $addr)
+    escaped_old=$(printf '%s\n' "$addr" | sed 's/[\/&]/\\&/g')
+    escaped_new=$(printf '%s\n' "$new_addr" | sed 's/[\/&]/\\&/g')
+    sed -i "s/$escaped_old/$escaped_new/g" "$file"
+  done
+}
+
+convertBech32Address() {
+  echo $(python3 $MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py $1 $ADDRESS_HRP)
+}
+
 copyNodeConfig() {
   pushd $TESTNETDIR
   cp $NODEDIR/config/api.toml ./node/config

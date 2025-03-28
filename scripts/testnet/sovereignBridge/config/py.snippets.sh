@@ -1,17 +1,19 @@
 computeFirstSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 0)
+    local ADDRESS=$(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 0)
+    echo $(python3 $TESTNET_DIR/convert_address.py $ADDRESS $ADDRESS_HRP)
 }
 
 computeSecondSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 1)
+    local ADDRESS=$(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 1)
+    echo $(python3 $TESTNET_DIR/convert_address.py $ADDRESS $ADDRESS_HRP)
 }
 
 getShardOfAddress() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_shard.py $WALLET_ADDRESS)
+    echo $(python3 $SCRIPT_PATH/pyScripts/address_shard.py $WALLET_ADDRESS)
 }
 
 bech32ToHex() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_convert.py $1)
+    echo $(python3 $SCRIPT_PATH/pyScripts/address_convert.py $1)
 }
 
 displayContracts() {
@@ -53,8 +55,6 @@ updateSovereignConfig() {
 }
 
 generateRandomEsdtPrefix() {
-  LEN=$(shuf -i 1-4 -n 1)
-  RANDOM_PREFIX=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c $LEN)
-
-  echo $RANDOM_PREFIX
+    local LEN=$(shuf -i 1-4 -n 1)
+    echo $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c $LEN)
 }

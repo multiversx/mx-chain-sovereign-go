@@ -22,6 +22,9 @@ copyConfig
 copySeednodeConfig
 updateSeednodeConfig
 
+if [ "$ADDRESS_HRP" != "erd" ]; then
+  updateConfigAddresses
+fi
 copyNodeConfig
 updateNodeConfig
 
