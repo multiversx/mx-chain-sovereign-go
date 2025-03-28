@@ -112,6 +112,7 @@ updateConfigAddresses() {
   updateConfigFile $NODEDIR/config/economics.toml
   updateConfigFile $NODEDIR/config/genesisSmartContracts.json
   updateConfigFile $NODEDIR/config/systemSmartContractsConfig.toml
+  updateConfigFile $SOVEREIGNNODEDIR/config/economics.toml
 }
 
 updateConfigFile() {
