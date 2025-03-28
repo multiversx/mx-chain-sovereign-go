@@ -110,6 +110,7 @@ updateElasticsearchIndices() {
 updateConfigAddresses() {
   updateConfigFile $NODEDIR/config/config.toml
   updateConfigFile $NODEDIR/config/economics.toml
+  updateConfigFile $NODEDIR/config/genesisSmartContracts.json
   updateConfigFile $NODEDIR/config/systemSmartContractsConfig.toml
 }
 
