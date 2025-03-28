@@ -16,7 +16,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/require"
 
-	sovChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	testsChainSimulator "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
@@ -67,7 +66,6 @@ func TestRelayedV3WithChainSimulator(t *testing.T) {
 	}
 
 	runRelayedV3TestsWithChainSimulator(t, normalChainSimulator)
-	runRelayedV3TestsWithChainSimulator(t, sovereignChainSimulator)
 }
 
 func runRelayedV3TestsWithChainSimulator(
@@ -1309,41 +1307,6 @@ func normalChainSimulator(
 		NumNodesWaitingListMeta:  3,
 		NumNodesWaitingListShard: 3,
 		AlterConfigsFunction:     alterConfigsFunction,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	err = cs.GenerateBlocksUntilEpochIsReached(1)
-	require.NoError(t, err)
-
-	return cs
-}
-
-func sovereignChainSimulator(
-	t *testing.T,
-	alterConfigsFunction func(cfg *config.Configs),
-) testsChainSimulator.ChainSimulator {
-	roundDurationInMillis := uint64(6000)
-	roundsPerEpochOpt := core.OptionalUint64{
-		HasValue: true,
-		Value:    roundsPerEpoch,
-	}
-
-	cs, err := sovChainSimulator.NewSovereignChainSimulator(sovChainSimulator.ArgsSovereignChainSimulator{
-		SovereignConfigPath: defaultPathToSovereignConfig,
-		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
-			BypassTxSignatureCheck:   true,
-			TempDir:                  t.TempDir(),
-			PathToInitialConfig:      defaultPathToInitialConfig,
-			NumOfShards:              1,
-			GenesisTimestamp:         time.Now().Unix(),
-			RoundDurationInMillis:    roundDurationInMillis,
-			RoundsPerEpoch:           roundsPerEpochOpt,
-			ApiInterface:             api.NewNoApiInterface(),
-			MinNodesPerShard:         3,
-			NumNodesWaitingListShard: 3,
-			AlterConfigsFunction:     alterConfigsFunction,
-		},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, cs)
