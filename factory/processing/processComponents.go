@@ -266,7 +266,7 @@ func (pcf *processComponentsFactory) Create() (*processComponents, error) {
 	currentEpochProvider, err := epochProviders.CreateCurrentEpochProvider(
 		pcf.config,
 		pcf.coreData.GenesisNodesSetup().GetRoundDuration(),
-		pcf.coreData.GenesisTime().Unix(),
+		pcf.coreData.GenesisTime().UnixMilli(),
 		pcf.prefConfigs.Preferences.FullArchive,
 	)
 	if err != nil {

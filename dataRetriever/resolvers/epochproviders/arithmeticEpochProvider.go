@@ -55,7 +55,7 @@ func NewArithmeticEpochProvider(arg ArgArithmeticEpochProvider) (*arithmeticEpoc
 		startTime:                  arg.StartTime,
 	}
 	aep.getUnixHandler = func() int64 {
-		return time.Now().Unix()
+		return time.Now().UnixMilli()
 	}
 	aep.computeCurrentEpoch() //based on the genesis provided data
 

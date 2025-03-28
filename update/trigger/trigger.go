@@ -12,10 +12,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/facade"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/update"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const hardforkTriggerString = "hardfork trigger"
@@ -137,7 +138,7 @@ func NewTrigger(arg ArgHardforkTrigger) (*trigger, error) {
 }
 
 func (t *trigger) getCurrentUnixTime() int64 {
-	return time.Now().Unix()
+	return time.Now().UnixMilli()
 }
 
 func (t *trigger) epochConfirmed(epoch uint32) {

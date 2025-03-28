@@ -527,7 +527,7 @@ func (atp *apiTransactionProcessor) computeTimestampForRound(round uint64) int64
 	secondsSinceGenesis := round * atp.roundDuration
 	timestamp := atp.genesisTime.Add(time.Duration(secondsSinceGenesis) * time.Millisecond)
 
-	return timestamp.Unix()
+	return timestamp.UnixMilli()
 }
 
 func (atp *apiTransactionProcessor) lookupHistoricalTransaction(hash []byte, withResults bool) (*transaction.ApiTransactionResult, error) {

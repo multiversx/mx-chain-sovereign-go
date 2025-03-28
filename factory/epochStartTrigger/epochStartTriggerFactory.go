@@ -94,7 +94,7 @@ func createMetaEpochStartTriggerArgs(args factory.ArgsEpochStartTrigger) (*metac
 	}
 
 	return &metachain.ArgsNewMetaEpochStartTrigger{
-		GenesisTime:        time.Unix(args.CoreData.GenesisNodesSetup().GetStartTime(), 0),
+		GenesisTime:        time.UnixMilli(args.CoreData.GenesisNodesSetup().GetStartTime()),
 		Settings:           &args.Config.EpochStartConfig,
 		Epoch:              args.BootstrapComponents.EpochBootstrapParams().Epoch(),
 		EpochStartRound:    genesisHeader.GetRound(),

@@ -1179,7 +1179,7 @@ func (snr *sovereignNodeRunner) logInformation(
 		"ShardId", shardIdString,
 		"TotalShards", bootstrapComponents.ShardCoordinator().NumberOfShards(),
 		"AppVersion", snr.configs.FlagsConfig.Version,
-		"GenesisTimeStamp", coreComponents.GenesisTime().Unix(),
+		"GenesisTimeStamp", coreComponents.GenesisTime().UnixMilli(),
 	)
 
 	sessionInfoFileOutput += "\nStarted with parameters:\n"
