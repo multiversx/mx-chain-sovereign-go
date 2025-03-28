@@ -13,6 +13,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	apiData "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/stretchr/testify/require"
+
+	sovChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	testsChainSimulator "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
@@ -25,12 +29,11 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/vm"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"github.com/stretchr/testify/require"
 )
 
 const (
 	defaultPathToInitialConfig              = "../../../cmd/node/config/"
+	defaultPathToSovereignConfig            = "../../../cmd/sovereignnode/config/"
 	minGasPrice                             = 1_000_000_000
 	minGasLimit                             = 50_000
 	gasPerDataByte                          = 1_500
@@ -51,10 +54,27 @@ var (
 	oneEGLD = big.NewInt(1000000000000000000)
 )
 
+type chainSimulatorFunc func(
+	t *testing.T,
+	alterConfigsFunction func(cfg *config.Configs),
+) testsChainSimulator.ChainSimulator
+
+var startChainSimulator chainSimulatorFunc
+
 func TestRelayedV3WithChainSimulator(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
+
+	runRelayedV3TestsWithChainSimulator(t, normalChainSimulator)
+	runRelayedV3TestsWithChainSimulator(t, sovereignChainSimulator)
+}
+
+func runRelayedV3TestsWithChainSimulator(
+	t *testing.T,
+	simulator chainSimulatorFunc,
+) {
+	startChainSimulator = simulator
 
 	t.Run("sender == relayer move balance should consume fee", testRelayedV3RelayedBySenderMoveBalance())
 	t.Run("receiver == relayer move balance should consume fee", testRelayedV3RelayedByReceiverMoveBalance())
@@ -1265,7 +1285,7 @@ func TestRegularMoveBalanceWithRefundReceipt(t *testing.T) {
 	require.Equal(t, expectedGasRefunded.String(), result.Receipt.Value.String())
 }
 
-func startChainSimulator(
+func normalChainSimulator(
 	t *testing.T,
 	alterConfigsFunction func(cfg *config.Configs),
 ) testsChainSimulator.ChainSimulator {
@@ -1289,6 +1309,41 @@ func startChainSimulator(
 		NumNodesWaitingListMeta:  3,
 		NumNodesWaitingListShard: 3,
 		AlterConfigsFunction:     alterConfigsFunction,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, cs)
+
+	err = cs.GenerateBlocksUntilEpochIsReached(1)
+	require.NoError(t, err)
+
+	return cs
+}
+
+func sovereignChainSimulator(
+	t *testing.T,
+	alterConfigsFunction func(cfg *config.Configs),
+) testsChainSimulator.ChainSimulator {
+	roundDurationInMillis := uint64(6000)
+	roundsPerEpochOpt := core.OptionalUint64{
+		HasValue: true,
+		Value:    roundsPerEpoch,
+	}
+
+	cs, err := sovChainSimulator.NewSovereignChainSimulator(sovChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: defaultPathToSovereignConfig,
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck:   true,
+			TempDir:                  t.TempDir(),
+			PathToInitialConfig:      defaultPathToInitialConfig,
+			NumOfShards:              1,
+			GenesisTimestamp:         time.Now().Unix(),
+			RoundDurationInMillis:    roundDurationInMillis,
+			RoundsPerEpoch:           roundsPerEpochOpt,
+			ApiInterface:             api.NewNoApiInterface(),
+			MinNodesPerShard:         3,
+			NumNodesWaitingListShard: 3,
+			AlterConfigsFunction:     alterConfigsFunction,
+		},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, cs)

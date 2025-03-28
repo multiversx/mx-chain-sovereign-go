@@ -1,6 +1,7 @@
 package preprocess
 
 import (
+	"bytes"
 	"errors"
 	"math/big"
 	"time"
@@ -179,7 +180,7 @@ func (sct *sovereignChainTransactions) isTransactionEligibleForExecution(tx *tra
 
 	senderAccount, accntInfo, errGetAccounts := sct.getSenderAccountInfo(tx)
 	if check.IfNil(senderAccount) {
-		log.Debug("sovereignChainTransactions.isTransactionEligibleForExecution: GetSenderAndReceiverAccounts", "error", errGetAccounts)
+		log.Debug("sovereignChainTransactions.isTransactionEligibleForExecution: GetSenderAndReceiverAccounts nil sender account", "error", errGetAccounts)
 		return errGetAccounts, false
 	}
 
@@ -198,40 +199,31 @@ func (sct *sovereignChainTransactions) isTransactionEligibleForExecution(tx *tra
 	}
 
 	txFee := sct.economicsFee.ComputeTxFee(tx)
-	var cost *big.Int
-
-	if common.IsRelayedTxV3(tx) {
+	if common.IsRelayedTxV3(tx) && !bytes.Equal(tx.GetSndAddr(), tx.GetRelayerAddr()) {
 		relayerAccount, relayerAccntInfo, errGetRelayer := sct.getRelayerAccountInfo(tx)
 		if check.IfNil(relayerAccount) {
-			log.Debug("sovereignChainTransactions.getRelayerAccountInfo: GetRelayerAccount", "error", err)
+			log.Debug("sovereignChainTransactions.getRelayerAccountInfo: GetRelayerAccount", "error", errGetRelayer)
 			return errGetRelayer, false
 		}
 
-		if relayerAccntInfo.balance.Cmp(txFee) < 0 {
-			log.Trace("sovereignChainTransactions.isTransactionEligibleForExecution", "error", process.ErrInsufficientFee,
-				"relayer balance", relayerAccntInfo.balance.String(),
-				"fee needed", txFee.String())
-			return process.ErrInsufficientFee, false
+		errFee := sct.validateAndSubtractTxFee(relayerAccntInfo, txFee)
+		if errFee != nil {
+			return errFee, false
 		}
-
-		relayerAccntInfo.balance.Sub(relayerAccntInfo.balance, txFee)
 		sct.accntsTracker.setAccountInfo(tx.GetRelayerAddr(), relayerAccntInfo)
-		cost = tx.GetValue()
 	} else {
-		if accntInfo.balance.Cmp(txFee) < 0 {
-			log.Trace("sovereignChainTransactions.isTransactionEligibleForExecution", "error", process.ErrInsufficientFee,
-				"account balance", accntInfo.balance.String(),
-				"fee needed", txFee.String())
-			return process.ErrInsufficientFee, false
+		errFee := sct.validateAndSubtractTxFee(accntInfo, txFee)
+		if errFee != nil {
+			return errFee, false
 		}
-		cost = new(big.Int).Add(txFee, tx.GetValue())
 	}
 
+	cost := tx.GetValue()
 	if accntInfo.balance.Cmp(cost) < 0 {
 		log.Trace("sovereignChainTransactions.isTransactionEligibleForExecution", "error", process.ErrInsufficientFunds,
 			"account balance", accntInfo.balance.String(),
 			"cost", cost.String())
-		cost = txFee // revert cost for accntsTracker, to have it for next transactions if any
+		cost = big.NewInt(0) // revert cost for accntsTracker, to have it for next transactions if any
 		// do not return error here because you want this tx to be added in the miniblock and executed as INVALID
 	}
 
@@ -279,4 +271,16 @@ func (sct *sovereignChainTransactions) getRelayerAccountInfo(tx *transaction.Tra
 	}
 
 	return relayerAccount, relayerAccntInfo, nil
+}
+
+func (sct *sovereignChainTransactions) validateAndSubtractTxFee(accntInfo accountInfo, txFee *big.Int) error {
+	if accntInfo.balance.Cmp(txFee) < 0 {
+		log.Trace("sovereignChainTransactions.isTransactionEligibleForExecution", "error", process.ErrInsufficientFee,
+			"account balance", accntInfo.balance.String(),
+			"fee needed", txFee.String())
+		return process.ErrInsufficientFee
+	}
+
+	accntInfo.balance.Sub(accntInfo.balance, txFee)
+	return nil
 }

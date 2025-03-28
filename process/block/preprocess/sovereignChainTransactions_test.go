@@ -679,6 +679,54 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		require.False(t, value)
 	})
 
+	t.Run("isTransactionEligibleForExecution should return true if relayer is sender", func(t *testing.T) {
+		t.Parallel()
+
+		args := createDefaultTransactionsProcessorArgs()
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
+				return big.NewInt(1)
+			},
+		}
+
+		getRelayerWasCalled := false
+		args.TxProcessor = &testscommon.TxProcessorMock{
+			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
+				senderAccount := &state.UserAccountStub{
+					Nonce:   1,
+					Balance: big.NewInt(10),
+				}
+				return senderAccount, nil, nil
+			},
+			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
+				getRelayerWasCalled = true
+				return nil, nil
+			},
+		}
+
+		tp, _ := NewTransactionPreprocessor(args)
+		sctp, _ := NewSovereignChainTransactionPreprocessor(tp)
+
+		senderAddress := []byte("X")
+		tx := &transaction.Transaction{
+			SndAddr:          senderAddress,
+			Nonce:            1,
+			Value:            big.NewInt(2),
+			RelayerAddr:      senderAddress,
+			RelayerSignature: []byte("RS"),
+		}
+		err, value := sctp.isTransactionEligibleForExecution(tx, nil)
+		require.Nil(t, err)
+		require.True(t, value)
+
+		accntInfo, found := sctp.accntsTracker.getAccountInfo(senderAddress)
+		require.True(t, found)
+		require.Equal(t, uint64(2), accntInfo.nonce)
+		require.Equal(t, big.NewInt(7), accntInfo.balance)
+
+		require.False(t, getRelayerWasCalled)
+	})
+
 	t.Run("isTransactionEligibleForExecution should return true if relayed transaction", func(t *testing.T) {
 		t.Parallel()
 
@@ -715,7 +763,6 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 			RelayerSignature: []byte("RS"),
 		}
 		err, value := sctp.isTransactionEligibleForExecution(tx, nil)
-
 		require.Nil(t, err)
 		require.True(t, value)
 
