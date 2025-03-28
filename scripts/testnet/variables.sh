@@ -98,7 +98,7 @@ export DEFAULT_CHAIN_ID="local-testnet"
 export ROUNDS_PER_EPOCH=0
 
 # ADDRESS_HRP represents the human-readable prefix for addresses
-export ADDRESS_HRP="vibe"
+export ADDRESS_HRP="erd"
 
 # HYSTERESIS defines the hysteresis value for number of nodes in shard
 export HYSTERESIS=0.0
