@@ -116,6 +116,10 @@ updateConfigAddresses() {
 }
 
 updateConfigFile() {
+  if [ "$ADDRESS_HRP" == "erd" ]; then
+    return 1
+  fi
+
   file="$1"
 
   grep -o '"erd1[^"]*"' "$file" | tr -d '"' | sort -u | while read -r addr; do
@@ -134,8 +138,11 @@ copyNodeConfig() {
   pushd $TESTNETDIR
   cp $NODEDIR/config/api.toml ./node/config
   cp $NODEDIR/config/config.toml ./node/config/config_validator.toml
+  updateConfigFile ./node/config/config_validator.toml
   cp $NODEDIR/config/config.toml ./node/config/config_observer.toml
+  updateConfigFile ./node/config/config_observer.toml
   cp $NODEDIR/config/economics.toml ./node/config
+  updateConfigFile ./node/config/economics.toml
   cp $NODEDIR/config/ratings.toml ./node/config
   cp $NODEDIR/config/prefs.toml ./node/config
   cp $NODEDIR/config/external.toml ./node/config/external_validator.toml
@@ -145,7 +152,9 @@ copyNodeConfig() {
   cp $NODEDIR/config/enableEpochs.toml ./node/config
   cp $NODEDIR/config/enableRounds.toml ./node/config
   cp $NODEDIR/config/systemSmartContractsConfig.toml ./node/config
+  updateConfigFile ./node/config/systemSmartContractsConfig.toml
   cp $NODEDIR/config/genesisSmartContracts.json ./node/config
+  updateConfigFile ./node/config/genesisSmartContracts.json
   mkdir ./node/config/genesisContracts -p
   cp $NODEDIR/config/genesisContracts/*.* ./node/config/genesisContracts
   mkdir ./node/config/gasSchedules -p
@@ -160,7 +169,9 @@ copySovereignNodeConfig() {
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./txgen/config/nodeConfig/config
   cp $SOVEREIGNNODEDIR/config/economics.toml ./node/config
+  updateConfigFile ./node/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/economics.toml ./txgen/config
+  updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
 
