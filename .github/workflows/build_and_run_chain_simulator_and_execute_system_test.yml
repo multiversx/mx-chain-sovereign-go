@@ -277,7 +277,7 @@ jobs:
               const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${timestamp}/index.html`;
               message = `
               📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
-              ${{ matrix.is_sovereign && '[sovereign chain simulator]' || '[normal chain simulator]' }}
+              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
             
               🔄 **Build Details:**
               - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`
