@@ -78,7 +78,7 @@
         # Payload version to process
         Version = 1
 
-    [AddressPubkeyConverter]
+    [NotifierConfig.AddressPubKeyConverter]
         Length = 32
         Hrp = "erd"
 
