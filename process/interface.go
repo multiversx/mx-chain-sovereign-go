@@ -44,6 +44,7 @@ type TransactionProcessor interface {
 	VerifyTransaction(transaction *transaction.Transaction) error
 	VerifyGuardian(tx *transaction.Transaction, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccounts(transaction *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
+	GetRelayerAccount(transaction *transaction.Transaction) (state.UserAccountHandler, error)
 	IsInterfaceNil() bool
 }
 
