@@ -26,7 +26,7 @@ jobs:
       matrix:
         #TODO Include Macos support later on
         runs-on: [ubuntu-latest]
-        is_sovereign: [false, true]
+        is_sovereign: ['false', 'true']
     runs-on: ${{ matrix.runs-on }}
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
