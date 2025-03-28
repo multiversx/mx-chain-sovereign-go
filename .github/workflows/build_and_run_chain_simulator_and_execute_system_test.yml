@@ -155,7 +155,7 @@ jobs:
           echo "PYTHONPATH=mx-chain-testing-suite" >> $GITHUB_ENV
 
       - name: Set up chain simulator type
-        run: echo "IS_SOVEREIGN='${{ matrix.is_sovereign }}'" >> $GITHUB_ENV
+        run: echo "IS_SOVEREIGN=${{ matrix.is_sovereign }}" >> $GITHUB_ENV
 
       - name: Run tests and generate HTML report
         run: |
@@ -177,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-report-${{ github.run_id }}${{ matrix.is_sovereign && '-sov' || '-mvx' }}
+          name: pytest-${{ matrix.is_sovereign && 'sov' || 'mvx' }}-report-${{ github.run_id }}
           path: reports/report.html
 
       - name: Deploy Report to GitHub Pages
