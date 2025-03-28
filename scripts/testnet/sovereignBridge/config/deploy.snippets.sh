@@ -12,19 +12,21 @@ deploySovereignWithCrossChainContracts() {
 # - update sovereign configs
 # - prepare a main chain observer for sovereign nodes
 deployMainChainContractsAndSetupObserver() {
-    checkWalletBalanceOnMainChain || return
+    deployHeaderVerifierContract || return
 
     deployEsdtSafeContract || return
+
+    setEsdtSafeAddressInHeaderVerifier
 
     deployFeeMarketContract || return
 
     setFeeMarketAddress
 
-    unpauseEsdtSafeContract
+    registerNativeToken
 
     setGenesisContract
 
-    updateSovereignConfig $1
+    updateSovereignConfig $1 || return
 
     prepareObserver
 }
@@ -36,25 +38,19 @@ deployMainChainContractsAndSetupObserver() {
 # - start the bridge service, nodes and the observer
 # - do other transactions in sovereign contracts
 sovereignDeploy() {
-    checkWalletBalanceOnMainChain || return
-
     updateNotifierNotarizationRound
 
     $TESTNET_DIR/config.sh
-
-    deployHeaderVerifierContract || return
-
-    setEsdtSafeAddressInHeaderVerifier
-
-    setHeaderVerifierAddressInEsdtSafe
 
     createObserver
 
     sovereignStart
 
-    getFundsInAddressSovereign
+#    registerBlsPubKeysInHeaderVerifier
 
-    setFeeMarketAddressSovereign
+    unpauseEsdtSafeContract
+
+    fund ${WALLET_ADDRESS}
 
     unpauseEsdtSafeContractSovereign
 }
@@ -96,6 +92,8 @@ sovereignUpgradeAndReset() {
     upgradeEsdtSafeContract
 
     upgradeFeeMarketContract
+
+    upgradeHeaderVerifierContract
 
     setGenesisContract
 
