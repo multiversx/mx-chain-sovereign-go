@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
 
@@ -38,6 +39,8 @@ func NewSovereignNodesSetup(args *SovereignNodesSetupArgs) (*SovereignNodesSetup
 	if err != nil {
 		return nil, err
 	}
+
+	nodes.StartTime *= 1000
 
 	sovereignNodes := &SovereignNodesSetup{
 		NodesSetup: nodes,

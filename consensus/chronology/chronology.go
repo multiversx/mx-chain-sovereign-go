@@ -10,10 +10,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
 	"github.com/multiversx/mx-chain-core-go/display"
+	"github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/ntp"
-	"github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ consensus.ChronologyHandler = (*chronology)(nil)
@@ -183,7 +184,7 @@ func (chr *chronology) initRound() {
 	if hasSubroundsAndGenesisTimePassed {
 		chr.subroundId = chr.subroundHandlers[0].Current()
 		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRound, uint64(chr.roundHandler.Index()))
-		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRoundTimestamp, uint64(chr.roundHandler.TimeStamp().Unix()))
+		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRoundTimestamp, uint64(chr.roundHandler.TimeStamp().UnixMilli()))
 	}
 
 	chr.mutSubrounds.RUnlock()

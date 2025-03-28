@@ -2,8 +2,10 @@ package sync
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"sync"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
@@ -105,7 +107,7 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	nonceDif := int64(header.GetNonce()) - int64(bfd.finalCheckpoint().nonce)
 	//TODO: Analyze if the acceptance of some headers which came for the next round could generate some attack vectors
 	nextRound := bfd.roundHandler.Index() + 1
-	//genesisTimeFromHeader := bfd.computeGenesisTimeFromHeader(header)
+	genesisTimeFromHeader := bfd.computeGenesisTimeFromHeader(header)
 
 	bfd.blackListHandler.Sweep()
 	if bfd.blackListHandler.Has(string(header.GetPrevHash())) {
@@ -113,10 +115,30 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 		return process.ErrHeaderIsBlackListed
 	}
 	//TODO: This check could be removed when this protection mechanism would be implemented on interceptors side
-	//if genesisTimeFromHeader != bfd.genesisTime {
-	//	process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-	//	return ErrGenesisTimeMissmatch
-	//}
+
+	// Sub second round checks
+	if bfd.roundHandler.TimeDuration().Milliseconds() < 1000 {
+		toleranceMs := bfd.roundHandler.TimeDuration().Milliseconds() / 50
+		difference := genesisTimeFromHeader - bfd.genesisTime
+		if difference < 0 {
+			difference = -difference
+		}
+		printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
+		if difference > toleranceMs {
+			printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
+			log.Error("DSADSADSA")
+			process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+			return ErrGenesisTimeMissmatch
+		}
+
+	} else {
+		if genesisTimeFromHeader != bfd.genesisTime {
+			log.Error("BAAAAA")
+			process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+			return ErrGenesisTimeMissmatch
+		}
+	}
+
 	if roundDif < 0 {
 		return ErrLowerRoundInBlock
 	}
@@ -131,6 +153,27 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	}
 
 	return nil
+}
+
+func printGenesisTimeDifference(genesisTimeFromHeader, genesisTimeExpected int64) {
+	headerTime := time.Unix(genesisTimeFromHeader/1000, (genesisTimeFromHeader%1000)*int64(time.Millisecond))
+	expectedTime := time.Unix(genesisTimeExpected/1000, (genesisTimeExpected%1000)*int64(time.Millisecond))
+
+	differenceMs := genesisTimeFromHeader - genesisTimeExpected
+
+	msg := fmt.Sprintf(
+		"🕒 Genesis Time Mismatch:\n"+
+			"   - Header Time:   %s\n"+
+			"   - Expected Time: %s\n"+
+			"   - Difference:    %d ms\n",
+		headerTime.Format("2006-01-02 15:04:05.000"),
+		expectedTime.Format("2006-01-02 15:04:05.000"),
+		differenceMs,
+	)
+
+	fmt.Println(msg)
+
+	log.Info("difference", "diff", differenceMs)
 }
 
 func (bfd *baseForkDetector) removePastHeaders() {
@@ -660,8 +703,18 @@ func (bfd *baseForkDetector) cleanupReceivedHeadersHigherThanNonce(nonce uint64)
 	bfd.mutHeaders.Unlock()
 }
 
+/*
+🕒 Genesis Time Mismatch:
+- Header Time:   2025-03-28 14:50:20.000
+- Expected Time: 1970-01-21 06:12:46.220
+- Difference:    1741423053780 ms
+*/
+
 func (bfd *baseForkDetector) computeGenesisTimeFromHeader(headerHandler data.HeaderHandler) int64 {
-	genesisTime := int64(headerHandler.GetTimeStamp() - (headerHandler.GetRound()-bfd.genesisRound)*uint64(bfd.roundHandler.TimeDuration().Milliseconds()))
+	roundDurationMs := bfd.roundHandler.TimeDuration().Milliseconds()     // time.Duration -> int64 (milisecunde)
+	roundDifference := int64(headerHandler.GetRound() - bfd.genesisRound) // uint64 -> int64, evitând overflow
+
+	genesisTime := int64(headerHandler.GetTimeStamp()) - roundDifference*roundDurationMs
 	return genesisTime
 }
 

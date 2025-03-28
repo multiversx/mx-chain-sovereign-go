@@ -220,18 +220,18 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	if genesisNodesConfig.GetStartTime() == 0 {
 		time.Sleep(1000 * time.Millisecond)
 		ntpTime := syncer.CurrentTime()
-		genesisNodesConfig.SetStartTime((ntpTime.Unix()/60 + 1) * 60)
+		genesisNodesConfig.SetStartTime((ntpTime.UnixMilli()/60 + 1) * 60)
 	}
 
-	startTime := time.Unix(genesisNodesConfig.GetStartTime(), 0)
+	startTime := time.UnixMilli(genesisNodesConfig.GetStartTime())
 
 	log.Info("start time",
-		"formatted", startTime.Format("Mon Jan 2 15:04:05 MST 2006"),
-		"seconds", startTime.Unix())
+		"formatted", startTime.Format("Mon Jan 2 15:04:05.000 MST 2006"),
+		"seconds", startTime.UnixMilli())
 
 	log.Debug("config", "file", ccf.nodesFilename)
 
-	genesisTime := time.Unix(genesisNodesConfig.GetStartTime(), 0)
+	genesisTime := time.UnixMilli(genesisNodesConfig.GetStartTime())
 	roundHandler, err := round.NewRound(
 		genesisTime,
 		syncer.CurrentTime(),
@@ -249,6 +249,8 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	watchdogTimer = &watchdog.DisabledWatchdog{}
 
 	roundNotifier := forking.NewGenericRoundNotifier()
 	enableRoundsHandler, err := enablers.NewEnableRoundsHandler(ccf.roundConfig, roundNotifier)
