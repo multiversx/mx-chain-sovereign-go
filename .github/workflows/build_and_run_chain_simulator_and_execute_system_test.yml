@@ -177,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-report-${{ github.run_id }}${{ matrix.is_sovereign && '-sov' }}
+          name: pytest-report-${{ github.run_id }}${{ matrix.is_sovereign && '-sov' || '-mvx' }}
           path: reports/report.html
 
       - name: Deploy Report to GitHub Pages
@@ -200,7 +200,7 @@ jobs:
             # Create a new directory for the report based on the current timestamp
             TIMESTAMP=$(date +'%d%m%Y-%H%M%S')
             echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-            REPORT_DIR="reports/${BRANCH_NAME}/${TIMESTAMP}${{ matrix.is_sovereign && '-sov' }}"
+            REPORT_DIR="reports/${BRANCH_NAME}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${TIMESTAMP}"
             mkdir -p $REPORT_DIR
 
             # Move the report into the new directory
@@ -274,9 +274,10 @@ jobs:
             let message;
 
             if (timestamp && branchName && timestamp !== "" && branchName !== "") {
-              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${timestamp}${{ matrix.is_sovereign && '-sov' }}/index.html`;
+              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${timestamp}/index.html`;
               message = `
               📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
+              ${{ matrix.is_sovereign && '[sovereign chain simulator]' || '[normal chain simulator]' }}
             
               🔄 **Build Details:**
               - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`
