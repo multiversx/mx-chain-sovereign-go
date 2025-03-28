@@ -208,7 +208,7 @@ jobs:
 
             # Add and commit only the new report
             git add $REPORT_DIR/index.html
-            git commit -m "Deploy Test Report at $BRANCH_NAME/$TIMESTAMP (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})"
+            git commit -m "Deploy Test Report at $REPORT_DIR (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})"
 
             # Set remote URL with authentication token
             git remote set-url origin https://x-access-token:${{ secrets.MVX_TESTER_GH_TOKEN }}@github.com/multiversx/mx-chain-testing-suite.git
