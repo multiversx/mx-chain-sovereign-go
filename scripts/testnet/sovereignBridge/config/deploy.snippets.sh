@@ -50,9 +50,13 @@ sovereignDeploy() {
 
     unpauseEsdtSafeContract
 
+    mxpy config set default_address_hrp $ADDRESS_HRP
+
     fund ${WALLET_ADDRESS}
 
     unpauseEsdtSafeContractSovereign
+
+    mxpy config set default_address_hrp erd
 }
 
 # This function will start sovereign:
