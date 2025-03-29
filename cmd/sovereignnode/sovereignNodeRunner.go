@@ -19,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
@@ -30,12 +31,11 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
-
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
@@ -1955,10 +1955,16 @@ func createSovereignWsReceiver(
 }
 
 func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.SovereignNotifier, error) {
+	addressPubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(config.AddressPubKeyConverter.Length, config.AddressPubKeyConverter.Hrp)
+	if err != nil {
+		return nil, err
+	}
+
 	argsNotifier := factory.ArgsCreateSovereignNotifier{
-		MarshallerType:   config.WebSocketConfig.MarshallerType,
-		SubscribedEvents: getNotifierSubscribedEvents(config.SubscribedEvents),
-		HasherType:       config.WebSocketConfig.HasherType,
+		MarshallerType:         config.WebSocketConfig.MarshallerType,
+		SubscribedEvents:       getNotifierSubscribedEvents(config.SubscribedEvents),
+		HasherType:             config.WebSocketConfig.HasherType,
+		AddressPubkeyConverter: addressPubKeyConverter,
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)
