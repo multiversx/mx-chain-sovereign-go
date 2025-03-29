@@ -7,8 +7,6 @@ on:
       - 'master'
       - 'rc/*'
   workflow_dispatch:
-  issue_comment:
-    types: [created]
 
 permissions:
   issues: write
@@ -17,11 +15,6 @@ permissions:
 
 jobs:
   build-and-test:
-    if: |
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, 'Run Tests:')) ||
-      github.event_name == 'workflow_dispatch'
-
     strategy:
       matrix:
         #TODO Include Macos support later on
