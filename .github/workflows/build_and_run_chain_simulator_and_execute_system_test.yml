@@ -8,7 +8,7 @@ on:
       - 'rc/*'
   workflow_dispatch:
   issue_comment:
-    types: [ created ]
+    types: [created]
 
 permissions:
   issues: write
