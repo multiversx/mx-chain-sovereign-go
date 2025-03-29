@@ -52,7 +52,7 @@ sovereignDeploy() {
 
     mxpy config set default_address_hrp $ADDRESS_HRP
 
-    fund ${WALLET_ADDRESS}
+    fund $(python3 $TESTNET_DIR/convert_address.py $WALLET_ADDRESS $ADDRESS_HRP)
 
     unpauseEsdtSafeContractSovereign
 
