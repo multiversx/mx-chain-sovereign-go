@@ -107,14 +107,6 @@ updateElasticsearchIndices() {
   popd
 }
 
-updateConfigAddresses() {
-  updateConfigFile $NODEDIR/config/config.toml
-  updateConfigFile $NODEDIR/config/economics.toml
-  updateConfigFile $NODEDIR/config/genesisSmartContracts.json
-  updateConfigFile $NODEDIR/config/systemSmartContractsConfig.toml
-  updateConfigFile $SOVEREIGNNODEDIR/config/economics.toml
-}
-
 updateConfigFile() {
   if [ "$ADDRESS_HRP" == "erd" ]; then
     return 1
@@ -123,15 +115,11 @@ updateConfigFile() {
   file="$1"
 
   grep -o '"erd1[^"]*"' "$file" | tr -d '"' | sort -u | while read -r addr; do
-    new_addr=$(convertBech32Address $addr)
+    new_addr=$(python3 $MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py $addr $ADDRESS_HRP)
     escaped_old=$(printf '%s\n' "$addr" | sed 's/[\/&]/\\&/g')
     escaped_new=$(printf '%s\n' "$new_addr" | sed 's/[\/&]/\\&/g')
     sed -i "s/$escaped_old/$escaped_new/g" "$file"
   done
-}
-
-convertBech32Address() {
-  echo $(python3 $MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py $1 $ADDRESS_HRP)
 }
 
 copyNodeConfig() {
