@@ -124,6 +124,9 @@ const MetricPublicKeyBlockSign = "erd_public_key_block_sign"
 // MetricShardId is the metric for monitoring shard id of a node
 const MetricShardId = "erd_shard_id"
 
+// MetricAddressHrp is the metric for monitoring addresses human-readable prefix
+const MetricAddressHrp = "erd_address_hrp"
+
 // MetricNumShardsWithoutMetachain is the metric for monitoring the number of shards (excluding meta)
 const MetricNumShardsWithoutMetachain = "erd_num_shards_without_meta"
 
