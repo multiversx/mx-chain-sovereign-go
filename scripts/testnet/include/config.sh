@@ -28,7 +28,7 @@ generateConfig() {
     -hysteresis $HYSTERESIS \
     -round-duration $ROUND_DURATION_IN_MS \
     -sovereign=$SOVEREIGN_BOOL \
-    -address-hrp=$ADDRESS_HRP
+    -hrp=$ADDRESS_HRP
 
   popd
 }
@@ -114,7 +114,7 @@ updateConfigFile() {
 
   file="$1"
 
-  grep -o '"erd1[^"]*"' "$file" | tr -d '"' | sort -u | while read -r addr; do
+  grep -o '\berd1[a-z0-9]\{58\}\b' "$file" | tr -d '"' | sort -u | while read -r addr; do
     new_addr=$(python3 $MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py $addr $ADDRESS_HRP)
     escaped_old=$(printf '%s\n' "$addr" | sed 's/[\/&]/\\&/g')
     escaped_new=$(printf '%s\n' "$new_addr" | sed 's/[\/&]/\\&/g')
