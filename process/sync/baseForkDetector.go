@@ -117,26 +117,37 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	//TODO: This check could be removed when this protection mechanism would be implemented on interceptors side
 
 	// Sub second round checks
-	if bfd.roundHandler.TimeDuration().Milliseconds() < 1000 {
-		toleranceMs := bfd.roundHandler.TimeDuration().Milliseconds() / 50
-		difference := genesisTimeFromHeader - bfd.genesisTime
-		if difference < 0 {
-			difference = -difference
-		}
-		printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
-		if difference > toleranceMs {
+
+	/*
+		if bfd.roundHandler.TimeDuration().Milliseconds() < 1000 {
+			toleranceMs := bfd.roundHandler.TimeDuration().Milliseconds() / 50
+			difference := genesisTimeFromHeader - bfd.genesisTime
+			if difference < 0 {
+				difference = -difference
+			}
 			printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
-			log.Error("DSADSADSA")
-			process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-			return ErrGenesisTimeMissmatch
+			if difference > toleranceMs {
+				printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
+				log.Error("DSADSADSA")
+				process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+				return ErrGenesisTimeMissmatch
+			}
+
+		} else {
+			if genesisTimeFromHeader != bfd.genesisTime {
+				log.Error("BAAAAA")
+				process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+				return ErrGenesisTimeMissmatch
+			}
 		}
 
-	} else {
-		if genesisTimeFromHeader != bfd.genesisTime {
-			log.Error("BAAAAA")
-			process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-			return ErrGenesisTimeMissmatch
-		}
+	*/
+
+	if genesisTimeFromHeader != bfd.genesisTime {
+		log.Error("BAAAAA")
+		printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
+		process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
+		return ErrGenesisTimeMissmatch
 	}
 
 	if roundDif < 0 {
@@ -173,7 +184,11 @@ func printGenesisTimeDifference(genesisTimeFromHeader, genesisTimeExpected int64
 
 	fmt.Println(msg)
 
-	log.Info("difference", "diff", differenceMs)
+	log.Error("difference",
+		"Header Time:", headerTime.Format("2006-01-02 15:04:05.000"),
+		"Expected Time:", expectedTime.Format("2006-01-02 15:04:05.000"),
+		"diff", differenceMs)
+
 }
 
 func (bfd *baseForkDetector) removePastHeaders() {

@@ -40,7 +40,7 @@ func NewSovereignNodesSetup(args *SovereignNodesSetupArgs) (*SovereignNodesSetup
 		return nil, err
 	}
 
-	nodes.StartTime *= 1000
+	//nodes.StartTime *= 1000
 
 	sovereignNodes := &SovereignNodesSetup{
 		NodesSetup: nodes,

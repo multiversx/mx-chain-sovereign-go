@@ -155,7 +155,7 @@ updateNodeConfig() {
 
   cp nodesSetup.json nodesSetup_edit.json
   
-  let startTime="$(date +%s) + $GENESIS_DELAY"
+  let startTime="$(date +%s%3N) + $GENESIS_DELAY*1000"
   updateJSONValue nodesSetup_edit.json "startTime" "$startTime"
 
   updateJSONValue nodesSetup_edit.json "minTransactionVersion" "1"
