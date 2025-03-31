@@ -166,6 +166,7 @@ func (node *testOnlyProcessingNode) createMetrics(configs config.Configs) error 
 		configs.EconomicsConfig,
 		configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		node.CoreComponentsHolder.MinTransactionVersion(),
+		configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
