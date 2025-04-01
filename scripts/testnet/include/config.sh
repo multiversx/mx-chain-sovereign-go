@@ -162,6 +162,7 @@ copySovereignNodeConfig() {
   updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
+  updateConfigFile ./node/config/sovereignConfig.toml
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd
