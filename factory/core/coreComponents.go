@@ -191,10 +191,6 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		return nil, err
 	}
 
-	syncer := ntp.NewSyncTime(ccf.config.NTPConfig, nil)
-	syncer.StartSyncingTime()
-	log.Debug("NTP average clock offset", "value", syncer.ClockOffset())
-
 	genesisNodesConfig, err := ccf.runTypeCoreComponents.GenesisNodesSetupFactoryCreator().CreateNodesSetup(
 		&sharding.NodesSetupArgs{
 			NodesFilePath:            ccf.nodesFilename,
@@ -206,6 +202,11 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	roundDuration := time.Millisecond * time.Duration(genesisNodesConfig.GetRoundDuration())
+	syncer := ntp.NewSyncTime(ccf.config.NTPConfig, nil, roundDuration)
+	syncer.StartSyncingTime()
+	log.Debug("NTP average clock offset", "value", syncer.ClockOffset())
 
 	startRound := int64(0)
 	if ccf.config.Hardfork.AfterHardFork {
@@ -234,7 +235,7 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	roundHandler, err := round.NewRound(
 		genesisTime,
 		syncer.CurrentTime(),
-		time.Millisecond*time.Duration(genesisNodesConfig.GetRoundDuration()),
+		roundDuration,
 		syncer,
 		startRound,
 	)
