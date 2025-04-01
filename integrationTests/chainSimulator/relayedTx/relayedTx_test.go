@@ -32,7 +32,6 @@ import (
 
 const (
 	defaultPathToInitialConfig              = "../../../cmd/node/config/"
-	defaultPathToSovereignConfig            = "../../../cmd/sovereignnode/config/"
 	minGasPrice                             = 1_000_000_000
 	minGasLimit                             = 50_000
 	gasPerDataByte                          = 1_500

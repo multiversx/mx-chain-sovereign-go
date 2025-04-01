@@ -657,10 +657,9 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 				}, nil, nil
 			},
 			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
-				relayerAccount := &state.UserAccountStub{
+				return &state.UserAccountStub{
 					Balance: big.NewInt(1),
-				}
-				return relayerAccount, nil
+				}, nil
 			},
 		}
 
@@ -692,11 +691,10 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		getRelayerWasCalled := false
 		args.TxProcessor = &testscommon.TxProcessorMock{
 			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
-				senderAccount := &state.UserAccountStub{
+				return &state.UserAccountStub{
 					Nonce:   1,
 					Balance: big.NewInt(10),
-				}
-				return senderAccount, nil, nil
+				}, nil, nil
 			},
 			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
 				getRelayerWasCalled = true
@@ -738,17 +736,15 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		}
 		args.TxProcessor = &testscommon.TxProcessorMock{
 			GetSenderAndReceiverAccountsCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, state2.UserAccountHandler, error) {
-				senderAccount := &state.UserAccountStub{
+				return &state.UserAccountStub{
 					Nonce:   1,
 					Balance: big.NewInt(10),
-				}
-				return senderAccount, nil, nil
+				}, nil, nil
 			},
 			GetRelayerAccountCalled: func(tx *transaction.Transaction) (state2.UserAccountHandler, error) {
-				relayerAccount := &state.UserAccountStub{
+				return &state.UserAccountStub{
 					Balance: big.NewInt(10),
-				}
-				return relayerAccount, nil
+				}, nil
 			},
 		}
 

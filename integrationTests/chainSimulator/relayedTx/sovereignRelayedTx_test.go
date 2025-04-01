@@ -14,6 +14,10 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 )
 
+const (
+	defaultPathToSovereignConfig = "../../../cmd/sovereignnode/config/"
+)
+
 func TestRelayedV3WithSovereignChainSimulator(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
