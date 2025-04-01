@@ -157,11 +157,9 @@ copySovereignNodeConfig() {
   pushd $TESTNETDIR
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./txgen/config/nodeConfig/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./node/config
-  updateConfigFile ./node/config/economics.toml
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./txgen/config
-  updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
+  updateConfigFile ./node/config/economics.toml
+  updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
   updateConfigFile ./node/config/sovereignConfig.toml NotifierConfig
 
