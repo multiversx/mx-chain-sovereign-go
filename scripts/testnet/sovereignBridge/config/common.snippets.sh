@@ -1,12 +1,3 @@
-checkWalletBalanceOnMainChain() {
-    local BALANCE=$(mxpy account get --address ${WALLET_ADDRESS} --proxy ${PROXY} --balance)
-    if [ "$BALANCE" == "0" ]; then
-        echo -e "Your wallet balance is zero on main chain"
-        return 1
-    fi
-    return 0
-}
-
 fund() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: fund <address>"

@@ -26,6 +26,7 @@ jobs:
       matrix:
         #TODO Include Macos support later on
         runs-on: [ubuntu-latest]
+        is_sovereign: [false, true]
     runs-on: ${{ matrix.runs-on }}
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -33,6 +34,7 @@ jobs:
       MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH: ""
       MX_CHAIN_SIMULATOR_TARGET_BRANCH: ""
       MX_CHAIN_TESTING_SUITE_TARGET_BRANCH: ""
+    name: build-and-test (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})
 
     steps:
       - name: Determine Target Branches
@@ -41,16 +43,8 @@ jobs:
           echo "CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" >> $GITHUB_ENV
 
           # Default target branches based on the PR base branch
-          if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
-          elif [[ "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=main" >> $GITHUB_ENV
-          else
-            echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
-            echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
-          fi
+          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
+          echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
 
           # Always set MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH based on the PR base branch
           echo "MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
@@ -89,7 +83,7 @@ jobs:
             } else {
               core.info('The last comment does not contain "Run Tests:". Skipping branch override.');
             }
-      
+
 
       - name: Print Target Branches
         run: |
@@ -160,6 +154,8 @@ jobs:
           pip install -r mx-chain-testing-suite/requirements.txt
           echo "PYTHONPATH=mx-chain-testing-suite" >> $GITHUB_ENV
 
+      - name: Set up chain simulator type
+        run: echo "IS_SOVEREIGN=${{ matrix.is_sovereign }}" >> $GITHUB_ENV
 
       - name: Run tests and generate HTML report
         run: |
@@ -181,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-report-${{ github.run_id }}
+          name: pytest-${{ matrix.is_sovereign && 'sov' || 'mvx' }}-report-${{ github.run_id }}
           path: reports/report.html
 
       - name: Deploy Report to GitHub Pages
@@ -204,7 +200,7 @@ jobs:
             # Create a new directory for the report based on the current timestamp
             TIMESTAMP=$(date +'%d%m%Y-%H%M%S')
             echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-            REPORT_DIR="reports/${BRANCH_NAME}/${TIMESTAMP}"
+            REPORT_DIR="reports/${BRANCH_NAME}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${TIMESTAMP}"
             mkdir -p $REPORT_DIR
 
             # Move the report into the new directory
@@ -212,7 +208,7 @@ jobs:
 
             # Add and commit only the new report
             git add $REPORT_DIR/index.html
-            git commit -m "Deploy Test Report at $BRANCH_NAME/$TIMESTAMP"
+            git commit -m "Deploy Test Report at $REPORT_DIR (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})"
 
             # Set remote URL with authentication token
             git remote set-url origin https://x-access-token:${{ secrets.MVX_TESTER_GH_TOKEN }}@github.com/multiversx/mx-chain-testing-suite.git
@@ -222,7 +218,6 @@ jobs:
           else
             echo "Report file not found, skipping deployment."
           fi
-
 
       - name: Update Index Page
         if: always()
@@ -278,9 +273,10 @@ jobs:
             let message;
 
             if (timestamp && branchName && timestamp !== "" && branchName !== "") {
-              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${timestamp}/index.html`;
+              const reportUrl = `https://multiversx.github.io/mx-chain-testing-suite/reports/${branchName}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${timestamp}/index.html`;
               message = `
               📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
+              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
             
               🔄 **Build Details:**
               - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`
