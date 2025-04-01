@@ -113,12 +113,13 @@ updateConfigFile() {
   fi
 
   file="$1"
+  skip_section="$2"
 
-  grep -o '\berd1[a-z0-9]\{58\}\b' "$file" | tr -d '"' | sort -u | while read -r addr; do
-    new_addr=$(python3 $MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py $addr $ADDRESS_HRP)
+  grep -o '\berd1[a-z0-9]\{58\}\b' "$file" | sort -u | while read -r addr; do
+    new_addr=$(python3 "$MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py" "$addr" "$ADDRESS_HRP")
     escaped_old=$(printf '%s\n' "$addr" | sed 's/[\/&]/\\&/g')
     escaped_new=$(printf '%s\n' "$new_addr" | sed 's/[\/&]/\\&/g')
-    sed -i "s/$escaped_old/$escaped_new/g" "$file"
+    sed -i "/^\[$skip_section\]/,/^\[/!s/$escaped_old/$escaped_new/g" "$file"
   done
 }
 
@@ -162,7 +163,7 @@ copySovereignNodeConfig() {
   updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
-  updateConfigFile ./node/config/sovereignConfig.toml
+  updateConfigFile ./node/config/sovereignConfig.toml NotifierConfig
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd
