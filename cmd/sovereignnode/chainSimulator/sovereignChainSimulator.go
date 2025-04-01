@@ -41,7 +41,6 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 	}
 
 	args.AlterConfigsFunction = func(cfg *config.Configs) {
-		cfg.EconomicsConfig = configs.EconomicsConfig
 		cfg.EpochConfig = configs.EpochConfig
 		cfg.GeneralConfig.SovereignConfig = *configs.SovereignExtraConfig
 		cfg.GeneralConfig.VirtualMachine.Execution.WasmVMVersions = []config.WasmVMVersionByEpoch{{StartEpoch: 0, Version: "v1.5"}}
@@ -82,11 +81,6 @@ func loadSovereignConfigs(configsPath string) (*sovereignConfig.SovereignConfig,
 		return nil, err
 	}
 
-	economicsConfig, err := common.LoadEconomicsConfig(path.Join(configsPath, "economics.toml"))
-	if err != nil {
-		return nil, err
-	}
-
 	sovereignExtraConfig, err := sovereignConfig.LoadSovereignGeneralConfig(path.Join(configsPath, "sovereignConfig.toml"))
 	if err != nil {
 		return nil, err
@@ -99,8 +93,7 @@ func loadSovereignConfigs(configsPath string) (*sovereignConfig.SovereignConfig,
 
 	return &sovereignConfig.SovereignConfig{
 		Configs: &config.Configs{
-			EpochConfig:     epochConfig,
-			EconomicsConfig: economicsConfig,
+			EpochConfig: epochConfig,
 		},
 		SovereignExtraConfig: sovereignExtraConfig,
 		SovereignEpochConfig: sovereignEpochConfig,
