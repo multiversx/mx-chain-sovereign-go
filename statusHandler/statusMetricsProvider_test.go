@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/statusHandler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/statusHandler"
 )
 
 func TestNewStatusMetricsProvider(t *testing.T) {
@@ -194,6 +195,7 @@ func TestStatusMetrics_NetworkConfig(t *testing.T) {
 	sm.SetUInt64Value(common.MetricRoundsPerEpoch, uint64(144))
 	sm.SetStringValue(common.MetricAdaptivity, fmt.Sprintf("%t", true))
 	sm.SetStringValue(common.MetricHysteresis, fmt.Sprintf("%f", 0.0))
+	sm.SetStringValue(common.MetricAddressHrp, "erd")
 
 	expectedConfig := map[string]interface{}{
 		"erd_chain_id":                      "local-id",
@@ -219,6 +221,7 @@ func TestStatusMetrics_NetworkConfig(t *testing.T) {
 		"erd_max_gas_per_transaction":       uint64(15000),
 		"erd_adaptivity":                    "true",
 		"erd_hysteresis":                    "0.000000",
+		"erd_address_hrp":                   "erd",
 	}
 
 	configMetrics, _ := sm.ConfigMetrics()

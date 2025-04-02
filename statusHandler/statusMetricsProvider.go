@@ -264,6 +264,7 @@ func (sm *statusMetrics) ConfigMetrics() (map[string]interface{}, error) {
 	configMetrics[common.MetricGasPriceModifier] = sm.stringMetrics[common.MetricGasPriceModifier]
 	configMetrics[common.MetricAdaptivity] = sm.stringMetrics[common.MetricAdaptivity]
 	configMetrics[common.MetricHysteresis] = sm.stringMetrics[common.MetricHysteresis]
+	configMetrics[common.MetricAddressHrp] = sm.stringMetrics[common.MetricAddressHrp]
 	sm.mutStringOperations.RUnlock()
 
 	return configMetrics, nil
