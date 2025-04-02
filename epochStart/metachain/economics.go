@@ -23,7 +23,7 @@ import (
 var _ process.EndOfEpochEconomics = (*economics)(nil)
 
 const numberOfDaysInYear = 365.0
-const numberOfSecondsInDay = 86400 * 1000
+const numberOfSecondsInDay = 86400
 
 type economics struct {
 	marshalizer           marshal.Marshalizer
@@ -101,6 +101,7 @@ func NewEndOfEpochEconomicsDataCreator(args ArgsNewEpochEconomics) (*economics, 
 			economicsDataNotified: args.EconomicsDataNotified,
 			genesisEpoch:          args.GenesisEpoch,
 			genesisNonce:          args.GenesisNonce,
+			roundTime:             args.RoundTime,
 		},
 	}
 	log.Debug("economics: enable epoch for staking v2", "epoch", e.stakingV2EnableEpoch)
@@ -332,7 +333,8 @@ func (e *economics) adjustRewardsPerBlockWithLeaderPercentage(
 
 // compute inflation rate from genesisTotalSupply and economics settings for that year
 func (e *economics) computeInflationRate(currentRound uint64) float64 {
-	roundsPerDay := numberOfSecondsInDay / uint64(e.roundTime.TimeDuration().Milliseconds())
+	// this computes inflation based on assumption that 1 day == 1 epoch
+	roundsPerDay := e.baseEconomicsHandler.computeRoundsPerDay()
 	roundsPerYear := numberOfDaysInYear * roundsPerDay
 	yearsIndex := uint32(currentRound/roundsPerYear) + 1
 
@@ -359,7 +361,7 @@ func (e *economics) computeRewardsPerBlock(
 
 func (e *economics) computeInflationForEpoch(inflationRate float64, maxBlocksInEpoch uint64) float64 {
 	inflationRatePerDay := inflationRate / numberOfDaysInYear
-	roundsPerDay := numberOfSecondsInDay / uint64(e.roundTime.TimeDuration().Milliseconds())
+	roundsPerDay := e.baseEconomicsHandler.computeRoundsPerDay()
 	maxBlocksInADay := core.MaxUint64(1, roundsPerDay*uint64(e.shardCoordinator.TotalNumberOfShards()))
 
 	inflationRateForEpoch := inflationRatePerDay * (float64(maxBlocksInEpoch) / float64(maxBlocksInADay))

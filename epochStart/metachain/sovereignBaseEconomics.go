@@ -3,8 +3,11 @@ package metachain
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
+
+const numberOfMillisecondsInDay = numberOfSecondsInDay * 1000
 
 type sovereignBaseEconomics struct {
 	*baseEconomics
@@ -67,4 +70,8 @@ func (e *sovereignBaseEconomics) computeNumOfTotalCreatedBlocks(
 
 func (e *sovereignBaseEconomics) maxPossibleNotarizedBlocks(currentRound uint64, prev data.MetaHeaderHandler) uint64 {
 	return currentRound - prev.GetRound()
+}
+
+func (e *sovereignBaseEconomics) computeRoundsPerDay() uint64 {
+	return numberOfMillisecondsInDay / uint64(e.roundTime.TimeDuration().Milliseconds())
 }

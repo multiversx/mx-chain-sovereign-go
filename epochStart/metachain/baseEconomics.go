@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
@@ -14,6 +15,7 @@ type baseEconomics struct {
 	store                 dataRetriever.StorageService
 	shardCoordinator      ExtendedShardCoordinatorHandler
 	economicsDataNotified epochStart.EpochEconomicsDataProvider
+	roundTime             process.RoundTimeDurationHandler
 	genesisEpoch          uint32
 	genesisNonce          uint64
 }
@@ -92,4 +94,8 @@ func (e *baseEconomics) maxPossibleNotarizedBlocks(currentRound uint64, prev dat
 	maxBlocks += currentRound - prev.GetRound()
 
 	return maxBlocks
+}
+
+func (e *baseEconomics) computeRoundsPerDay() uint64 {
+	return numberOfSecondsInDay / uint64(e.roundTime.TimeDuration().Seconds())
 }

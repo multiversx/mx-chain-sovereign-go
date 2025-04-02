@@ -3,6 +3,7 @@ package metachain
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/display"
+
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
 )
@@ -39,4 +40,5 @@ type baseEconomicsHandler interface {
 		mapEndNonce map[uint32]uint64,
 	) uint64
 	maxPossibleNotarizedBlocks(currentRound uint64, prev data.MetaHeaderHandler) uint64
+	computeRoundsPerDay() uint64
 }

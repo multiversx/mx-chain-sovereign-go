@@ -3,14 +3,17 @@ package metachain
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/epochStart/mock"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/storage"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/stretchr/testify/require"
 )
 
 func createSovereignBaseEconomics() *sovereignBaseEconomics {
@@ -21,6 +24,7 @@ func createSovereignBaseEconomics() *sovereignBaseEconomics {
 			store:                 args.Store,
 			shardCoordinator:      args.ShardCoordinator,
 			economicsDataNotified: args.EconomicsDataNotified,
+			roundTime:             args.RoundTime,
 			genesisNonce:          1,
 			genesisEpoch:          1,
 		},
@@ -64,6 +68,7 @@ func TestSovereignBaseEconomics_startNoncePerShardFromEpochStart(t *testing.T) {
 			store:                 args.Store,
 			shardCoordinator:      args.ShardCoordinator,
 			economicsDataNotified: args.EconomicsDataNotified,
+			roundTime:             args.RoundTime,
 			genesisNonce:          1,
 			genesisEpoch:          1,
 		},
@@ -116,4 +121,17 @@ func TestSovereignBaseEconomics_maxPossibleNotarizedBlocks(t *testing.T) {
 	}
 	maxPossibleNotarizedBlocks := sbe.maxPossibleNotarizedBlocks(5, prevHeader)
 	require.Equal(t, uint64(3), maxPossibleNotarizedBlocks)
+}
+
+func TestSovereignBaseEconomics_computeRoundsPerDay(t *testing.T) {
+	t.Parallel()
+
+	sbe := createSovereignBaseEconomics()
+	sbe.roundTime = &mock.RoundTimeDurationHandler{
+		TimeDurationCalled: func() time.Duration {
+			return time.Millisecond * 600
+		},
+	}
+	roundsPerDay := sbe.computeRoundsPerDay()
+	require.Equal(t, uint64(144000), roundsPerDay)
 }

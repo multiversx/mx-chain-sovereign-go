@@ -2,6 +2,7 @@ package metachain
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -23,6 +24,7 @@ func NewSovereignEconomics(ec *economics) (*sovereignEconomics, error) {
 			economicsDataNotified: ec.economicsDataNotified,
 			genesisEpoch:          ec.genesisEpoch,
 			genesisNonce:          ec.genesisNonce,
+			roundTime:             ec.roundTime,
 		},
 	}
 
