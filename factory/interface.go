@@ -21,6 +21,7 @@ import (
 	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/statistics"
+	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -654,6 +655,7 @@ type RunTypeComponentsHolder interface {
 	TotalStakedValueFactoryHandler() trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
+	CurrentEpochProviderFactory() CurrentEpochProviderFactory
 	Create() error
 	Close() error
 	CheckSubcomponents() error
@@ -728,5 +730,16 @@ type ExportHandlerFactoryCreator interface {
 // OutportDataProviderFactoryHandler defines an outport data provider factory handler
 type OutportDataProviderFactoryHandler interface {
 	CreateOutportDataProvider(arg outportFactory.ArgOutportDataProviderFactory) (outport.DataProviderOutport, error)
+	IsInterfaceNil() bool
+}
+
+// CurrentEpochProviderFactory defines the current epoch provider factory handler
+type CurrentEpochProviderFactory interface {
+	CreateCurrentEpochProvider(
+		generalConfigs config.Config,
+		roundTimeInMilliseconds uint64,
+		startTime time.Time,
+		isFullArchive bool,
+	) (dataRetriever.CurrentNetworkEpochProviderHandler, error)
 	IsInterfaceNil() bool
 }

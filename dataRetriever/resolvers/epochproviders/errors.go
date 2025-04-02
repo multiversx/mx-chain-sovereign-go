@@ -25,3 +25,5 @@ var ErrInvalidRoundTimeInMilliseconds = errors.New("invalid round time in millis
 
 // ErrInvalidStartTime signals that the provided start time is incorrect
 var ErrInvalidStartTime = errors.New("invalid start time value")
+
+var errNilGetUnixTimeHandler = errors.New("nil get unix time handler provided")

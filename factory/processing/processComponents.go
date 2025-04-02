@@ -27,7 +27,6 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers"
-	"github.com/multiversx/mx-chain-go/dataRetriever/factory/epochProviders"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
 	disabledResolversContainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer/disabled"
@@ -263,10 +262,10 @@ func NewProcessComponentsFactory(args ProcessComponentsFactoryArgs) (*processCom
 
 // Create will create and return a struct containing process components
 func (pcf *processComponentsFactory) Create() (*processComponents, error) {
-	currentEpochProvider, err := epochProviders.CreateCurrentEpochProvider(
+	currentEpochProvider, err := pcf.runTypeComponents.CurrentEpochProviderFactory().CreateCurrentEpochProvider(
 		pcf.config,
 		pcf.coreData.GenesisNodesSetup().GetRoundDuration(),
-		pcf.coreData.GenesisTime().UnixMilli(),
+		pcf.coreData.GenesisTime(),
 		pcf.prefConfigs.Preferences.FullArchive,
 	)
 	if err != nil {
@@ -2124,6 +2123,10 @@ func checkProcessComponentsArgs(args ProcessComponentsFactoryArgs) error {
 	if check.IfNil(args.RunTypeComponents.OutportDataProviderFactory()) {
 		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilOutportDataProviderFactory)
 	}
+	if check.IfNil(args.RunTypeComponents.CurrentEpochProviderFactory()) {
+		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilCurrentEpochProviderFactory)
+	}
+
 	if check.IfNil(args.IncomingHeaderSubscriber) {
 		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilIncomingHeaderSubscriber)
 	}

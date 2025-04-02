@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
 	sovereignFactory "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
+	"github.com/multiversx/mx-chain-go/dataRetriever/factory/epochProviders"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
 	storageRequestFactory "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer/factory"
@@ -268,5 +269,6 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewSovereignTotalStakedValueProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
 		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
+		currentEpochProviderFactory:             epochProviders.NewSovereignCurrentEpochProviderFactory(),
 	}, nil
 }

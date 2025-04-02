@@ -9,16 +9,17 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever/resolvers/epochproviders/disabled"
 )
 
-type currEpochProviderFactory struct {
+type sovCurrEpochProviderFactory struct {
 }
 
-func NewCurrentEpochProviderFactory() *currEpochProviderFactory {
-	return &currEpochProviderFactory{}
+// NewSovereignCurrentEpochProviderFactory creates a sovereign current epoch provider factory
+func NewSovereignCurrentEpochProviderFactory() *sovCurrEpochProviderFactory {
+	return &sovCurrEpochProviderFactory{}
 }
 
 // CreateCurrentEpochProvider will create an instance of dataRetriever.CurrentNetworkEpochProviderHandler using
-// unix seconds time handlers
-func (f *currEpochProviderFactory) CreateCurrentEpochProvider(
+// unix milliseconds time handlers
+func (f *sovCurrEpochProviderFactory) CreateCurrentEpochProvider(
 	generalConfigs config.Config,
 	roundTimeInMilliseconds uint64,
 	startTime time.Time,
@@ -31,9 +32,9 @@ func (f *currEpochProviderFactory) CreateCurrentEpochProvider(
 	arg := epochproviders.ArgArithmeticEpochProvider{
 		RoundsPerEpoch:          uint32(generalConfigs.EpochStartConfig.RoundsPerEpoch),
 		RoundTimeInMilliseconds: roundTimeInMilliseconds,
-		StartTime:               startTime.Unix(),
+		StartTime:               startTime.UnixMilli(),
 		GetUnixHandler: func() int64 {
-			return time.Now().Unix()
+			return time.Now().UnixMilli()
 		},
 	}
 
@@ -41,6 +42,6 @@ func (f *currEpochProviderFactory) CreateCurrentEpochProvider(
 }
 
 // IsInterfaceNil checks if the underlying interface is nil
-func (f *currEpochProviderFactory) IsInterfaceNil() bool {
+func (f *sovCurrEpochProviderFactory) IsInterfaceNil() bool {
 	return f == nil
 }

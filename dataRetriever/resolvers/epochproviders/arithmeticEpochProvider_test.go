@@ -9,6 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func getUnixSecondsHandler() func() int64 {
+	return func() int64 {
+		return time.Now().Unix()
+	}
+}
+
 func getUnixHandler(unix int64) func() int64 {
 	return func() int64 {
 		return unix
@@ -22,6 +28,7 @@ func TestNewArithmeticEpochProvider_InvalidRoundsPerEpoch(t *testing.T) {
 		RoundsPerEpoch:          0,
 		RoundTimeInMilliseconds: 1,
 		StartTime:               1,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 
 	aep, err := NewArithmeticEpochProvider(arg)
@@ -37,6 +44,7 @@ func TestNewArithmeticEpochProvider_InvalidRoundTimeInMilliseconds(t *testing.T)
 		RoundsPerEpoch:          1,
 		RoundTimeInMilliseconds: 0,
 		StartTime:               1,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 
 	aep, err := NewArithmeticEpochProvider(arg)
@@ -52,6 +60,7 @@ func TestNewArithmeticEpochProvider_InvalidStartTime(t *testing.T) {
 		RoundsPerEpoch:          1,
 		RoundTimeInMilliseconds: 1,
 		StartTime:               -1,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 
 	aep, err := NewArithmeticEpochProvider(arg)
@@ -67,6 +76,24 @@ func TestNewArithmeticEpochProvider_ShouldWork(t *testing.T) {
 		RoundsPerEpoch:          2400,
 		RoundTimeInMilliseconds: 6000,
 		StartTime:               time.Now().Unix(),
+		GetUnixHandler:          getUnixSecondsHandler(),
+	}
+
+	aep, err := NewArithmeticEpochProvider(arg)
+
+	assert.Nil(t, err)
+	assert.False(t, check.IfNil(aep))
+	assert.Equal(t, uint32(0), aep.CurrentComputedEpoch())
+}
+
+func TestNewArithmeticEpochProvider_ShouldWorkWithMiliSeconds(t *testing.T) {
+	t.Parallel()
+
+	arg := ArgArithmeticEpochProvider{
+		RoundsPerEpoch:          2400,
+		RoundTimeInMilliseconds: 6000,
+		StartTime:               time.Now().Unix(),
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 
 	aep, err := NewArithmeticEpochProvider(arg)
@@ -83,6 +110,7 @@ func TestArithmeticEpochProvider_ComputeEpochAtGenesis(t *testing.T) {
 		RoundsPerEpoch:          2400,
 		RoundTimeInMilliseconds: 6000,
 		StartTime:               1000,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 	aep := NewTestArithmeticEpochProvider(arg, getUnixHandler(0))
 	assert.Equal(t, uint32(0), aep.CurrentComputedEpoch())
@@ -122,6 +150,7 @@ func TestArithmeticEpochProvider_EpochConfirmedInvalidTimestamp(t *testing.T) {
 		RoundsPerEpoch:          2400,
 		RoundTimeInMilliseconds: 6000,
 		StartTime:               1000,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 	aep := NewTestArithmeticEpochProvider(arg, getUnixHandler(15500))
 	assert.Equal(t, uint32(1), aep.CurrentComputedEpoch())
@@ -138,6 +167,7 @@ func TestArithmeticEpochProvider_EpochConfirmed(t *testing.T) {
 		RoundsPerEpoch:          2400,
 		RoundTimeInMilliseconds: 6000,
 		StartTime:               1000,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 	aep := NewTestArithmeticEpochProvider(arg, getUnixHandler(15500))
 	assert.Equal(t, uint32(1), aep.CurrentComputedEpoch())
@@ -156,6 +186,7 @@ func TestArithmeticEpochProvider_EpochIsActiveInNetwork(t *testing.T) {
 		RoundsPerEpoch:          1,
 		RoundTimeInMilliseconds: 1,
 		StartTime:               1,
+		GetUnixHandler:          getUnixSecondsHandler(),
 	}
 	aep := NewTestArithmeticEpochProvider(arg, getUnixHandler(1))
 

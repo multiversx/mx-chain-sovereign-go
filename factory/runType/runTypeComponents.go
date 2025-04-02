@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
+	"github.com/multiversx/mx-chain-go/dataRetriever/factory/epochProviders"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
 	storageRequestFactory "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer/factory"
@@ -136,6 +137,7 @@ type runTypeComponents struct {
 	totalStakedValueFactoryHandler          trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	versionedHeaderFactory                  genesis.VersionedHeaderFactory
 	crawlerAddressGetter                    crawlerAddressGetter.CrawlerAddressGetterHandler
+	currentEpochProviderFactory             mainFactory.CurrentEpochProviderFactory
 }
 
 // NewRunTypeComponentsFactory will return a new instance of runTypeComponentsFactory
@@ -265,6 +267,7 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewTotalStakedListProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
 		crawlerAddressGetter:                    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		currentEpochProviderFactory:             epochProviders.NewCurrentEpochProviderFactory(),
 	}, nil
 }
 
