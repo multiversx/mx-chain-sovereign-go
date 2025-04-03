@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/process"
 )
@@ -116,35 +117,7 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	}
 	//TODO: This check could be removed when this protection mechanism would be implemented on interceptors side
 
-	// Sub second round checks
-
-	/*
-		if bfd.roundHandler.TimeDuration().Milliseconds() < 1000 {
-			toleranceMs := bfd.roundHandler.TimeDuration().Milliseconds() / 50
-			difference := genesisTimeFromHeader - bfd.genesisTime
-			if difference < 0 {
-				difference = -difference
-			}
-			printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
-			if difference > toleranceMs {
-				printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
-				log.Error("DSADSADSA")
-				process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-				return ErrGenesisTimeMissmatch
-			}
-
-		} else {
-			if genesisTimeFromHeader != bfd.genesisTime {
-				log.Error("BAAAAA")
-				process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
-				return ErrGenesisTimeMissmatch
-			}
-		}
-
-	*/
-
 	if genesisTimeFromHeader != bfd.genesisTime {
-		log.Error("BAAAAA")
 		printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
 		process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
 		return ErrGenesisTimeMissmatch
@@ -718,17 +691,9 @@ func (bfd *baseForkDetector) cleanupReceivedHeadersHigherThanNonce(nonce uint64)
 	bfd.mutHeaders.Unlock()
 }
 
-/*
-🕒 Genesis Time Mismatch:
-- Header Time:   2025-03-28 14:50:20.000
-- Expected Time: 1970-01-21 06:12:46.220
-- Difference:    1741423053780 ms
-*/
-
 func (bfd *baseForkDetector) computeGenesisTimeFromHeader(headerHandler data.HeaderHandler) int64 {
-	roundDurationMs := bfd.roundHandler.TimeDuration().Milliseconds()     // time.Duration -> int64 (milisecunde)
-	roundDifference := int64(headerHandler.GetRound() - bfd.genesisRound) // uint64 -> int64, evitând overflow
-
+	roundDurationMs := runType.TimeDurationToUnix(bfd.roundHandler.TimeDuration())
+	roundDifference := int64(headerHandler.GetRound() - bfd.genesisRound)
 	genesisTime := int64(headerHandler.GetTimeStamp()) - roundDifference*roundDurationMs
 	return genesisTime
 }

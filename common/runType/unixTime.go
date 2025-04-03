@@ -37,7 +37,7 @@ func ConfigureUnixTime(unit TimeUnit) {
 	}
 }
 
-// TimeToUnix returns the time to unix
+// TimeToUnix returns the time to unix depending on current configuration
 func TimeToUnix(t time.Time) int64 {
 	return timeToUnix(t)
 }
@@ -51,5 +51,17 @@ func UnixToTime(unixTime int64) time.Time {
 		return time.UnixMilli(unixTime)
 	default:
 		return time.Unix(unixTime, 0)
+	}
+}
+
+// TimeDurationToUnix converts duration time to unix depending on current configuration
+func TimeDurationToUnix(duration time.Duration) int64 {
+	switch currentUnit {
+	case Seconds:
+		return int64(duration.Seconds())
+	case Milliseconds:
+		return duration.Milliseconds()
+	default:
+		return int64(duration.Seconds())
 	}
 }

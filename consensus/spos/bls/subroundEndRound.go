@@ -914,8 +914,11 @@ func (sr *subroundEndRound) signBlockHeader() ([]byte, []byte, error) {
 
 func (sr *subroundEndRound) updateMetricsForLeader() {
 	sr.AppStatusHandler().Increment(common.MetricCountAcceptedBlocks)
+
+	roundTimeStamp := sr.RoundHandler().TimeStamp()
+	timeSinceRound := time.Since(roundTimeStamp)
 	sr.AppStatusHandler().SetStringValue(common.MetricConsensusRoundState,
-		fmt.Sprintf("valid block produced in %d sec", time.Since(sr.RoundHandler().TimeStamp()).Milliseconds()))
+		fmt.Sprintf("valid block produced in %s", timeSinceRound.String()))
 }
 
 func (sr *subroundEndRound) broadcastBlockDataLeader() error {
