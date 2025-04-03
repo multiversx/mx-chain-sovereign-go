@@ -2,10 +2,8 @@ package sync
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"sync"
-	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
@@ -118,7 +116,6 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	//TODO: This check could be removed when this protection mechanism would be implemented on interceptors side
 
 	if genesisTimeFromHeader != bfd.genesisTime {
-		printGenesisTimeDifference(genesisTimeFromHeader, bfd.genesisTime)
 		process.AddHeaderToBlackList(bfd.blackListHandler, headerHash)
 		return ErrGenesisTimeMissmatch
 	}
@@ -137,31 +134,6 @@ func (bfd *baseForkDetector) checkBlockBasicValidity(
 	}
 
 	return nil
-}
-
-func printGenesisTimeDifference(genesisTimeFromHeader, genesisTimeExpected int64) {
-	headerTime := time.Unix(genesisTimeFromHeader/1000, (genesisTimeFromHeader%1000)*int64(time.Millisecond))
-	expectedTime := time.Unix(genesisTimeExpected/1000, (genesisTimeExpected%1000)*int64(time.Millisecond))
-
-	differenceMs := genesisTimeFromHeader - genesisTimeExpected
-
-	msg := fmt.Sprintf(
-		"🕒 Genesis Time Mismatch:\n"+
-			"   - Header Time:   %s\n"+
-			"   - Expected Time: %s\n"+
-			"   - Difference:    %d ms\n",
-		headerTime.Format("2006-01-02 15:04:05.000"),
-		expectedTime.Format("2006-01-02 15:04:05.000"),
-		differenceMs,
-	)
-
-	fmt.Println(msg)
-
-	log.Error("difference",
-		"Header Time:", headerTime.Format("2006-01-02 15:04:05.000"),
-		"Expected Time:", expectedTime.Format("2006-01-02 15:04:05.000"),
-		"diff", differenceMs)
-
 }
 
 func (bfd *baseForkDetector) removePastHeaders() {

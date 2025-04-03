@@ -11,6 +11,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	swVersionFactory "github.com/multiversx/mx-chain-go/common/statistics/softwareVersion/factory"
 	"github.com/multiversx/mx-chain-go/config"
@@ -136,10 +137,10 @@ func (scf *statusComponentsFactory) Create() (*statusComponents, error) {
 
 	softwareVersionChecker.StartCheckSoftwareVersion()
 
-	//roundDurationSec := scf.coreComponents.GenesisNodesSetup().GetRoundDuration() / 1000
-	//if roundDurationSec < 1 {
-	//	return nil, errors.ErrInvalidRoundDuration
-	//}
+	err = runType.CheckRoundDuration(scf.coreComponents.GenesisNodesSetup().GetRoundDuration())
+	if err != nil {
+		return nil, err
+	}
 
 	outportHandler, err := scf.createOutportDriver()
 	if err != nil {

@@ -2,6 +2,10 @@ package runType
 
 import (
 	"time"
+
+	"github.com/multiversx/mx-chain-core-go/core"
+
+	"github.com/multiversx/mx-chain-go/errors"
 )
 
 var (
@@ -17,10 +21,13 @@ var (
 	currentUnit = Seconds
 )
 
+// TimeUnit enum for round configuration
 type TimeUnit int
 
 const (
+	// Seconds specifies round configuration in seconds
 	Seconds TimeUnit = iota
+	// Milliseconds specifies round configuration in milliseconds
 	Milliseconds
 )
 
@@ -37,12 +44,12 @@ func ConfigureUnixTime(unit TimeUnit) {
 	}
 }
 
-// TimeToUnix returns the time to unix depending on current configuration
+// TimeToUnix returns the time to unix based on current configuration
 func TimeToUnix(t time.Time) int64 {
 	return timeToUnix(t)
 }
 
-// UnixToTime converts int64 to time depending on current configuration
+// UnixToTime converts int64 to time based on current configuration
 func UnixToTime(unixTime int64) time.Time {
 	switch currentUnit {
 	case Seconds:
@@ -54,7 +61,7 @@ func UnixToTime(unixTime int64) time.Time {
 	}
 }
 
-// TimeDurationToUnix converts duration time to unix depending on current configuration
+// TimeDurationToUnix converts duration time to unix based on current configuration
 func TimeDurationToUnix(duration time.Duration) int64 {
 	switch currentUnit {
 	case Seconds:
@@ -64,4 +71,33 @@ func TimeDurationToUnix(duration time.Duration) int64 {
 	default:
 		return int64(duration.Seconds())
 	}
+}
+
+// CheckRoundDuration checks round duration based on current  configuration
+func CheckRoundDuration(roundDuration uint64) error {
+	switch currentUnit {
+	case Seconds:
+		return checkRoundDurationSec(roundDuration)
+	case Milliseconds:
+		return checkRoundDurationMilliSec(roundDuration)
+	default:
+		return checkRoundDurationSec(roundDuration)
+	}
+}
+
+func checkRoundDurationSec(roundDuration uint64) error {
+	roundDurationSec := roundDuration / 1000
+	if roundDurationSec < 1 {
+		return errors.ErrInvalidRoundDuration
+	}
+
+	return nil
+}
+
+func checkRoundDurationMilliSec(roundDuration uint64) error {
+	if roundDuration < core.MinRoundDurationMS {
+		return errors.ErrInvalidRoundDuration
+	}
+
+	return nil
 }
