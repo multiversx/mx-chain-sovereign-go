@@ -202,7 +202,7 @@ func simulateExecutionAndDeposit(
 
 	// deposit an array of tokens from main chain to sovereign chain,
 	// expecting these tokens to be burned by the whitelisted ESDT safe sc
-	txResult = deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, bridgedOutTokens, wallet.Bytes)
+	txResult = Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, bridgedOutTokens, wallet.Bytes, nil)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	bridgedTokens := groupTokens(bridgedInTokens)
