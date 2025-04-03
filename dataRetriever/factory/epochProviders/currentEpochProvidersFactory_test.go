@@ -2,7 +2,6 @@ package epochProviders
 
 import (
 	"testing"
-	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/stretchr/testify/assert"
@@ -16,13 +15,10 @@ import (
 func TestCreateCurrentEpochProvider_NilCurrentEpochProvider(t *testing.T) {
 	t.Parallel()
 
-	f := NewCurrentEpochProviderFactory()
-	require.False(t, f.IsInterfaceNil())
-
-	cnep, err := f.CreateCurrentEpochProvider(
+	cnep, err := CreateCurrentEpochProvider(
 		config.Config{},
 		0,
-		time.Unix(0, 0),
+		0,
 		false,
 	)
 
@@ -33,15 +29,14 @@ func TestCreateCurrentEpochProvider_NilCurrentEpochProvider(t *testing.T) {
 func TestCreateCurrentEpochProvider_ArithmeticEpochProvider(t *testing.T) {
 	t.Parallel()
 
-	f := NewCurrentEpochProviderFactory()
-	cnep, err := f.CreateCurrentEpochProvider(
+	cnep, err := CreateCurrentEpochProvider(
 		config.Config{
 			EpochStartConfig: config.EpochStartConfig{
 				RoundsPerEpoch: 1,
 			},
 		},
 		1,
-		time.Unix(1, 0),
+		1,
 		true,
 	)
 	require.Nil(t, err)
@@ -51,9 +46,6 @@ func TestCreateCurrentEpochProvider_ArithmeticEpochProvider(t *testing.T) {
 			RoundsPerEpoch:          1,
 			RoundTimeInMilliseconds: 1,
 			StartTime:               1,
-			GetUnixHandler: func() int64 {
-				return time.Now().Unix()
-			},
 		},
 	)
 	require.False(t, check.IfNil(aep))

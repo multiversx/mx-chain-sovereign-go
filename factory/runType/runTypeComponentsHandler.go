@@ -271,9 +271,6 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrc.crawlerAddressGetter) {
 		return process.ErrNilCrawlerAllowedAddress
 	}
-	if check.IfNil(mrc.currentEpochProviderFactory) {
-		return errors.ErrNilCurrentEpochProviderFactory
-	}
 
 	return nil
 }
@@ -936,18 +933,6 @@ func (mrc *managedRunTypeComponents) CrawlerAddressGetter() crawlerAddressGetter
 	}
 
 	return mrc.runTypeComponents.crawlerAddressGetter
-}
-
-// CurrentEpochProviderFactory returns the current epoch provider factory
-func (mrc *managedRunTypeComponents) CurrentEpochProviderFactory() factory.CurrentEpochProviderFactory {
-	mrc.mutRunTypeComponents.RLock()
-	defer mrc.mutRunTypeComponents.RUnlock()
-
-	if check.IfNil(mrc.runTypeComponents) {
-		return nil
-	}
-
-	return mrc.runTypeComponents.currentEpochProviderFactory
 }
 
 // IsInterfaceNil returns true if the interface is nil

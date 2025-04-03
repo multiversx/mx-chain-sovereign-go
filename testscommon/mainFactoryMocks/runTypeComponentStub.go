@@ -106,7 +106,6 @@ type RunTypeComponentsStub struct {
 	TotalStakedValueFactoryField                trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactoryField                 genesis.VersionedHeaderFactory
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
-	CurrentEpochProviderFactoryField            factory.CurrentEpochProviderFactory
 }
 
 // NewRunTypeComponentsStub -
@@ -163,7 +162,6 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		OutportDataProviderFactoryField:             &testFactory.OutportDataProviderFactoryMock{},
 		VersionedHeaderFactoryField:                 &testscommon.VersionedHeaderFactoryStub{},
 		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
-		CurrentEpochProviderFactoryField:            &testFactory.CurrEpochProviderFactoryMock{},
 	}
 }
 
@@ -460,11 +458,6 @@ func (r *RunTypeComponentsStub) VersionedHeaderFactory() genesis.VersionedHeader
 // CrawlerAddressGetter -
 func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
 	return r.CrawlerAddressGetterField
-}
-
-// CurrentEpochProviderFactory  -
-func (r *RunTypeComponentsStub) CurrentEpochProviderFactory() factory.CurrentEpochProviderFactory {
-	return r.CurrentEpochProviderFactoryField
 }
 
 // IsInterfaceNil -

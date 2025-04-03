@@ -3,8 +3,11 @@ package epochproviders
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-go/common/runType"
 )
 
 // deltaEpochActive represents how many epochs behind the current computed epoch are to be considered "active" and
@@ -18,7 +21,6 @@ var log = logger.GetOrCreate("resolvers/epochproviders")
 
 // ArgArithmeticEpochProvider is the argument structure for the arithmetic epoch provider
 type ArgArithmeticEpochProvider struct {
-	GetUnixHandler          func() int64
 	RoundsPerEpoch          uint32
 	RoundTimeInMilliseconds uint64
 	StartTime               int64
@@ -47,17 +49,15 @@ func NewArithmeticEpochProvider(arg ArgArithmeticEpochProvider) (*arithmeticEpoc
 	if arg.StartTime < 0 {
 		return nil, fmt.Errorf("%w in NewArithmeticEpochProvider", ErrInvalidStartTime)
 	}
-	if arg.GetUnixHandler == nil {
-		return nil, errNilGetUnixTimeHandler
-	}
-
 	aep := &arithmeticEpochProvider{
 		headerEpoch:                0,
 		headerTimestampForNewEpoch: uint64(arg.StartTime),
 		roundsPerEpoch:             arg.RoundsPerEpoch,
 		roundTimeInMilliseconds:    arg.RoundTimeInMilliseconds,
 		startTime:                  arg.StartTime,
-		getUnixHandler:             arg.GetUnixHandler,
+	}
+	aep.getUnixHandler = func() int64 {
+		return runType.TimeToUnix(time.Now())
 	}
 	aep.computeCurrentEpoch() //based on the genesis provided data
 

@@ -108,7 +108,6 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		require.Nil(t, managedRunTypeComponents.DirectStakedListFactoryHandler())
 		require.Nil(t, managedRunTypeComponents.TotalStakedValueFactoryHandler())
 		require.Nil(t, managedRunTypeComponents.CrawlerAddressGetter())
-		require.Nil(t, managedRunTypeComponents.CurrentEpochProviderFactory())
 
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
@@ -166,7 +165,6 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		require.NotNil(t, managedRunTypeComponents.DirectStakedListFactoryHandler())
 		require.NotNil(t, managedRunTypeComponents.TotalStakedValueFactoryHandler())
 		require.NotNil(t, managedRunTypeComponents.CrawlerAddressGetter())
-		require.NotNil(t, managedRunTypeComponents.CurrentEpochProviderFactory())
 
 		require.Equal(t, factory.RunTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())

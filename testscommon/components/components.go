@@ -1234,7 +1234,6 @@ func GetRunTypeComponentsStub(rt factory.RunTypeComponentsHandler) *mainFactoryM
 		TotalStakedValueFactoryField:                rt.TotalStakedValueFactoryHandler(),
 		VersionedHeaderFactoryField:                 rt.VersionedHeaderFactory(),
 		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
-		CurrentEpochProviderFactoryField:            rt.CurrentEpochProviderFactory(),
 	}
 }
 
