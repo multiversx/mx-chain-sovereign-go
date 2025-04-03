@@ -77,57 +77,30 @@ func TestNewEventProcDepositTokens(t *testing.T) {
 	})
 }
 
-func TestDepositEventProc_createEventData(t *testing.T) {
+func TestDepositEventProc_extractSCTransferInfo(t *testing.T) {
 	t.Parallel()
 
-	t.Run("empty transfer data", func(t *testing.T) {
+	t.Run("nil transfer data", func(t *testing.T) {
 		t.Parallel()
 
-		inputEventData := []byte("data")
-
-		args := createArgs()
-		args.DataCodec = &sovTests.DataCodecMock{
-			DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
-				require.Equal(t, inputEventData, data)
-
-				return &sovereign.EventData{
-					TransferData: nil,
-				}, nil
-			},
-		}
-
-		handler, _ := NewEventProcDepositTokens(args)
-		ret, err := handler.createEventData(inputEventData)
-		require.Nil(t, err)
-		require.Equal(t, &eventData{
-			functionCallWithArgs: make([]byte, 0),
-		}, ret)
+		gasLimit, functionCallWithArgs := extractSCTransferInfo(nil)
+		require.Zero(t, gasLimit)
+		require.Empty(t, functionCallWithArgs)
 	})
 
 	t.Run("transfer data with function no args", func(t *testing.T) {
 		t.Parallel()
 
 		func1 := []byte("func1")
-
-		args := createArgs()
-		args.DataCodec = &sovTests.DataCodecMock{
-			DeserializeEventDataCalled: func(_ []byte) (*sovereign.EventData, error) {
-				return &sovereign.EventData{
-					TransferData: &sovereign.TransferData{
-						Function: func1,
-					},
-				}, nil
-			},
-		}
-
-		handler, _ := NewEventProcDepositTokens(args)
-		ret, err := handler.createEventData([]byte(""))
-		require.Nil(t, err)
-
+		expectedGasLimit := uint64(1)
 		expectedArgs := append([]byte("@"), hex.EncodeToString(func1)...)
-		require.Equal(t, &eventData{
-			functionCallWithArgs: expectedArgs,
-		}, ret)
+
+		gasLimit, functionCallWithArgs := extractSCTransferInfo(&sovereign.TransferData{
+			GasLimit: expectedGasLimit,
+			Function: func1,
+		})
+		require.Equal(t, expectedGasLimit, gasLimit)
+		require.Equal(t, expectedArgs, functionCallWithArgs)
 	})
 
 	t.Run("transfer data with function and args", func(t *testing.T) {
@@ -136,29 +109,18 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 		func1 := []byte("func1")
 		arg1 := []byte("arg1")
 		arg2 := []byte("arg2")
-
-		args := createArgs()
-		args.DataCodec = &sovTests.DataCodecMock{
-			DeserializeEventDataCalled: func(_ []byte) (*sovereign.EventData, error) {
-				return &sovereign.EventData{
-					TransferData: &sovereign.TransferData{
-						Function: func1,
-						Args:     [][]byte{arg1, arg2},
-					},
-				}, nil
-			},
-		}
-
-		handler, _ := NewEventProcDepositTokens(args)
-		ret, err := handler.createEventData([]byte(""))
-		require.Nil(t, err)
-
+		expectedGasLimit := uint64(2)
 		expectedArgs := append([]byte("@"), hex.EncodeToString(func1)...)
 		expectedArgs = append(expectedArgs, "@"+hex.EncodeToString(arg1)...)
 		expectedArgs = append(expectedArgs, "@"+hex.EncodeToString(arg2)...)
-		require.Equal(t, &eventData{
-			functionCallWithArgs: expectedArgs,
-		}, ret)
+
+		gasLimit, functionCallWithArgs := extractSCTransferInfo(&sovereign.TransferData{
+			GasLimit: expectedGasLimit,
+			Function: func1,
+			Args:     [][]byte{arg1, arg2},
+		})
+		require.Equal(t, expectedGasLimit, gasLimit)
+		require.Equal(t, expectedArgs, functionCallWithArgs)
 	})
 }
 
@@ -170,37 +132,123 @@ func TestDepositEventProc_createSCRData(t *testing.T) {
 	nft := []byte("nft")
 	nonce := []byte("nonce")
 	nftData := []byte("nftData")
+	transferGas := uint64(1)
+	func1 := []byte("func1")
+	arg1 := []byte("arg1")
+	arg2 := []byte("arg2")
 
-	topics := [][]byte{
-		topicID,
-		receiver,
-		nft,
-		nonce,
-		nftData,
-	}
+	t.Run("create SCR data with no tokens, with transfer data", func(t *testing.T) {
+		t.Parallel()
 
-	args := createArgs()
-	args.DataCodec = &sovTests.DataCodecMock{
-		DeserializeTokenDataCalled: func(_ []byte) (*sovereign.EsdtTokenData, error) {
-			return &sovereign.EsdtTokenData{
-				TokenType: core.NonFungible,
-				Royalties: big.NewInt(0),
-			}, nil
-		},
-	}
-	args.Marshaller = &marshallerMock.MarshalizerStub{
-		MarshalCalled: func(_ interface{}) ([]byte, error) {
-			return nftData, nil
-		},
-	}
+		args := createArgs()
+		handler, _ := NewEventProcDepositTokens(args)
 
-	handler, _ := NewEventProcDepositTokens(args)
-	ret, err := handler.createSCRData(topics)
-	require.Nil(t, err)
+		topics := [][]byte{
+			topicID,
+			receiver,
+		}
+		eventData := &sovereign.EventData{
+			TransferData: &sovereign.TransferData{
+				GasLimit: transferGas,
+				Function: func1,
+				Args:     [][]byte{arg1, arg2},
+			},
+		}
 
-	expectedSCR := []byte(core.BuiltInFunctionMultiESDTNFTTransfer + "@01")
-	expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nft)...)
-	expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nonce)...)
-	expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nftData)...)
-	require.Equal(t, expectedSCR, ret)
+		scrData, gasLimit, err := handler.createSCRData(topics, eventData)
+		require.Nil(t, err)
+		require.Equal(t, transferGas, gasLimit)
+
+		expectedSCR := func1
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg1)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg2)...)
+		require.Equal(t, expectedSCR, scrData)
+	})
+	t.Run("create SCR data with tokens, no transfer data", func(t *testing.T) {
+		t.Parallel()
+
+		args := createArgs()
+		args.DataCodec = &sovTests.DataCodecMock{
+			DeserializeTokenDataCalled: func(_ []byte) (*sovereign.EsdtTokenData, error) {
+				return &sovereign.EsdtTokenData{
+					TokenType: core.NonFungible,
+					Royalties: big.NewInt(0),
+				}, nil
+			},
+		}
+		args.Marshaller = &marshallerMock.MarshalizerStub{
+			MarshalCalled: func(_ interface{}) ([]byte, error) {
+				return nftData, nil
+			},
+		}
+		handler, _ := NewEventProcDepositTokens(args)
+
+		topics := [][]byte{
+			topicID,
+			receiver,
+			nft,
+			nonce,
+			nftData,
+		}
+		eventData := &sovereign.EventData{
+			TransferData: nil,
+		}
+
+		ret, gasLimit, err := handler.createSCRData(topics, eventData)
+		require.Nil(t, err)
+		require.Zero(t, gasLimit)
+
+		expectedSCR := []byte(core.BuiltInFunctionMultiESDTNFTTransfer + "@01")
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nft)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nonce)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nftData)...)
+		require.Equal(t, expectedSCR, ret)
+	})
+	t.Run("create SCR data with tokens, with transfer data", func(t *testing.T) {
+		t.Parallel()
+
+		args := createArgs()
+		args.DataCodec = &sovTests.DataCodecMock{
+			DeserializeTokenDataCalled: func(_ []byte) (*sovereign.EsdtTokenData, error) {
+				return &sovereign.EsdtTokenData{
+					TokenType: core.NonFungible,
+					Royalties: big.NewInt(0),
+				}, nil
+			},
+		}
+		args.Marshaller = &marshallerMock.MarshalizerStub{
+			MarshalCalled: func(_ interface{}) ([]byte, error) {
+				return nftData, nil
+			},
+		}
+		handler, _ := NewEventProcDepositTokens(args)
+
+		topics := [][]byte{
+			topicID,
+			receiver,
+			nft,
+			nonce,
+			nftData,
+		}
+		eventData := &sovereign.EventData{
+			TransferData: &sovereign.TransferData{
+				GasLimit: transferGas,
+				Function: func1,
+				Args:     [][]byte{arg1, arg2},
+			},
+		}
+
+		ret, gasLimit, err := handler.createSCRData(topics, eventData)
+		require.Nil(t, err)
+		require.Equal(t, transferGas, gasLimit)
+
+		expectedSCR := []byte(core.BuiltInFunctionMultiESDTNFTTransfer + "@01")
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nft)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nonce)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(nftData)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(func1)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg1)...)
+		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg2)...)
+		require.Equal(t, expectedSCR, ret)
+	})
 }
