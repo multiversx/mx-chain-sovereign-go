@@ -73,7 +73,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		TopicsChecker: args.TopicsChecker,
 	})
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	confirmExecutedOperationProc := incomingEventsProc.NewEventProcConfirmExecutedOperation()
@@ -82,21 +82,21 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		confirmExecutedOperationProc,
 	)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	eventsProc := incomingEventsProc.NewIncomingEventsProcessor()
 	err = eventsProc.RegisterProcessor(dto.EventIDDepositIncomingTransfer, depositProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	err = eventsProc.RegisterProcessor(dto.EventIDExecutedOutGoingBridgeOp, executedOpProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	err = eventsProc.RegisterProcessor(dto.EventIDChangeValidatorSet, confirmExecutedOperationProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	extendedHearProc := &extendedHeaderProcessor{
