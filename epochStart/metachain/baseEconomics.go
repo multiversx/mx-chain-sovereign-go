@@ -15,7 +15,6 @@ type baseEconomics struct {
 	store                 dataRetriever.StorageService
 	shardCoordinator      ExtendedShardCoordinatorHandler
 	economicsDataNotified epochStart.EpochEconomicsDataProvider
-	roundTime             process.RoundTimeDurationHandler
 	genesisEpoch          uint32
 	genesisNonce          uint64
 }
@@ -94,8 +93,4 @@ func (e *baseEconomics) maxPossibleNotarizedBlocks(currentRound uint64, prev dat
 	maxBlocks += currentRound - prev.GetRound()
 
 	return maxBlocks
-}
-
-func (e *baseEconomics) computeRoundsPerDay() uint64 {
-	return numberOfSecondsInDay / uint64(e.roundTime.TimeDuration().Seconds())
 }

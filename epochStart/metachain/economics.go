@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
@@ -101,7 +102,6 @@ func NewEndOfEpochEconomicsDataCreator(args ArgsNewEpochEconomics) (*economics, 
 			economicsDataNotified: args.EconomicsDataNotified,
 			genesisEpoch:          args.GenesisEpoch,
 			genesisNonce:          args.GenesisNonce,
-			roundTime:             args.RoundTime,
 		},
 	}
 	log.Debug("economics: enable epoch for staking v2", "epoch", e.stakingV2EnableEpoch)
@@ -333,8 +333,7 @@ func (e *economics) adjustRewardsPerBlockWithLeaderPercentage(
 
 // compute inflation rate from genesisTotalSupply and economics settings for that year
 func (e *economics) computeInflationRate(currentRound uint64) float64 {
-	// this computes inflation based on assumption that 1 day == 1 epoch
-	roundsPerDay := e.baseEconomicsHandler.computeRoundsPerDay()
+	roundsPerDay := runType.ComputeRoundsPerDay(e.roundTime.TimeDuration())
 	roundsPerYear := numberOfDaysInYear * roundsPerDay
 	yearsIndex := uint32(currentRound/roundsPerYear) + 1
 
@@ -361,7 +360,7 @@ func (e *economics) computeRewardsPerBlock(
 
 func (e *economics) computeInflationForEpoch(inflationRate float64, maxBlocksInEpoch uint64) float64 {
 	inflationRatePerDay := inflationRate / numberOfDaysInYear
-	roundsPerDay := e.baseEconomicsHandler.computeRoundsPerDay()
+	roundsPerDay := runType.ComputeRoundsPerDay(e.roundTime.TimeDuration())
 	maxBlocksInADay := core.MaxUint64(1, roundsPerDay*uint64(e.shardCoordinator.TotalNumberOfShards()))
 
 	inflationRateForEpoch := inflationRatePerDay * (float64(maxBlocksInEpoch) / float64(maxBlocksInADay))

@@ -31,6 +31,12 @@ const (
 	Milliseconds
 )
 
+// NumberOfSecondsInDay represents the number of seconds in a day
+const NumberOfSecondsInDay = 86400
+
+// NumberOfMillisecondsInDay represents the number of milliseconds in a day
+const NumberOfMillisecondsInDay = NumberOfSecondsInDay * 1000
+
 // ConfigureUnixTime configures timeToUnix singleton to work with a specific time unit
 func ConfigureUnixTime(unit TimeUnit) {
 	currentUnit = unit
@@ -73,7 +79,7 @@ func TimeDurationToUnix(duration time.Duration) int64 {
 	}
 }
 
-// CheckRoundDuration checks round duration based on current  configuration
+// CheckRoundDuration checks round duration based on current configuration
 func CheckRoundDuration(roundDuration uint64) error {
 	switch currentUnit {
 	case Seconds:
@@ -100,4 +106,15 @@ func checkRoundDurationMilliSec(roundDuration uint64) error {
 	}
 
 	return nil
+}
+
+// ComputeRoundsPerDay computes the rounds per day based on current configuration
+func ComputeRoundsPerDay(roundTime time.Duration) uint64 {
+	numOfRoundTimeUnitsInDay := NumberOfSecondsInDay
+	switch currentUnit {
+	case Milliseconds:
+		numOfRoundTimeUnitsInDay = NumberOfMillisecondsInDay
+	}
+
+	return uint64(numOfRoundTimeUnitsInDay) / uint64(TimeDurationToUnix(roundTime))
 }

@@ -40,5 +40,4 @@ type baseEconomicsHandler interface {
 		mapEndNonce map[uint32]uint64,
 	) uint64
 	maxPossibleNotarizedBlocks(currentRound uint64, prev data.MetaHeaderHandler) uint64
-	computeRoundsPerDay() uint64
 }

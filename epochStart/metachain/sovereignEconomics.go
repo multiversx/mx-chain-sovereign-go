@@ -24,7 +24,6 @@ func NewSovereignEconomics(ec *economics) (*sovereignEconomics, error) {
 			economicsDataNotified: ec.economicsDataNotified,
 			genesisEpoch:          ec.genesisEpoch,
 			genesisNonce:          ec.genesisNonce,
-			roundTime:             ec.roundTime,
 		},
 	}
 
