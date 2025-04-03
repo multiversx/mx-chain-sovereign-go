@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/facade"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/update"
@@ -138,7 +139,7 @@ func NewTrigger(arg ArgHardforkTrigger) (*trigger, error) {
 }
 
 func (t *trigger) getCurrentUnixTime() int64 {
-	return time.Now().UnixMilli()
+	return runType.TimeToUnix(time.Now())
 }
 
 func (t *trigger) epochConfirmed(epoch uint32) {

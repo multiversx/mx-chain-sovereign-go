@@ -19,6 +19,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dblookupext"
 	"github.com/multiversx/mx-chain-go/process"
@@ -527,7 +528,7 @@ func (atp *apiTransactionProcessor) computeTimestampForRound(round uint64) int64
 	secondsSinceGenesis := round * atp.roundDuration
 	timestamp := atp.genesisTime.Add(time.Duration(secondsSinceGenesis) * time.Millisecond)
 
-	return timestamp.UnixMilli()
+	return runType.TimeToUnix(timestamp)
 }
 
 func (atp *apiTransactionProcessor) lookupHistoricalTransaction(hash []byte, withResults bool) (*transaction.ApiTransactionResult, error) {

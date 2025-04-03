@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/metachain"
 	"github.com/multiversx/mx-chain-go/epochStart/shardchain"
@@ -94,7 +95,7 @@ func createMetaEpochStartTriggerArgs(args factory.ArgsEpochStartTrigger) (*metac
 	}
 
 	return &metachain.ArgsNewMetaEpochStartTrigger{
-		GenesisTime:        time.UnixMilli(args.CoreData.GenesisNodesSetup().GetStartTime()),
+		GenesisTime:        runType.UnixToTime(args.CoreData.GenesisNodesSetup().GetStartTime()),
 		Settings:           &args.Config.EpochStartConfig,
 		Epoch:              args.BootstrapComponents.EpochBootstrapParams().Epoch(),
 		EpochStartRound:    genesisHeader.GetRound(),

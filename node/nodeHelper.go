@@ -2,12 +2,12 @@ package node
 
 import (
 	"errors"
-	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	globalErrors "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/factory"
@@ -73,7 +73,7 @@ func CreateNode(
 		return nil, err
 	}
 
-	genesisTime := time.UnixMilli(coreComponents.GenesisNodesSetup().GetStartTime())
+	genesisTime := runType.UnixToTime(coreComponents.GenesisNodesSetup().GetStartTime())
 
 	consensusGroupSize, err := consensusComponents.ConsensusGroupSize()
 	if err != nil {

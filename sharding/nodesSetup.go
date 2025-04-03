@@ -110,8 +110,6 @@ func NewNodesSetup(
 		return nil, err
 	}
 
-	nodes.StartTime *= 1000
-
 	err = nodes.processConfig()
 	if err != nil {
 		return nil, err

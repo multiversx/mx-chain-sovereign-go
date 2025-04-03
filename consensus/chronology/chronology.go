@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/ntp"
 )
@@ -165,7 +166,7 @@ func (chr *chronology) updateRound() {
 
 	if oldRoundIndex != chr.roundHandler.Index() {
 		chr.watchdog.Reset(chronologyAlarmID)
-		msg := fmt.Sprintf("ROUND %d BEGINS (%d)", chr.roundHandler.Index(), chr.roundHandler.TimeStamp().UnixMilli())
+		msg := fmt.Sprintf("ROUND %d BEGINS (%d)", chr.roundHandler.Index(), runType.TimeToUnix(chr.roundHandler.TimeStamp()))
 		log.Debug(display.Headline(msg, chr.syncTimer.FormattedCurrentTime(), "#"))
 		logger.SetCorrelationRound(chr.roundHandler.Index())
 
@@ -184,7 +185,7 @@ func (chr *chronology) initRound() {
 	if hasSubroundsAndGenesisTimePassed {
 		chr.subroundId = chr.subroundHandlers[0].Current()
 		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRound, uint64(chr.roundHandler.Index()))
-		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRoundTimestamp, uint64(chr.roundHandler.TimeStamp().UnixMilli()))
+		chr.appStatusHandler.SetUInt64Value(common.MetricCurrentRoundTimestamp, uint64(runType.TimeToUnix(chr.roundHandler.TimeStamp())))
 	}
 
 	chr.mutSubrounds.RUnlock()

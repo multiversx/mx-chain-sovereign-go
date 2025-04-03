@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 )
@@ -395,7 +396,7 @@ func (sr *subroundBlock) createHeader() (data.HeaderHandler, error) {
 		return nil, err
 	}
 
-	err = hdr.SetTimeStamp(uint64(sr.RoundHandler().TimeStamp().UnixMilli()))
+	err = hdr.SetTimeStamp(uint64(runType.TimeToUnix(sr.RoundHandler().TimeStamp())))
 	if err != nil {
 		return nil, err
 	}
