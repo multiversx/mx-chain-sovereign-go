@@ -908,6 +908,7 @@ func (snr *sovereignNodeRunner) createMetrics(
 		snr.configs.EconomicsConfig,
 		snr.configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		coreComponents.MinTransactionVersion(),
+		snr.configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
