@@ -171,7 +171,7 @@ func TestChainSimulator_ExecuteMintBurnBridgeOpForESDTTokensWithPrefixAndTransfe
 
 		// deposit a prefixed token from main chain to sovereign chain,
 		// expecting these tokens to be burned by the whitelisted ESDT safe sc
-		txResult = deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{bridgedOutToken}, receiver.Bytes)
+		txResult = Deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{bridgedOutToken}, receiver.Bytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 
 		remainingTokenAmount := big.NewInt(0).Sub(receiverToken.Amount, amountToDeposit)
