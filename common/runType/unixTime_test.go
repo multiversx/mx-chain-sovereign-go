@@ -36,6 +36,7 @@ func TestConfigureUnixTimeSeconds(t *testing.T) {
 
 func TestConfigureUnixTimeMilliseconds(t *testing.T) {
 	ConfigureUnixTime(Milliseconds)
+	defer ConfigureUnixTime(Seconds)
 
 	now := time.Now().Truncate(time.Millisecond)
 	unix := TimeToUnix(now)
