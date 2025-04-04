@@ -116,7 +116,7 @@ jobs:
           echo "LATEST_COMMIT_HASH=${latest_commit_hash}" >> $GITHUB_ENV
           echo "Latest commit hash: ${latest_commit_hash}"
           
-          latest_core_go_hash=$(grep 'github.com/multiversx/mx-chain-core-go =>' go.mod | sed -E 's/.*-([a-f0-9]{12})/\1/')
+          latest_core_go_hash= $(grep 'github.com/multiversx/mx-chain-core-go =>' go.mod | sed -E 's/.* (v[0-9][^ ]*)/\1/')
           echo "LATEST_CORE_GO_HASH=${latest_core_go_hash}" >> $GITHUB_ENV
           echo "Latest core go hash: ${latest_core_go_hash}"
 
