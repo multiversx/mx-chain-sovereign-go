@@ -14,7 +14,6 @@ source $SCRIPT_PATH/config/esdt-safe.snippets.sh
 source $SCRIPT_PATH/config/fee-market.snippets.sh
 source $SCRIPT_PATH/config/header-verifier.snippets.sh
 source $SCRIPT_PATH/config/common.snippets.sh
-source $SCRIPT_PATH/config/token.snippets.sh
 source $SCRIPT_PATH/config/py.snippets.sh
 source $SCRIPT_PATH/config/contracts.snippets.sh
 source $SCRIPT_PATH/config/deploy.snippets.sh

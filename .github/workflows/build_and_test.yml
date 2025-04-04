@@ -2,7 +2,7 @@ name: Build and smoke test
 
 on:
   pull_request:
-    branches: [master, rc/*]
+    branches: [master, rc/*, feat/*]
   workflow_dispatch:
 
 jobs:
@@ -33,6 +33,8 @@ jobs:
       - name: Build
         run: |
           cd ${GITHUB_WORKSPACE}/cmd/node && go build .
+          cd ${GITHUB_WORKSPACE}/cmd/sovereignnode && go build .
+          cd ${GITHUB_WORKSPACE}/cmd/sovereignnode/systemTestDemo/mockNotifier && go build .
           cd ${GITHUB_WORKSPACE}/cmd/seednode && go build .
           cd ${GITHUB_WORKSPACE}/cmd/keygenerator && go build .
           cd ${GITHUB_WORKSPACE}/cmd/logviewer && go build .

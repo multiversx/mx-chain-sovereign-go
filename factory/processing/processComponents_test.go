@@ -1163,6 +1163,7 @@ func getRunTypeComponents(rt runType.RunTypeComponentsHolder) *mainFactoryMocks.
 		DirectStakedListFactoryField:                rt.DirectStakedListFactoryHandler(),
 		TotalStakedValueFactoryField:                rt.TotalStakedValueFactoryHandler(),
 		VersionedHeaderFactoryField:                 rt.VersionedHeaderFactory(),
+		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
 	}
 }
 

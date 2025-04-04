@@ -12,11 +12,7 @@
     StartInEpochEnabled = true
 
     # ChainID represents the chain identifier
-    # The currently supported constants are:
-    #   "1" for Mainnet
-    #   "D" for Devnet
-    #   "T" for Testnet
-    ChainID = "undefined"
+    ChainID = "sov"
 
     # MinTransactionVersion represents the minimum transaction version accepted
     MinTransactionVersion = 1
@@ -38,7 +34,7 @@
     # SetGuardianEpochsDelay represents the delay in epochs between the execution time of the SetGuardian transaction and
     # the activation of the configured guardian.
     # Make sure that this is greater than the unbonding period!
-    SetGuardianEpochsDelay = 2 # TODO: for mainnet should be 20, 2 is just for testing
+    SetGuardianEpochsDelay = 2
 
 [HardwareRequirements]
     CPUFlags = ["SSE4", "SSE42"]
@@ -667,14 +663,12 @@
     MinSizeInBytes = 104857 # 104857 is 10% from 1MB
     MaxSizeInBytes = 943718 # 943718 is 90% from 1MB
 
-# TODO MX-14985 resolve after override structs branch is merged
 [VirtualMachine]
     [VirtualMachine.Execution]
         TimeOutForSCExecutionInMilliseconds = 10000 # 10 seconds = 10000 milliseconds
         WasmerSIGSEGVPassthrough            = false # must be false for release
         WasmVMVersions = [
-            { StartEpoch = 0, Version = "v1.4" },
-            { StartEpoch = 1, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
+            { StartEpoch = 0, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
         ]
         TransferAndExecuteByUserAddresses = [ # TODO: set real contract addresses for all shards
             "erd1qqqqqqqqqqqqqpgqr46jrxr6r2unaqh75ugd308dwx5vgnhwh47qtvepe3", #shard 0
@@ -685,8 +679,7 @@
         TimeOutForSCExecutionInMilliseconds = 10000 # 10 seconds = 10000 milliseconds
         WasmerSIGSEGVPassthrough            = false # must be false for release
         WasmVMVersions = [
-            { StartEpoch = 0, Version = "v1.4" },
-            { StartEpoch = 1, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
+            { StartEpoch = 0, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
         ]
         TransferAndExecuteByUserAddresses = [ # TODO: set real contract addresses for all shards
             "erd1qqqqqqqqqqqqqpgqr46jrxr6r2unaqh75ugd308dwx5vgnhwh47qtvepe3",
@@ -814,11 +807,11 @@
     FolderPath = "health-records"
 
 [SoftwareVersionConfig]
-    StableTagLocation = "https://api.github.com/repos/multiversx/mx-chain-go/releases/latest"
+    StableTagLocation = "https://api.github.com/repos/multiversx/mx-chain-sovereign-config/releases/latest"
     PollingIntervalInMinutes = 65
 
 [GatewayMetricsConfig]
-    # TODO: set this to gateway URL based on testnet/devnet/mainnet env
+    # TODO: set this to gateway URL accordingly
     URL = ""
 
 [LogsAndEvents]
@@ -917,7 +910,7 @@
     NumFullHistoryPeers = 3
 
 [HeartbeatV2]
-    PeerAuthenticationTimeBetweenSendsInSec          = 600   # 10min TODO: change this for mainnet/devnet/testnet
+    PeerAuthenticationTimeBetweenSendsInSec          = 600   # 10min. Change this accordingly. For example, on mvx mainnet we have 7200 = 2h
     PeerAuthenticationTimeBetweenSendsWhenErrorInSec = 60    # 1min
     PeerAuthenticationTimeThresholdBetweenSends      = 0.1   # 10%   # max random threshold between messages, representing a percent of PeerAuthenticationTimeBetweenSendsInSec
     HeartbeatTimeBetweenSendsInSec                   = 60    # 1min
