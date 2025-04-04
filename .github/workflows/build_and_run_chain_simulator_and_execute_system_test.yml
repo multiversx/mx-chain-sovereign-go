@@ -136,7 +136,7 @@ jobs:
         run: |
           cd mx-chain-simulator-go
           pip install -r scripts/update-go-mod/requirements.txt
-          python scripts/update-go-mod/update-go-mod.py $LATEST_COMMIT_HASH "$LATEST_CORE_GO_HASH"
+          python scripts/update-go-mod/update-go-mod.py $LATEST_COMMIT_HASH $LATEST_CORE_GO_HASH
 
       - name: Run go build
         run: |
