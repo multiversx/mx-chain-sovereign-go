@@ -192,17 +192,21 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 }
 
 func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, error) {
-	operation, err := op.createOperationData(event.GetTopics())
-	if err != nil {
-		return nil, err
-	}
-
 	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err
 	}
 
-	operation.Data = evData
+	topics := event.GetTopics()
+	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
+	if err != nil {
+		return nil, err
+	}
+
+	operation, err := op.createOperationData(topics, evData)
+	if err != nil {
+		return nil, err
+	}
 
 	operationBytes, err := op.dataCodec.SerializeOperation(*operation)
 	if err != nil {
@@ -212,12 +216,7 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte,
 	return operationBytes, nil
 }
 
-func (op *outgoingOperations) createOperationData(topics [][]byte) (*sovereign.Operation, error) {
-	err := op.topicsChecker.CheckValidity(topics)
-	if err != nil {
-		return nil, err
-	}
-
+func (op *outgoingOperations) createOperationData(topics [][]byte, eventData *sovereign.EventData) (*sovereign.Operation, error) {
 	tokens := make([]sovereign.EsdtToken, 0)
 	for i := tokensIndex; i < len(topics); i += numTransferTopics {
 		tokenIdentifier := topics[i]
@@ -241,6 +240,7 @@ func (op *outgoingOperations) createOperationData(topics [][]byte) (*sovereign.O
 	return &sovereign.Operation{
 		Address: topics[receiverIndex],
 		Tokens:  tokens,
+		Data:    eventData,
 	}, nil
 }
 

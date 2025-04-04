@@ -358,7 +358,7 @@ func testDepositNotAllowedToBurnTokensContractNotWhitelisted(
 
 	// deposit an array of tokens from main chain to sovereign chain,
 	// expecting these tokens to NOT be burned by ESDT safe sc because is not whitelisted
-	txResult := deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, bridgedOutTokens, wallet.Bytes)
+	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, bridgedOutTokens, wallet.Bytes, nil)
 	chainSim.RequireSignalError(t, txResult, actionNotAllowed)
 }
 

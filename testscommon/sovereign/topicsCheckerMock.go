@@ -1,14 +1,18 @@
 package sovereign
 
+import (
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+)
+
 // TopicsCheckerMock -
 type TopicsCheckerMock struct {
-	CheckValidityCalled func(topics [][]byte) error
+	CheckValidityCalled func(topics [][]byte, transferData *sovereign.TransferData) error
 }
 
 // CheckValidity -
-func (tc *TopicsCheckerMock) CheckValidity(topics [][]byte) error {
+func (tc *TopicsCheckerMock) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
 	if tc.CheckValidityCalled != nil {
-		return tc.CheckValidityCalled(topics)
+		return tc.CheckValidityCalled(topics, transferData)
 	}
 
 	return nil

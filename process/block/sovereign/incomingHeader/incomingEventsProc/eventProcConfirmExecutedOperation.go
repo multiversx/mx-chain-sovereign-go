@@ -43,7 +43,7 @@ func (ep *eventProcConfirmExecutedOperation) ProcessEvent(event data.EventHandle
 
 func getConfirmedBridgeOperation(topics [][]byte) (*dto.ConfirmedBridgeOp, error) {
 	if len(topics) != numExecutedBridgeOpTopics {
-		return nil, fmt.Errorf("%w for %s; num topics = %d", dto.ErrInvalidNumTopicsIncomingEvent, dto.EventIDExecutedOutGoingBridgeOp, len(topics))
+		return nil, fmt.Errorf("%w for %s; num topics = %d", dto.ErrInvalidNumTopicsInEvent, dto.EventIDExecutedOutGoingBridgeOp, len(topics))
 	}
 	if string(topics[0]) != dto.TopicIDConfirmedOutGoingOperation {
 		return nil, dto.ErrInvalidIncomingTopicIdentifier

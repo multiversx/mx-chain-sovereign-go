@@ -1,9 +1,11 @@
 package disabled
 
 import (
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTopicsChecker_MethodsShouldNotPanic(t *testing.T) {
@@ -13,7 +15,10 @@ func TestTopicsChecker_MethodsShouldNotPanic(t *testing.T) {
 	require.False(t, check.IfNil(tc))
 
 	require.NotPanics(t, func() {
-		err := tc.CheckValidity([][]byte{[]byte("topic")})
+		err := tc.CheckValidity([][]byte{[]byte("topic")}, nil)
+		require.NoError(t, err)
+
+		err = tc.CheckValidity([][]byte{[]byte("topic")}, &sovereign.TransferData{})
 		require.NoError(t, err)
 	})
 }

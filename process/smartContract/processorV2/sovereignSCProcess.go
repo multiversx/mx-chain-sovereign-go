@@ -80,6 +80,8 @@ func (sc *sovereignSCProcessor) ProcessSmartContractResult(scr *smartContractRes
 
 	txType, _, _ := sc.txTypeHandler.ComputeTransactionType(scr)
 	switch txType {
+	case process.SCInvoking:
+		return sc.ExecuteSmartContractTransaction(scr, nil, scrData.GetDestination())
 	case process.BuiltInFunctionCall:
 		err = sc.checkBuiltInFuncCall(string(scr.Data))
 		if err != nil {

@@ -51,7 +51,7 @@ func NewEventProcExecutedDepositOperation(
 func (ep *eventProcExecutedDepositOperation) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	topics := event.GetTopics()
 	if len(topics) == 0 {
-		return nil, fmt.Errorf("%w for event id: %s", dto.ErrInvalidNumTopicsIncomingEvent, dto.EventIDExecutedOutGoingBridgeOp)
+		return nil, fmt.Errorf("%w for event id: %s", dto.ErrInvalidNumTopicsInEvent, dto.EventIDExecutedOutGoingBridgeOp)
 	}
 
 	switch string(topics[0]) {

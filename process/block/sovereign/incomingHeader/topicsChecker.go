@@ -3,6 +3,8 @@ package incomingHeader
 import (
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
@@ -14,18 +16,19 @@ func NewTopicsChecker() *topicsChecker {
 }
 
 // CheckValidity will receive the topics and validate them
-func (tc *topicsChecker) CheckValidity(topics [][]byte) error {
-	// TODO: Check each param validity (e.g. check that topic[0] == valid address)
-	if len(topics) < dto.MinTopicsInTransferEvent || len(topics[2:])%dto.NumTransferTopics != 0 {
-		log.Error("incomingHeaderHandler.createIncomingSCRs",
-			"error", dto.ErrInvalidNumTopicsIncomingEvent,
-			"num topics", len(topics),
-			"topics", topics)
-
-		return fmt.Errorf("%w for %s; num topics = %d", dto.ErrInvalidNumTopicsIncomingEvent, "eventIDDepositIncomingTransfer", len(topics))
+func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
+	if len(topics) == dto.MinTopicsInTransferEvent && transferData != nil ||
+		len(topics) > dto.MinTopicsInTransferEvent && len(topics[2:])%dto.NumTransferTopics == 0 {
+		// TODO: Check each param validity (e.g. check that topic[0] == valid address, gasLimit, function etc)
+		return nil
 	}
 
-	return nil
+	log.Error("topicsChecker.CheckValidity",
+		"error", dto.ErrInvalidNumTopicsInEvent,
+		"num topics", len(topics),
+		"topics", topics)
+
+	return fmt.Errorf("%w for %s; num topics = %d", dto.ErrInvalidNumTopicsInEvent, "eventIDDepositIncomingTransfer", len(topics))
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

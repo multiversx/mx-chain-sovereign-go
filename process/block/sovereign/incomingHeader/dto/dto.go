@@ -6,7 +6,7 @@ import (
 
 const (
 	// MinTopicsInTransferEvent represents the minimum number of topics required in a transfer event.
-	MinTopicsInTransferEvent = 5
+	MinTopicsInTransferEvent = 2
 
 	// NumTransferTopics defines the expected number of topics related to a token transfer.
 	NumTransferTopics = 3

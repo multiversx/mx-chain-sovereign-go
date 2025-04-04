@@ -25,6 +25,6 @@ type DataCodecHandler interface {
 
 // TopicsCheckerHandler should be able to check the topics validity
 type TopicsCheckerHandler interface {
-	CheckValidity(topics [][]byte) error
+	CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error
 	IsInterfaceNil() bool
 }
