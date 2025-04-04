@@ -2,6 +2,7 @@ package metachain
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 

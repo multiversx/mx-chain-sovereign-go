@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/config/overridableConfig"
 	// test point 1 for custom profiler
@@ -137,6 +138,8 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 	if errSovereignNodeRunner != nil {
 		return errSovereignNodeRunner
 	}
+
+	runType.ConfigureUnixTime(runType.Milliseconds)
 
 	err = nodeRunner.Start()
 	if err != nil {

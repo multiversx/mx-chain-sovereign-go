@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	disabledCommon "github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/ordering"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
@@ -282,7 +283,7 @@ func NewEpochStartBootstrap(args ArgsEpochStartBootstrap) (*epochStartBootstrap,
 }
 
 func (e *epochStartBootstrap) isStartInEpochZero() bool {
-	startTime := time.Unix(e.genesisNodesConfig.GetStartTime(), 0)
+	startTime := runType.UnixToTime(e.genesisNodesConfig.GetStartTime())
 	isCurrentTimeBeforeGenesis := time.Since(startTime) < 0
 	if isCurrentTimeBeforeGenesis {
 		return true

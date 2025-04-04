@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/multiversx/mx-chain-go/update"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetDataFromStorage_NilStorageShouldErr(t *testing.T) {
@@ -49,16 +50,12 @@ func TestGetDataFromStorage_FoundShouldWork(t *testing.T) {
 }
 
 func TestWaitFor_ShouldTimeout(t *testing.T) {
-	t.Parallel()
-
 	chanToUse := make(chan bool, 1)
 	err := WaitFor(chanToUse, 10*time.Millisecond)
 	require.Equal(t, update.ErrTimeIsOut, err)
 }
 
 func TestWaitFor_ShouldWorkAfterTheChannelIsWrittenIn(t *testing.T) {
-	t.Parallel()
-
 	chanToUse := make(chan bool, 1)
 	go func() {
 		time.Sleep(10 * time.Millisecond)
