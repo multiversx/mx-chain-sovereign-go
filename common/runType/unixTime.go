@@ -9,17 +9,16 @@ import (
 )
 
 var (
-	secondsConverter = func(t time.Time) int64 {
-		return t.Unix()
-	}
-	millisecondsConverter = func(t time.Time) int64 {
-		return t.UnixMilli()
-	}
-
-	// timeToUnix singleton defaults to seconds
-	timeToUnix  = secondsConverter
-	currentUnit = Seconds
+	timeToUnix         func(time.Time) int64
+	unixToTime         func(int64) time.Time
+	timeDurationToUnix func(time.Duration) int64
+	checkRoundDuration func(uint64) error
+	unitsInDay         int
 )
+
+func init() {
+	ConfigureUnixTime(Seconds)
+}
 
 // TimeUnit enum for round configuration
 type TimeUnit int
@@ -39,14 +38,19 @@ const NumberOfMillisecondsInDay = NumberOfSecondsInDay * 1000
 
 // ConfigureUnixTime configures timeToUnix singleton to work with a specific time unit
 func ConfigureUnixTime(unit TimeUnit) {
-	currentUnit = unit
 	switch unit {
-	case Seconds:
-		timeToUnix = secondsConverter
 	case Milliseconds:
-		timeToUnix = millisecondsConverter
+		timeToUnix = func(t time.Time) int64 { return t.UnixMilli() }
+		unixToTime = func(unixTime int64) time.Time { return time.UnixMilli(unixTime) }
+		timeDurationToUnix = func(duration time.Duration) int64 { return duration.Milliseconds() }
+		checkRoundDuration = checkRoundDurationMilliSec
+		unitsInDay = NumberOfMillisecondsInDay
 	default:
-		timeToUnix = secondsConverter
+		timeToUnix = func(t time.Time) int64 { return t.Unix() }
+		unixToTime = func(unixTime int64) time.Time { return time.Unix(unixTime, 0) }
+		timeDurationToUnix = func(duration time.Duration) int64 { return int64(duration.Seconds()) }
+		checkRoundDuration = checkRoundDurationSec
+		unitsInDay = NumberOfSecondsInDay
 	}
 }
 
@@ -57,38 +61,17 @@ func TimeToUnix(t time.Time) int64 {
 
 // UnixToTime converts int64 to time based on current configuration
 func UnixToTime(unixTime int64) time.Time {
-	switch currentUnit {
-	case Seconds:
-		return time.Unix(unixTime, 0)
-	case Milliseconds:
-		return time.UnixMilli(unixTime)
-	default:
-		return time.Unix(unixTime, 0)
-	}
+	return unixToTime(unixTime)
 }
 
 // TimeDurationToUnix converts duration time to unix based on current configuration
 func TimeDurationToUnix(duration time.Duration) int64 {
-	switch currentUnit {
-	case Seconds:
-		return int64(duration.Seconds())
-	case Milliseconds:
-		return duration.Milliseconds()
-	default:
-		return int64(duration.Seconds())
-	}
+	return timeDurationToUnix(duration)
 }
 
 // CheckRoundDuration checks round duration based on current configuration
 func CheckRoundDuration(roundDuration uint64) error {
-	switch currentUnit {
-	case Seconds:
-		return checkRoundDurationSec(roundDuration)
-	case Milliseconds:
-		return checkRoundDurationMilliSec(roundDuration)
-	default:
-		return checkRoundDurationSec(roundDuration)
-	}
+	return checkRoundDuration(roundDuration)
 }
 
 func checkRoundDurationSec(roundDuration uint64) error {
@@ -110,11 +93,5 @@ func checkRoundDurationMilliSec(roundDuration uint64) error {
 
 // ComputeRoundsPerDay computes the rounds per day based on current configuration
 func ComputeRoundsPerDay(roundTime time.Duration) uint64 {
-	numOfRoundTimeUnitsInDay := NumberOfSecondsInDay
-	switch currentUnit {
-	case Milliseconds:
-		numOfRoundTimeUnitsInDay = NumberOfMillisecondsInDay
-	}
-
-	return uint64(numOfRoundTimeUnitsInDay) / uint64(TimeDurationToUnix(roundTime))
+	return uint64(unitsInDay) / uint64(timeDurationToUnix(roundTime))
 }
