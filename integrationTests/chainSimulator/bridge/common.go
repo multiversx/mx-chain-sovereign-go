@@ -201,10 +201,9 @@ func getDepositTransferDataArgs(transferData *transferData) string {
 		return ""
 	}
 
-	args := "@"
+	args := ""
 	for _, arg := range transferData.Args {
-		args = args +
-			lengthOn4Bytes(len(arg)) +
+		args = args + "@" +
 			hex.EncodeToString(arg)
 	}
 

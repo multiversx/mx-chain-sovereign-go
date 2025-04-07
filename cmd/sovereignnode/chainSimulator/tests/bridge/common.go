@@ -133,7 +133,7 @@ func getTransferDataValue(transferData *sovereign.TransferData) any {
 		return nil
 	}
 
-	arguments := make([]abi.SingleValue, len(transferData.Args))
+	arguments := make([]any, len(transferData.Args))
 	for i, arg := range transferData.Args {
 		arguments[i] = &abi.BytesValue{Value: arg}
 	}
@@ -141,7 +141,7 @@ func getTransferDataValue(transferData *sovereign.TransferData) any {
 		Items: []any{
 			&abi.U64Value{Value: transferData.GasLimit},
 			&abi.BytesValue{Value: transferData.Function},
-			&abi.ListValue{Items: arguments},
+			&abi.VariadicValues{Items: arguments},
 		},
 	}
 }
