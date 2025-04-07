@@ -468,6 +468,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	scr1Nonce := uint64(0)
 	scr2Nonce := uint64(1)
 	scr3Nonce := uint64(2)
+	scr4Nonce := uint64(3)
 	gasLimit1 := uint64(45100)
 	gasLimit2 := uint64(54100)
 	gasLimit3 := uint64(63100)
@@ -517,12 +518,25 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 			"@" + hex.EncodeToString(arg2)),
 		GasLimit: gasLimit3,
 	}
+	scr4 := &smartContractResult.SmartContractResult{
+		Nonce:   scr4Nonce,
+		Value:   big.NewInt(0),
+		RcvAddr: addr3,
+		SndAddr: core.ESDTSCAddress,
+		Data: []byte(core.BuiltInFunctionMultiESDTNFTTransfer + "@01" +
+			"@" + hex.EncodeToString(token2) +
+			"@" + hex.EncodeToString(token2Nonce) +
+			"@" + hex.EncodeToString(token2Data)),
+		GasLimit: 0,
+	}
 
 	scrHash1, err := core.CalculateHash(args.Marshaller, args.Hasher, scr1)
 	require.Nil(t, err)
 	scrHash2, err := core.CalculateHash(args.Marshaller, args.Hasher, scr2)
 	require.Nil(t, err)
 	scrHash3, err := core.CalculateHash(args.Marshaller, args.Hasher, scr3)
+	require.Nil(t, err)
+	scrHash4, err := core.CalculateHash(args.Marshaller, args.Hasher, scr4)
 	require.Nil(t, err)
 
 	cacheID := process.ShardCacherIdentifier(core.MainChainShardId, core.SovereignChainShardId)
@@ -546,6 +560,11 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		string(scrHash3): {
 			data:        scr3,
 			sizeInBytes: scr3.Size(),
+			cacheID:     cacheID,
+		},
+		string(scrHash4): {
+			data:        scr4,
+			sizeInBytes: scr4.Size(),
 			cacheID:     cacheID,
 		},
 	}
@@ -594,6 +613,18 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	}
 	eventData3 := []byte("eventData3")
 
+	transfer4 := [][]byte{
+		token2,
+		token2Nonce,
+		token2Data,
+	}
+	topic5 := [][]byte{
+		[]byte(dto.TopicIDDepositIncomingTransfer),
+		addr3,
+	}
+	topic5 = append(topic5, transfer4...)
+	eventData4 := []byte("eventData4")
+
 	incomingEvents := []*transaction.Event{
 		{
 			Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -614,13 +645,18 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 			Topics:     topic4,
 			Data:       eventData3,
 		},
+		{
+			Identifier: []byte(dto.EventIDDepositIncomingTransfer),
+			Topics:     topic5,
+			Data:       eventData4,
+		},
 	}
 
 	extendedHeader := &block.ShardHeaderExtended{
 		Header: headerV2,
 		IncomingMiniBlocks: []*block.MiniBlock{
 			{
-				TxHashes:        [][]byte{scrHash1, scrHash2, scrHash3},
+				TxHashes:        [][]byte{scrHash1, scrHash2, scrHash3, scrHash4},
 				ReceiverShardID: core.SovereignChainShardId,
 				SenderShardID:   core.MainChainShardId,
 				Type:            block.SmartContractResultBlock,
@@ -683,6 +719,9 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 			case 2:
 				require.Equal(t, topic4, topics)
 				require.True(t, transferData != nil)
+			case 3:
+				require.Equal(t, topic5, topics)
+				require.True(t, transferData == nil)
 			default:
 				require.Fail(t, "check validity called more than 2 times")
 			}
@@ -733,6 +772,14 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 					},
 				}, nil
 
+			case 3:
+				require.Equal(t, eventData4, data)
+
+				return &sovereign.EventData{
+					Nonce:        scr4Nonce,
+					TransferData: nil,
+				}, nil
+
 			default:
 				require.Fail(t, "deserialize event data called more than 2 times")
 				return nil, nil
@@ -749,7 +796,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 					Amount:    amount1,
 				}, nil
 
-			case 1, 2:
+			case 1, 2, 3:
 				require.Equal(t, token2Data, data)
 				return &sovereign.EsdtTokenData{
 					TokenType: core.Fungible,
@@ -771,9 +818,9 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	err = handler.AddHeader([]byte("hash"), incomingHeader)
 	require.Nil(t, err)
-	require.Equal(t, 2, checkValidityCt)
-	require.Equal(t, 2, deserializeEventDataCt)
-	require.Equal(t, 2, deserializeTokenDataCt)
+	require.Equal(t, 3, checkValidityCt)
+	require.Equal(t, 3, deserializeEventDataCt)
+	require.Equal(t, 3, deserializeTokenDataCt)
 	require.True(t, wasAddedInHeaderPool)
 	require.True(t, wasAddedInTxPool)
 	require.True(t, wasOutGoingOpConfirmed)
