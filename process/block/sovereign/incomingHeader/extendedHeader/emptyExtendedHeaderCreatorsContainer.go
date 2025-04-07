@@ -1,10 +1,10 @@
 package extendedHeader
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 )
 
@@ -23,7 +23,7 @@ func NewEmptyBlockCreatorsContainer() *emptyBlockCreatorsContainer {
 // Add will add a new empty extended block creator for a specific chain
 func (container *emptyBlockCreatorsContainer) Add(chainID dto.ChainID, creator EmptyExtendedHeaderCreator) error {
 	if check.IfNil(creator) {
-		return data.ErrNilEmptyBlockCreator
+		return fmt.Errorf("%w for chain %s", errNilEmptyExtendedHeaderCreator, chainID.String())
 	}
 
 	container.mut.Lock()
@@ -40,7 +40,7 @@ func (container *emptyBlockCreatorsContainer) Get(chainID dto.ChainID) (EmptyExt
 	container.mut.RUnlock()
 
 	if !ok {
-		return nil, data.ErrInvalidHeaderType
+		return nil, errChainIDNotFound
 	}
 
 	return creator, nil
