@@ -23,6 +23,7 @@ const (
 	//enshrine esdt-safe contract without checks for prefix or issue cost paid for new tokens
 	simpleEnshrineEsdtSafeWasmPath = "testdata/simple-enshrine-esdt-safe.wasm"
 	feeMarketWasmPath              = "testdata/fee-market.wasm"
+	depositFunc                    = "deposit"
 )
 
 // ArgsEsdtSafe holds the arguments for esdt safe contract argument
@@ -172,9 +173,9 @@ func deposit(
 	}
 
 	depositArgs = depositArgs +
-		"@" + hex.EncodeToString([]byte("deposit")) +
+		"@" + hex.EncodeToString([]byte(depositFunc)) +
 		"@" + hex.EncodeToString(receiver) +
-		createDepositTransferData(transferData)
+		getDepositTransferDataArgs(transferData)
 
 	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
@@ -188,14 +189,14 @@ func depositScCall(t *testing.T,
 	receiver []byte,
 	transferData *transferData,
 ) *transaction.ApiTransactionResult {
-	depositArgs := "deposit" +
+	depositArgs := depositFunc +
 		"@" + hex.EncodeToString(receiver) +
-		createDepositTransferData(transferData)
+		getDepositTransferDataArgs(transferData)
 
 	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
-func createDepositTransferData(transferData *transferData) string {
+func getDepositTransferDataArgs(transferData *transferData) string {
 	if transferData == nil {
 		return ""
 	}
