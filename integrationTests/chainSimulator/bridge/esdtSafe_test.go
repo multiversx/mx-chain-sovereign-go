@@ -188,7 +188,7 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 			Amount:     depositAmount,
 			Type:       receivedToken.Type,
 		}
-		txResult = Deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, wallet.Bytes, nil)
+		txResult = deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, wallet.Bytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(receivedToken), receiver.Bech32, big.NewInt(0).Sub(receivedToken.Amount, big.NewInt(1)))
 
@@ -317,7 +317,7 @@ func TestChainSimulator_DepositAndExecuteOperations(t *testing.T) {
 			Amount:     amountToTransfer,
 			Type:       token.Type,
 		}
-		txResult := Deposit(t, cs, accountAddrBytes, &account.nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, accountAddrBytes, nil)
+		txResult := deposit(t, cs, accountAddrBytes, &account.nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, accountAddrBytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(depositToken), account.addrBech32, big.NewInt(0).Sub(token.Amount, amountToTransfer))
 		waitIfCrossShardProcessing(cs, chainSim.GetShardForAddress(cs, account.addrBech32), esdtSafeAddrShard)
@@ -572,11 +572,11 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 	}
 
 	// deposit no payment, no transfer data should fail
-	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
+	txResult := deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
 	chainSim.RequireSignalError(t, txResult, "Nothing to transfer")
 
 	// deposit no payment, with transfer data should work
-	txResult = Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+	txResult = deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	// execute no payment, with transfer data should work

@@ -11,7 +11,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 
 	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
@@ -25,12 +24,7 @@ const (
 	//enshrine esdt-safe contract without checks for prefix or issue cost paid for new tokens
 	simpleEnshrineEsdtSafeWasmPath = "testdata/simple-enshrine-esdt-safe.wasm"
 	feeMarketWasmPath              = "testdata/fee-market.wasm"
-	deposit                        = "deposit"
 )
-
-var serializer, _ = abi.NewSerializer(abi.ArgsNewSerializer{
-	PartsSeparator: "@",
-})
 
 // ArgsEsdtSafe holds the arguments for esdt safe contract argument
 type ArgsEsdtSafe struct {
@@ -146,8 +140,8 @@ func enshrineEsdtSafeContract(
 	return chainSim.DeployContract(t, cs, ownerAddress, nonce, systemContractDeploy, esdtSafeArgs, contractWasmPath)
 }
 
-// Deposit will deposit tokens in the bridge sc safe contract
-func Deposit(
+// deposit will deposit tokens in the bridge sc safe contract
+func deposit(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	sender []byte,
@@ -158,31 +152,30 @@ func Deposit(
 	transferData *sovereign.TransferData,
 ) *transaction.ApiTransactionResult {
 	if len(tokens) == 0 {
-		return DepositScCall(t, cs, sender, nonce, contract, receiver, transferData)
+		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
 	}
 
-	args := make([]any, 0)
-	args = append(args, &abi.AddressValue{Value: contract})
-	args = append(args, &abi.U32Value{Value: uint32(len(tokens))})
-	for _, token := range tokens {
-		args = append(args, &abi.StringValue{Value: token.Identifier})
-		args = append(args, &abi.U64Value{Value: token.Nonce})
-		args = append(args, &abi.BigUIntValue{Value: token.Amount})
-	}
-	args = append(args, &abi.StringValue{Value: deposit})
-	args = append(args, &abi.AddressValue{Value: receiver})
-	args = append(args, &abi.OptionalValue{Value: getTransferDataValue(transferData)})
-
-	multiTransferArg, err := serializer.Serialize(args)
-	require.Nil(t, err)
 	depositArgs := core.BuiltInFunctionMultiESDTNFTTransfer +
-		"@" + multiTransferArg
+		"@" + hex.EncodeToString(contract) +
+		"@" + fmt.Sprintf("%02X", len(tokens))
+
+	for _, token := range tokens {
+		depositArgs = depositArgs +
+			"@" + hex.EncodeToString([]byte(token.Identifier)) +
+			"@" + getTokenNonce(token.Nonce) +
+			"@" + hex.EncodeToString(token.Amount.Bytes())
+	}
+
+	depositArgs = depositArgs +
+		"@" + hex.EncodeToString([]byte("deposit")) +
+		"@" + hex.EncodeToString(receiver) +
+		createDepositTransferData(transferData)
 
 	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
-// DepositScCall will make a smart contract call through deposit endpoint
-func DepositScCall(t *testing.T,
+// depositScCall will make a smart contract call through deposit endpoint
+func depositScCall(t *testing.T,
 	cs chainSim.ChainSimulator,
 	sender []byte,
 	nonce *uint64,
@@ -190,34 +183,28 @@ func DepositScCall(t *testing.T,
 	receiver []byte,
 	transferData *sovereign.TransferData,
 ) *transaction.ApiTransactionResult {
-	args := make([]any, 0)
-	args = append(args, &abi.AddressValue{Value: receiver})
-	args = append(args, &abi.OptionalValue{Value: getTransferDataValue(transferData)})
-
-	transferArg, err := serializer.Serialize(args)
-	require.Nil(t, err)
-	depositArgs := deposit +
-		"@" + transferArg
+	depositArgs := "deposit" +
+		"@" + hex.EncodeToString(receiver) +
+		createDepositTransferData(transferData)
 
 	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
-func getTransferDataValue(transferData *sovereign.TransferData) any {
+func createDepositTransferData(transferData *sovereign.TransferData) string {
 	if transferData == nil {
-		return nil
+		return ""
 	}
 
-	arguments := make([]abi.SingleValue, len(transferData.Args))
-	for i, arg := range transferData.Args {
-		arguments[i] = &abi.BytesValue{Value: arg}
+	args := "@"
+	for _, arg := range transferData.Args {
+		args = args +
+			lengthOn4Bytes(len(arg)) +
+			hex.EncodeToString(arg)
 	}
-	return &abi.MultiValue{
-		Items: []any{
-			&abi.U64Value{Value: transferData.GasLimit},
-			&abi.BytesValue{Value: transferData.Function},
-			&abi.ListValue{Items: arguments},
-		},
-	}
+
+	return "@" + getUint64Bytes(transferData.GasLimit) +
+		"@" + hex.EncodeToString(transferData.Function) +
+		args
 }
 
 func registerSovereignNewTokens(

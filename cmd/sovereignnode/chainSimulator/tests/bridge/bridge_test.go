@@ -17,7 +17,6 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
-	chainSimBridge "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator/bridge"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
@@ -218,7 +217,7 @@ func depositAndCheckTokens(
 		Amount:     amountToDeposit,
 	})
 
-	txResult := chainSimBridge.Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, depositTokens, wallet.Bytes, nil)
+	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, depositTokens, wallet.Bytes, nil)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	tokens, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
@@ -317,7 +316,7 @@ func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) 
 	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
 	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
 
-	txResult := chainSimBridge.Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
+	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
 	chainSim.RequireSignalError(t, txResult, "Nothing to transfer")
 
 	trnsData := &sovereign.TransferData{
@@ -325,7 +324,7 @@ func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) 
 		Function: []byte("hello"),
 		Args:     [][]byte{{0x01}},
 	}
-	txResult = chainSimBridge.Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+	txResult = Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
