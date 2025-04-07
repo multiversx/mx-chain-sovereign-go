@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 
@@ -37,6 +36,12 @@ type ArgsBridgeSetup struct {
 	ESDTSafeAddress  []byte
 	FeeMarketAddress []byte
 	OwnerAccount     chainSim.Account
+}
+
+type transferData struct {
+	GasLimit uint64
+	Function []byte
+	Args     [][]byte
 }
 
 func initOwnerAndSysAccState(
@@ -149,7 +154,7 @@ func deposit(
 	contract []byte,
 	tokens []chainSim.ArgsDepositToken,
 	receiver []byte,
-	transferData *sovereign.TransferData,
+	transferData *transferData,
 ) *transaction.ApiTransactionResult {
 	if len(tokens) == 0 {
 		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
@@ -181,7 +186,7 @@ func depositScCall(t *testing.T,
 	nonce *uint64,
 	contract []byte,
 	receiver []byte,
-	transferData *sovereign.TransferData,
+	transferData *transferData,
 ) *transaction.ApiTransactionResult {
 	depositArgs := "deposit" +
 		"@" + hex.EncodeToString(receiver) +
@@ -190,7 +195,7 @@ func depositScCall(t *testing.T,
 	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
-func createDepositTransferData(transferData *sovereign.TransferData) string {
+func createDepositTransferData(transferData *transferData) string {
 	if transferData == nil {
 		return ""
 	}
@@ -241,7 +246,7 @@ func executeOperation(
 	esdtSafeAddress []byte,
 	bridgedInTokens []chainSim.ArgsDepositToken,
 	originalSender []byte,
-	transferData *sovereign.TransferData,
+	transferData *transferData,
 ) *transaction.ApiTransactionResult {
 	executeBridgeOpsData := "executeBridgeOps" +
 		"@" + generateRandomHash() + //dummy hash
@@ -283,7 +288,7 @@ func getTokenDataArgs(creator []byte, tokens []chainSim.ArgsDepositToken) string
 	return arg
 }
 
-func getTransferDataArgs(transferData *sovereign.TransferData) string {
+func getTransferDataArgs(transferData *transferData) string {
 	if transferData == nil {
 		return "00"
 	}

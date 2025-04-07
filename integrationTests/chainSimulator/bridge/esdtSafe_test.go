@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -225,7 +224,7 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 
 		// execute operations received from sovereign chain
 		// expecting the token to be minted in esdt-safe contract with the same properties and transferred to receiver contract address
-		trnsData := &sovereign.TransferData{
+		trnsData := &transferData{
 			GasLimit: uint64(10000000),
 			Function: []byte("hello"),
 			Args:     [][]byte{{0x01}},
@@ -471,7 +470,7 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 		// execute operations received from sovereign chain
 		// expecting the token to be minted in esdt-safe contract with the same properties and transferred with SC call to hello contract
 		// for (dynamic) SFT/MetaESDT the contract will create one more token and keep it forever
-		trnsData := &sovereign.TransferData{
+		trnsData := &transferData{
 			GasLimit: uint64(10000000),
 			Function: []byte("hello"),
 			Args:     [][]byte{{0x00}},
@@ -565,7 +564,7 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 	err = cs.GenerateBlocks(1)
 	require.Nil(t, err)
 
-	trnsData := &sovereign.TransferData{
+	trnsData := &transferData{
 		GasLimit: uint64(10000000),
 		Function: []byte("hello"),
 		Args:     [][]byte{{0x01}},
