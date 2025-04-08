@@ -6,13 +6,16 @@ import (
 
 const (
 	// MinTopicsInTransferEvent represents the minimum number of topics required in a transfer event.
-	MinTopicsInTransferEvent = 2
+	MinTopicsInTransferEvent = 5
 
 	// NumTransferTopics defines the expected number of topics related to a token transfer.
 	NumTransferTopics = 3
 
 	// TokensIndex is the index position in the topics array where token-related data is stored.
 	TokensIndex = 2
+
+	// NumScCallTopics represents the number of topics required in a sc call event.
+	NumScCallTopics = 2
 )
 
 const (

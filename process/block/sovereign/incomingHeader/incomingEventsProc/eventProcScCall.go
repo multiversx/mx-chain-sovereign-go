@@ -39,7 +39,7 @@ func (ep *eventProcScCall) ProcessEvent(event data.EventHandler) (*dto.EventResu
 	}
 
 	topics := event.GetTopics()
-	err = ep.topicsChecker.CheckValidity(topics, evData.TransferData)
+	err = ep.topicsChecker.CheckScCallValidity(topics, evData.TransferData)
 	if err != nil {
 		return nil, err
 	}

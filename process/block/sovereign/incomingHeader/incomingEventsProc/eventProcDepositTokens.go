@@ -82,7 +82,7 @@ func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.E
 	}
 
 	topics := event.GetTopics()
-	err = dep.topicsChecker.CheckValidity(topics, evData.TransferData)
+	err = dep.topicsChecker.CheckDepositTokensValidity(topics)
 	if err != nil {
 		return nil, err
 	}
