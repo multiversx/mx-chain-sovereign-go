@@ -459,6 +459,12 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 	})
 }
 
+// AddHeader with 5 incoming operations
+// 1. multi-transfer with 2 tokens and SC call
+// 2. multi-transfer with 1 token and SC call
+// 3. executed operation confirmation
+// 4. sc call, no tokens
+// 5. multi-transfer with 1 token, no SC call
 func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	t.Parallel()
 
