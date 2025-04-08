@@ -804,7 +804,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 				}, nil
 
 			default:
-				require.Fail(t, "deserialize event data called more than 2 times")
+				require.Fail(t, "deserialize event data called more than 4 times")
 				return nil, nil
 			}
 		},
@@ -827,7 +827,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 				}, nil
 
 			default:
-				require.Fail(t, "deserialize token data called more than 3 times")
+				require.Fail(t, "deserialize token data called more than 4 times")
 				return nil, nil
 			}
 		},
