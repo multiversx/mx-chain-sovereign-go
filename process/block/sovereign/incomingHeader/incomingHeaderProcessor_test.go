@@ -308,6 +308,14 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		err = handler.AddHeader([]byte("hash"), incomingHeader)
 		require.ErrorContains(t, err, errNumTopics.Error())
 
+		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer), []byte("receiver"), []byte("tokenID")}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
+		err = handler.AddHeader([]byte("hash"), incomingHeader)
+		require.ErrorContains(t, err, errNumTopics.Error())
+
+		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer), []byte("receiver"), []byte("token1ID"), []byte("token1Nonce"), []byte("token1Data"), []byte("token2ID")}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
+		err = handler.AddHeader([]byte("hash"), incomingHeader)
+		require.ErrorContains(t, err, errNumTopics.Error())
+
 		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation)}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
 		err = handler.AddHeader([]byte("hash"), incomingHeader)
 		requireErrorIsInvalidNumTopics(t, err, 0, 1)
@@ -608,7 +616,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	}
 
 	topic4 := [][]byte{
-		[]byte(dto.TopicIDDepositIncomingTransfer),
+		[]byte(dto.TopicIDScCall),
 		addr3,
 	}
 	eventData3 := []byte("eventData3")

@@ -30,6 +30,9 @@ const (
 
 	// TopicIDDepositIncomingTransfer is used as a topic identifier for incoming token deposit events.
 	TopicIDDepositIncomingTransfer = "deposit"
+
+	// TopicIDScCall is used as a topic identifier for incoming sc call events.
+	TopicIDScCall = "scCall"
 )
 
 // SCRInfo holds an incoming scr that is created based on an incoming cross chain event and its hash

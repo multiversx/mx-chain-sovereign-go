@@ -15,8 +15,8 @@ import (
 	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 )
 
-func createArgs() EventProcDepositTokensArgs {
-	return EventProcDepositTokensArgs{
+func createArgs() EventProcDepositOperationArgs {
+	return EventProcDepositOperationArgs{
 		Marshaller: &marshallerMock.MarshalizerMock{},
 		Hasher:     &hashingMocks.HasherMock{},
 		DataCodec: &sovTests.DataCodecMock{
@@ -137,33 +137,6 @@ func TestDepositEventProc_createSCRData(t *testing.T) {
 	arg1 := []byte("arg1")
 	arg2 := []byte("arg2")
 
-	t.Run("create SCR data with no tokens, with transfer data", func(t *testing.T) {
-		t.Parallel()
-
-		args := createArgs()
-		handler, _ := NewEventProcDepositTokens(args)
-
-		topics := [][]byte{
-			topicID,
-			receiver,
-		}
-		eventData := &sovereign.EventData{
-			TransferData: &sovereign.TransferData{
-				GasLimit: transferGas,
-				Function: func1,
-				Args:     [][]byte{arg1, arg2},
-			},
-		}
-
-		scrData, gasLimit, err := handler.createSCRData(topics, eventData)
-		require.Nil(t, err)
-		require.Equal(t, transferGas, gasLimit)
-
-		expectedSCR := func1
-		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg1)...)
-		expectedSCR = append(expectedSCR, "@"+hex.EncodeToString(arg2)...)
-		require.Equal(t, expectedSCR, scrData)
-	})
 	t.Run("create SCR data with tokens, no transfer data", func(t *testing.T) {
 		t.Parallel()
 
