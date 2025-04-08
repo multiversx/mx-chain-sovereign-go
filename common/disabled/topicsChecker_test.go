@@ -15,7 +15,16 @@ func TestTopicsChecker_MethodsShouldNotPanic(t *testing.T) {
 	require.False(t, check.IfNil(tc))
 
 	require.NotPanics(t, func() {
-		err := tc.CheckValidity([][]byte{[]byte("topic")}, nil)
+		err := tc.CheckDepositTokensValidity([][]byte{[]byte("topic")})
+		require.NoError(t, err)
+
+		err = tc.CheckScCallValidity([][]byte{[]byte("topic")}, nil)
+		require.NoError(t, err)
+
+		err = tc.CheckScCallValidity([][]byte{[]byte("topic")}, &sovereign.TransferData{})
+		require.NoError(t, err)
+
+		err = tc.CheckValidity([][]byte{[]byte("topic")}, nil)
 		require.NoError(t, err)
 
 		err = tc.CheckValidity([][]byte{[]byte("topic")}, &sovereign.TransferData{})

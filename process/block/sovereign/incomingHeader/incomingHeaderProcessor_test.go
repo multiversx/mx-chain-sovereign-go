@@ -64,7 +64,7 @@ func createIncomingHeadersWithIncrementalRound(numRounds uint64) []sovereign.Inc
 			},
 			IncomingEvents: []*transaction.Event{
 				{
-					Topics:     [][]byte{[]byte("topicID"), []byte("addr"), []byte("tokenID1"), []byte("nonce1"), []byte("tokenData1")},
+					Topics:     [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer), []byte("addr"), []byte("tokenID1"), []byte("nonce1"), []byte("tokenData1")},
 					Data:       []byte("eventData"),
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
 				},
@@ -245,11 +245,14 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 	t.Run("invalid num topics in deposit event, should return error", func(t *testing.T) {
 		t.Parallel()
 
-		errNumTopics := fmt.Errorf("invalid num topics")
+		errNumTopics := fmt.Errorf("invalid number of topics")
 
 		args := createArgs()
 		args.TopicsChecker = &sovTests.TopicsCheckerMock{
-			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
+			CheckDepositTokensValidityCalled: func(_ [][]byte) error {
+				return errNumTopics
+			},
+			CheckScCallValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errNumTopics
 			},
 		}
@@ -276,7 +279,10 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		args := createArgs()
 		args.TopicsChecker = &sovTests.TopicsCheckerMock{
-			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
+			CheckDepositTokensValidityCalled: func(_ [][]byte) error {
+				return errNumTopics
+			},
+			CheckScCallValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errNumTopics
 			},
 		}
@@ -305,6 +311,14 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		require.ErrorContains(t, err, dto.ErrInvalidNumTopicsInEvent.Error())
 
 		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer)}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
+		err = handler.AddHeader([]byte("hash"), incomingHeader)
+		require.ErrorContains(t, err, errNumTopics.Error())
+
+		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer), []byte("receiver"), []byte("tokenID")}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
+		err = handler.AddHeader([]byte("hash"), incomingHeader)
+		require.ErrorContains(t, err, errNumTopics.Error())
+
+		incomingHeader.IncomingEvents[0] = &transaction.Event{Topics: [][]byte{[]byte(dto.TopicIDDepositIncomingTransfer), []byte("receiver"), []byte("token1ID"), []byte("token1Nonce"), []byte("token1Data"), []byte("token2ID")}, Identifier: []byte(dto.EventIDExecutedOutGoingBridgeOp)}
 		err = handler.AddHeader([]byte("hash"), incomingHeader)
 		require.ErrorContains(t, err, errNumTopics.Error())
 
@@ -608,7 +622,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	}
 
 	topic4 := [][]byte{
-		[]byte(dto.TopicIDDepositIncomingTransfer),
+		[]byte(dto.TopicIDScCall),
 		addr3,
 	}
 	eventData3 := []byte("eventData3")
@@ -704,39 +718,48 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		},
 	}
 
-	checkValidityCt := -1
+	checkDepositValidityCt := 0
+	checkScCallValidityCt := 0
 	args.TopicsChecker = &sovTests.TopicsCheckerMock{
-		CheckValidityCalled: func(topics [][]byte, transferData *sovereign.TransferData) error {
-			checkValidityCt++
+		CheckDepositTokensValidityCalled: func(topics [][]byte) error {
+			checkDepositValidityCt++
 
-			switch checkValidityCt {
-			case 0:
-				require.Equal(t, topic1, topics)
-				require.True(t, transferData != nil)
+			switch checkDepositValidityCt {
 			case 1:
-				require.Equal(t, topic2, topics)
-				require.True(t, transferData != nil)
+				require.Equal(t, topic1, topics)
 			case 2:
-				require.Equal(t, topic4, topics)
-				require.True(t, transferData != nil)
+				require.Equal(t, topic2, topics)
 			case 3:
 				require.Equal(t, topic5, topics)
-				require.True(t, transferData == nil)
 			default:
-				require.Fail(t, "check validity called more than 2 times")
+				require.Fail(t, "check deposit tokens validity called more than 3 times")
 			}
+
+			return nil
+		},
+		CheckScCallValidityCalled: func(topics [][]byte, transferData *sovereign.TransferData) error {
+			checkScCallValidityCt++
+
+			switch checkScCallValidityCt {
+			case 1:
+				require.Equal(t, topic4, topics)
+				require.NotNil(t, transferData)
+			default:
+				require.Fail(t, "check sc call validity called more than 1 time")
+			}
+
 			return nil
 		},
 	}
 
-	deserializeEventDataCt := -1
-	deserializeTokenDataCt := -1
+	deserializeEventDataCt := 0
+	deserializeTokenDataCt := 0
 	args.DataCodec = &sovTests.DataCodecMock{
 		DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
 			deserializeEventDataCt++
 
 			switch deserializeEventDataCt {
-			case 0:
+			case 1:
 				require.Equal(t, eventData1, data)
 
 				return &sovereign.EventData{
@@ -748,7 +771,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 					},
 				}, nil
 
-			case 1:
+			case 2:
 				require.Equal(t, eventData2, data)
 
 				return &sovereign.EventData{
@@ -760,7 +783,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 					},
 				}, nil
 
-			case 2:
+			case 3:
 				require.Equal(t, eventData3, data)
 
 				return &sovereign.EventData{
@@ -772,7 +795,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 					},
 				}, nil
 
-			case 3:
+			case 4:
 				require.Equal(t, eventData4, data)
 
 				return &sovereign.EventData{
@@ -789,14 +812,14 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 			deserializeTokenDataCt++
 
 			switch deserializeTokenDataCt {
-			case 0:
+			case 1:
 				require.Equal(t, token1Data, data)
 				return &sovereign.EsdtTokenData{
 					TokenType: core.Fungible,
 					Amount:    amount1,
 				}, nil
 
-			case 1, 2, 3:
+			case 2, 3, 4:
 				require.Equal(t, token2Data, data)
 				return &sovereign.EsdtTokenData{
 					TokenType: core.Fungible,
@@ -818,9 +841,10 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	err = handler.AddHeader([]byte("hash"), incomingHeader)
 	require.Nil(t, err)
-	require.Equal(t, 3, checkValidityCt)
-	require.Equal(t, 3, deserializeEventDataCt)
-	require.Equal(t, 3, deserializeTokenDataCt)
+	require.Equal(t, 3, checkDepositValidityCt)
+	require.Equal(t, 1, checkScCallValidityCt)
+	require.Equal(t, 4, deserializeEventDataCt)
+	require.Equal(t, 4, deserializeTokenDataCt)
 	require.True(t, wasAddedInHeaderPool)
 	require.True(t, wasAddedInTxPool)
 	require.True(t, wasOutGoingOpConfirmed)

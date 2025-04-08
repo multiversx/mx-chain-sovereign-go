@@ -25,8 +25,8 @@ type eventData struct {
 	gasLimit             uint64
 }
 
-// EventProcDepositTokensArgs holds necessary args for deposit event processor
-type EventProcDepositTokensArgs struct {
+// EventProcDepositOperationArgs holds necessary args for deposit event processor
+type EventProcDepositOperationArgs struct {
 	Marshaller    marshal.Marshalizer
 	Hasher        hashing.Hasher
 	DataCodec     sovBlock.DataCodecHandler
@@ -41,18 +41,10 @@ type eventProcDepositTokens struct {
 }
 
 // NewEventProcDepositTokens creates a new event processor for deposit token operations
-func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepositTokens, error) {
-	if check.IfNil(args.Marshaller) {
-		return nil, core.ErrNilMarshalizer
-	}
-	if check.IfNil(args.Hasher) {
-		return nil, core.ErrNilHasher
-	}
-	if check.IfNil(args.DataCodec) {
-		return nil, errors.ErrNilDataCodec
-	}
-	if check.IfNil(args.TopicsChecker) {
-		return nil, errors.ErrNilTopicsChecker
+func NewEventProcDepositTokens(args EventProcDepositOperationArgs) (*eventProcDepositTokens, error) {
+	err := checkArgs(args)
+	if err != nil {
+		return nil, err
 	}
 
 	return &eventProcDepositTokens{
@@ -61,6 +53,23 @@ func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepos
 		dataCodec:     args.DataCodec,
 		topicsChecker: args.TopicsChecker,
 	}, nil
+}
+
+func checkArgs(args EventProcDepositOperationArgs) error {
+	if check.IfNil(args.Marshaller) {
+		return core.ErrNilMarshalizer
+	}
+	if check.IfNil(args.Hasher) {
+		return core.ErrNilHasher
+	}
+	if check.IfNil(args.DataCodec) {
+		return errors.ErrNilDataCodec
+	}
+	if check.IfNil(args.TopicsChecker) {
+		return errors.ErrNilTopicsChecker
+	}
+
+	return nil
 }
 
 // ProcessEvent handles incoming token deposit events and returns the corresponding incoming SCR info.
@@ -73,30 +82,31 @@ func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepos
 //   - topic[1] = Receiver address.
 //   - topic[2:N] = List of token data.
 func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
-	evData, err := dep.dataCodec.DeserializeEventData(event.GetData())
-	if err != nil {
-		return nil, err
-	}
-
 	topics := event.GetTopics()
-	err = dep.topicsChecker.CheckValidity(topics, evData.TransferData)
+	err := dep.topicsChecker.CheckDepositTokensValidity(topics)
 	if err != nil {
 		return nil, err
 	}
 
-	scrData, gasLimit, err := dep.createSCRData(topics, evData)
+	receivedEventData, err := dep.createEventData(event.GetData())
 	if err != nil {
 		return nil, err
 	}
 
+	scrData, err := dep.createSCRData(topics)
+	if err != nil {
+		return nil, err
+	}
+
+	scrData = append(scrData, receivedEventData.functionCallWithArgs...)
 	scr := &smartContractResult.SmartContractResult{
-		Nonce:          evData.Nonce,
+		Nonce:          receivedEventData.nonce,
 		OriginalTxHash: nil, // TODO:  Implement this in MX-14321 task
 		RcvAddr:        topics[1],
 		SndAddr:        core.ESDTSCAddress,
 		Data:           scrData,
 		Value:          big.NewInt(0),
-		GasLimit:       gasLimit,
+		GasLimit:       receivedEventData.gasLimit,
 	}
 
 	hash, err := core.CalculateHash(dep.marshaller, dep.hasher, scr)
@@ -109,6 +119,20 @@ func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.E
 			SCR:  scr,
 			Hash: hash,
 		},
+	}, nil
+}
+
+func (dep *eventProcDepositTokens) createEventData(data []byte) (*eventData, error) {
+	evData, err := dep.dataCodec.DeserializeEventData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	gasLimit, functionCallWithArgs := extractSCTransferInfo(evData.TransferData)
+	return &eventData{
+		nonce:                evData.Nonce,
+		functionCallWithArgs: functionCallWithArgs,
+		gasLimit:             gasLimit,
 	}, nil
 }
 
@@ -140,13 +164,8 @@ func extractArguments(arguments [][]byte) []byte {
 	return args
 }
 
-func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sovereign.EventData) ([]byte, uint64, error) {
+func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error) {
 	numTokensToTransfer := len(topics[dto.TokensIndex:]) / dto.NumTransferTopics
-	if numTokensToTransfer == 0 {
-		scrData, gasLimit := createSCCallSCRData(eventData)
-		return scrData, gasLimit, nil
-	}
-
 	numTokensToTransferBytes := big.NewInt(int64(numTokensToTransfer)).Bytes()
 
 	ret := []byte(core.BuiltInFunctionMultiESDTNFTTransfer +
@@ -155,7 +174,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sov
 	for idx := dto.TokensIndex; idx < len(topics); idx += dto.NumTransferTopics {
 		tokenData, err := dep.getTokenDataBytes(topics[idx+1], topics[idx+2])
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 
 		transfer := []byte("@" +
@@ -166,15 +185,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sov
 		ret = append(ret, transfer...)
 	}
 
-	gasLimit, functionCallWithArgs := extractSCTransferInfo(eventData.TransferData)
-	ret = append(ret, functionCallWithArgs...)
-	return ret, gasLimit, nil
-}
-
-func createSCCallSCRData(eventData *sovereign.EventData) ([]byte, uint64) {
-	scrData := eventData.TransferData.Function
-	scrData = append(scrData, extractArguments(eventData.TransferData.Args)...)
-	return scrData, eventData.TransferData.GasLimit
+	return ret, nil
 }
 
 func (dep *eventProcDepositTokens) getTokenDataBytes(tokenNonce []byte, tokenData []byte) ([]byte, error) {
