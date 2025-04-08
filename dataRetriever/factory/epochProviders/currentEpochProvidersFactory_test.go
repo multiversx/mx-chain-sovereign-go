@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever/resolvers/epochproviders"
 	"github.com/multiversx/mx-chain-go/dataRetriever/resolvers/epochproviders/disabled"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateCurrentEpochProvider_NilCurrentEpochProvider(t *testing.T) {
