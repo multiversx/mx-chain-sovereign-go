@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 )
 
 type sovereignChainSimulator struct {
@@ -54,6 +56,14 @@ func (ss *sovereignChainSimulator) isSovereignTargetEpochReached(targetEpoch int
 	}
 
 	return true
+}
+
+// GetNodeHandler returns the node handler from sovereign chain shardID
+func (ss *sovereignChainSimulator) GetNodeHandler(_ uint32) process.NodeHandler {
+	ss.mutex.RLock()
+	defer ss.mutex.RUnlock()
+
+	return ss.nodes[core.SovereignChainShardId]
 }
 
 // ForceResetValidatorStatisticsCache will force the reset of the cache used for the validators statistics endpoint

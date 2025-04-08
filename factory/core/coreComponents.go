@@ -25,6 +25,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
 	"github.com/multiversx/mx-chain-go/common/forking"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/round"
@@ -191,10 +192,6 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		return nil, err
 	}
 
-	syncer := ntp.NewSyncTime(ccf.config.NTPConfig, nil)
-	syncer.StartSyncingTime()
-	log.Debug("NTP average clock offset", "value", syncer.ClockOffset())
-
 	genesisNodesConfig, err := ccf.runTypeCoreComponents.GenesisNodesSetupFactoryCreator().CreateNodesSetup(
 		&sharding.NodesSetupArgs{
 			NodesFilePath:            ccf.nodesFilename,
@@ -206,6 +203,11 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	roundDuration := time.Millisecond * time.Duration(genesisNodesConfig.GetRoundDuration())
+	syncer := ntp.NewSyncTime(ccf.config.NTPConfig, nil, roundDuration)
+	syncer.StartSyncingTime()
+	log.Debug("NTP average clock offset", "value", syncer.ClockOffset())
 
 	startRound := int64(0)
 	if ccf.config.Hardfork.AfterHardFork {
@@ -219,22 +221,23 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 	if genesisNodesConfig.GetStartTime() == 0 {
 		time.Sleep(1000 * time.Millisecond)
 		ntpTime := syncer.CurrentTime()
-		genesisNodesConfig.SetStartTime((ntpTime.Unix()/60 + 1) * 60)
+		genesisNodesConfig.SetStartTime((runType.TimeToUnix(ntpTime)/60 + 1) * 60)
 	}
 
-	startTime := time.Unix(genesisNodesConfig.GetStartTime(), 0)
+	startTime := runType.UnixToTime(genesisNodesConfig.GetStartTime())
 
 	log.Info("start time",
-		"formatted", startTime.Format("Mon Jan 2 15:04:05 MST 2006"),
-		"seconds", startTime.Unix())
+		"formatted", startTime.Format("Mon Jan 2 15:04:05.000 MST 2006"),
+		"seconds", runType.TimeToUnix(startTime),
+	)
 
 	log.Debug("config", "file", ccf.nodesFilename)
 
-	genesisTime := time.Unix(genesisNodesConfig.GetStartTime(), 0)
+	genesisTime := runType.UnixToTime(genesisNodesConfig.GetStartTime())
 	roundHandler, err := round.NewRound(
 		genesisTime,
 		syncer.CurrentTime(),
-		time.Millisecond*time.Duration(genesisNodesConfig.GetRoundDuration()),
+		roundDuration,
 		syncer,
 		startRound,
 	)

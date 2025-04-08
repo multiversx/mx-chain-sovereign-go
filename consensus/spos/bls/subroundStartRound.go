@@ -11,7 +11,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
+
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
@@ -311,7 +313,7 @@ func (sr *subroundStartRound) indexRoundIfNeeded(pubKeys []string) {
 		BlockWasProposed: false,
 		ShardId:          shardId,
 		Epoch:            epoch,
-		Timestamp:        uint64(sr.RoundTimeStamp.Unix()),
+		Timestamp:        uint64(runType.TimeToUnix(sr.RoundTimeStamp)),
 	}
 	roundsInfo := &outportcore.RoundsInfo{
 		ShardID:    shardId,

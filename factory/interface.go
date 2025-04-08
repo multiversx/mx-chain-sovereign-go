@@ -57,6 +57,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	"github.com/multiversx/mx-chain-go/process/sync"
@@ -652,6 +653,7 @@ type RunTypeComponentsHolder interface {
 	DirectStakedListFactoryHandler() trieIteratorsFactory.DirectStakedListProcessorFactoryHandler
 	TotalStakedValueFactoryHandler() trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
+	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
 	Create() error
 	Close() error
 	CheckSubcomponents() error

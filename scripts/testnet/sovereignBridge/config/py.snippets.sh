@@ -1,17 +1,19 @@
 computeFirstSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 0)
+    local ADDRESS=$(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 0)
+    echo $(python3 $TESTNET_DIR/convert_address.py $ADDRESS $ADDRESS_HRP)
 }
 
 computeSecondSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 1)
+    local ADDRESS=$(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 1)
+    echo $(python3 $TESTNET_DIR/convert_address.py $ADDRESS $ADDRESS_HRP)
 }
 
 getShardOfAddress() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_shard.py $WALLET_ADDRESS)
+    echo $(python3 $SCRIPT_PATH/pyScripts/address_shard.py $WALLET_ADDRESS)
 }
 
 bech32ToHex() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_convert.py $1)
+    echo $(python3 $SCRIPT_PATH/pyScripts/address_convert.py $1)
 }
 
 displayContracts() {
@@ -33,8 +35,9 @@ updateNotifierNotarizationRound() {
 setGenesisContract() {
     local ESDT_SAFE_INIT_PARAMS="$(bech32ToHex $FEE_MARKET_ADDRESS_SOVEREIGN)"
     local FEE_MARKET_INIT_PARAMS="$(bech32ToHex $ESDT_SAFE_ADDRESS_SOVEREIGN)@00"
+    local ADDRESS=$(python3 $TESTNET_DIR/convert_address.py $WALLET_ADDRESS $ADDRESS_HRP)
 
-    python3 $SCRIPT_PATH/pyScripts/genesis_contract.py $WALLET_ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
+    python3 $SCRIPT_PATH/pyScripts/genesis_contract.py $ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
 }
 
 updateSovereignConfig() {
@@ -53,8 +56,6 @@ updateSovereignConfig() {
 }
 
 generateRandomEsdtPrefix() {
-  LEN=$(shuf -i 1-4 -n 1)
-  RANDOM_PREFIX=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c $LEN)
-
-  echo $RANDOM_PREFIX
+    local LEN=$(shuf -i 1-4 -n 1)
+    echo $(cat /dev/urandom | tr -dc 'a-z0-9' | head -c $LEN)
 }

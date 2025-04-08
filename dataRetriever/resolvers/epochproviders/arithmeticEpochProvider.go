@@ -6,6 +6,8 @@ import (
 	"time"
 
 	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-go/common/runType"
 )
 
 // deltaEpochActive represents how many epochs behind the current computed epoch are to be considered "active" and
@@ -55,7 +57,7 @@ func NewArithmeticEpochProvider(arg ArgArithmeticEpochProvider) (*arithmeticEpoc
 		startTime:                  arg.StartTime,
 	}
 	aep.getUnixHandler = func() int64 {
-		return time.Now().Unix()
+		return runType.TimeToUnix(time.Now())
 	}
 	aep.computeCurrentEpoch() //based on the genesis provided data
 

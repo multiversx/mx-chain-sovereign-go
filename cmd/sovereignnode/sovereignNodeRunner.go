@@ -19,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
@@ -30,17 +31,17 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
-
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/common/goroutines"
 	"github.com/multiversx/mx-chain-go/common/ordering"
+	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -907,6 +908,7 @@ func (snr *sovereignNodeRunner) createMetrics(
 		snr.configs.EconomicsConfig,
 		snr.configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		coreComponents.MinTransactionVersion(),
+		snr.configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
@@ -1179,7 +1181,7 @@ func (snr *sovereignNodeRunner) logInformation(
 		"ShardId", shardIdString,
 		"TotalShards", bootstrapComponents.ShardCoordinator().NumberOfShards(),
 		"AppVersion", snr.configs.FlagsConfig.Version,
-		"GenesisTimeStamp", coreComponents.GenesisTime().Unix(),
+		"GenesisTimeStamp", runTypeCommon.TimeToUnix(coreComponents.GenesisTime()),
 	)
 
 	sessionInfoFileOutput += "\nStarted with parameters:\n"
@@ -1955,10 +1957,16 @@ func createSovereignWsReceiver(
 }
 
 func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.SovereignNotifier, error) {
+	addressPubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(config.AddressPubKeyConverter.Length, config.AddressPubKeyConverter.Hrp)
+	if err != nil {
+		return nil, err
+	}
+
 	argsNotifier := factory.ArgsCreateSovereignNotifier{
-		MarshallerType:   config.WebSocketConfig.MarshallerType,
-		SubscribedEvents: getNotifierSubscribedEvents(config.SubscribedEvents),
-		HasherType:       config.WebSocketConfig.HasherType,
+		MarshallerType:         config.WebSocketConfig.MarshallerType,
+		SubscribedEvents:       getNotifierSubscribedEvents(config.SubscribedEvents),
+		HasherType:             config.WebSocketConfig.HasherType,
+		AddressPubkeyConverter: addressPubKeyConverter,
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)

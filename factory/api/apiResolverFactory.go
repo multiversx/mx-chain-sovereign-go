@@ -37,6 +37,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	"github.com/multiversx/mx-chain-go/process/smartContract"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks/counters"
 	"github.com/multiversx/mx-chain-go/process/txstatus"
@@ -131,6 +132,9 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 	if check.IfNil(args.RunTypeComponents.APIRewardsTxHandler()) {
 		return nil, errErd.ErrNilAPIRewardsHandler
 	}
+	if check.IfNil(args.RunTypeComponents.CrawlerAddressGetter()) {
+		return nil, process.ErrNilCrawlerAllowedAddress
+	}
 
 	argsSCQuery := &scQueryServiceArgs{
 		generalConfig:              args.Configs.GeneralConfig,
@@ -178,6 +182,7 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 		args.Configs.GeneralConfig.VirtualMachine.Querying.TransferAndExecuteByUserAddresses,
 		[]byte(args.Configs.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
+		args.RunTypeComponents.CrawlerAddressGetter(),
 	)
 	if err != nil {
 		return nil, err
@@ -407,6 +412,7 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		args.generalConfig.VirtualMachine.Querying.TransferAndExecuteByUserAddresses,
 		[]byte(args.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
+		args.runTypeComponents.CrawlerAddressGetter(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -675,6 +681,7 @@ func createBuiltinFuncs(
 	whiteListedCrossChainAddresses []string,
 	selfESDTPrefix []byte,
 	pubKeyConverter core.PubkeyConverter,
+	crawlerAddressGetter crawlerAddressGetter.CrawlerAddressGetterHandler,
 ) (vmcommon.BuiltInFunctionFactory, error) {
 	argsBuiltIn := builtInFunctions.ArgsCreateBuiltInFunctionContainer{
 		GasSchedule:                    gasScheduleNotifier,
@@ -692,6 +699,7 @@ func createBuiltinFuncs(
 		MaxNumAddressesInTransferRole:  maxNumAddressesInTransferRole,
 		SelfESDTPrefix:                 selfESDTPrefix,
 		PubKeyConverter:                pubKeyConverter,
+		CrawlerAddressGetterHandler:    crawlerAddressGetter,
 	}
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 }

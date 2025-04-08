@@ -27,7 +27,8 @@ generateConfig() {
     -stake-type $GENESIS_STAKE_TYPE \
     -hysteresis $HYSTERESIS \
     -round-duration $ROUND_DURATION_IN_MS \
-    -sovereign=$SOVEREIGN_BOOL
+    -sovereign=$SOVEREIGN_BOOL \
+    -hrp=$ADDRESS_HRP
 
   popd
 }
@@ -106,12 +107,31 @@ updateElasticsearchIndices() {
   popd
 }
 
+updateConfigFile() {
+  if [ "$ADDRESS_HRP" == "erd" ]; then
+    return 1
+  fi
+
+  file="$1"
+  skip_section="$2"
+
+  grep -o '\berd1[a-z0-9]\{58\}\b' "$file" | sort -u | while read -r addr; do
+    new_addr=$(python3 "$MULTIVERSXTESTNETSCRIPTSDIR/convert_address.py" "$addr" "$ADDRESS_HRP")
+    escaped_old=$(printf '%s\n' "$addr" | sed 's/[\/&]/\\&/g')
+    escaped_new=$(printf '%s\n' "$new_addr" | sed 's/[\/&]/\\&/g')
+    sed -i "/^\[$skip_section\]/,/^\[/!s/$escaped_old/$escaped_new/g" "$file"
+  done
+}
+
 copyNodeConfig() {
   pushd $TESTNETDIR
   cp $NODEDIR/config/api.toml ./node/config
   cp $NODEDIR/config/config.toml ./node/config/config_validator.toml
+  updateConfigFile ./node/config/config_validator.toml
   cp $NODEDIR/config/config.toml ./node/config/config_observer.toml
+  updateConfigFile ./node/config/config_observer.toml
   cp $NODEDIR/config/economics.toml ./node/config
+  updateConfigFile ./node/config/economics.toml
   cp $NODEDIR/config/ratings.toml ./node/config
   cp $NODEDIR/config/prefs.toml ./node/config
   cp $NODEDIR/config/external.toml ./node/config/external_validator.toml
@@ -121,7 +141,9 @@ copyNodeConfig() {
   cp $NODEDIR/config/enableEpochs.toml ./node/config
   cp $NODEDIR/config/enableRounds.toml ./node/config
   cp $NODEDIR/config/systemSmartContractsConfig.toml ./node/config
+  updateConfigFile ./node/config/systemSmartContractsConfig.toml
   cp $NODEDIR/config/genesisSmartContracts.json ./node/config
+  updateConfigFile ./node/config/genesisSmartContracts.json
   mkdir ./node/config/genesisContracts -p
   cp $NODEDIR/config/genesisContracts/*.* ./node/config/genesisContracts
   mkdir ./node/config/gasSchedules -p
@@ -135,10 +157,11 @@ copySovereignNodeConfig() {
   pushd $TESTNETDIR
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./txgen/config/nodeConfig/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./node/config
-  cp $SOVEREIGNNODEDIR/config/economics.toml ./txgen/config
   cp $SOVEREIGNNODEDIR/config/prefs.toml ./node/config
+  updateConfigFile ./node/config/economics.toml
+  updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
+  updateConfigFile ./node/config/sovereignConfig.toml NotifierConfig
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd
@@ -155,7 +178,14 @@ updateNodeConfig() {
 
   cp nodesSetup.json nodesSetup_edit.json
   
-  let startTime="$(date +%s) + $GENESIS_DELAY"
+  if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
+    currentTimeMs=$(date +%s%3N)
+    let "startTime = currentTimeMs + GENESIS_DELAY * 1000"
+  else
+    currentTimeS=$(date +%s)
+    let "startTime = currentTimeS + GENESIS_DELAY"
+  fi
+
   updateJSONValue nodesSetup_edit.json "startTime" "$startTime"
 
   updateJSONValue nodesSetup_edit.json "minTransactionVersion" "1"
@@ -188,6 +218,9 @@ updateNodeConfig() {
   fi
 
   updateConfigsForStakingV4
+
+  updateTOMLValue config_validator.toml "Hrp" "\"$ADDRESS_HRP"\"
+  updateTOMLValue config_observer.toml "Hrp" "\"$ADDRESS_HRP"\"
 
   echo "Updated configuration for Nodes."
   popd
@@ -274,6 +307,7 @@ updateSovereignProxyConfig() {
   sed -i -n '/\[\[Observers\]\]/q;p' config_edit.toml
 
   updateTOMLValue config_edit.toml "ServerPort" $PORT_PROXY
+  updateTOMLValue config_edit.toml "Hrp" "\"$ADDRESS_HRP"\"
   generateSovereignProxyObserverList config_edit.toml
 
   cp config_edit.toml config.toml
