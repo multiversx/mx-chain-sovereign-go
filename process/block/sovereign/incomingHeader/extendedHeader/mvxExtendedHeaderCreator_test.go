@@ -73,6 +73,7 @@ func TestEmptyMVXShardExtendedCreator_CreateNewExtendedHeaderErrorCases(t *testi
 
 		metaHeader := &block.MetaBlock{}
 		headerBytesProof, err := marshaller.Marshal(metaHeader)
+		require.Nil(t, err)
 
 		extendedHeader, err := creator.CreateNewExtendedHeader(headerBytesProof)
 		require.Nil(t, extendedHeader)
