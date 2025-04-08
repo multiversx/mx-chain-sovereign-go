@@ -11,11 +11,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 type baseTxProcessor struct {
@@ -342,6 +343,15 @@ func (txProc *baseTxProcessor) GetSenderAndReceiverAccounts(tx *transaction.Tran
 	}
 
 	return txProc.getAccounts(tx.SndAddr, tx.RcvAddr)
+}
+
+// GetRelayerAccount gets the accounts for relayer
+func (txProc *baseTxProcessor) GetRelayerAccount(tx *transaction.Transaction) (state.UserAccountHandler, error) {
+	if check.IfNil(tx) {
+		return nil, process.ErrNilTransaction
+	}
+
+	return txProc.getAccountFromAddress(tx.RelayerAddr)
 }
 
 // Setting a guardian is allowed with regular transactions on a guarded account

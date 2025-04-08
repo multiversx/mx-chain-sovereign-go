@@ -1362,6 +1362,7 @@ func (pcf *processComponentsFactory) createBuiltInFunctionContainer(
 		MaxNumAddressesInTransferRole:  pcf.config.BuiltInFunctions.MaxNumAddressesInTransferRole,
 		SelfESDTPrefix:                 []byte(pcf.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		PubKeyConverter:                pcf.coreData.AddressPubKeyConverter(),
+		CrawlerAddressGetterHandler:    pcf.runTypeComponents.CrawlerAddressGetter(),
 	}
 
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

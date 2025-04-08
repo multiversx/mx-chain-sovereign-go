@@ -8,10 +8,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const millisecondsInSecond = 1000
@@ -276,6 +277,7 @@ func InitMetrics(
 	economicsConfig *config.EconomicsConfig,
 	roundsPerEpoch int64,
 	minTransactionVersion uint32,
+	addressHrp string,
 ) error {
 	if check.IfNil(appStatusHandler) {
 		return ErrNilAppStatusHandler
@@ -347,6 +349,7 @@ func InitMetrics(
 
 	appStatusHandler.SetUInt64Value(common.MetricNumValidators, uint64(numValidators))
 	appStatusHandler.SetUInt64Value(common.MetricConsensusGroupSize, uint64(consensusGroupSize))
+	appStatusHandler.SetStringValue(common.MetricAddressHrp, addressHrp)
 
 	return nil
 }
