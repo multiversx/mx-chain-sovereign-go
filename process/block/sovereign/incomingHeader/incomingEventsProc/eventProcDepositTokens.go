@@ -19,6 +19,12 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
+type eventData struct {
+	nonce                uint64
+	functionCallWithArgs []byte
+	gasLimit             uint64
+}
+
 // EventProcDepositOperationArgs holds necessary args for deposit event processor
 type EventProcDepositOperationArgs struct {
 	Marshaller    marshal.Marshalizer
@@ -76,30 +82,31 @@ func checkArgs(args EventProcDepositOperationArgs) error {
 //   - topic[1] = Receiver address.
 //   - topic[2:N] = List of token data.
 func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
-	evData, err := dep.dataCodec.DeserializeEventData(event.GetData())
-	if err != nil {
-		return nil, err
-	}
-
 	topics := event.GetTopics()
-	err = dep.topicsChecker.CheckDepositTokensValidity(topics)
+	err := dep.topicsChecker.CheckDepositTokensValidity(topics)
 	if err != nil {
 		return nil, err
 	}
 
-	scrData, gasLimit, err := dep.createSCRData(topics, evData)
+	receivedEventData, err := dep.createEventData(event.GetData())
 	if err != nil {
 		return nil, err
 	}
 
+	scrData, err := dep.createSCRData(topics)
+	if err != nil {
+		return nil, err
+	}
+
+	scrData = append(scrData, receivedEventData.functionCallWithArgs...)
 	scr := &smartContractResult.SmartContractResult{
-		Nonce:          evData.Nonce,
+		Nonce:          receivedEventData.nonce,
 		OriginalTxHash: nil, // TODO:  Implement this in MX-14321 task
 		RcvAddr:        topics[1],
 		SndAddr:        core.ESDTSCAddress,
 		Data:           scrData,
 		Value:          big.NewInt(0),
-		GasLimit:       gasLimit,
+		GasLimit:       receivedEventData.gasLimit,
 	}
 
 	hash, err := core.CalculateHash(dep.marshaller, dep.hasher, scr)
@@ -112,6 +119,20 @@ func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.E
 			SCR:  scr,
 			Hash: hash,
 		},
+	}, nil
+}
+
+func (dep *eventProcDepositTokens) createEventData(data []byte) (*eventData, error) {
+	evData, err := dep.dataCodec.DeserializeEventData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	gasLimit, functionCallWithArgs := extractSCTransferInfo(evData.TransferData)
+	return &eventData{
+		nonce:                evData.Nonce,
+		functionCallWithArgs: functionCallWithArgs,
+		gasLimit:             gasLimit,
 	}, nil
 }
 
@@ -143,7 +164,7 @@ func extractArguments(arguments [][]byte) []byte {
 	return args
 }
 
-func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sovereign.EventData) ([]byte, uint64, error) {
+func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error) {
 	numTokensToTransfer := len(topics[dto.TokensIndex:]) / dto.NumTransferTopics
 	numTokensToTransferBytes := big.NewInt(int64(numTokensToTransfer)).Bytes()
 
@@ -153,7 +174,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sov
 	for idx := dto.TokensIndex; idx < len(topics); idx += dto.NumTransferTopics {
 		tokenData, err := dep.getTokenDataBytes(topics[idx+1], topics[idx+2])
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 
 		transfer := []byte("@" +
@@ -164,9 +185,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte, eventData *sov
 		ret = append(ret, transfer...)
 	}
 
-	gasLimit, functionCallWithArgs := extractSCTransferInfo(eventData.TransferData)
-	ret = append(ret, functionCallWithArgs...)
-	return ret, gasLimit, nil
+	return ret, nil
 }
 
 func (dep *eventProcDepositTokens) getTokenDataBytes(tokenNonce []byte, tokenData []byte) ([]byte, error) {

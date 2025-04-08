@@ -11,7 +11,7 @@ func TestNewEventProcDepositOperation(t *testing.T) {
 
 	t.Run("nil deposit event proc, should return error", func(t *testing.T) {
 		handler, err := NewEventProcDepositOperation(nil, &eventProcScCall{})
-		require.Equal(t, errNilEventProcScCall, err)
+		require.Equal(t, errNilEventProcDepositTokens, err)
 		require.Nil(t, handler)
 	})
 
@@ -22,7 +22,7 @@ func TestNewEventProcDepositOperation(t *testing.T) {
 	})
 
 	t.Run("should work", func(t *testing.T) {
-		handler, err := NewEventProcDepositOperation(&eventProcDepositTokens{}, &eventProcScCall{})
+		handler, err := NewEventProcDepositOperation(&eventProcDepositTokens{}, &eventProcScCall{&eventProcDepositTokens{}})
 		require.NotNil(t, handler)
 		require.Nil(t, err)
 	})
