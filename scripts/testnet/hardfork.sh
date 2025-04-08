@@ -33,7 +33,13 @@ updateTOMLValue "$TESTNETDIR/node/config/config_validator.toml" "AfterHardFork" 
 updateTOMLValue "$TESTNETDIR/node/config/config_observer.toml" "AfterHardFork" "true"
 
 # change nodesSetup.json genesis time to a new value
-let startTime="$(date +%s%3N) + $HARDFORK_DELAY"
+if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
+  currentTimeMs=$(date +%s%3N)
+  let "startTime = currentTimeMs + GENESIS_DELAY * 1000"
+else
+  currentTimeS=$(date +%s)
+  let "startTime = currentTimeS + GENESIS_DELAY"
+fi
 updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" "$startTime"
 
 updateTOMLValue "$TESTNETDIR/node/config/config_validator.toml" "GenesisTime" $startTime

@@ -178,7 +178,14 @@ updateNodeConfig() {
 
   cp nodesSetup.json nodesSetup_edit.json
   
-  let startTime="$(date +%s%3N) + $GENESIS_DELAY*1000"
+  if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
+    currentTimeMs=$(date +%s%3N)
+    let "startTime = currentTimeMs + GENESIS_DELAY * 1000"
+  else
+    currentTimeS=$(date +%s)
+    let "startTime = currentTimeS + GENESIS_DELAY"
+  fi
+
   updateJSONValue nodesSetup_edit.json "startTime" "$startTime"
 
   updateJSONValue nodesSetup_edit.json "minTransactionVersion" "1"
