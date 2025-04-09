@@ -15,9 +15,10 @@ fund() {
         --value=100000000000000000000000 \
         --gas-limit=50000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send
+
+        printTxStatus ${OUTFILE} || return
 }
 
 gitPullAllChanges()
@@ -69,4 +70,7 @@ gitPullAllChanges()
     popd
 
     popd
+
+    pip install --upgrade multversx-sdk
+    pipx upgrade multiversx-sdk-cli --force
 }
