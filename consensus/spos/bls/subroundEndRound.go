@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/display"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -913,8 +914,11 @@ func (sr *subroundEndRound) signBlockHeader() ([]byte, []byte, error) {
 
 func (sr *subroundEndRound) updateMetricsForLeader() {
 	sr.AppStatusHandler().Increment(common.MetricCountAcceptedBlocks)
+
+	roundTimeStamp := sr.RoundHandler().TimeStamp()
+	timeSinceRound := time.Since(roundTimeStamp)
 	sr.AppStatusHandler().SetStringValue(common.MetricConsensusRoundState,
-		fmt.Sprintf("valid block produced in %f sec", time.Since(sr.RoundHandler().TimeStamp()).Seconds()))
+		fmt.Sprintf("valid block produced in %s", timeSinceRound.String()))
 }
 
 func (sr *subroundEndRound) broadcastBlockDataLeader() error {
