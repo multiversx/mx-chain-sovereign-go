@@ -9,11 +9,12 @@ import (
 	"sync"
 	"time"
 
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/cache"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const requestEvent = "request"

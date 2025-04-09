@@ -16,6 +16,7 @@ type TxProcessorMock struct {
 	VerifyTransactionCalled            func(tx *transaction.Transaction) error
 	VerifyGuardianCalled               func(tx *transaction.Transaction, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccountsCalled func(tx *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
+	GetRelayerAccountCalled            func(tx *transaction.Transaction) (state.UserAccountHandler, error)
 	SetBalancesToTrieCalled            func(accBalance map[string]*big.Int) (rootHash []byte, err error)
 	ProcessSmartContractResultCalled   func(scr *smartContractResult.SmartContractResult) (vmcommon.ReturnCode, error)
 }
@@ -54,6 +55,15 @@ func (etm *TxProcessorMock) GetSenderAndReceiverAccounts(tx *transaction.Transac
 	}
 
 	return nil, nil, nil
+}
+
+// GetRelayerAccount -
+func (etm *TxProcessorMock) GetRelayerAccount(tx *transaction.Transaction) (state.UserAccountHandler, error) {
+	if etm.GetRelayerAccountCalled != nil {
+		return etm.GetRelayerAccountCalled(tx)
+	}
+
+	return nil, nil
 }
 
 // SetBalancesToTrie -
