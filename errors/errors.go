@@ -875,5 +875,8 @@ var ErrNilAPIRewardsHandler = errors.New("nil api rewards handler has been provi
 // ErrNilOutportDataProviderFactory signals that a nil outport data provider factory has been provided
 var ErrNilOutportDataProviderFactory = errors.New("nil outport data provider factory has been provided")
 
+// ErrNilCrawlerAddressGetter signals that a nil crawler address getter has been provided
+var ErrNilCrawlerAddressGetter = errors.New("nil crawler address getter has been provided")
+
 // ErrReceivedSovereignEpochStartBlockWithExtendedHeaders signals that an invalid epoch start sovereign block has been received
 var ErrReceivedSovereignEpochStartBlockWithExtendedHeaders = errors.New("received invalid epoch start sovereign block, should not contain any extended headers")
