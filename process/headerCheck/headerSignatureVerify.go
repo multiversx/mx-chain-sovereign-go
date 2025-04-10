@@ -9,11 +9,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ process.InterceptedHeaderSigVerifier = (*HeaderSigVerifier)(nil)
@@ -239,7 +240,7 @@ func (hsv *HeaderSigVerifier) VerifyRandSeed(header data.HeaderHandler) error {
 
 	err = hsv.verifyRandSeed(leaderPubKey, header)
 	if err != nil {
-		log.Trace("block rand seed",
+		log.Error("block rand seed VerifyRandSeed",
 			"error", err.Error())
 		return err
 	}
@@ -256,7 +257,7 @@ func (hsv *HeaderSigVerifier) VerifyLeaderSignature(header data.HeaderHandler) e
 
 	err = hsv.verifyLeaderSignature(leaderPubKey, header)
 	if err != nil {
-		log.Trace("block leader's signature",
+		log.Error("block leader's signature",
 			"error", err.Error())
 		return err
 	}
@@ -273,7 +274,7 @@ func (hsv *HeaderSigVerifier) VerifyRandSeedAndLeaderSignature(header data.Heade
 
 	err = hsv.verifyRandSeed(leaderPubKey, header)
 	if err != nil {
-		log.Trace("block rand seed",
+		log.Error("block rand seed VerifyRandSeedAndLeaderSignature",
 			"error", err.Error())
 		return err
 	}
@@ -322,6 +323,11 @@ func (hsv *HeaderSigVerifier) getLeader(header data.HeaderHandler) (crypto.Publi
 	headerConsensusGroup, err := ComputeConsensusGroup(header, hsv.nodesCoordinator)
 	if err != nil {
 		return nil, err
+	}
+
+	log.Info("called getLeader", "round", header.GetRound())
+	for idx, member := range headerConsensusGroup {
+		log.Info("hdr cns grp", "round", header.GetRound(), "idx", idx, "pk", member.PubKey())
 	}
 
 	leaderPubKeyValidator := headerConsensusGroup[0]
