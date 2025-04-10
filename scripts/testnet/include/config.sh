@@ -153,17 +153,6 @@ copyNodeConfig() {
   popd
 }
 
-copyOneSovereignNodeConfig() {
-  pushd $TESTNETDIR
-  cp $SOVEREIGNNODEDIR/oneConfig/config.toml ./node/config/config_validator.toml
-  cp $SOVEREIGNNODEDIR/oneConfig/config.toml ./node/config/config_observer.toml
-  cp $SOVEREIGNNODEDIR/oneConfig/genesisSmartContracts.json ./node/config
-  cp $SOVEREIGNNODEDIR/oneConfig/systemSmartContractsConfig.toml ./node/config
-
-  echo "ONE Configuration files copied from the Sovereign Node to the working directories of the executables."
-  popd
-}
-
 copySovereignNodeConfig() {
   pushd $TESTNETDIR
   cp $SOVEREIGNNODEDIR/config/enableEpochs.toml ./node/config
@@ -173,9 +162,6 @@ copySovereignNodeConfig() {
   updateConfigFile ./txgen/config/economics.toml
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
   updateConfigFile ./node/config/sovereignConfig.toml NotifierConfig
-  cp $SOVEREIGNNODEDIR/oneConfig/economics.toml ./node/config
-  cp $SOVEREIGNNODEDIR/oneConfig/economics.toml ./txgen/config
-  cp $SOVEREIGNNODEDIR/oneConfig/sovereignConfig.toml ./node/config
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd

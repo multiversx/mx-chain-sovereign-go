@@ -23,9 +23,6 @@ copySeednodeConfig
 updateSeednodeConfig
 
 copyNodeConfig
-if [ $SOVEREIGN_DEPLOY -eq 1 ]; then
-  copyOneSovereignNodeConfig
-fi
 updateNodeConfig
 
 if [ $USE_PROXY -eq 1 ]; then
