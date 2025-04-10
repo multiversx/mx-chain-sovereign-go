@@ -27,7 +27,14 @@
 
 [MainChainNotarization]
     # This defines the starting round from which all sovereign chain nodes should starting notarizing main chain headers
-    MainChainNotarizationStartRound = 11
+    [MainChainNotarization.MVX]
+        StartRound = 11
+
+    [MainChainNotarization.ETH]
+        StartRound = "12"
+
+    [MainChainNotarization.SUI]
+        StartRound = "11"
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.

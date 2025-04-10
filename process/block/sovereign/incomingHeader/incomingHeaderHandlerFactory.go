@@ -15,7 +15,7 @@ import (
 func CreateIncomingHeaderProcessor(
 	config config.WebSocketConfig,
 	dataPool dataRetriever.PoolsHolder,
-	mainChainNotarizationStartRound uint64,
+	mainChainNotarizationStartRound map[string]config.MainChainNotarization,
 	runTypeComponents RunTypeComponentsHolder,
 ) (process.IncomingHeaderSubscriber, error) {
 	if check.IfNil(runTypeComponents) {

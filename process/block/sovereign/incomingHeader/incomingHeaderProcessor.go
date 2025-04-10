@@ -9,10 +9,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dto2 "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
+	"github.com/multiversx/mx-chain-go/config"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/errors"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
@@ -30,7 +32,7 @@ type ArgsIncomingHeaderProcessor struct {
 	Marshaller             marshal.Marshalizer
 	Hasher                 hashing.Hasher
 	// TODO: Here we need to load string from config and convert to big Int
-	MainChainNotarizationStartRound uint64
+	MainChainNotarizationStartRound map[string]config.MainChainNotarization
 	DataCodec                       sovBlock.DataCodecHandler
 	TopicsChecker                   sovBlock.TopicsCheckerHandler
 }
@@ -116,11 +118,12 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	log.Debug("NewIncomingHeaderProcessor", "starting round to notarize main chain headers", args.MainChainNotarizationStartRound)
 
 	return &incomingHeaderProcessor{
-		eventsProc:                      eventsProc,
-		extendedHeaderProc:              extendedHearProc,
-		outGoingPool:                    args.OutGoingOperationsPool,
-		mainChainNotarizationStartRound: big.NewInt(int64(args.MainChainNotarizationStartRound)),
-		preGenesisMainChainRound:        big.NewInt(int64(args.MainChainNotarizationStartRound) - 1),
+		eventsProc:         eventsProc,
+		extendedHeaderProc: extendedHearProc,
+		outGoingPool:       args.OutGoingOperationsPool,
+		// TODO: Here change to iterate per chain
+		mainChainNotarizationStartRound: big.NewInt(int64(args.MainChainNotarizationStartRound[dto2.MVX.String()].StartRound)),
+		preGenesisMainChainRound:        big.NewInt(int64(args.MainChainNotarizationStartRound[dto2.MVX.String()].StartRound) - 1),
 	}, nil
 }
 
