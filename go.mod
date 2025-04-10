@@ -25,13 +25,13 @@ require (
 	github.com/multiversx/mx-chain-crypto-go v1.2.13-0.20250410124744-d21d37be8e32
 	github.com/multiversx/mx-chain-es-indexer-go v1.7.17-0.20250217145507-ddd47d85cfcd
 	github.com/multiversx/mx-chain-logger-go v1.0.15
-	github.com/multiversx/mx-chain-scenario-go v1.5.1-0.20250410125451-65e8bdbf0252
+	github.com/multiversx/mx-chain-scenario-go v1.5.1-0.20250410144327-084c6591117a
 	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250225085417-6462dad50b09
 	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250410114817-3a319566fee7
 	github.com/multiversx/mx-chain-storage-go v1.0.19
 	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20241119132002-2fa80c5ec516
-	github.com/multiversx/mx-chain-vm-go v1.5.38-0.20250410125750-41928803e0af
-	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69-0.20250410125506-1834eec7009c
+	github.com/multiversx/mx-chain-vm-go v1.5.38-0.20250410144446-c2b2ec490823
+	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69-0.20250410144327-003ee827aeef
 	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.69
 	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.98
 	github.com/multiversx/mx-sdk-abi-go v0.3.1-0.20240912062928-8502f4c3b37c
