@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/multiversx/mx-chain-crypto-go/signing/ethsig"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -152,8 +153,7 @@ func (ccf *cryptoComponentsFactory) Create() (*cryptoComponents, error) {
 		return nil, err
 	}
 
-	txSignKeyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
-	txSingleSigner := &singlesig.Ed25519Signer{}
+	txSingleSigner, txSignKeyGen := ccf.getTxSignerHandlers()
 	processingSingleSigner, err := ccf.createSingleSigner(false)
 	if err != nil {
 		return nil, err
@@ -298,6 +298,20 @@ func (ccf *cryptoComponentsFactory) createMultiSignerContainer(
 		ImportModeNoSigCheck: importModeNoSigCheck,
 	}
 	return NewMultiSignerContainer(args, ccf.enableEpochs.BLSMultiSignerEnableEpoch)
+}
+
+func (ccf *cryptoComponentsFactory) getTxSignerHandlers() (crypto.SingleSigner, crypto.KeyGenerator) {
+	signer := &signing.MultiSingleSigner{
+		SingleSigner: &singlesig.Ed25519Signer{},
+		MainSelector: core.MVXAddressIdentifier.String(),
+		OtherSigners: map[string]crypto.SingleSigner{core.ETHAddressIdentifier.String(): &ethsig.Signer{}},
+	}
+	keyGen := &signing.MultiKeyGenerator{
+		KeyGenerator:    signing.NewKeyGenerator(ed25519.NewEd25519()),
+		MainSelector:    core.MVXAddressIdentifier.String(),
+		OtherGenerators: map[string]crypto.KeyGenerator{core.ETHAddressIdentifier.String(): signing.NewKeyGenerator(ethsig.NewSuite())},
+	}
+	return signer, keyGen
 }
 
 func (ccf *cryptoComponentsFactory) getSuite() (crypto.Suite, error) {

@@ -232,6 +232,16 @@ func (accountsDB *accountsDBApiWithHistory) recreateTrieUnprotected(options comm
 	return nil
 }
 
+// RequestAddress is a not permitted operation in this implementation and thus, will return an error
+func (accountsDB *accountsDBApiWithHistory) RequestAddress(_ *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	return nil, ErrFunctionalityNotImplemented
+}
+
+// SaveAliasAddress is a not permitted operation in this implementation and thus, will return an error
+func (accountsDB *accountsDBApiWithHistory) SaveAliasAddress(_ *vmcommon.AliasSaveRequest) error {
+	return ErrFunctionalityNotImplemented
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (accountsDB *accountsDBApiWithHistory) IsInterfaceNil() bool {
 	return accountsDB == nil

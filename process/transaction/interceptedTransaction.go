@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/multiversx/mx-chain-crypto-go/signing"
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -412,6 +413,31 @@ func (inTx *InterceptedTransaction) checkMaxGasPrice() error {
 	return nil
 }
 
+func (inTx *InterceptedTransaction) chooseSenderAddress(tx *transaction.Transaction) []byte {
+	if tx.SndAliasAddr != nil {
+		return tx.SndAliasAddr
+	}
+	return tx.SndAddr
+}
+
+func (inTx *InterceptedTransaction) chooseKeyGen(tx *transaction.Transaction) (crypto.KeyGenerator, error) {
+	switch convertedKeyGen := inTx.keyGen.(type) {
+	case *signing.MultiKeyGenerator:
+		return convertedKeyGen.ChooseKeyGenerator(tx.GetMainAddressIdentifier().String())
+	default:
+		return inTx.keyGen, nil
+	}
+}
+
+func (inTx *InterceptedTransaction) chooseSingleSigner(tx *transaction.Transaction) (crypto.SingleSigner, error) {
+	switch convertedSingleSigner := inTx.singleSigner.(type) {
+	case *signing.MultiSingleSigner:
+		return convertedSingleSigner.ChooseSingleSigner(tx.GetMainAddressIdentifier().String())
+	default:
+		return inTx.singleSigner, nil
+	}
+}
+
 // verifySig checks if the tx is correctly signed
 func (inTx *InterceptedTransaction) verifySig(tx *transaction.Transaction) error {
 	txMessageForSigVerification, err := inTx.getTxMessageForGivenTx(tx)
@@ -419,12 +445,21 @@ func (inTx *InterceptedTransaction) verifySig(tx *transaction.Transaction) error
 		return err
 	}
 
-	senderPubKey, err := inTx.keyGen.PublicKeyFromByteArray(tx.SndAddr)
+	keyGen, err := inTx.chooseKeyGen(tx)
+	if err != nil {
+		return err
+	}
+	address := inTx.chooseSenderAddress(tx)
+	senderPubKey, err := keyGen.PublicKeyFromByteArray(address)
 	if err != nil {
 		return err
 	}
 
-	return inTx.singleSigner.Verify(senderPubKey, txMessageForSigVerification, tx.Signature)
+	singleSigner, err := inTx.chooseSingleSigner(tx)
+	if err != nil {
+		return err
+	}
+	return singleSigner.Verify(senderPubKey, txMessageForSigVerification, tx.Signature)
 }
 
 // verifyRelayerSig checks if the tx is correctly signed by relayer

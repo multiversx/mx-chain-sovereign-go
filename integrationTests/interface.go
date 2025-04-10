@@ -61,6 +61,8 @@ type Facade interface {
 	GetUsername(address string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
 	GetCodeHash(address string, options api.AccountQueryOptions) ([]byte, api.BlockInfo, error)
 	GetValueForKey(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
+	GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error)
+	GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error)
 	GetAccount(address string, options api.AccountQueryOptions) (dataApi.AccountResponse, api.BlockInfo, error)
 	GetAccounts(addresses []string, options api.AccountQueryOptions) (map[string]*api.AccountResponse, api.BlockInfo, error)
 	GetESDTData(address string, key string, nonce uint64, options api.AccountQueryOptions) (*esdt.ESDigitalToken, api.BlockInfo, error)

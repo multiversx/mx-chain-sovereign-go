@@ -420,6 +420,14 @@ func (bh *BlockChainHookImpl) CurrentNonce() uint64 {
 	return bh.currentHdr.GetNonce()
 }
 
+// ChainID returns the chain ID
+func (bh *BlockChainHookImpl) ChainID() []byte {
+	bh.mutCurrentHdr.RLock()
+	defer bh.mutCurrentHdr.RUnlock()
+
+	return bh.currentHdr.GetChainID()
+}
+
 // CurrentRound returns the round from the current block
 func (bh *BlockChainHookImpl) CurrentRound() uint64 {
 	bh.mutCurrentHdr.RLock()
@@ -562,7 +570,8 @@ func (bh *BlockChainHookImpl) IsPayable(sndAddress []byte, recvAddress []byte) (
 	}
 
 	userAcc, err := bh.GetUserAccount(recvAddress)
-	if err == state.ErrAccNotFound {
+	_, isErrAccountNotFoundAtBlock := err.(*state.ErrAccountNotFoundAtBlock)
+	if err == state.ErrAccNotFound || isErrAccountNotFoundAtBlock {
 		return false, nil
 	}
 	if err != nil {
@@ -933,6 +942,16 @@ func (bh *BlockChainHookImpl) GetCounterValues() map[string]uint64 {
 // GetAccountsAdapter returns the managed accounts adapter
 func (bh *BlockChainHookImpl) GetAccountsAdapter() state.AccountsAdapter {
 	return bh.accounts
+}
+
+// SaveAliasAddress saves the given alias address
+func (bh *BlockChainHookImpl) SaveAliasAddress(request *vmcommon.AliasSaveRequest) error {
+	return bh.accounts.SaveAliasAddress(request)
+}
+
+// RequestAddress returns the requested address
+func (bh *BlockChainHookImpl) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	return bh.accounts.RequestAddress(request)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

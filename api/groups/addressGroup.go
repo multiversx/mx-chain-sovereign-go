@@ -32,6 +32,8 @@ const (
 	getRegisteredNFTsPath          = "/:address/registered-nfts"
 	getESDTNFTDataPath             = "/:address/nft/:tokenIdentifier/nonce/:nonce"
 	getGuardianData                = "/:address/guardian-data"
+	getAliasAddressPath            = "/alias-address"
+	getMvxAddressPath              = "/mvx-address"
 	urlParamOnFinalBlock           = "onFinalBlock"
 	urlParamOnStartOfEpoch         = "onStartOfEpoch"
 	urlParamBlockNonce             = "blockNonce"
@@ -47,6 +49,8 @@ type addressFacadeHandler interface {
 	GetUsername(address string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
 	GetCodeHash(address string, options api.AccountQueryOptions) ([]byte, api.BlockInfo, error)
 	GetValueForKey(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
+	GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error)
+	GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error)
 	GetAccount(address string, options api.AccountQueryOptions) (api.AccountResponse, api.BlockInfo, error)
 	GetAccounts(addresses []string, options api.AccountQueryOptions) (map[string]*api.AccountResponse, api.BlockInfo, error)
 	GetESDTData(address string, key string, nonce uint64, options api.AccountQueryOptions) (*esdt.ESDigitalToken, api.BlockInfo, error)
@@ -173,6 +177,16 @@ func NewAddressGroup(facade addressFacadeHandler) (*addressGroup, error) {
 			Path:    getDataTrieMigrationStatusPath,
 			Method:  http.MethodGet,
 			Handler: ag.isDataTrieMigrated,
+		},
+		{
+			Path:    getAliasAddressPath,
+			Method:  http.MethodPost,
+			Handler: ag.getAliasForAddress,
+		},
+		{
+			Path:    getMvxAddressPath,
+			Method:  http.MethodPost,
+			Handler: ag.getMvxAddressForAlias,
 		},
 	}
 	ag.endpoints = endpoints
@@ -308,6 +322,64 @@ func (ag *addressGroup) getValueForKey(c *gin.Context) {
 	}
 
 	shared.RespondWithSuccess(c, gin.H{"value": value, "blockInfo": blockInfo})
+}
+
+// getAliasForAddress returns the alias for the given mvx address
+func (ag *addressGroup) getAliasForAddress(c *gin.Context) {
+	var aliasRequests []*api.AliasAddressRequest
+	err := c.ShouldBindJSON(&aliasRequests)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			shared.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  shared.ReturnCodeRequestError,
+			},
+		)
+		return
+	}
+
+	response := make(map[string]string)
+	for _, request := range aliasRequests {
+		aliasAddress, addressErr := ag.getFacade().GetAliasForAddress(request.MvxAddress, request.RequestedIdentifier)
+		if addressErr != nil {
+			shared.RespondWithValidationError(c, errors.ErrGetAliasForAddress, addressErr)
+			return
+		}
+		response[request.MvxAddress] = aliasAddress
+	}
+
+	shared.RespondWithSuccess(c, response)
+}
+
+// getMvxAddressForAlias returns the mvx address for the given alias address
+func (ag *addressGroup) getMvxAddressForAlias(c *gin.Context) {
+	var aliasRequests []*api.MvxAddressRequest
+	err := c.ShouldBindJSON(&aliasRequests)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			shared.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  shared.ReturnCodeRequestError,
+			},
+		)
+		return
+	}
+
+	response := make(map[string]string)
+	for _, request := range aliasRequests {
+		mvxAddress, addressErr := ag.getFacade().GetMvxAddressForAlias(request.AliasAddress, request.AliasIdentifier)
+		if addressErr != nil {
+			shared.RespondWithValidationError(c, errors.ErrGetMvxAddressForAlias, addressErr)
+			return
+		}
+		response[request.AliasAddress] = mvxAddress
+	}
+
+	shared.RespondWithSuccess(c, response)
 }
 
 // getGuardianData returns the guardian data and guarded state for a given account
