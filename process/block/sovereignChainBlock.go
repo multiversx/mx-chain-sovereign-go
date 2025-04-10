@@ -1704,6 +1704,7 @@ func (scbp *sovereignChainBlockProcessor) CommitBlock(headerHandler data.HeaderH
 		"shard", scbp.shardCoordinator.SelfId(),
 		"nonce", highestFinalBlockNonce,
 	)
+	scbp.appStatusHandler.SetUInt64Value(common.MetricHighestFinalBlock, highestFinalBlockNonce)
 
 	err = scbp.saveSovereignMetricsForCommittedBlock(
 		logger.DisplayByteSlice(headerHash),

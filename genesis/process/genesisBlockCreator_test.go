@@ -901,7 +901,7 @@ func TestGenesisBlockCreator_GetIndexingDataShouldWork(t *testing.T) {
 
 	numDNSTypeScTxs := 256
 	numDefaultTypeScTxs := 1
-	numSystemSC := 4
+	numSystemSC := 5
 
 	numInitialNodes := 0
 	for k := range initialGenesisNodes {

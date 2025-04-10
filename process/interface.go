@@ -539,6 +539,7 @@ type BlockChainHookHandler interface {
 	LastEpoch() uint32
 	GetStateRootHash() []byte
 	CurrentNonce() uint64
+	ChainID() []byte
 	CurrentRound() uint64
 	CurrentTimeStamp() uint64
 	CurrentRandomSeed() []byte
@@ -572,6 +573,8 @@ type BlockChainHookHandler interface {
 	GetCounterValues() map[string]uint64
 	IsInterfaceNil() bool
 	IsBuiltinFunctionName(functionName string) bool
+	SaveAliasAddress(request *vmcommon.AliasSaveRequest) error
+	RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 }
 
 // BlockChainHookWithAccountsAdapter defines an extension of BlockChainHookHandler with the AccountsAdapter exposed

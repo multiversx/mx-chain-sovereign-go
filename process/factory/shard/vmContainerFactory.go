@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-go/evm"
 	"github.com/multiversx/mx-chain-vm-go/vmhost"
 	wasmVMHost15 "github.com/multiversx/mx-chain-vm-go/vmhost/hostCore"
 	wasmvm12 "github.com/multiversx/mx-chain-vm-v1_2-go/vmhost"
@@ -200,6 +201,18 @@ func (vmf *vmContainerFactory) Create() (process.VirtualMachinesContainer, error
 		return nil, err
 	}
 
+	evmInstance, err := vmf.createEVM()
+	if err != nil {
+		vmf.wasmVMChangeLocker.Unlock()
+		return nil, err
+	}
+
+	err = container.Add(factory.EVMVirtualMachine, evmInstance)
+	if err != nil {
+		vmf.wasmVMChangeLocker.Unlock()
+		return nil, err
+	}
+
 	// The vmContainerFactory keeps a reference to the container it has created,
 	// in order to replace, from within the container, the VM instances that
 	// become out-of-date after specific epochs.
@@ -301,6 +314,15 @@ func (vmf *vmContainerFactory) createWasmVM(version config.WasmVMVersionByEpoch)
 	return currentVM, nil
 }
 
+func (vmf *vmContainerFactory) createEVM() (vmcommon.VMExecutionHandler, error) {
+	currentVM, err := vmf.createInProcessEVM()
+	if err != nil {
+		return nil, err
+	}
+
+	return currentVM, nil
+}
+
 func (vmf *vmContainerFactory) getMatchingVersion(epoch uint32) config.WasmVMVersionByEpoch {
 	matchingVersion := vmf.wasmVMVersions[len(vmf.wasmVMVersions)-1]
 	for idx := 0; idx < len(vmf.wasmVMVersions)-1; idx++ {
@@ -387,6 +409,30 @@ func (vmf *vmContainerFactory) createInProcessWasmVMV15() (vmcommon.VMExecutionH
 		EnableEpochsHandler:                 vmf.enableEpochsHandler,
 		Hasher:                              vmf.hasher,
 		MapOpcodeAddressIsAllowed:           vmf.mapOpcodeAddressIsAllowed,
+	}
+
+	return wasmVMHost15.NewVMHost(vmf.blockChainHook, hostParameters)
+}
+
+func (vmf *vmContainerFactory) createInProcessEVM() (vmcommon.VMExecutionHandler, error) {
+	logVMContainerFactory.Info("EVM created")
+	hostParameters := &vmhost.VMHostParameters{
+		VMType:                              factory.EVMVirtualMachine,
+		BlockGasLimit:                       vmf.blockGasLimit,
+		GasSchedule:                         vmf.gasSchedule.LatestGasSchedule(),
+		BuiltInFuncContainer:                vmf.builtinFunctions,
+		ProtectedKeyPrefix:                  []byte(core.ProtectedKeyPrefix),
+		ESDTTransferParser:                  vmf.esdtTransferParser,
+		WasmerSIGSEGVPassthrough:            vmf.config.WasmerSIGSEGVPassthrough,
+		TimeOutForSCExecutionInMilliseconds: vmf.config.TimeOutForSCExecutionInMilliseconds,
+		EpochNotifier:                       vmf.epochNotifier,
+		EnableEpochsHandler:                 vmf.enableEpochsHandler,
+		Hasher:                              vmf.hasher,
+		MapOpcodeAddressIsAllowed:           vmf.mapOpcodeAddressIsAllowed,
+		OverrideVMExecutor:                  evm.ExecutorFactory(),
+		UsePseudoAddresses:                  true,
+		OmitFunctionNameChecks:              true,
+		OmitDefaultCodeChanges:              true,
 	}
 
 	return wasmVMHost15.NewVMHost(vmf.blockChainHook, hostParameters)

@@ -430,3 +430,12 @@ func (txProc *baseTxProcessor) VerifyGuardian(tx *transaction.Transaction, accou
 
 	return nil
 }
+
+func (txProc *baseTxProcessor) saveAliases(tx *transaction.Transaction) error {
+	switch sourceIdentifier := tx.GetMainAddressIdentifier(); sourceIdentifier {
+	case core.MVXAddressIdentifier:
+		return state.GenerateAddresses(txProc.accounts, [][]byte{tx.SndAddr, tx.RcvAddr}, sourceIdentifier)
+	default:
+		return state.GenerateAddresses(txProc.accounts, [][]byte{tx.SndAliasAddr, tx.RcvAliasAddr}, sourceIdentifier)
+	}
+}

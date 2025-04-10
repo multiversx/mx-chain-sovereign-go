@@ -41,6 +41,8 @@ type FacadeStub struct {
 	NodeConfigCalled                            func() map[string]interface{}
 	GetQueryHandlerCalled                       func(name string) (debug.QueryHandler, error)
 	GetValueForKeyCalled                        func(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
+	GetAliasForAddressCalled                    func(address string, identifier core.AddressIdentifier) (string, error)
+	GetMvxAddressForAliasCalled                 func(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error)
 	GetGuardianDataCalled                       func(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error)
 	GetPeerInfoCalled                           func(pid string) ([]core.QueryP2PPeerInfo, error)
 	GetConnectedPeersRatingsOnMainNetworkCalled func() (string, error)
@@ -230,6 +232,24 @@ func (f *FacadeStub) GetValueForKey(address string, key string, options api.Acco
 	}
 
 	return "", api.BlockInfo{}, nil
+}
+
+// GetAliasForAddress is the mock implementation of a handler's GetAliasForAddress method
+func (f *FacadeStub) GetAliasForAddress(address string, identifier core.AddressIdentifier) (string, error) {
+	if f.GetAliasForAddressCalled != nil {
+		return f.GetAliasForAddressCalled(address, identifier)
+	}
+
+	return "", nil
+}
+
+// GetMvxAddressForAlias is the mock implementation of a handler's GetMvxAddressForAlias method
+func (f *FacadeStub) GetMvxAddressForAlias(aliasAddress string, aliasIdentifier core.AddressIdentifier) (string, error) {
+	if f.GetMvxAddressForAliasCalled != nil {
+		return f.GetMvxAddressForAliasCalled(aliasAddress, aliasIdentifier)
+	}
+
+	return "", nil
 }
 
 // GetKeyValuePairs -

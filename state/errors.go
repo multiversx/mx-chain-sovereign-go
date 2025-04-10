@@ -165,3 +165,15 @@ var ErrValidatorsDifferentShards = errors.New("validators are not in the same sh
 
 // ErrValidatorNotFound signals that a validator was not found
 var ErrValidatorNotFound = errors.New("validator not found")
+
+// ErrInvalidMultiversXAddress signals that the multiversX address is invalid
+var ErrInvalidMultiversXAddress = errors.New("invalid multiversX address")
+
+// ErrInvalidAliasAddress signals that the alias address is invalid
+var ErrInvalidAliasAddress = errors.New("invalid alias address")
+
+// ErrInvalidMainAddressIdentifier signals that the main address identifier is invalid
+var ErrInvalidMainAddressIdentifier = errors.New("invalid main address identifier")
+
+// ErrAliasAddressCollision signals that an alias was already registered for a valid account
+var ErrAliasAddressCollision = errors.New("alias address collision")

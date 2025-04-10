@@ -137,6 +137,17 @@ func (ts *transactionSimulator) ProcessTx(tx *transaction.Transaction, currentHe
 	}
 
 	ts.addLogsFromVmOutput(results, vmOutput)
+	ts.addTxResultsFromVmOutput(results, vmOutput)
+
+	results.Sender, err = ts.addressPubKeyConverter.Encode(tx.SndAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	results.Receiver, err = ts.addressPubKeyConverter.Encode(tx.RcvAddr)
+	if err != nil {
+		return nil, err
+	}
 
 	return results, nil
 }
@@ -158,6 +169,15 @@ func (ts *transactionSimulator) addLogsFromVmOutput(results *txSimData.Simulatio
 			Data:       entry.GetFirstDataItem(),
 		})
 	}
+}
+
+func (ts *transactionSimulator) addTxResultsFromVmOutput(results *txSimData.SimulationResultsWithVMOutput, output *vmcommon.VMOutput) {
+	if output == nil {
+		return
+	}
+	results.ReturnData = output.ReturnData
+	results.ReturnCode = output.ReturnCode
+	results.ReturnMessage = output.ReturnMessage
 }
 
 func (ts *transactionSimulator) getVMOutputOfTx(tx *transaction.Transaction) (*vmcommon.VMOutput, bool) {

@@ -142,6 +142,16 @@ func (a *accountsAdapter) Close() error {
 	return nil
 }
 
+// SaveAliasAddress -
+func (a *accountsAdapter) SaveAliasAddress(_ *vmcommon.AliasSaveRequest) error {
+	return nil
+}
+
+// RequestAddress -
+func (a *accountsAdapter) RequestAddress(_ *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	return nil, nil
+}
+
 // IsInterfaceNil -
 func (a *accountsAdapter) IsInterfaceNil() bool {
 	return a == nil
