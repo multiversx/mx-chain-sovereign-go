@@ -82,7 +82,9 @@ func Deposit(
 	receiver []byte,
 	transferData *sovereign.TransferData,
 ) *transaction.ApiTransactionResult {
-	require.True(t, len(tokens) > 0)
+	if len(tokens) == 0 {
+		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
+	}
 
 	args := make([]any, 0)
 	args = append(args, &abi.AddressValue{Value: contract})
@@ -104,12 +106,34 @@ func Deposit(
 	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
+// depositScCall will make a smart contract call through deposit endpoint
+func depositScCall(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	sender []byte,
+	nonce *uint64,
+	contract []byte,
+	receiver []byte,
+	transferData *sovereign.TransferData,
+) *transaction.ApiTransactionResult {
+	args := make([]any, 0)
+	args = append(args, &abi.AddressValue{Value: receiver})
+	args = append(args, &abi.OptionalValue{Value: getTransferDataValue(transferData)})
+
+	transferArg, err := serializer.Serialize(args)
+	require.Nil(t, err)
+	depositArgs := deposit +
+		"@" + transferArg
+
+	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
 func getTransferDataValue(transferData *sovereign.TransferData) any {
 	if transferData == nil {
 		return nil
 	}
 
-	arguments := make([]abi.SingleValue, len(transferData.Args))
+	arguments := make([]any, len(transferData.Args))
 	for i, arg := range transferData.Args {
 		arguments[i] = &abi.BytesValue{Value: arg}
 	}
@@ -117,7 +141,7 @@ func getTransferDataValue(transferData *sovereign.TransferData) any {
 		Items: []any{
 			&abi.U64Value{Value: transferData.GasLimit},
 			&abi.BytesValue{Value: transferData.Function},
-			&abi.ListValue{Items: arguments},
+			&abi.VariadicValues{Items: arguments},
 		},
 	}
 }
