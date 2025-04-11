@@ -249,10 +249,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		args := createArgs()
 		args.TopicsChecker = &sovTests.TopicsCheckerMock{
-			CheckDepositTokensValidityCalled: func(_ [][]byte) error {
-				return errNumTopics
-			},
-			CheckScCallValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
+			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errNumTopics
 			},
 		}
@@ -279,10 +276,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		args := createArgs()
 		args.TopicsChecker = &sovTests.TopicsCheckerMock{
-			CheckDepositTokensValidityCalled: func(_ [][]byte) error {
-				return errNumTopics
-			},
-			CheckScCallValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
+			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errNumTopics
 			},
 		}
@@ -724,34 +718,23 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		},
 	}
 
-	checkDepositValidityCt := 0
-	checkScCallValidityCt := 0
+	checkValidityCt := 0
 	args.TopicsChecker = &sovTests.TopicsCheckerMock{
-		CheckDepositTokensValidityCalled: func(topics [][]byte) error {
-			checkDepositValidityCt++
+		CheckValidityCalled: func(topics [][]byte, transferData *sovereign.TransferData) error {
+			checkValidityCt++
 
-			switch checkDepositValidityCt {
+			switch checkValidityCt {
 			case 1:
 				require.Equal(t, topic1, topics)
 			case 2:
 				require.Equal(t, topic2, topics)
 			case 3:
-				require.Equal(t, topic5, topics)
-			default:
-				require.Fail(t, "check deposit tokens validity called more than 3 times")
-			}
-
-			return nil
-		},
-		CheckScCallValidityCalled: func(topics [][]byte, transferData *sovereign.TransferData) error {
-			checkScCallValidityCt++
-
-			switch checkScCallValidityCt {
-			case 1:
 				require.Equal(t, topic4, topics)
 				require.NotNil(t, transferData)
+			case 4:
+				require.Equal(t, topic5, topics)
 			default:
-				require.Fail(t, "check sc call validity called more than 1 time")
+				require.Fail(t, "check validity called more than 4 times")
 			}
 
 			return nil
@@ -847,8 +830,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	err = handler.AddHeader([]byte("hash"), incomingHeader)
 	require.Nil(t, err)
-	require.Equal(t, 3, checkDepositValidityCt)
-	require.Equal(t, 1, checkScCallValidityCt)
+	require.Equal(t, 4, checkValidityCt)
 	require.Equal(t, 4, deserializeEventDataCt)
 	require.Equal(t, 4, deserializeTokenDataCt)
 	require.True(t, wasAddedInHeaderPool)

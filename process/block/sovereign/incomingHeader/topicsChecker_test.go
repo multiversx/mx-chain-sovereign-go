@@ -17,7 +17,7 @@ func TestNewTopicsChecker(t *testing.T) {
 	require.False(t, tc.IsInterfaceNil())
 }
 
-func TestTopicsChecker_CheckDepositTokensValidity(t *testing.T) {
+func TestTopicsChecker_checkDepositTokensValidity(t *testing.T) {
 	t.Parallel()
 
 	tc := NewTopicsChecker()
@@ -36,7 +36,7 @@ func TestTopicsChecker_CheckDepositTokensValidity(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := tc.CheckDepositTokensValidity(createTopics(test.topicsCount))
+			err := tc.checkDepositTokensValidity(createTopics(dto.TopicIDDepositIncomingTransfer, test.topicsCount))
 			if test.expectError {
 				require.ErrorContains(t, err, dto.ErrInvalidNumTopicsInEvent.Error())
 			} else {
@@ -46,7 +46,7 @@ func TestTopicsChecker_CheckDepositTokensValidity(t *testing.T) {
 	}
 }
 
-func TestTopicsChecker_CheckScCallValidity(t *testing.T) {
+func TestTopicsChecker_checkScCallValidity(t *testing.T) {
 	t.Parallel()
 
 	tc := NewTopicsChecker()
@@ -69,7 +69,7 @@ func TestTopicsChecker_CheckScCallValidity(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := tc.CheckScCallValidity(createTopics(test.topicsCount), test.transferData)
+			err := tc.checkScCallValidity(createTopics(dto.TopicIDDepositIncomingTransfer, test.topicsCount), test.transferData)
 			if test.expectError {
 				require.ErrorContains(t, err, dto.ErrInvalidNumTopicsInEvent.Error())
 			} else {
@@ -77,6 +77,15 @@ func TestTopicsChecker_CheckScCallValidity(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createTopics(topicID string, n int) [][]byte {
+	topics := make([][]byte, n)
+	topics[0] = []byte(topicID)
+	for i := range topics[1:] {
+		topics[i] = []byte("topic" + strconv.Itoa(i))
+	}
+	return topics
 }
 
 func TestTopicsChecker_CheckValidity(t *testing.T) {
@@ -84,47 +93,9 @@ func TestTopicsChecker_CheckValidity(t *testing.T) {
 
 	tc := NewTopicsChecker()
 
-	tests := []struct {
-		name         string
-		topicsCount  int
-		transferData *sovereign.TransferData
-		expectError  bool
-	}{
-		{"One topic, should fail", 1, &sovereign.TransferData{}, true},
-		{"One topic, should fail (no transfer data)", 1, nil, true},
+	topics := make([][]byte, 0)
+	topics = append(topics, []byte("topic"))
 
-		{"Two topics, should pass", 2, &sovereign.TransferData{}, false},
-		{"Two topics, should fail (no transfer data)", 2, nil, true},
-
-		{"Three topics, should fail", 3, &sovereign.TransferData{}, true},
-		{"Three topics, should fail (no transfer data)", 3, nil, true},
-
-		{"Five topics, should pass", 5, &sovereign.TransferData{}, false},
-		{"Five topics, should pass (no transfer data)", 5, nil, false},
-
-		{"Six topics, should fail", 6, &sovereign.TransferData{}, true},
-		{"Six topics, should fail (no transfer data)", 6, nil, true},
-
-		{"Eight topics, should pass", 8, &sovereign.TransferData{}, false},
-		{"Eight topics, should pass (no transfer data)", 8, nil, false},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := tc.CheckValidity(createTopics(test.topicsCount), test.transferData)
-			if test.expectError {
-				require.ErrorContains(t, err, dto.ErrInvalidNumTopicsInEvent.Error())
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
-func createTopics(n int) [][]byte {
-	topics := make([][]byte, n)
-	for i := range topics {
-		topics[i] = []byte("topic" + strconv.Itoa(i))
-	}
-	return topics
+	err := tc.CheckValidity(topics, nil)
+	require.ErrorContains(t, err, "invalid topic id")
 }

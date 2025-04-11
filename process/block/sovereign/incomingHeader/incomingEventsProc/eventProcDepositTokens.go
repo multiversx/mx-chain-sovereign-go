@@ -83,7 +83,7 @@ func checkArgs(args EventProcDepositOperationArgs) error {
 //   - topic[2:N] = List of token data.
 func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	topics := event.GetTopics()
-	err := dep.topicsChecker.CheckDepositTokensValidity(topics)
+	err := dep.topicsChecker.CheckValidity(topics, nil)
 	if err != nil {
 		return nil, err
 	}
