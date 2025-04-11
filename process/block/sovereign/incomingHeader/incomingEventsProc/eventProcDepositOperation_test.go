@@ -23,7 +23,7 @@ func TestNewEventProcDepositOperation(t *testing.T) {
 
 	t.Run("should work", func(t *testing.T) {
 		handler, err := NewEventProcDepositOperation(&eventProcDepositTokens{}, &eventProcScCall{&eventProcDepositTokens{}})
-		require.NotNil(t, handler)
+		require.False(t, handler.IsInterfaceNil())
 		require.Nil(t, err)
 	})
 }

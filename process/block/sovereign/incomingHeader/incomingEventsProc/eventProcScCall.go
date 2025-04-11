@@ -32,6 +32,14 @@ func NewEventProcScCall(args EventProcDepositOperationArgs) (*eventProcScCall, e
 	}, nil
 }
 
+// ProcessEvent handles incoming SC call events and returns the corresponding incoming SCR info.
+// Each SC call event is identified by dto.EventIDDepositIncomingTransfer.
+//
+// Expected event data:
+// - Data []byte – Serialized event details (nonce, gas, function call with arguments).
+// - Topics [][]byte – A list of two topics, where:
+//   - topic[0] = dto.TopicIDSCCall.
+//   - topic[1] = Receiver address.
 func (ep *eventProcScCall) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	evData, err := ep.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
