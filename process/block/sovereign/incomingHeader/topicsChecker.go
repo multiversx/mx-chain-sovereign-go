@@ -23,7 +23,7 @@ func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.
 	case dto.TopicIDSCCall:
 		return tc.checkScCallValidity(topics, transferData)
 	default:
-		return fmt.Errorf("invalid topic id %s", string(topics[0]))
+		return dto.ErrInvalidIncomingTopicIdentifier
 	}
 }
 

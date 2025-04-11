@@ -16,14 +16,14 @@ func TestNewEventProcScCall(t *testing.T) {
 		args := createArgs()
 		args.Marshaller = nil
 
-		handler, err := NewEventProcScCall(args)
+		handler, err := NewEventProcSCCall(args)
 		require.Equal(t, core.ErrNilMarshalizer, err)
 		require.Nil(t, handler)
 	})
 
 	t.Run("should work", func(t *testing.T) {
 		args := createArgs()
-		handler, err := NewEventProcScCall(args)
+		handler, err := NewEventProcSCCall(args)
 		require.NotNil(t, handler)
 		require.Nil(t, err)
 	})
@@ -38,7 +38,7 @@ func TestScCallEventProc_createSCRData(t *testing.T) {
 	arg2 := []byte("arg2")
 
 	args := createArgs()
-	handler, _ := NewEventProcScCall(args)
+	handler, _ := NewEventProcSCCall(args)
 
 	eventData := &sovereign.EventData{
 		TransferData: &sovereign.TransferData{
