@@ -50,7 +50,7 @@ sovereignDeploy() {
 
     unpauseEsdtSafeContract
 
-    fund $(python3 $TESTNET_DIR/convert_address.py $WALLET_ADDRESS $ADDRESS_HRP)
+    fund $WALLET_ADDRESS
 
     unpauseEsdtSafeContractSovereign
 }

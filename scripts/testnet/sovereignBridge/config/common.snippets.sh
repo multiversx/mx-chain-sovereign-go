@@ -4,14 +4,15 @@ fund() {
         return 1
     fi
 
-    echo "Funding wallet address $1 on sovereign chain..."
+    local RECEIVER=$(python3 $TESTNET_DIR/convert_address.py $1 $ADDRESS_HRP)
+    echo "Funding wallet address $RECEIVER on sovereign chain..."
 
     local OUTFILE="${OUTFILE_PATH}/get-funds-sovereign.interaction.json"
     mxpy tx new \
         --pem=${WALLET_SOVEREIGN} \
         --proxy=${PROXY_SOVEREIGN} \
         --chain=${CHAIN_ID_SOVEREIGN} \
-        --receiver=$1 \
+        --receiver=$RECEIVER \
         --value=100000000000000000000000 \
         --gas-limit=50000 \
         --outfile=${OUTFILE} \
