@@ -22,14 +22,6 @@ func TestTopicsChecker_CheckDepositTokensValidity(t *testing.T) {
 
 	tc := NewTopicsChecker()
 
-	createTopics := func(n int) [][]byte {
-		topics := make([][]byte, n)
-		for i := range topics {
-			topics[i] = []byte("topic" + strconv.Itoa(i))
-		}
-		return topics
-	}
-
 	tests := []struct {
 		name        string
 		topicsCount int
@@ -58,14 +50,6 @@ func TestTopicsChecker_CheckScCallValidity(t *testing.T) {
 	t.Parallel()
 
 	tc := NewTopicsChecker()
-
-	createTopics := func(n int) [][]byte {
-		topics := make([][]byte, n)
-		for i := range topics {
-			topics[i] = []byte("topic" + strconv.Itoa(i))
-		}
-		return topics
-	}
 
 	tests := []struct {
 		name         string
@@ -99,14 +83,6 @@ func TestTopicsChecker_CheckValidity(t *testing.T) {
 	t.Parallel()
 
 	tc := NewTopicsChecker()
-
-	createTopics := func(n int) [][]byte {
-		topics := make([][]byte, n)
-		for i := range topics {
-			topics[i] = []byte("topic" + strconv.Itoa(i))
-		}
-		return topics
-	}
 
 	tests := []struct {
 		name         string
@@ -143,4 +119,12 @@ func TestTopicsChecker_CheckValidity(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createTopics(n int) [][]byte {
+	topics := make([][]byte, n)
+	for i := range topics {
+		topics[i] = []byte("topic" + strconv.Itoa(i))
+	}
+	return topics
 }

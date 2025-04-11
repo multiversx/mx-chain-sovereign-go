@@ -34,15 +34,14 @@ func NewEventProcDepositOperation(
 
 // ProcessEvent handles deposit events
 // Each event is identified by dto.EventIDDepositIncomingTransfer.
-//
-// # An incoming deposit operation can be a deposit or a SC call
+// An incoming deposit operation can be a token(s) deposit or a SC call
 //
 // Expected event topics ([][]byte):
-// - topic[0] = dto.TopicIDDepositIncomingTransfer → Indicates a deposit operation.
+// - topic[0] = dto.TopicIDDepositIncomingTransfer → Indicates a token deposit operation.
 //   - The event is treated as an **incoming deposit event**, and the tokens will be added to balance.
 //   - The remaining topic fields follow the format defined in `eventProcDepositTokens.go`.
 //
-// - topic[0] = dto.TopicIDScCall → Indicates a SC call.
+// - topic[0] = dto.TopicIDSCCall → Indicates a SC call.
 //   - The event is treated as an **incoming sc call event**, and no tokens are transferred, only transfer data.
 func (ep *eventProcDepositOperation) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	topics := event.GetTopics()
@@ -53,7 +52,7 @@ func (ep *eventProcDepositOperation) ProcessEvent(event data.EventHandler) (*dto
 	switch string(topics[0]) {
 	case dto.TopicIDDepositIncomingTransfer:
 		return ep.eventProcDepositTokens.ProcessEvent(event)
-	case dto.TopicIDScCall:
+	case dto.TopicIDSCCall:
 		return ep.eventProcScCall.ProcessEvent(event)
 	default:
 		return nil, dto.ErrInvalidIncomingTopicIdentifier

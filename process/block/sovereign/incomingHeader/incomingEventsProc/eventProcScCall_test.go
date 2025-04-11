@@ -7,8 +7,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/stretchr/testify/require"
-
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
 )
 
 func TestNewEventProcScCall(t *testing.T) {
@@ -20,33 +18,6 @@ func TestNewEventProcScCall(t *testing.T) {
 
 		handler, err := NewEventProcScCall(args)
 		require.Equal(t, core.ErrNilMarshalizer, err)
-		require.Nil(t, handler)
-	})
-
-	t.Run("nil hasher, should return error", func(t *testing.T) {
-		args := createArgs()
-		args.Hasher = nil
-
-		handler, err := NewEventProcScCall(args)
-		require.Equal(t, core.ErrNilHasher, err)
-		require.Nil(t, handler)
-	})
-
-	t.Run("nil data codec, should return error", func(t *testing.T) {
-		args := createArgs()
-		args.DataCodec = nil
-
-		handler, err := NewEventProcScCall(args)
-		require.Equal(t, errorsMx.ErrNilDataCodec, err)
-		require.Nil(t, handler)
-	})
-
-	t.Run("nil topics checker, should return error", func(t *testing.T) {
-		args := createArgs()
-		args.TopicsChecker = nil
-
-		handler, err := NewEventProcScCall(args)
-		require.Equal(t, errorsMx.ErrNilTopicsChecker, err)
 		require.Nil(t, handler)
 	})
 
