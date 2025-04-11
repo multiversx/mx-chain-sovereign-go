@@ -1205,6 +1205,17 @@ func (ihnc *indexHashedNodesCoordinator) createSelectors(
 			return nil, err
 		}
 
+		log.Info("before calling NewSelectorExpandedList", "weights", weights)
+
+		for _, val := range vList {
+			log.Info("val",
+				"pk", val.PubKey(),
+				"chances", val.Chances(),
+				"val.Index()", val.Index(),
+				"val.Size()", val.Size(),
+			)
+		}
+
 		selectors[shard], err = NewSelectorExpandedList(weights, ihnc.hasher)
 		if err != nil {
 			return nil, err

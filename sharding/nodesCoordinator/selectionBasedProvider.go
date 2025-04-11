@@ -77,8 +77,20 @@ func (sbp *SelectionBasedProvider) Get(randomness []byte, numValidators int64, e
 		if sbp.size >= lenExpandedList {
 			return nil, ErrInvalidSampleSize
 		}
+
 		index = newRandomness % uint64(lenExpandedList-sbp.size)
+		indexInitial := index
 		index = sbp.adjustIndex(index)
+
+		log.Info("SelectionBasedProvider.Get",
+			"randomness", randomness,
+			"newRandomness", newRandomness,
+			"uint64(lenExpandedList-sbp.size)", uint64(lenExpandedList-sbp.size),
+			"sbp.size", sbp.size,
+			"indexInitial", indexInitial,
+			"indexAdjusted", index,
+		)
+
 		validators = append(validators, expandedEligibleList[index])
 		sbp.add(expandedEligibleList, int64(index))
 	}

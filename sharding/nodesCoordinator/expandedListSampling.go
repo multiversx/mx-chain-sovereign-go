@@ -32,6 +32,7 @@ func NewSelectorExpandedList(weightList []uint32, hasher hashing.Hasher) (*selec
 	}
 
 	var err error
+
 	selector.expandedList, err = selector.expandList(weightList)
 	if err != nil {
 		return nil, err
@@ -49,6 +50,11 @@ func (s *selectorExpandedList) Select(randSeed []byte, sampleSize uint32) ([]uin
 		return nil, ErrInvalidSampleSize
 	}
 	selectorConsensus := NewSelectionBasedProvider(s.hasher, s.uniqueItems)
+
+	log.Info("selectorExpandedList.Select",
+		"randSeed", randSeed,
+		"int64(sampleSize)", int64(sampleSize),
+		"s.uniqueItems", s.uniqueItems)
 	return selectorConsensus.Get(randSeed, int64(sampleSize), s.expandedList)
 }
 

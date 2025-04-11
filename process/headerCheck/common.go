@@ -3,6 +3,7 @@ package headerCheck
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
@@ -23,6 +24,15 @@ func ComputeConsensusGroup(header data.HeaderHandler, nodesCoordinator nodesCoor
 	if header.IsStartOfEpochBlock() && epoch > 0 {
 		epoch = epoch - 1
 	}
+
+	log.Info("called ComputeConsensusGroup",
+		"prevRandSeed", prevRandSeed,
+		"round", header.GetRound(),
+		"shardID", header.GetShardID(),
+		"epoch", epoch,
+		"header.IsStartOfEpochBlock()", header.IsStartOfEpochBlock(),
+		"header.GetEpoch()", header.GetEpoch(),
+	)
 
 	return nodesCoordinator.ComputeConsensusGroup(prevRandSeed, header.GetRound(), header.GetShardID(), epoch)
 }

@@ -325,7 +325,7 @@ func (hsv *HeaderSigVerifier) getLeader(header data.HeaderHandler) (crypto.Publi
 		return nil, err
 	}
 
-	log.Info("called getLeader", "round", header.GetRound())
+	log.Info("called getLeader", "round", header.GetRound(), "prevRandSeed", header.GetPrevRandSeed())
 	for idx, member := range headerConsensusGroup {
 		log.Info("hdr cns grp", "round", header.GetRound(), "idx", idx, "pk", member.PubKey())
 	}
