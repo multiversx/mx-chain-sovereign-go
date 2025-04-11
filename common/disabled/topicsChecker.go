@@ -12,16 +12,6 @@ func NewDisabledTopicsChecker() *topicsChecker {
 	return &topicsChecker{}
 }
 
-// CheckDepositTokensValidity -
-func (tc *topicsChecker) CheckDepositTokensValidity(_ [][]byte) error {
-	return nil
-}
-
-// CheckScCallValidity -
-func (tc *topicsChecker) CheckScCallValidity(_ [][]byte, _ *sovereign.TransferData) error {
-	return nil
-}
-
 // CheckValidity -
 func (tc *topicsChecker) CheckValidity(_ [][]byte, _ *sovereign.TransferData) error {
 	return nil

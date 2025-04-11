@@ -15,8 +15,19 @@ func NewTopicsChecker() *topicsChecker {
 	return &topicsChecker{}
 }
 
-// CheckDepositTokensValidity will receive the deposit topics and validate them
-func (tc *topicsChecker) CheckDepositTokensValidity(topics [][]byte) error {
+// CheckValidity will receive the topics and validate them
+func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
+	switch string(topics[0]) {
+	case dto.TopicIDDepositIncomingTransfer:
+		return tc.checkDepositTokensValidity(topics)
+	case dto.TopicIDSCCall:
+		return tc.checkScCallValidity(topics, transferData)
+	default:
+		return fmt.Errorf("invalid topic id %s", string(topics[0]))
+	}
+}
+
+func (tc *topicsChecker) checkDepositTokensValidity(topics [][]byte) error {
 	// TODO: Check each param validity (e.g. check that topic[0] == valid address)
 	if len(topics) < dto.MinTopicsInTransferEvent || len(topics[2:])%dto.NumTransferTopics != 0 {
 		log.Error("topicsChecker.CheckDepositTokensValidity",
@@ -30,8 +41,7 @@ func (tc *topicsChecker) CheckDepositTokensValidity(topics [][]byte) error {
 	return nil
 }
 
-// CheckScCallValidity will receive the topics and transfer data, and validate them
-func (tc *topicsChecker) CheckScCallValidity(topics [][]byte, transferData *sovereign.TransferData) error {
+func (tc *topicsChecker) checkScCallValidity(topics [][]byte, transferData *sovereign.TransferData) error {
 	// TODO: Check each param validity (e.g. check that topic[0] == valid address, valid transferData)
 	if len(topics) != dto.NumScCallTopics || transferData == nil {
 		log.Error("topicsChecker.CheckScCallValidity",
@@ -44,27 +54,6 @@ func (tc *topicsChecker) CheckScCallValidity(topics [][]byte, transferData *sove
 	}
 
 	return nil
-}
-
-// CheckValidity will receive the topics and validate them
-func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
-	err := tc.CheckDepositTokensValidity(topics)
-	if err == nil {
-		return nil
-	}
-
-	err = tc.CheckScCallValidity(topics, transferData)
-	if err == nil {
-		return nil
-	}
-
-	log.Error("topicsChecker.CheckValidity",
-		"error", dto.ErrInvalidNumTopicsInEvent,
-		"num topics", len(topics),
-		"topics", topics,
-		"transferData is nil", transferData == nil)
-
-	return fmt.Errorf("%w for outgoing deposit operation; num topics = %d", dto.ErrInvalidNumTopicsInEvent, len(topics))
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

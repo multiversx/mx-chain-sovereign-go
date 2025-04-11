@@ -6,27 +6,7 @@ import (
 
 // TopicsCheckerMock -
 type TopicsCheckerMock struct {
-	CheckDepositTokensValidityCalled func(topics [][]byte) error
-	CheckScCallValidityCalled        func(topics [][]byte, transferData *sovereign.TransferData) error
-	CheckValidityCalled              func(topics [][]byte, transferData *sovereign.TransferData) error
-}
-
-// CheckDepositTokensValidity -
-func (tc *TopicsCheckerMock) CheckDepositTokensValidity(topics [][]byte) error {
-	if tc.CheckDepositTokensValidityCalled != nil {
-		return tc.CheckDepositTokensValidityCalled(topics)
-	}
-
-	return nil
-}
-
-// CheckScCallValidity -
-func (tc *TopicsCheckerMock) CheckScCallValidity(topics [][]byte, transferData *sovereign.TransferData) error {
-	if tc.CheckScCallValidityCalled != nil {
-		return tc.CheckScCallValidityCalled(topics, transferData)
-	}
-
-	return nil
+	CheckValidityCalled func(topics [][]byte, transferData *sovereign.TransferData) error
 }
 
 // CheckValidity -
