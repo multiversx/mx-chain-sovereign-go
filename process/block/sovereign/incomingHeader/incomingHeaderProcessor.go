@@ -9,7 +9,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
-	dto2 "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -26,24 +25,27 @@ var log = logger.GetOrCreate("headerSubscriber")
 
 // ArgsIncomingHeaderProcessor is a struct placeholder for args needed to create a new incoming header processor
 type ArgsIncomingHeaderProcessor struct {
-	HeadersPool            HeadersPool
-	OutGoingOperationsPool sovereignBlock.OutGoingOperationsPool
-	TxPool                 TransactionPool
-	Marshaller             marshal.Marshalizer
-	Hasher                 hashing.Hasher
-	// TODO: Here we need to load string from config and convert to big Int
+	HeadersPool                     HeadersPool
+	OutGoingOperationsPool          sovereignBlock.OutGoingOperationsPool
+	TxPool                          TransactionPool
+	Marshaller                      marshal.Marshalizer
+	Hasher                          hashing.Hasher
 	MainChainNotarizationStartRound map[string]config.MainChainNotarization
 	DataCodec                       sovBlock.DataCodecHandler
 	TopicsChecker                   sovBlock.TopicsCheckerHandler
+}
+
+type chainStartRoundCfg struct {
+	genesisRound    *big.Int
+	preGenesisRound *big.Int
 }
 
 type incomingHeaderProcessor struct {
 	eventsProc         IncomingEventsProcessor
 	extendedHeaderProc *extendedHeaderProcessor
 
-	outGoingPool                    sovereignBlock.OutGoingOperationsPool
-	mainChainNotarizationStartRound *big.Int
-	preGenesisMainChainRound        *big.Int
+	outGoingPool             sovereignBlock.OutGoingOperationsPool
+	mapMainChainNotarization map[string]*chainStartRoundCfg
 }
 
 // NewIncomingHeaderProcessor creates an incoming header processor which should be able to receive incoming headers and events
@@ -118,13 +120,25 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	log.Debug("NewIncomingHeaderProcessor", "starting round to notarize main chain headers", args.MainChainNotarizationStartRound)
 
 	return &incomingHeaderProcessor{
-		eventsProc:         eventsProc,
-		extendedHeaderProc: extendedHearProc,
-		outGoingPool:       args.OutGoingOperationsPool,
-		// TODO: Here change to iterate per chain
-		mainChainNotarizationStartRound: big.NewInt(int64(args.MainChainNotarizationStartRound[dto2.MVX.String()].StartRound)),
-		preGenesisMainChainRound:        big.NewInt(int64(args.MainChainNotarizationStartRound[dto2.MVX.String()].StartRound) - 1),
+		eventsProc:               eventsProc,
+		extendedHeaderProc:       extendedHearProc,
+		outGoingPool:             args.OutGoingOperationsPool,
+		mapMainChainNotarization: createChainStartRoundMap(args.MainChainNotarizationStartRound),
 	}, nil
+}
+
+func createChainStartRoundMap(mainChainNotarizationStartRound map[string]config.MainChainNotarization) map[string]*chainStartRoundCfg {
+	// TODO: Here check if useful to check empty input map
+	ret := make(map[string]*chainStartRoundCfg)
+
+	for sourceChainID, cfg := range mainChainNotarizationStartRound {
+		ret[sourceChainID] = &chainStartRoundCfg{
+			genesisRound:    big.NewInt(int64(cfg.StartRound)),
+			preGenesisRound: big.NewInt(int64(cfg.StartRound - 1)),
+		}
+	}
+
+	return ret
 }
 
 // AddHeader will receive the incoming header, validate it, create incoming mbs and transactions and add them to pool
@@ -140,18 +154,23 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 		"nonce", incomingHeaderNonce.String(),
 	)
 
+	chainData, found := ihp.mapMainChainNotarization[header.GetSourceChainID().String()]
+	if !found {
+		return fmt.Errorf("invalid chain id: %s", header.GetSourceChainID().String())
+	}
+
 	// pre-genesis header, needed to track/link genesis header on top of this one. Every node with an enabled notifier
 	// will validate that the next genesis header with round == mainChainNotarizationStartRound is on top of pre-genesis header.
 	// just save internal header to tracker, no need to process anything from it
-	if incomingHeaderNonce.Cmp(ihp.preGenesisMainChainRound) == 0 {
+	if incomingHeaderNonce.Cmp(chainData.preGenesisRound) == 0 {
 		log.Debug("received pre-genesis header", "round", incomingHeaderNonce)
 		return ihp.extendedHeaderProc.addPreGenesisExtendedHeaderToPool(header)
 	}
 
-	if incomingHeaderNonce.Cmp(ihp.mainChainNotarizationStartRound) < 0 {
+	if incomingHeaderNonce.Cmp(chainData.genesisRound) < 0 {
 		log.Debug("do not notarize incoming header, round lower than main chain notarization start round",
 			"round", incomingHeaderNonce.String(),
-			"start round", ihp.mainChainNotarizationStartRound)
+			"start round", chainData.genesisRound)
 		return nil
 	}
 
@@ -186,7 +205,6 @@ func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
 	}
 
 	return nil
-
 }
 
 func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.ConfirmedBridgeOp) {
@@ -207,6 +225,17 @@ func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.Confi
 
 // CreateExtendedHeader will create an extended shard header with incoming scrs and mbs from the events of the received header
 func (ihp *incomingHeaderProcessor) CreateExtendedHeader(header sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
+	chainData, found := ihp.mapMainChainNotarization[header.GetSourceChainID().String()]
+	if !found {
+		return nil, fmt.Errorf("invalid chain id: %s", header.GetSourceChainID().String())
+	}
+
+	// TODO: Here, check if there is a nicer code solution for this just found bug bug
+	if header.GetNonceBI().Cmp(chainData.preGenesisRound) == 0 {
+		log.Debug("received pre-genesis header", "round", header.GetNonceBI())
+		return ihp.extendedHeaderProc.createChainSpecificExtendedHeader(header)
+	}
+
 	res, err := ihp.eventsProc.ProcessIncomingEvents(header.GetIncomingEventHandlers())
 	if err != nil {
 		return nil, err

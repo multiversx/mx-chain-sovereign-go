@@ -9,8 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/marshal"
-
+	"github.com/multiversx/mx-chain-go/config"
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
@@ -26,7 +25,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,7 +47,8 @@ func createArgs() ArgsIncomingHeaderProcessor {
 				}, nil
 			},
 		},
-		TopicsChecker: &sovTests.TopicsCheckerMock{},
+		TopicsChecker:                   &sovTests.TopicsCheckerMock{},
+		MainChainNotarizationStartRound: createMainChainNotarizationCfg(),
 	}
 }
 
@@ -197,7 +199,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		startRound := uint64(11)
 
 		args := createArgs()
-		args.MainChainNotarizationStartRound = startRound
+		args.MainChainNotarizationStartRound = map[string]config.MainChainNotarization{
+			dtoSov.MVX.String(): {StartRound: startRound},
+		}
 		wasHeaderAddedCt := 0
 		args.HeadersPool = &mock.HeadersCacherStub{
 			AddHeaderInShardCalled: func(headerHash []byte, header data.HeaderHandler, shardID uint32) {

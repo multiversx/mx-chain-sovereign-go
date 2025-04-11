@@ -64,7 +64,7 @@ func createMockArgsTestOnlyProcessingNode(t *testing.T) ArgsTestOnlyProcessingNo
 		CreateRunTypeCoreComponents: func() (mainFactory.RunTypeCoreComponentsHolder, error) {
 			return createRunTypeCoreComponents()
 		},
-		CreateIncomingHeaderSubscriber: func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound uint64, runTypeComponents mainFactory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error) {
+		CreateIncomingHeaderSubscriber: func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound map[string]config.MainChainNotarization, runTypeComponents mainFactory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error) {
 			return &sovereign.IncomingHeaderSubscriberStub{}, nil
 		},
 		CreateRunTypeComponents: func(args runType.ArgsRunTypeComponents) (mainFactory.RunTypeComponentsHolder, error) {
