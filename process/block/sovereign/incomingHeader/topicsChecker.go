@@ -17,6 +17,10 @@ func NewTopicsChecker() *topicsChecker {
 
 // CheckValidity will receive the topics and validate them
 func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
+	if len(topics) == 0 {
+		return dto.ErrInvalidNumTopicsInEvent
+	}
+
 	switch string(topics[0]) {
 	case dto.TopicIDDepositIncomingTransfer:
 		return tc.checkDepositTokensValidity(topics)

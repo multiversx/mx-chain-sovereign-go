@@ -94,8 +94,10 @@ func TestTopicsChecker_CheckValidity(t *testing.T) {
 	tc := NewTopicsChecker()
 
 	topics := make([][]byte, 0)
-	topics = append(topics, []byte("topic"))
-
 	err := tc.CheckValidity(topics, nil)
+	require.Error(t, err, dto.ErrInvalidNumTopicsInEvent)
+
+	topics = append(topics, []byte("topic"))
+	err = tc.CheckValidity(topics, nil)
 	require.Error(t, err, dto.ErrInvalidIncomingTopicIdentifier)
 }
