@@ -8,7 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
-func TestIncomingEventsProcessor_RegisterProcessor(t *testing.T) {
+func TestIncomingEventsProcessor_RegisterProcessorWithNilProcessor(t *testing.T) {
 	eventsProc := NewIncomingEventsProcessor()
 	err := eventsProc.RegisterProcessor(dto.EventIDDepositIncomingTransfer, nil)
 	require.Error(t, errNilIncomingEventHandler, err)

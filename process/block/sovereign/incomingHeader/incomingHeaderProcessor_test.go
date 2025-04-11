@@ -628,7 +628,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	}
 
 	topic4 := [][]byte{
-		[]byte(dto.TopicIDScCall),
+		[]byte(dto.TopicIDSCCall),
 		addr3,
 	}
 	eventData3 := []byte("eventData3")

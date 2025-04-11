@@ -372,12 +372,10 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 	dataCodec := &sovTests.DataCodecMock{
 		DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
 			require.Equal(t, eventData, data)
-
 			return evData, nil
 		},
 		DeserializeTokenDataCalled: func(data []byte) (*sovereign.EsdtTokenData, error) {
 			require.Fail(t, "DeserializeTokenData should not be called")
-
 			return &sovereign.EsdtTokenData{}, nil
 		},
 		SerializeOperationCalled: func(operation sovereign.Operation) ([]byte, error) {

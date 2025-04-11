@@ -516,9 +516,9 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 }
 
 // main chain deposit and execute with no payment, only transfer data
-// 1. deposit no payment, no transfer data - should fail
-// 2. deposit no payment, with transfer data - should work
-// 3. execute no payment, with transfer data - should work
+// 1. call deposit endpoint with no payment and no transfer data - should fail
+// 2. call deposit endpoint with no payment and with transfer data - should work
+// 3. call execute endpoint with no payment and with transfer data - should work
 func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
