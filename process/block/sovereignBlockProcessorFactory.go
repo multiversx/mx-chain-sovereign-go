@@ -78,7 +78,7 @@ func (s *sovereignBlockProcessorFactory) CreateBlockProcessor(argumentsBaseProce
 		EpochSystemSCProcessor:          argsMetaProcessor.EpochSystemSCProcessor,
 		SCToProtocol:                    argsMetaProcessor.SCToProtocol,
 		EpochEconomics:                  argsMetaProcessor.EpochEconomics,
-		MainChainNotarizationStartRound: argumentsBaseProcessor.Config.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound,
+		MainChainNotarizationStartRound: argumentsBaseProcessor.Config.SovereignConfig.MainChainNotarization,
 	}
 
 	return NewSovereignChainBlockProcessor(args)

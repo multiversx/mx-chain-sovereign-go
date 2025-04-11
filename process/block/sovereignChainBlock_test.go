@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
 	errMx "github.com/multiversx/mx-chain-go/errors"
@@ -26,6 +27,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,18 +58,22 @@ func createSovChainBlockProcessorArgs() blproc.ArgsSovereignChainBlockProcessor 
 	baseArgs := createSovChainBaseBlockProcessorArgs()
 	sp, _ := blproc.NewShardProcessor(baseArgs)
 	return blproc.ArgsSovereignChainBlockProcessor{
-		ShardProcessor:                  sp,
-		ValidatorStatisticsProcessor:    &testscommon.ValidatorStatisticsProcessorStub{},
-		OutgoingOperationsFormatter:     &sovereign.OutgoingOperationsFormatterMock{},
-		OutGoingOperationsPool:          &sovereign.OutGoingOperationsPoolMock{},
-		OperationsHasher:                &testscommon.HasherStub{},
-		EpochStartDataCreator:           &mock.EpochStartDataCreatorStub{},
-		EpochRewardsCreator:             &testscommon.RewardsCreatorStub{},
-		ValidatorInfoCreator:            &testscommon.EpochValidatorInfoCreatorStub{},
-		EpochSystemSCProcessor:          &testscommon.EpochStartSystemSCStub{},
-		EpochEconomics:                  &mock.EpochEconomicsStub{},
-		SCToProtocol:                    &mock.SCToProtocolStub{},
-		MainChainNotarizationStartRound: 11,
+		ShardProcessor:               sp,
+		ValidatorStatisticsProcessor: &testscommon.ValidatorStatisticsProcessorStub{},
+		OutgoingOperationsFormatter:  &sovereign.OutgoingOperationsFormatterMock{},
+		OutGoingOperationsPool:       &sovereign.OutGoingOperationsPoolMock{},
+		OperationsHasher:             &testscommon.HasherStub{},
+		EpochStartDataCreator:        &mock.EpochStartDataCreatorStub{},
+		EpochRewardsCreator:          &testscommon.RewardsCreatorStub{},
+		ValidatorInfoCreator:         &testscommon.EpochValidatorInfoCreatorStub{},
+		EpochSystemSCProcessor:       &testscommon.EpochStartSystemSCStub{},
+		EpochEconomics:               &mock.EpochEconomicsStub{},
+		SCToProtocol:                 &mock.SCToProtocolStub{},
+		MainChainNotarizationStartRound: map[string]config.MainChainNotarization{
+			dto.MVX.String(): {
+				StartRound: 11,
+			},
+		},
 	}
 }
 

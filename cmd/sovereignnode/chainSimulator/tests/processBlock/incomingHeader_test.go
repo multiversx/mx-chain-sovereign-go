@@ -133,7 +133,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 			},
 		},
 	})
@@ -250,7 +250,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 			},
 		},
 	})
@@ -345,7 +345,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 1,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 				sovConfig = cfg.GeneralConfig.SovereignConfig
 			},
 			CreateRunTypeComponents: func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error) {
@@ -454,7 +454,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			NumNodesWaitingListShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = 0
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 0}
 			},
 		},
 	})

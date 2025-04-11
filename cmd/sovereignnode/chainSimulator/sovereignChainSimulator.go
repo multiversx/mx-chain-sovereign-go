@@ -59,7 +59,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 	args.CreateRunTypeCoreComponents = func() (factory.RunTypeCoreComponentsHolder, error) {
 		return createSovereignRunTypeCoreComponents(*configs.SovereignEpochConfig)
 	}
-	args.CreateIncomingHeaderSubscriber = func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound uint64, runTypeComponents factory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error) {
+	args.CreateIncomingHeaderSubscriber = func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound map[string]config.MainChainNotarization, runTypeComponents factory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error) {
 		return incomingHeader.CreateIncomingHeaderProcessor(config, dataPool, mainChainNotarizationStartRound, runTypeComponents)
 	}
 	if args.CreateRunTypeComponents == nil {
