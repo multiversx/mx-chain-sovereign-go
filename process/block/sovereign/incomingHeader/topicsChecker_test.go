@@ -10,6 +10,15 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
+func createTopics(topicID string, n int) [][]byte {
+	topics := make([][]byte, n)
+	topics[0] = []byte(topicID)
+	for i := range topics[1:] {
+		topics[i] = []byte("topic" + strconv.Itoa(i))
+	}
+	return topics
+}
+
 func TestNewTopicsChecker(t *testing.T) {
 	t.Parallel()
 
@@ -79,23 +88,16 @@ func TestTopicsChecker_checkScCallValidity(t *testing.T) {
 	}
 }
 
-func createTopics(topicID string, n int) [][]byte {
-	topics := make([][]byte, n)
-	topics[0] = []byte(topicID)
-	for i := range topics[1:] {
-		topics[i] = []byte("topic" + strconv.Itoa(i))
-	}
-	return topics
-}
-
 func TestTopicsChecker_CheckValidity(t *testing.T) {
 	t.Parallel()
 
 	tc := NewTopicsChecker()
 
 	topics := make([][]byte, 0)
-	topics = append(topics, []byte("topic"))
-
 	err := tc.CheckValidity(topics, nil)
-	require.ErrorContains(t, err, "invalid topic id")
+	require.Error(t, err, dto.ErrInvalidNumTopicsInEvent)
+
+	topics = append(topics, []byte("topic"))
+	err = tc.CheckValidity(topics, nil)
+	require.Error(t, err, dto.ErrInvalidIncomingTopicIdentifier)
 }

@@ -7,28 +7,32 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 
+	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
-type eventProcScCall struct {
-	*eventProcDepositTokens
+type eventProcSCCall struct {
+	marshaller    marshal.Marshalizer
+	hasher        hashing.Hasher
+	dataCodec     sovBlock.DataCodecHandler
+	topicsChecker sovBlock.TopicsCheckerHandler
 }
 
-// NewEventProcScCall creates a new event processor for sc call operations
-func NewEventProcScCall(args EventProcDepositOperationArgs) (*eventProcScCall, error) {
+// NewEventProcSCCall creates a new event processor for sc call operations
+func NewEventProcSCCall(args EventProcDepositOperationArgs) (*eventProcSCCall, error) {
 	err := checkArgs(args)
 	if err != nil {
 		return nil, err
 	}
 
-	return &eventProcScCall{
-		&eventProcDepositTokens{
-			marshaller:    args.Marshaller,
-			hasher:        args.Hasher,
-			dataCodec:     args.DataCodec,
-			topicsChecker: args.TopicsChecker,
-		},
+	return &eventProcSCCall{
+		marshaller:    args.Marshaller,
+		hasher:        args.Hasher,
+		dataCodec:     args.DataCodec,
+		topicsChecker: args.TopicsChecker,
 	}, nil
 }
 
@@ -40,7 +44,7 @@ func NewEventProcScCall(args EventProcDepositOperationArgs) (*eventProcScCall, e
 // - Topics [][]byte – A list of two topics, where:
 //   - topic[0] = dto.TopicIDSCCall.
 //   - topic[1] = Receiver address.
-func (ep *eventProcScCall) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
+func (ep *eventProcSCCall) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	evData, err := ep.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err
@@ -77,8 +81,13 @@ func (ep *eventProcScCall) ProcessEvent(event data.EventHandler) (*dto.EventResu
 	}, nil
 }
 
-func (ep *eventProcScCall) createSCRData(eventData *sovereign.EventData) ([]byte, uint64) {
+func (ep *eventProcSCCall) createSCRData(eventData *sovereign.EventData) ([]byte, uint64) {
 	scrData := eventData.TransferData.Function
 	scrData = append(scrData, extractArguments(eventData.TransferData.Args)...)
 	return scrData, eventData.TransferData.GasLimit
+}
+
+// IsInterfaceNil checks if the underlying pointer is nil
+func (ep *eventProcSCCall) IsInterfaceNil() bool {
+	return ep == nil
 }

@@ -17,13 +17,17 @@ func NewTopicsChecker() *topicsChecker {
 
 // CheckValidity will receive the topics and validate them
 func (tc *topicsChecker) CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error {
+	if len(topics) == 0 {
+		return dto.ErrInvalidNumTopicsInEvent
+	}
+
 	switch string(topics[0]) {
 	case dto.TopicIDDepositIncomingTransfer:
 		return tc.checkDepositTokensValidity(topics)
 	case dto.TopicIDSCCall:
 		return tc.checkScCallValidity(topics, transferData)
 	default:
-		return fmt.Errorf("invalid topic id %s", string(topics[0]))
+		return fmt.Errorf("%w, topic: %s", dto.ErrInvalidIncomingTopicIdentifier, string(topics[0]))
 	}
 }
 

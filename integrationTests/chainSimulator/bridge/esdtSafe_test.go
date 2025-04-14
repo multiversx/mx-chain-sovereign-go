@@ -570,15 +570,15 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 		Args:     [][]byte{{0x01}},
 	}
 
-	// deposit no payment, no transfer data should fail
+	// call deposit endpoint with no payment and no transfer data
 	txResult := deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
 	chainSim.RequireSignalError(t, txResult, "Nothing to transfer")
 
-	// deposit no payment, with transfer data should work
+	// call deposit endpoint with no payment and with transfer data
 	txResult = deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
-	// execute no payment, with transfer data should work
+	// call execute endpoint with no payment and with transfer data
 	receiverContracts := deployReceiverContractInAllShards(t, cs) // generate hello contracts in each shard
 	for shardId := uint32(0); shardId < cs.GetNodeHandler(0).GetProcessComponents().ShardCoordinator().NumberOfShards(); shardId++ {
 		// get contract from a specific shard

@@ -76,7 +76,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	if err != nil {
 		return nil, err
 	}
-	scCallProc, err := incomingEventsProc.NewEventProcScCall(incomingDepositOpArgs)
+	scCallProc, err := incomingEventsProc.NewEventProcSCCall(incomingDepositOpArgs)
 	if err != nil {
 		return nil, err
 	}
