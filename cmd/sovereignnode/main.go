@@ -139,7 +139,7 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 		return errSovereignNodeRunner
 	}
 
-	runType.ConfigureUnixTime(runType.Milliseconds)
+	runType.ConfigureUnixTime(runType.Seconds)
 
 	err = nodeRunner.Start()
 	if err != nil {

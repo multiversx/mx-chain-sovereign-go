@@ -1,10 +1,12 @@
 package nodesCoordinator
 
 import (
+	"encoding/hex"
 	"strings"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +45,13 @@ func TestNewSovereignIndexHashedNodesCoordinator(t *testing.T) {
 		ihnc, err := NewSovereignIndexHashedNodesCoordinator(args)
 		require.Nil(t, err)
 		require.False(t, ihnc.IsInterfaceNil())
+
+		bls, _ := hex.DecodeString("00634d502a2c6fd7a68f436b17b791caf9654654cf814bef672a8a6d2f9f9e2a56526ce2b6bf25a741025c5af280ae0b799be93492d46932102d27c781680b969bde66d3d47df593d1b7bdb65fc0b8d09e3374bccaee5042fc942af78a748294")
+
+		hasher, _ := factory.NewHasher("blake2b")
+		log.Info("dsa", "Dsa", hasher.Compute(string(bls)))
 	})
+
 }
 
 func TestSovereignIndexHashedNodesCoordinator_ComputeValidatorsGroup(t *testing.T) {

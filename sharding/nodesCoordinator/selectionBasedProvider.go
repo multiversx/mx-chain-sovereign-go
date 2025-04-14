@@ -89,6 +89,8 @@ func (sbp *SelectionBasedProvider) Get(randomness []byte, numValidators int64, e
 			"sbp.size", sbp.size,
 			"indexInitial", indexInitial,
 			"indexAdjusted", index,
+			"lenExpandedList", lenExpandedList,
+			"expandedEligibleList", expandedEligibleList,
 		)
 
 		validators = append(validators, expandedEligibleList[index])
