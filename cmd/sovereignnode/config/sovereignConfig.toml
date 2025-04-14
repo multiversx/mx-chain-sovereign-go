@@ -30,11 +30,11 @@
     [MainChainNotarization.MVX]
         StartRound = 11
 
-    [MainChainNotarization.ETH]
-        StartRound = "12"
+    #[MainChainNotarization.ETH]
+    #    StartRound = 12
 
-    [MainChainNotarization.SUI]
-        StartRound = "11"
+    #[MainChainNotarization.SUI]
+    #    StartRound = 13
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.

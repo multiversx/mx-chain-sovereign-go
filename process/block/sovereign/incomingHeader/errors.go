@@ -6,8 +6,8 @@ var errNilHeadersPool = errors.New("nil headers pool provided")
 
 var errNilTxPool = errors.New("nil tx pool provided")
 
-var errInvalidHeaderType = errors.New("incoming header is not of type HeaderV2")
-
 var errInvalidEventType = errors.New("incoming event is not of type transaction event")
 
 var errNilProof = errors.New("nil proof in incoming header")
+
+var errSourceChainNotSupported = errors.New("source chain id from configuration is not supported")
