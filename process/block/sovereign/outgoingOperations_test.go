@@ -227,7 +227,7 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 		outgoingOpsFormatter := createOutgoingOpsFormatter()
 		errInvalidTopics := fmt.Errorf("check topics error")
 		outgoingOpsFormatter.topicsChecker = &sovTests.TopicsCheckerMock{
-			CheckValidityCalled: func(topics [][]byte) error {
+			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errInvalidTopics
 			},
 		}
@@ -335,6 +335,85 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 						Identifier: identifier2,
 						Topics:     topic1,
 						Data:       data1,
+					},
+				},
+			},
+			TxHash: "",
+		},
+	}
+
+	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
+	require.Nil(t, err)
+	require.Equal(t, [][]byte{operationBytes}, outgoingTxData)
+}
+
+func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
+	t.Parallel()
+
+	addr := []byte("addr")
+	identifier := []byte("deposit")
+	topics := [][]byte{
+		[]byte("deposit"),
+		[]byte("receiver"),
+	}
+	eventData := []byte("eventData")
+
+	evData := &sovereign.EventData{
+		Nonce: 1,
+		TransferData: &sovereign.TransferData{
+			GasLimit: 20000000,
+			Function: []byte("add"),
+			Args:     [][]byte{big.NewInt(20000000).Bytes()},
+		},
+	}
+
+	operationBytes := []byte("operationBytes")
+
+	dataCodec := &sovTests.DataCodecMock{
+		DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
+			require.Equal(t, eventData, data)
+			return evData, nil
+		},
+		DeserializeTokenDataCalled: func(data []byte) (*sovereign.EsdtTokenData, error) {
+			require.Fail(t, "DeserializeTokenData should not be called")
+			return &sovereign.EsdtTokenData{}, nil
+		},
+		SerializeOperationCalled: func(operation sovereign.Operation) ([]byte, error) {
+			require.Equal(t, topics[1], operation.Address)
+			require.Equal(t, 0, len(operation.Tokens))
+			require.Equal(t, evData, operation.Data)
+
+			return operationBytes, nil
+		},
+	}
+
+	events := []SubscribedEvent{
+		{
+			Identifier: identifier,
+			Addresses: map[string]string{
+				string(addr): string(addr),
+			},
+		},
+	}
+
+	args := ArgsOutgoingOperations{
+		SubscribedEvents: events,
+		DataCodec:        dataCodec,
+		TopicsChecker:    &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:   &state.AccountsStub{},
+	}
+	opFormatter, _ := NewOutgoingOperationsFormatter(args)
+
+	logs := []*data.LogData{
+		{
+			LogHandler: &transactionData.Log{
+				Address: nil,
+				Events: []*transactionData.Event{
+					{
+						Address:    addr,
+						Identifier: identifier,
+						Topics:     topics,
+						Data:       eventData,
 					},
 				},
 			},

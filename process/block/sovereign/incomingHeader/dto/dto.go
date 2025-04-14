@@ -13,6 +13,9 @@ const (
 
 	// TokensIndex is the index position in the topics array where token-related data is stored.
 	TokensIndex = 2
+
+	// NumScCallTopics represents the number of topics required in a sc call event.
+	NumScCallTopics = 2
 )
 
 const (
@@ -30,6 +33,9 @@ const (
 
 	// TopicIDDepositIncomingTransfer is used as a topic identifier for incoming token deposit events.
 	TopicIDDepositIncomingTransfer = "deposit"
+
+	// TopicIDSCCall is used as a topic identifier for incoming sc call events.
+	TopicIDSCCall = "scCall"
 )
 
 // SCRInfo holds an incoming scr that is created based on an incoming cross chain event and its hash
