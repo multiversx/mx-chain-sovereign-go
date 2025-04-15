@@ -21,6 +21,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/closing"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -47,6 +48,8 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -1021,38 +1024,44 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 }
 
 func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.ExtraSignersHolder, error) {
-	extraSignerHandler := signingHandler.ShallowClone()
-	startRoundExtraSignersHolder := bls.NewSubRoundStartExtraSignersHolder()
-	startRoundExtraSigner, err := bls.NewSovereignSubRoundStartOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSigner)
-	if err != nil {
-		return nil, err
+	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
+	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
+	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
+
+	mbTypes := []block.OutGoingMBType{block.OutGoingMbTx, block.OutGoingMbChangeValidatorSet}
+
+	for _, mbType := range mbTypes {
+		extraSignerHandler := signingHandler.ShallowClone()
+
+		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	signRoundExtraSignersHolder := bls.NewSubRoundSignatureExtraSignersHolder()
-	signRoundExtraSigner, err := bls.NewSovereignSubRoundSignatureOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	endRoundExtraSignersHolder := bls.NewSubRoundEndExtraSignersHolder()
-	endRoundExtraSigner, err := bls.NewSovereignSubRoundEndOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	return bls.NewExtraSignersHolder(
+	return holders.NewExtraSignersHolder(
 		startRoundExtraSignersHolder,
 		signRoundExtraSignersHolder,
 		endRoundExtraSignersHolder)

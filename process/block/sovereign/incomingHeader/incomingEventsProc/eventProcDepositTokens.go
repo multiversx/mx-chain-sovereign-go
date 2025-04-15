@@ -1,10 +1,11 @@
-package incomingHeader
+package incomingEventsProc
 
 import (
 	"encoding/hex"
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -13,6 +14,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/errors"
+	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 type eventData struct {
@@ -21,17 +25,65 @@ type eventData struct {
 	gasLimit             uint64
 }
 
-type depositEventProc struct {
-	marshaller    marshal.Marshalizer
-	hasher        hashing.Hasher
-	dataCodec     SovereignDataCodec
-	topicsChecker TopicsChecker
+// EventProcDepositOperationArgs holds necessary args for deposit event processor
+type EventProcDepositOperationArgs struct {
+	Marshaller    marshal.Marshalizer
+	Hasher        hashing.Hasher
+	DataCodec     sovBlock.DataCodecHandler
+	TopicsChecker sovBlock.TopicsCheckerHandler
 }
 
-// ProcessEvent will process incoming token deposit events and return an incoming scr info
-func (dep *depositEventProc) ProcessEvent(event data.EventHandler) (*EventResult, error) {
+type eventProcDepositTokens struct {
+	marshaller    marshal.Marshalizer
+	hasher        hashing.Hasher
+	dataCodec     sovBlock.DataCodecHandler
+	topicsChecker sovBlock.TopicsCheckerHandler
+}
+
+// NewEventProcDepositTokens creates a new event processor for deposit token operations
+func NewEventProcDepositTokens(args EventProcDepositOperationArgs) (*eventProcDepositTokens, error) {
+	err := checkArgs(args)
+	if err != nil {
+		return nil, err
+	}
+
+	return &eventProcDepositTokens{
+		marshaller:    args.Marshaller,
+		hasher:        args.Hasher,
+		dataCodec:     args.DataCodec,
+		topicsChecker: args.TopicsChecker,
+	}, nil
+}
+
+func checkArgs(args EventProcDepositOperationArgs) error {
+	if check.IfNil(args.Marshaller) {
+		return core.ErrNilMarshalizer
+	}
+	if check.IfNil(args.Hasher) {
+		return core.ErrNilHasher
+	}
+	if check.IfNil(args.DataCodec) {
+		return errors.ErrNilDataCodec
+	}
+	if check.IfNil(args.TopicsChecker) {
+		return errors.ErrNilTopicsChecker
+	}
+
+	return nil
+}
+
+// ProcessEvent handles incoming token deposit events and returns the corresponding incoming SCR info.
+// Each deposit event is identified by dto.EventIDDepositIncomingTransfer.
+//
+// Expected event data:
+// - Data []byte – Serialized event details (nonce, gas, function call with arguments).
+// - Topics [][]byte – A variable-length list of incoming token deposit topics, where:
+//   - topic[0] = dto.TopicIDDepositIncomingTransfer.
+//   - topic[1] = Receiver address.
+//   - topic[2:N] = List of token data.
+func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	topics := event.GetTopics()
-	err := dep.topicsChecker.CheckValidity(topics)
+	err := dep.topicsChecker.CheckValidity(topics, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -62,15 +114,15 @@ func (dep *depositEventProc) ProcessEvent(event data.EventHandler) (*EventResult
 		return nil, err
 	}
 
-	return &EventResult{
-		SCR: &SCRInfo{
+	return &dto.EventResult{
+		SCR: &dto.SCRInfo{
 			SCR:  scr,
 			Hash: hash,
 		},
 	}, nil
 }
 
-func (dep *depositEventProc) createEventData(data []byte) (*eventData, error) {
+func (dep *eventProcDepositTokens) createEventData(data []byte) (*eventData, error) {
 	evData, err := dep.dataCodec.DeserializeEventData(data)
 	if err != nil {
 		return nil, err
@@ -112,14 +164,14 @@ func extractArguments(arguments [][]byte) []byte {
 	return args
 }
 
-func (dep *depositEventProc) createSCRData(topics [][]byte) ([]byte, error) {
-	numTokensToTransfer := len(topics[tokensIndex:]) / numTransferTopics
+func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error) {
+	numTokensToTransfer := len(topics[dto.TokensIndex:]) / dto.NumTransferTopics
 	numTokensToTransferBytes := big.NewInt(int64(numTokensToTransfer)).Bytes()
 
 	ret := []byte(core.BuiltInFunctionMultiESDTNFTTransfer +
 		"@" + hex.EncodeToString(numTokensToTransferBytes))
 
-	for idx := tokensIndex; idx < len(topics); idx += numTransferTopics {
+	for idx := dto.TokensIndex; idx < len(topics); idx += dto.NumTransferTopics {
 		tokenData, err := dep.getTokenDataBytes(topics[idx+1], topics[idx+2])
 		if err != nil {
 			return nil, err
@@ -136,7 +188,7 @@ func (dep *depositEventProc) createSCRData(topics [][]byte) ([]byte, error) {
 	return ret, nil
 }
 
-func (dep *depositEventProc) getTokenDataBytes(tokenNonce []byte, tokenData []byte) ([]byte, error) {
+func (dep *eventProcDepositTokens) getTokenDataBytes(tokenNonce []byte, tokenData []byte) ([]byte, error) {
 	esdtTokenData, err := dep.dataCodec.DeserializeTokenData(tokenData)
 	if err != nil {
 		return nil, err
@@ -169,6 +221,6 @@ func (dep *depositEventProc) getTokenDataBytes(tokenNonce []byte, tokenData []by
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil
-func (dep *depositEventProc) IsInterfaceNil() bool {
+func (dep *eventProcDepositTokens) IsInterfaceNil() bool {
 	return dep == nil
 }

@@ -5,14 +5,17 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/multiversx/mx-chain-go/errors"
+	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	"github.com/multiversx/mx-chain-go/testscommon/state"
 )
 
 func createEvents() []SubscribedEvent {
@@ -31,6 +34,7 @@ func createArgs() ArgsOutgoingOperations {
 		SubscribedEvents: createEvents(),
 		DataCodec:        &sovTests.DataCodecMock{},
 		TopicsChecker:    &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:   &state.AccountsStub{},
 	}
 }
 
@@ -84,6 +88,7 @@ func createOutgoingOpsFormatter() *outgoingOperations {
 		SubscribedEvents: events,
 		DataCodec:        &sovTests.DataCodecMock{},
 		TopicsChecker:    &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:   &state.AccountsStub{},
 	}
 	opFormatter, _ := NewOutgoingOperationsFormatter(args)
 	return opFormatter
@@ -222,7 +227,7 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 		outgoingOpsFormatter := createOutgoingOpsFormatter()
 		errInvalidTopics := fmt.Errorf("check topics error")
 		outgoingOpsFormatter.topicsChecker = &sovTests.TopicsCheckerMock{
-			CheckValidityCalled: func(topics [][]byte) error {
+			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errInvalidTopics
 			},
 		}
@@ -310,6 +315,7 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 		SubscribedEvents: events,
 		DataCodec:        dataCodec,
 		TopicsChecker:    &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:   &state.AccountsStub{},
 	}
 	opFormatter, _ := NewOutgoingOperationsFormatter(args)
 
@@ -339,4 +345,120 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
 	require.Equal(t, [][]byte{operationBytes}, outgoingTxData)
+}
+
+func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
+	t.Parallel()
+
+	addr := []byte("addr")
+	identifier := []byte("deposit")
+	topics := [][]byte{
+		[]byte("deposit"),
+		[]byte("receiver"),
+	}
+	eventData := []byte("eventData")
+
+	evData := &sovereign.EventData{
+		Nonce: 1,
+		TransferData: &sovereign.TransferData{
+			GasLimit: 20000000,
+			Function: []byte("add"),
+			Args:     [][]byte{big.NewInt(20000000).Bytes()},
+		},
+	}
+
+	operationBytes := []byte("operationBytes")
+
+	dataCodec := &sovTests.DataCodecMock{
+		DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
+			require.Equal(t, eventData, data)
+			return evData, nil
+		},
+		DeserializeTokenDataCalled: func(data []byte) (*sovereign.EsdtTokenData, error) {
+			require.Fail(t, "DeserializeTokenData should not be called")
+			return &sovereign.EsdtTokenData{}, nil
+		},
+		SerializeOperationCalled: func(operation sovereign.Operation) ([]byte, error) {
+			require.Equal(t, topics[1], operation.Address)
+			require.Equal(t, 0, len(operation.Tokens))
+			require.Equal(t, evData, operation.Data)
+
+			return operationBytes, nil
+		},
+	}
+
+	events := []SubscribedEvent{
+		{
+			Identifier: identifier,
+			Addresses: map[string]string{
+				string(addr): string(addr),
+			},
+		},
+	}
+
+	args := ArgsOutgoingOperations{
+		SubscribedEvents: events,
+		DataCodec:        dataCodec,
+		TopicsChecker:    &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:   &state.AccountsStub{},
+	}
+	opFormatter, _ := NewOutgoingOperationsFormatter(args)
+
+	logs := []*data.LogData{
+		{
+			LogHandler: &transactionData.Log{
+				Address: nil,
+				Events: []*transactionData.Event{
+					{
+						Address:    addr,
+						Identifier: identifier,
+						Topics:     topics,
+						Data:       eventData,
+					},
+				},
+			},
+			TxHash: "",
+		},
+	}
+
+	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
+	require.Nil(t, err)
+	require.Equal(t, [][]byte{operationBytes}, outgoingTxData)
+}
+
+func TestOutgoingOperations_CreateOutGoingChangeValidatorData(t *testing.T) {
+	t.Parallel()
+
+	args := createArgs()
+	pubKeys := []string{"pk1", "pk2"}
+	acc1 := &state.PeerAccountHandlerMock{
+		MainChainID: []byte("id1"),
+	}
+	acc2 := &state.PeerAccountHandlerMock{
+		MainChainID: []byte("id2"),
+	}
+	args.PeerAccountsDB = &state.AccountsStub{
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+			switch string(container) {
+			case pubKeys[0]:
+				return acc1, nil
+			case pubKeys[1]:
+				return acc2, nil
+			}
+
+			require.Fail(t, "should not load any other account")
+			return nil, nil
+		},
+	}
+
+	formatter, _ := NewOutgoingOperationsFormatter(args)
+
+	res, err := formatter.CreateOutGoingChangeValidatorData(pubKeys, 4)
+	require.Nil(t, err)
+
+	resBridgeData := sovereign.BridgeOutGoingDataValidatorSetChange{}
+	err = proto.Unmarshal(res, &resBridgeData)
+	require.Nil(t, err)
+	require.Equal(t, uint32(4), resBridgeData.GetEpoch())
+	require.Equal(t, [][]byte{[]byte("id1"), []byte("id2")}, resBridgeData.GetPubKeyIDs())
 }
