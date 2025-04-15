@@ -68,7 +68,7 @@ func createIncomingHeadersWithIncrementalRound(numRounds uint64) []sovereign.Inc
 					Round: i,
 				},
 			}),
-			Nonce: big.NewInt(int64(i)),
+			Nonce: i,
 			IncomingEvents: []*transaction.Event{
 				{
 					Topics:     [][]byte{[]byte("topicID"), []byte("addr"), []byte("tokenID1"), []byte("nonce1"), []byte("tokenData1")},
@@ -174,23 +174,12 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		require.Equal(t, data.ErrNilHeader, err)
 
 		incomingHeader := &sovTests.IncomingHeaderStub{
-			GetNonceBICalled: func() *big.Int {
-				return big.NewInt(0)
+			GetProofCalled: func() []byte {
+				return nil
 			},
 		}
 		err = handler.AddHeader([]byte("hash"), incomingHeader)
 		require.Equal(t, errNilProof, err)
-
-		incomingHeader = &sovTests.IncomingHeaderStub{
-			GetNonceBICalled: func() *big.Int {
-				return nil
-			},
-			GetProofCalled: func() []byte {
-				return createHeaderProof(&block.HeaderV2{})
-			},
-		}
-		err = handler.AddHeader([]byte("hash"), incomingHeader)
-		require.ErrorContains(t, err, data.ErrNilValue.Error())
 	})
 
 	t.Run("should not add header before start round", func(t *testing.T) {
@@ -264,7 +253,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 		handler, _ := NewIncomingHeaderProcessor(args)
 
-		err := handler.AddHeader([]byte("hash"), &sovereign.IncomingHeader{Proof: createHeaderProof(&block.HeaderV2{}), Nonce: big.NewInt(0)})
+		err := handler.AddHeader([]byte("hash"), &sovereign.IncomingHeader{Proof: createHeaderProof(&block.HeaderV2{})})
 		require.Equal(t, errMarshaller, err)
 	})
 
@@ -282,7 +271,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -318,7 +306,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Topics:     [][]byte{},
@@ -362,7 +349,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte("eventID"),
@@ -402,7 +388,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -432,7 +417,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -461,7 +445,6 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		incomingHeader := &sovereign.IncomingHeader{
 			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: big.NewInt(0),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -623,7 +606,6 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	extendedHeader := &block.ShardHeaderExtended{
 		Header:        headerV2,
 		Proof:         headerProof,
-		NonceBI:       big.NewInt(int64(headerV2.GetRound())),
 		SourceChainID: 0,
 		IncomingMiniBlocks: []*block.MiniBlock{
 			{
@@ -756,7 +738,6 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	handler, _ := NewIncomingHeaderProcessor(args)
 	incomingHeader := &sovereign.IncomingHeader{
 		Proof:          headerProof,
-		Nonce:          big.NewInt(0),
 		IncomingEvents: incomingEvents,
 	}
 

@@ -159,8 +159,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 		return err
 	}
 
-	// todo: here remove nonceBI
-	incomingHeaderNonce := uint64(header.GetNonceBI().Int64())
+	incomingHeaderNonce := header.GetNonce()
 	log.Info("received incoming header",
 		"hash", hex.EncodeToString(headerHash),
 		"nonce", incomingHeaderNonce,
@@ -212,9 +211,6 @@ func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
 	if header.GetProof() == nil {
 		return errNilProof
 	}
-	if header.GetNonceBI() == nil {
-		return fmt.Errorf("%w for nonce in incoming header", data.ErrNilValue)
-	}
 
 	return nil
 }
@@ -243,8 +239,8 @@ func (ihp *incomingHeaderProcessor) CreateExtendedHeader(header sovereign.Incomi
 	}
 
 	// should not process any incoming events on pre-genesis header
-	if uint64(header.GetNonceBI().Int64()) == chainData.preGenesisRound {
-		log.Debug("CreateExtendedHeader: received pre-genesis header", "round", header.GetNonceBI())
+	if header.GetNonce() == chainData.preGenesisRound {
+		log.Debug("CreateExtendedHeader: received pre-genesis header", "round", header.GetNonce())
 		return ihp.extendedHeaderProc.createChainSpecificExtendedHeader(header)
 	}
 

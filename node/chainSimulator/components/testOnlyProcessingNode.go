@@ -229,7 +229,6 @@ func NewTestOnlyProcessingNode(args ArgsTestOnlyProcessingNode) (*testOnlyProces
 	instance.IncomingHeaderSubscriber, err = args.CreateIncomingHeaderSubscriber(
 		args.Configs.GeneralConfig.SovereignConfig.NotifierConfig.WebSocketConfig,
 		instance.DataComponentsHolder.Datapool(),
-		// TODO: Here iterate per chains
 		args.Configs.GeneralConfig.SovereignConfig.MainChainNotarization,
 		instance.RunTypeComponents,
 	)

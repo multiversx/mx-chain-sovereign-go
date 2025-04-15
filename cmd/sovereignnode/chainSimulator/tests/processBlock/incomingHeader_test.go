@@ -529,7 +529,6 @@ func createIncomingHeader(
 	incomingHdr := &sovereign.IncomingHeader{
 		Proof:          proof,
 		SourceChainID:  sovDto.MVX,
-		Nonce:          big.NewInt(int64(headerV2.GetRound())),
 		IncomingEvents: txsEvent,
 	}
 	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), headerV2)
@@ -561,7 +560,7 @@ func createSimpleIncomingHeader(
 	incomingHdr := &sovereign.IncomingHeader{
 		Proof:          proof,
 		SourceChainID:  sovDto.MVX,
-		Nonce:          big.NewInt(int64(headerV2.GetRound())),
+		Nonce:          headerV2.GetRound(),
 		IncomingEvents: []*transaction.Event{},
 	}
 	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), headerV2)
