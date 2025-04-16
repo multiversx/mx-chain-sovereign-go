@@ -15,7 +15,8 @@
     # ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts"]
     EnabledIndexes    = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts"]
 
-# MainChainElasticSearchConnector defines settings related to ElasticSearch such as login information or URL
+# MainChainElasticSearchConnector defines settings related to ElasticSearch such as login information or URL.
+# This enabled instance is used by sovereign observer nodes to request and index new incoming token data coming from other chains.
 [MainChainElasticSearchConnector]
     # We do not recommend to activate this indexer on a validator node since
     # the node might lose rating (even facing penalties) due to the fact that

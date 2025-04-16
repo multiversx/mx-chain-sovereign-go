@@ -913,6 +913,7 @@ func (tpn *TestProcessorNode) createFullSCQueryService(gasMap map[string]map[str
 		GuardedAccountHandler:          tpn.GuardedAccountHandler,
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
+		CrawlerAddressGetterHandler:    tpn.RunTypeComponents.CrawlerAddressGetter(),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
@@ -1659,6 +1660,7 @@ func (tpn *TestProcessorNode) initInnerProcessors(gasMap map[string]map[string]u
 		GuardedAccountHandler:          tpn.GuardedAccountHandler,
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
+		CrawlerAddressGetterHandler:    tpn.RunTypeComponents.CrawlerAddressGetter(),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
@@ -1904,6 +1906,7 @@ func (tpn *TestProcessorNode) initMetaInnerProcessors(gasMap map[string]map[stri
 		GuardedAccountHandler:          tpn.GuardedAccountHandler,
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
+		CrawlerAddressGetterHandler:    tpn.RunTypeComponents.CrawlerAddressGetter(),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

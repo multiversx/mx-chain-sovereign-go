@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreAPI "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 
@@ -259,4 +260,75 @@ func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	// Generate extra blocks after outgoing operations are created
 	err = cs.GenerateBlocks(10)
 	require.Nil(t, err)
+}
+
+func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this is not a short test")
+	}
+
+	outGoingSubscribedAddress := "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5"
+	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: sovereignConfigPath,
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck: true,
+			TempDir:                t.TempDir(),
+			PathToInitialConfig:    defaultPathToInitialConfig,
+			GenesisTimestamp:       time.Now().Unix(),
+			RoundDurationInMillis:  uint64(6000),
+			RoundsPerEpoch:         core.OptionalUint64{},
+			ApiInterface:           api.NewNoApiInterface(),
+			MinNodesPerShard:       2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.SubscribedEvents = []config.SubscribedEvent{
+					{
+						Identifier: "deposit",
+						Addresses:  []string{outGoingSubscribedAddress},
+					},
+				}
+				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
+			},
+		},
+	})
+	require.Nil(t, err)
+	require.NotNil(t, cs)
+
+	defer cs.Close()
+
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+
+	wallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.InitialAmount)
+	require.Nil(t, err)
+	nonce := uint64(0)
+
+	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
+	initialAddrBytes, err := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Decode(initialAddress)
+	require.Nil(t, err)
+	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
+
+	expectedESDTSafeAddressBytes, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Decode(outGoingSubscribedAddress)
+	require.Nil(t, err)
+
+	initialWallet := dtos.WalletAddress{Bech32: initialAddress, Bytes: initialAddrBytes}
+	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
+	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
+
+	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
+	chainSim.RequireSignalError(t, txResult, "Nothing to transfer")
+
+	trnsData := &sovereign.TransferData{
+		GasLimit: uint64(10000000),
+		Function: []byte("hello"),
+		Args:     [][]byte{{0x01}},
+	}
+	txResult = Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+	chainSim.RequireSuccessfulTransaction(t, txResult)
+
+	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
+	time.Sleep(time.Second)
+
+	checkOutGoingOperation(t, cs)
 }

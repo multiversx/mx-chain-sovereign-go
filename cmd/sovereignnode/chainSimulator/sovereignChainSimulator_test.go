@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"
 
+	"github.com/multiversx/mx-chain-go/config"
 	chainSimulatorCommon "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
 	chainSim "github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
@@ -177,6 +178,9 @@ func TestChainSimulator_SetEntireState(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT = "WEGLD-bd4d79"
+			},
 		},
 	})
 	require.Nil(t, err)
@@ -222,6 +226,9 @@ func TestChainSimulator_SetEntireStateWithRemoval(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT = "WEGLD-bd4d79"
+			},
 		},
 	})
 	require.Nil(t, err)
