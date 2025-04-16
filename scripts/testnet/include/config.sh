@@ -206,6 +206,7 @@ updateNodeConfig() {
 	  sed -i '/^\[ElasticSearchConnector\]/,/^\[/ s/Enabled *= *false/Enabled = true/' external_observer.toml
 	  sed -i '/^\[MainChainElasticSearchConnector\]/,/^\[/ s/Enabled *= *false/Enabled = true/' external_observer.toml
 	fi
+  sed -i '/^\[\[HostDriversConfig\]\]/,/^\[/ s/Enabled *= *true/Enabled = false/' external_validator.toml
 
   sed -i '/^\[DbLookupExtensions\]/,/^\[/ s/Enabled *= *false/Enabled = true/' config_observer.toml
 
