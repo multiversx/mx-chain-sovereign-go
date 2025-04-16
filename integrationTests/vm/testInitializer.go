@@ -20,6 +20,15 @@ import (
 	dataTransaction "github.com/multiversx/mx-chain-core-go/data/transaction"
 	dataTx "github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/multiversx/mx-chain-vm-common-go/parsers"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
+	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/forking"
@@ -40,6 +49,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/guardian"
 	"github.com/multiversx/mx-chain-go/process/smartContract"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks/counters"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processProxy"
@@ -67,14 +77,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/txDataBuilder"
 	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts"
 	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts/defaults"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
-	"github.com/multiversx/mx-chain-vm-common-go/parsers"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
-	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // EpochGuardianDelay is the test constant for the delay in epochs for the guardian feature
@@ -568,6 +570,7 @@ func CreateVMAndBlockchainHookAndDataPool(
 		GuardedAccountHandler:          guardedAccountHandler,
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
+		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = integrationTests.GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
@@ -661,6 +664,7 @@ func CreateVMAndBlockchainHookMeta(
 		GuardedAccountHandler:          guardedAccountHandler,
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
+		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = integrationTests.GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

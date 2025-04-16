@@ -15,8 +15,8 @@ import (
 	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 )
 
-func createArgs() EventProcDepositTokensArgs {
-	return EventProcDepositTokensArgs{
+func createArgs() EventProcDepositOperationArgs {
+	return EventProcDepositOperationArgs{
 		Marshaller: &marshallerMock.MarshalizerMock{},
 		Hasher:     &hashingMocks.HasherMock{},
 		DataCodec: &sovTests.DataCodecMock{
@@ -100,6 +100,7 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 		ret, err := handler.createEventData(inputEventData)
 		require.Nil(t, err)
 		require.Equal(t, &eventData{
+			gasLimit:             uint64(0),
 			functionCallWithArgs: make([]byte, 0),
 		}, ret)
 	})
@@ -108,12 +109,14 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 		t.Parallel()
 
 		func1 := []byte("func1")
+		transferGas := uint64(1)
 
 		args := createArgs()
 		args.DataCodec = &sovTests.DataCodecMock{
 			DeserializeEventDataCalled: func(_ []byte) (*sovereign.EventData, error) {
 				return &sovereign.EventData{
 					TransferData: &sovereign.TransferData{
+						GasLimit: transferGas,
 						Function: func1,
 					},
 				}, nil
@@ -126,6 +129,7 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 
 		expectedArgs := append([]byte("@"), hex.EncodeToString(func1)...)
 		require.Equal(t, &eventData{
+			gasLimit:             transferGas,
 			functionCallWithArgs: expectedArgs,
 		}, ret)
 	})
@@ -136,12 +140,14 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 		func1 := []byte("func1")
 		arg1 := []byte("arg1")
 		arg2 := []byte("arg2")
+		transferGas := uint64(2)
 
 		args := createArgs()
 		args.DataCodec = &sovTests.DataCodecMock{
 			DeserializeEventDataCalled: func(_ []byte) (*sovereign.EventData, error) {
 				return &sovereign.EventData{
 					TransferData: &sovereign.TransferData{
+						GasLimit: transferGas,
 						Function: func1,
 						Args:     [][]byte{arg1, arg2},
 					},
@@ -157,6 +163,7 @@ func TestDepositEventProc_createEventData(t *testing.T) {
 		expectedArgs = append(expectedArgs, "@"+hex.EncodeToString(arg1)...)
 		expectedArgs = append(expectedArgs, "@"+hex.EncodeToString(arg2)...)
 		require.Equal(t, &eventData{
+			gasLimit:             transferGas,
 			functionCallWithArgs: expectedArgs,
 		}, ret)
 	})

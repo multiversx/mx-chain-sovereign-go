@@ -14,10 +14,9 @@ deployFeeMarketContract() {
         --chain=${CHAIN_ID} \
         --gas-limit=200000000 \
         --arguments \
-            ${ESDT_SAFE_ADDRESS} \
+            addr:${ESDT_SAFE_ADDRESS} \
             00 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -68,7 +67,6 @@ upgradeFeeMarketContractCall() {
         --chain=${CHAIN} \
         --gas-limit=200000000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -105,7 +103,6 @@ removeFeeInFeeMarketContractCall() {
         --gas-limit=10000000 \
         --function="removeFee" \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -144,7 +141,6 @@ setFixedFeeMarketContractCall() {
         --arguments \
             0x010000000a53564e2d6335336461300000000901314fb370629800000000000901c9f78d2893e40000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -189,10 +185,9 @@ distributeFees() {
         --gas-limit=20000000 \
         --function="distributeFees" \
         --arguments \
-           ${WALLET_ADDRESS} \
+           addr:${WALLET_ADDRESS} \
            0x2710 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 

@@ -50,8 +50,6 @@ func TestGetDataFromStorage_FoundShouldWork(t *testing.T) {
 }
 
 func TestWaitFor_ShouldTimeout(t *testing.T) {
-	t.Parallel()
-
 	chanToUse := make(chan bool, 1)
 	err := WaitFor(chanToUse, 10*time.Millisecond)
 	require.Equal(t, update.ErrTimeIsOut, err)
