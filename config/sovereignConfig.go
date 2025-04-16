@@ -20,7 +20,7 @@ type OutgoingSubscribedEvents struct {
 
 // MainChainNotarization defines necessary data to start main chain notarization on a sovereign shard
 type MainChainNotarization struct {
-	StartRound uint64 `toml:"MainChainNotarizationStartRound"`
+	StartRound uint64 `toml:"StartRound"`
 }
 
 // OutGoingBridge holds config for grpc client to send outgoing bridge txs

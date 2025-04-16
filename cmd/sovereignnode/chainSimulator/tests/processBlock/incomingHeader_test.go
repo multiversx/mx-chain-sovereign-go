@@ -454,7 +454,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			NumNodesWaitingListShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 0}
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 1}
 			},
 		},
 	})
@@ -527,6 +527,7 @@ func createIncomingHeader(
 	headerV2 := createHeaderV2(*headerNonce, prevHeaderHash, prevHeader.GetRandSeed())
 	proof, _ := nodeHandler.GetCoreComponents().InternalMarshalizer().Marshal(headerV2)
 	incomingHdr := &sovereign.IncomingHeader{
+		Nonce:          *headerNonce,
 		Proof:          proof,
 		SourceChainID:  sovDto.MVX,
 		IncomingEvents: txsEvent,

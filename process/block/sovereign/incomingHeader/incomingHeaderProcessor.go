@@ -119,7 +119,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 
 	log.Debug("NewIncomingHeaderProcessor", "starting round to notarize main chain headers", args.MainChainNotarizationStartRound)
 
-	mapMainChainNotarizationMap, err := createChainStartRoundMap(args.MainChainNotarizationStartRound)
+	mapMainChainNotarization, err := createMapMainChainNotarization(args.MainChainNotarizationStartRound)
 	if err != nil {
 		return nil, err
 	}
@@ -128,11 +128,11 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		eventsProc:               eventsProc,
 		extendedHeaderProc:       extendedHearProc,
 		outGoingPool:             args.OutGoingOperationsPool,
-		mapMainChainNotarization: mapMainChainNotarizationMap,
+		mapMainChainNotarization: mapMainChainNotarization,
 	}, nil
 }
 
-func createChainStartRoundMap(mainChainNotarizationStartRound map[string]config.MainChainNotarization) (map[string]*chainStartRoundCfg, error) {
+func createMapMainChainNotarization(mainChainNotarizationStartRound map[string]config.MainChainNotarization) (map[string]*chainStartRoundCfg, error) {
 	supportedChains := map[string]struct{}{
 		dtoSov.MVX.String(): {},
 	}
@@ -141,6 +141,10 @@ func createChainStartRoundMap(mainChainNotarizationStartRound map[string]config.
 	for sourceChainID, cfg := range mainChainNotarizationStartRound {
 		if _, isChainSupported := supportedChains[sourceChainID]; !isChainSupported {
 			return nil, fmt.Errorf("%w: %s", errSourceChainNotSupported, sourceChainID)
+		}
+
+		if cfg.StartRound == 0 {
+			return nil, fmt.Errorf("%w for start round in createMapMainChainNotarization", errZeroValueProvided)
 		}
 
 		ret[sourceChainID] = &chainStartRoundCfg{

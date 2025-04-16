@@ -11,3 +11,5 @@ var errInvalidEventType = errors.New("incoming event is not of type transaction 
 var errNilProof = errors.New("nil proof in incoming header")
 
 var errSourceChainNotSupported = errors.New("source chain id from configuration is not supported")
+
+var errZeroValueProvided = errors.New("zero value provided")

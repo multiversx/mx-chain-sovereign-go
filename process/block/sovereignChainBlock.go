@@ -976,7 +976,7 @@ func (scbp *sovereignChainBlockProcessor) checkExtendedShardHeadersValidity(
 //   - node is in re-sync/start in the exact epoch when we start to notarize main chain => no previous
 //     main chain tracking(notifier is also disabled)
 func (scbp *sovereignChainBlockProcessor) isGenesisHeaderWithNoPreviousTracking(incomingHeader data.HeaderHandler) bool {
-	//TODO: Here iterate for all chains
+	//TODO: Here iterate for all chains when we have an extended header block tracker for multiple chains
 	return scbp.extendedShardHeaderTracker.IsGenesisLastCrossNotarizedHeader() && incomingHeader.GetRound() == scbp.mainChainNotarizationStartRound[dto.MVX.String()].StartRound
 }
 

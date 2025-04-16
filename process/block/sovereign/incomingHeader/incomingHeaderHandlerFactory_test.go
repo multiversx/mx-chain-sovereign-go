@@ -24,7 +24,7 @@ func createWSCfg() config.WebSocketConfig {
 func createMainChainNotarizationCfg() map[string]config.MainChainNotarization {
 	return map[string]config.MainChainNotarization{
 		dto.MVX.String(): {
-			StartRound: 0,
+			StartRound: 1,
 		},
 	}
 }
