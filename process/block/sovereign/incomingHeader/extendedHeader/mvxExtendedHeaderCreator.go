@@ -38,7 +38,7 @@ func (creator *emptyMVXShardExtendedCreator) CreateNewExtendedHeader(proof []byt
 
 	headerV2, castOk := headerHandler.(*block.HeaderV2)
 	if !castOk {
-		return nil, fmt.Errorf("%w in emptyMVXHeaderV2Creator.CreateNewExtendedHeader", errors.ErrWrongTypeAssertion)
+		return nil, fmt.Errorf("%w in emptyMVXShardExtendedCreator.CreateNewExtendedHeader", errors.ErrWrongTypeAssertion)
 	}
 
 	return &block.ShardHeaderExtended{
