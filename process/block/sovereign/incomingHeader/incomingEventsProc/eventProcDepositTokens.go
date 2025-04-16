@@ -25,8 +25,8 @@ type eventData struct {
 	gasLimit             uint64
 }
 
-// EventProcDepositTokensArgs holds necessary args for deposit event processor
-type EventProcDepositTokensArgs struct {
+// EventProcDepositOperationArgs holds necessary args for deposit event processor
+type EventProcDepositOperationArgs struct {
 	Marshaller    marshal.Marshalizer
 	Hasher        hashing.Hasher
 	DataCodec     sovBlock.DataCodecHandler
@@ -41,18 +41,10 @@ type eventProcDepositTokens struct {
 }
 
 // NewEventProcDepositTokens creates a new event processor for deposit token operations
-func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepositTokens, error) {
-	if check.IfNil(args.Marshaller) {
-		return nil, core.ErrNilMarshalizer
-	}
-	if check.IfNil(args.Hasher) {
-		return nil, core.ErrNilHasher
-	}
-	if check.IfNil(args.DataCodec) {
-		return nil, errors.ErrNilDataCodec
-	}
-	if check.IfNil(args.TopicsChecker) {
-		return nil, errors.ErrNilTopicsChecker
+func NewEventProcDepositTokens(args EventProcDepositOperationArgs) (*eventProcDepositTokens, error) {
+	err := checkArgs(args)
+	if err != nil {
+		return nil, err
 	}
 
 	return &eventProcDepositTokens{
@@ -61,6 +53,23 @@ func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepos
 		dataCodec:     args.DataCodec,
 		topicsChecker: args.TopicsChecker,
 	}, nil
+}
+
+func checkArgs(args EventProcDepositOperationArgs) error {
+	if check.IfNil(args.Marshaller) {
+		return core.ErrNilMarshalizer
+	}
+	if check.IfNil(args.Hasher) {
+		return core.ErrNilHasher
+	}
+	if check.IfNil(args.DataCodec) {
+		return errors.ErrNilDataCodec
+	}
+	if check.IfNil(args.TopicsChecker) {
+		return errors.ErrNilTopicsChecker
+	}
+
+	return nil
 }
 
 // ProcessEvent handles incoming token deposit events and returns the corresponding incoming SCR info.
@@ -74,7 +83,7 @@ func NewEventProcDepositTokens(args EventProcDepositTokensArgs) (*eventProcDepos
 //   - topic[2:N] = List of token data.
 func (dep *eventProcDepositTokens) ProcessEvent(event data.EventHandler) (*dto.EventResult, error) {
 	topics := event.GetTopics()
-	err := dep.topicsChecker.CheckValidity(topics)
+	err := dep.topicsChecker.CheckValidity(topics, nil)
 	if err != nil {
 		return nil, err
 	}

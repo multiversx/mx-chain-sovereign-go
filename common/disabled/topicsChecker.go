@@ -1,5 +1,9 @@
 package disabled
 
+import (
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+)
+
 type topicsChecker struct {
 }
 
@@ -9,7 +13,7 @@ func NewDisabledTopicsChecker() *topicsChecker {
 }
 
 // CheckValidity -
-func (tc *topicsChecker) CheckValidity(_ [][]byte) error {
+func (tc *topicsChecker) CheckValidity(_ [][]byte, _ *sovereign.TransferData) error {
 	return nil
 }
 

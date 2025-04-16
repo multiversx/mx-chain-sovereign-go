@@ -27,6 +27,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	"github.com/multiversx/mx-chain-go/process/sync"
@@ -104,6 +105,7 @@ type RunTypeComponentsStub struct {
 	DirectStakedListFactoryField                trieIteratorsFactory.DirectStakedListProcessorFactoryHandler
 	TotalStakedValueFactoryField                trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactoryField                 genesis.VersionedHeaderFactory
+	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
 }
 
 // NewRunTypeComponentsStub -
@@ -159,6 +161,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		APIRewardsTxHandlerField:                    &apiTests.APIRewardsHandlerStub{},
 		OutportDataProviderFactoryField:             &testFactory.OutportDataProviderFactoryMock{},
 		VersionedHeaderFactoryField:                 &testscommon.VersionedHeaderFactoryStub{},
+		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
 	}
 }
 
@@ -450,6 +453,11 @@ func (r *RunTypeComponentsStub) TotalStakedValueFactoryHandler() trieIteratorsFa
 // VersionedHeaderFactory  -
 func (r *RunTypeComponentsStub) VersionedHeaderFactory() genesis.VersionedHeaderFactory {
 	return r.VersionedHeaderFactoryField
+}
+
+// CrawlerAddressGetter -
+func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
+	return r.CrawlerAddressGetterField
 }
 
 // IsInterfaceNil -

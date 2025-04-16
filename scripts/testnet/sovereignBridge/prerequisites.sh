@@ -3,9 +3,9 @@
 echo "Installing software prerequisites..."
 sudo apt update
 sudo apt install -y python3-pip pipx screen ca-certificates curl wget
+pipx ensurepath
 pip install multiversx-sdk
 pipx install multiversx-sdk-cli --force
-pipx ensurepath
 
 source config/configs.cfg
 source config/contracts.snippets.sh

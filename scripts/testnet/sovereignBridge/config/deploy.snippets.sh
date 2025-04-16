@@ -50,7 +50,7 @@ sovereignDeploy() {
 
     unpauseEsdtSafeContract
 
-    fund ${WALLET_ADDRESS}
+    fund $WALLET_ADDRESS
 
     unpauseEsdtSafeContractSovereign
 }

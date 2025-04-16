@@ -23,6 +23,7 @@ const (
 	//enshrine esdt-safe contract without checks for prefix or issue cost paid for new tokens
 	simpleEnshrineEsdtSafeWasmPath = "testdata/simple-enshrine-esdt-safe.wasm"
 	feeMarketWasmPath              = "testdata/fee-market.wasm"
+	depositFunc                    = "deposit"
 )
 
 // ArgsEsdtSafe holds the arguments for esdt safe contract argument
@@ -154,8 +155,11 @@ func deposit(
 	contract []byte,
 	tokens []chainSim.ArgsDepositToken,
 	receiver []byte,
+	transferData *transferData,
 ) *transaction.ApiTransactionResult {
-	require.True(t, len(tokens) > 0)
+	if len(tokens) == 0 {
+		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
+	}
 
 	depositArgs := core.BuiltInFunctionMultiESDTNFTTransfer +
 		"@" + hex.EncodeToString(contract) +
@@ -169,10 +173,43 @@ func deposit(
 	}
 
 	depositArgs = depositArgs +
-		"@" + hex.EncodeToString([]byte("deposit")) +
-		"@" + hex.EncodeToString(receiver)
+		"@" + hex.EncodeToString([]byte(depositFunc)) +
+		"@" + hex.EncodeToString(receiver) +
+		getDepositTransferDataArgs(transferData)
 
 	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+// depositScCall will make a smart contract call through deposit endpoint
+func depositScCall(t *testing.T,
+	cs chainSim.ChainSimulator,
+	sender []byte,
+	nonce *uint64,
+	contract []byte,
+	receiver []byte,
+	transferData *transferData,
+) *transaction.ApiTransactionResult {
+	depositArgs := depositFunc +
+		"@" + hex.EncodeToString(receiver) +
+		getDepositTransferDataArgs(transferData)
+
+	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+func getDepositTransferDataArgs(transferData *transferData) string {
+	if transferData == nil {
+		return ""
+	}
+
+	args := ""
+	for _, arg := range transferData.Args {
+		args = args + "@" +
+			hex.EncodeToString(arg)
+	}
+
+	return "@" + getUint64Bytes(transferData.GasLimit) +
+		"@" + hex.EncodeToString(transferData.Function) +
+		args
 }
 
 func registerSovereignNewTokens(

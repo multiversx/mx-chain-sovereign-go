@@ -74,37 +74,46 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		return nil, errors.ErrNilTopicsChecker
 	}
 
-	depositProc, err := incomingEventsProc.NewEventProcDepositTokens(incomingEventsProc.EventProcDepositTokensArgs{
+	incomingDepositOpArgs := incomingEventsProc.EventProcDepositOperationArgs{
 		Marshaller:    args.Marshaller,
 		Hasher:        args.Hasher,
 		DataCodec:     args.DataCodec,
 		TopicsChecker: args.TopicsChecker,
-	})
+	}
+	depositTokensProc, err := incomingEventsProc.NewEventProcDepositTokens(incomingDepositOpArgs)
 	if err != nil {
-		return nil, nil
+		return nil, err
+	}
+	scCallProc, err := incomingEventsProc.NewEventProcSCCall(incomingDepositOpArgs)
+	if err != nil {
+		return nil, err
+	}
+	depositOpProc, err := incomingEventsProc.NewEventProcDepositOperation(depositTokensProc, scCallProc)
+	if err != nil {
+		return nil, err
 	}
 
 	confirmExecutedOperationProc := incomingEventsProc.NewEventProcConfirmExecutedOperation()
 	executedOpProc, err := incomingEventsProc.NewEventProcExecutedDepositOperation(
-		depositProc,
+		depositTokensProc,
 		confirmExecutedOperationProc,
 	)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	eventsProc := incomingEventsProc.NewIncomingEventsProcessor()
-	err = eventsProc.RegisterProcessor(dto.EventIDDepositIncomingTransfer, depositProc)
+	err = eventsProc.RegisterProcessor(dto.EventIDDepositIncomingTransfer, depositOpProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	err = eventsProc.RegisterProcessor(dto.EventIDExecutedOutGoingBridgeOp, executedOpProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	err = eventsProc.RegisterProcessor(dto.EventIDChangeValidatorSet, confirmExecutedOperationProc)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	extendedHearProc, err := newExtendedHeaderProcessor(
