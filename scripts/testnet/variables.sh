@@ -28,7 +28,7 @@ export ELASTICSEARCH_VOLUME="sov-elastic"
 export TESTNETDIR="$HOME/MultiversX/testnet"
 
 # Path to mx-chain-deploy-go, branch: master. Default: near mx-chain-go.
-export CONFIGGENERATORDIR="$(dirname $MULTIVERSXDIR)/mx-chain-deploy-go/cmd/filegen"
+export CONFIGGENERATORDIR="$(dirname $MULTIVERSXDIR)/mx-chain-deploy-sovereign-go/cmd/filegen"
 export CONFIGGENERATOR="$CONFIGGENERATORDIR/filegen"    # Leave unchanged.
 export CONFIGGENERATOROUTPUTDIR="output"
 
@@ -80,7 +80,7 @@ export META_OBSERVERCOUNT=0
 export META_CONSENSUS_SIZE=$META_VALIDATORCOUNT
 
 # ROUND_DURATION_IN_MS is the duration in milliseconds for one round
-export ROUND_DURATION_IN_MS=6000
+export ROUND_DURATION_IN_MS=600
 
 # MULTI_KEY_NODES if set to 1, one observer will be generated on each shard that will handle all generated keys
 export MULTI_KEY_NODES=0
@@ -96,6 +96,9 @@ export DEFAULT_CHAIN_ID="local-testnet"
 
 # ROUNDS_PER_EPOCH represents the number of rounds per epoch. If set to 0, it won't override the node's config
 export ROUNDS_PER_EPOCH=0
+
+# ADDRESS_HRP represents the human-readable prefix for addresses
+export ADDRESS_HRP="erd"
 
 # HYSTERESIS defines the hysteresis value for number of nodes in shard
 export HYSTERESIS=0.0
@@ -141,7 +144,7 @@ fi
 # Proxy configuration
 
 # Path to mx-chain-proxy-go, branch: master. Default: near mx-chain-go.
-export PROXYDIR="$(dirname $MULTIVERSXDIR)/mx-chain-proxy-go/cmd/proxy"
+export PROXYDIR="$(dirname $MULTIVERSXDIR)/mx-chain-proxy-sovereign-go/cmd/proxy"
 export PROXY=$PROXYDIR/proxy    # Leave unchanged.
 
 export PORT_PROXY="7950"

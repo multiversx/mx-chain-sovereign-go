@@ -36,6 +36,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processorV2"
 	"github.com/multiversx/mx-chain-go/process/sync"
@@ -266,5 +267,6 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		directStakedListFactoryHandler:          trieIteratorsFactory.NewSovereignDirectStakedListProcessorFactory(),
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewSovereignTotalStakedValueProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
+		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
 	}, nil
 }

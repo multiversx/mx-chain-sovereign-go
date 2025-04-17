@@ -9,6 +9,7 @@ import (
 // that needs to be signed by validators to bridge tokens
 type OutgoingOperationsFormatter interface {
 	CreateOutgoingTxsData(logs []*data.LogData) ([][]byte, error)
+	CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error)
 	IsInterfaceNil() bool
 }
 
@@ -24,6 +25,6 @@ type DataCodecHandler interface {
 
 // TopicsCheckerHandler should be able to check the topics validity
 type TopicsCheckerHandler interface {
-	CheckValidity(topics [][]byte) error
+	CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error
 	IsInterfaceNil() bool
 }

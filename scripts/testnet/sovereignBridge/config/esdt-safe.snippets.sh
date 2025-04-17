@@ -1,5 +1,6 @@
 ESDT_SAFE_ADDRESS=$(mxpy data load --use-global --partition=${CHAIN_ID} --key=address-esdt-safe-contract)
 ESDT_SAFE_ADDRESS_SOVEREIGN=$(mxpy data load --use-global --partition=sovereign --key=address-esdt-safe-contract)
+NATIVE_ESDT=$(mxpy data load --use-global --partition=sovereign --key=native-esdt)
 
 deployEsdtSafeContract() {
     echo "Deploying ESDT Safe contract on main chain..."
@@ -12,9 +13,8 @@ deployEsdtSafeContract() {
         --chain=${CHAIN_ID} \
         --gas-limit=200000000 \
         --arguments \
-            ${HEADER_VERIFIER_ADDRESS} \
+            addr:${HEADER_VERIFIER_ADDRESS} \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -65,7 +65,6 @@ upgradeEsdtSafeContractCall() {
         --chain=${CHAIN} \
         --gas-limit=200000000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -102,7 +101,6 @@ pauseEsdtSafeContractCall() {
         --gas-limit=10000000 \
         --function="pause" \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -139,7 +137,6 @@ unpauseEsdtSafeContractCall() {
         --gas-limit=10000000 \
         --function="unpause" \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -176,9 +173,9 @@ setFeeMarketAddressCall() {
         --chain=${CHAIN} \
         --gas-limit=10000000 \
         --function="setFeeMarketAddress" \
-        --arguments ${FEE_MARKET_CONTRACT_ADDRESS} \
+        --arguments \
+            addr:${FEE_MARKET_CONTRACT_ADDRESS} \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -201,7 +198,6 @@ registerNativeToken() {
             str:${NATIVE_ESDT_TICKER} \
             str:${NATIVE_ESDT_NAME} \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -209,7 +205,8 @@ registerNativeToken() {
 
     local RESULT=$(readNativeToken)
     local TOKEN_HEX=$(echo "$RESULT" | jq -r '.[0]')
-    NATIVE_ESDT=$(hex_to_string "$TOKEN_HEX")
+    mxpy data store --use-global --partition=sovereign --key=native-esdt --value=$(hex_to_string "$TOKEN_HEX")
+    NATIVE_ESDT=$(mxpy data load --use-global --partition=sovereign --key=native-esdt)
     echo "Native Token identifier: ${NATIVE_ESDT}"
 }
 

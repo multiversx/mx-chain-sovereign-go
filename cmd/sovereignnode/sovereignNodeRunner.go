@@ -19,7 +19,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -30,22 +32,24 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
-
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/common/goroutines"
 	"github.com/multiversx/mx-chain-go/common/ordering"
+	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -907,6 +911,7 @@ func (snr *sovereignNodeRunner) createMetrics(
 		snr.configs.EconomicsConfig,
 		snr.configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		coreComponents.MinTransactionVersion(),
+		snr.configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
@@ -1019,38 +1024,44 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 }
 
 func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.ExtraSignersHolder, error) {
-	extraSignerHandler := signingHandler.ShallowClone()
-	startRoundExtraSignersHolder := bls.NewSubRoundStartExtraSignersHolder()
-	startRoundExtraSigner, err := bls.NewSovereignSubRoundStartOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSigner)
-	if err != nil {
-		return nil, err
+	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
+	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
+	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
+
+	mbTypes := []block.OutGoingMBType{block.OutGoingMbTx, block.OutGoingMbChangeValidatorSet}
+
+	for _, mbType := range mbTypes {
+		extraSignerHandler := signingHandler.ShallowClone()
+
+		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	signRoundExtraSignersHolder := bls.NewSubRoundSignatureExtraSignersHolder()
-	signRoundExtraSigner, err := bls.NewSovereignSubRoundSignatureOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	endRoundExtraSignersHolder := bls.NewSubRoundEndExtraSignersHolder()
-	endRoundExtraSigner, err := bls.NewSovereignSubRoundEndOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	return bls.NewExtraSignersHolder(
+	return holders.NewExtraSignersHolder(
 		startRoundExtraSignersHolder,
 		signRoundExtraSignersHolder,
 		endRoundExtraSignersHolder)
@@ -1179,7 +1190,7 @@ func (snr *sovereignNodeRunner) logInformation(
 		"ShardId", shardIdString,
 		"TotalShards", bootstrapComponents.ShardCoordinator().NumberOfShards(),
 		"AppVersion", snr.configs.FlagsConfig.Version,
-		"GenesisTimeStamp", coreComponents.GenesisTime().Unix(),
+		"GenesisTimeStamp", runTypeCommon.TimeToUnix(coreComponents.GenesisTime()),
 	)
 
 	sessionInfoFileOutput += "\nStarted with parameters:\n"
@@ -1955,10 +1966,16 @@ func createSovereignWsReceiver(
 }
 
 func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.SovereignNotifier, error) {
+	addressPubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(config.AddressPubKeyConverter.Length, config.AddressPubKeyConverter.Hrp)
+	if err != nil {
+		return nil, err
+	}
+
 	argsNotifier := factory.ArgsCreateSovereignNotifier{
-		MarshallerType:   config.WebSocketConfig.MarshallerType,
-		SubscribedEvents: getNotifierSubscribedEvents(config.SubscribedEvents),
-		HasherType:       config.WebSocketConfig.HasherType,
+		MarshallerType:         config.WebSocketConfig.MarshallerType,
+		SubscribedEvents:       getNotifierSubscribedEvents(config.SubscribedEvents),
+		HasherType:             config.WebSocketConfig.HasherType,
+		AddressPubkeyConverter: addressPubKeyConverter,
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)

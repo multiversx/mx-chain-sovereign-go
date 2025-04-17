@@ -28,10 +28,12 @@ import (
 	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/common/goroutines"
 	"github.com/multiversx/mx-chain-go/common/ordering"
+	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -851,6 +853,7 @@ func (nr *nodeRunner) createMetrics(
 		nr.configs.EconomicsConfig,
 		nr.configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		coreComponents.MinTransactionVersion(),
+		nr.configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
@@ -933,7 +936,7 @@ func (nr *nodeRunner) CreateManagedConsensusComponents(
 		IsInImportMode:        nr.configs.ImportDbConfig.IsImportDBMode,
 		ShouldDisableWatchdog: nr.configs.FlagsConfig.DisableConsensusWatchdog,
 		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    bls.NewEmptyExtraSignersHolder(),
+		ExtraSignersHolder:    holders.NewEmptyExtraSignersHolder(),
 		SubRoundEndV2Creator:  bls.NewSubRoundEndV2Creator(),
 	}
 
@@ -1077,7 +1080,7 @@ func (nr *nodeRunner) logInformation(
 		"ShardId", shardIdString,
 		"TotalShards", bootstrapComponents.ShardCoordinator().NumberOfShards(),
 		"AppVersion", nr.configs.FlagsConfig.Version,
-		"GenesisTimeStamp", coreComponents.GenesisTime().Unix(),
+		"GenesisTimeStamp", runTypeCommon.TimeToUnix(coreComponents.GenesisTime()),
 	)
 
 	sessionInfoFileOutput += "\nStarted with parameters:\n"
