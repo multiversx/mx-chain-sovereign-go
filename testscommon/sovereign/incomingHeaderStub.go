@@ -1,16 +1,14 @@
 package sovereign
 
 import (
-	"math/big"
-
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 )
 
 // IncomingHeaderStub -
 type IncomingHeaderStub struct {
+	NonceField             uint64
 	GetProofCalled         func() []byte
-	GetNonceBICalled       func() *big.Int
 	GetSourceChainIDCalled func() dto.ChainID
 }
 
@@ -28,13 +26,9 @@ func (ihs *IncomingHeaderStub) GetProof() []byte {
 	return nil
 }
 
-// GetNonceBI -
-func (ihs *IncomingHeaderStub) GetNonceBI() *big.Int {
-	if ihs.GetNonceBICalled != nil {
-		return ihs.GetNonceBICalled()
-	}
-
-	return big.NewInt(0)
+// GetNonce -
+func (ihs *IncomingHeaderStub) GetNonce() uint64 {
+	return ihs.NonceField
 }
 
 // GetSourceChainID -

@@ -3,19 +3,29 @@ package incomingHeader
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/config"
 	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/pool"
-	"github.com/stretchr/testify/require"
 )
 
 func createWSCfg() config.WebSocketConfig {
 	return config.WebSocketConfig{
 		MarshallerType: "json",
 		HasherType:     "keccak",
+	}
+}
+
+func createMainChainNotarizationCfg() map[string]config.MainChainNotarization {
+	return map[string]config.MainChainNotarization{
+		dto.MVX.String(): {
+			StartRound: 1,
+		},
 	}
 }
 
@@ -33,7 +43,7 @@ func TestCreateIncomingHeaderProcessor(t *testing.T) {
 		headerProc, err := CreateIncomingHeaderProcessor(
 			createWSCfg(),
 			headersPool,
-			11,
+			createMainChainNotarizationCfg(),
 			nil,
 		)
 		require.Equal(t, errorsMx.ErrNilRunTypeComponents, err)
@@ -47,7 +57,7 @@ func TestCreateIncomingHeaderProcessor(t *testing.T) {
 		headerProc, err := CreateIncomingHeaderProcessor(
 			cfg,
 			headersPool,
-			11,
+			createMainChainNotarizationCfg(),
 			runTypeComps,
 		)
 		require.NotNil(t, err)
@@ -61,7 +71,7 @@ func TestCreateIncomingHeaderProcessor(t *testing.T) {
 		headerProc, err := CreateIncomingHeaderProcessor(
 			cfg,
 			headersPool,
-			11,
+			createMainChainNotarizationCfg(),
 			runTypeComps,
 		)
 		require.NotNil(t, err)
@@ -72,7 +82,7 @@ func TestCreateIncomingHeaderProcessor(t *testing.T) {
 		headerProc, err := CreateIncomingHeaderProcessor(
 			createWSCfg(),
 			headersPool,
-			11,
+			createMainChainNotarizationCfg(),
 			runTypeComps,
 		)
 		require.Nil(t, err)

@@ -2,7 +2,6 @@ package extendedHeader
 
 import (
 	"fmt"
-	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
@@ -45,7 +44,6 @@ func (creator *emptyMVXShardExtendedCreator) CreateNewExtendedHeader(proof []byt
 	return &block.ShardHeaderExtended{
 		Header:        headerV2,
 		Proof:         proof,
-		NonceBI:       big.NewInt(int64(headerHandler.GetRound())),
 		SourceChainID: dto.MVX,
 	}, nil
 }

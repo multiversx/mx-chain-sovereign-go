@@ -133,7 +133,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 			},
 		},
 	})
@@ -250,7 +250,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 			},
 		},
 	})
@@ -345,7 +345,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 			ApiInterface:     api.NewNoApiInterface(),
 			MinNodesPerShard: 1,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = startRound
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: startRound}
 				sovConfig = cfg.GeneralConfig.SovereignConfig
 			},
 			CreateRunTypeComponents: func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error) {
@@ -454,7 +454,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			NumNodesWaitingListShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = 0
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 1}
 			},
 		},
 	})
@@ -527,9 +527,9 @@ func createIncomingHeader(
 	headerV2 := createHeaderV2(*headerNonce, prevHeaderHash, prevHeader.GetRandSeed())
 	proof, _ := nodeHandler.GetCoreComponents().InternalMarshalizer().Marshal(headerV2)
 	incomingHdr := &sovereign.IncomingHeader{
+		Nonce:          *headerNonce,
 		Proof:          proof,
 		SourceChainID:  sovDto.MVX,
-		Nonce:          big.NewInt(int64(headerV2.GetRound())),
 		IncomingEvents: txsEvent,
 	}
 	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), headerV2)
@@ -561,7 +561,7 @@ func createSimpleIncomingHeader(
 	incomingHdr := &sovereign.IncomingHeader{
 		Proof:          proof,
 		SourceChainID:  sovDto.MVX,
-		Nonce:          big.NewInt(int64(headerV2.GetRound())),
+		Nonce:          headerV2.GetRound(),
 		IncomingEvents: []*transaction.Event{},
 	}
 	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), headerV2)
