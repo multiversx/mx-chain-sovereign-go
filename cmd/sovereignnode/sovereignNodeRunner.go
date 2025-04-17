@@ -439,7 +439,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 	incomingHeaderHandler, err := incomingHeader.CreateIncomingHeaderProcessor(
 		configs.SovereignExtraConfig.NotifierConfig.WebSocketConfig,
 		managedDataComponents.Datapool(),
-		configs.SovereignExtraConfig.MainChainNotarization.MainChainNotarizationStartRound,
+		configs.SovereignExtraConfig.MainChainNotarization,
 		managedRunTypeComponents,
 	)
 	if err != nil {

@@ -2,15 +2,18 @@ package incomingHeader
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
+	"github.com/multiversx/mx-chain-go/config"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/errors"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
@@ -27,17 +30,22 @@ type ArgsIncomingHeaderProcessor struct {
 	TxPool                          TransactionPool
 	Marshaller                      marshal.Marshalizer
 	Hasher                          hashing.Hasher
-	MainChainNotarizationStartRound uint64
+	MainChainNotarizationStartRound map[string]config.MainChainNotarization
 	DataCodec                       sovBlock.DataCodecHandler
 	TopicsChecker                   sovBlock.TopicsCheckerHandler
+}
+
+type chainStartRoundCfg struct {
+	genesisRound    uint64
+	preGenesisRound uint64
 }
 
 type incomingHeaderProcessor struct {
 	eventsProc         IncomingEventsProcessor
 	extendedHeaderProc *extendedHeaderProcessor
 
-	outGoingPool                    sovereignBlock.OutGoingOperationsPool
-	mainChainNotarizationStartRound uint64
+	outGoingPool             sovereignBlock.OutGoingOperationsPool
+	mapMainChainNotarization map[string]*chainStartRoundCfg
 }
 
 // NewIncomingHeaderProcessor creates an incoming header processor which should be able to receive incoming headers and events
@@ -108,48 +116,85 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 		return nil, err
 	}
 
-	extendedHearProc := &extendedHeaderProcessor{
-		headersPool: args.HeadersPool,
-		txPool:      args.TxPool,
-		marshaller:  args.Marshaller,
-		hasher:      args.Hasher,
+	extendedHearProc, err := newExtendedHeaderProcessor(
+		args.HeadersPool,
+		args.TxPool,
+		args.Marshaller,
+		args.Hasher,
+	)
+	if err != nil {
+		return nil, nil
 	}
 
 	log.Debug("NewIncomingHeaderProcessor", "starting round to notarize main chain headers", args.MainChainNotarizationStartRound)
 
+	mapMainChainNotarization, err := createMapMainChainNotarization(args.MainChainNotarizationStartRound)
+	if err != nil {
+		return nil, err
+	}
+
 	return &incomingHeaderProcessor{
-		eventsProc:                      eventsProc,
-		extendedHeaderProc:              extendedHearProc,
-		outGoingPool:                    args.OutGoingOperationsPool,
-		mainChainNotarizationStartRound: args.MainChainNotarizationStartRound,
+		eventsProc:               eventsProc,
+		extendedHeaderProc:       extendedHearProc,
+		outGoingPool:             args.OutGoingOperationsPool,
+		mapMainChainNotarization: mapMainChainNotarization,
 	}, nil
+}
+
+func createMapMainChainNotarization(mainChainNotarizationStartRound map[string]config.MainChainNotarization) (map[string]*chainStartRoundCfg, error) {
+	supportedChains := map[string]struct{}{
+		dtoSov.MVX.String(): {},
+	}
+
+	ret := make(map[string]*chainStartRoundCfg)
+	for sourceChainID, cfg := range mainChainNotarizationStartRound {
+		if _, isChainSupported := supportedChains[sourceChainID]; !isChainSupported {
+			return nil, fmt.Errorf("%w: %s", errSourceChainNotSupported, sourceChainID)
+		}
+
+		if cfg.StartRound == 0 {
+			return nil, fmt.Errorf("%w for start round in createMapMainChainNotarization", errZeroValueProvided)
+		}
+
+		ret[sourceChainID] = &chainStartRoundCfg{
+			genesisRound:    cfg.StartRound,
+			preGenesisRound: cfg.StartRound - 1,
+		}
+	}
+
+	return ret, nil
 }
 
 // AddHeader will receive the incoming header, validate it, create incoming mbs and transactions and add them to pool
 func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereign.IncomingHeaderHandler) error {
-	if check.IfNil(header) || check.IfNil(header.GetHeaderHandler()) {
-		return data.ErrNilHeader
+	err := checkNilInputs(header)
+	if err != nil {
+		return err
 	}
 
+	incomingHeaderNonce := header.GetNonce()
 	log.Info("received incoming header",
 		"hash", hex.EncodeToString(headerHash),
-		"nonce", header.GetHeaderHandler().GetNonce(),
-		"round", header.GetHeaderHandler().GetRound(),
+		"nonce", incomingHeaderNonce,
 	)
-	round := header.GetHeaderHandler().GetRound()
+
+	chainData, found := ihp.mapMainChainNotarization[header.GetSourceChainID().String()]
+	if !found {
+		return fmt.Errorf("invalid chain id: %s", header.GetSourceChainID().String())
+	}
 
 	// pre-genesis header, needed to track/link genesis header on top of this one. Every node with an enabled notifier
 	// will validate that the next genesis header with round == mainChainNotarizationStartRound is on top of pre-genesis header.
 	// just save internal header to tracker, no need to process anything from it
-	if round == ihp.mainChainNotarizationStartRound-1 {
-		log.Debug("received pre-genesis header", "round", header.GetHeaderHandler().GetRound())
+	if incomingHeaderNonce == chainData.preGenesisRound {
+		log.Debug("received pre-genesis header", "round", incomingHeaderNonce)
 		return ihp.extendedHeaderProc.addPreGenesisExtendedHeaderToPool(header)
 	}
 
-	if round < ihp.mainChainNotarizationStartRound {
+	if incomingHeaderNonce < chainData.genesisRound {
 		log.Debug("do not notarize incoming header, round lower than main chain notarization start round",
-			"round", round,
-			"start round", ihp.mainChainNotarizationStartRound)
+			"round", incomingHeaderNonce,
+			"start round", chainData.genesisRound)
 		return nil
 	}
 
@@ -158,7 +203,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 		return err
 	}
 
-	extendedHeader, err := createExtendedHeader(header, res.Scrs)
+	extendedHeader, err := ihp.extendedHeaderProc.createExtendedHeader(header, res.Scrs)
 	if err != nil {
 		return err
 	}
@@ -169,6 +214,17 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 	}
 
 	ihp.addConfirmedBridgeOpsToPool(res.ConfirmedBridgeOps)
+	return nil
+}
+
+func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
+	if check.IfNil(header) {
+		return data.ErrNilHeader
+	}
+	if header.GetProof() == nil {
+		return errNilProof
+	}
+
 	return nil
 }
 
@@ -190,12 +246,23 @@ func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.Confi
 
 // CreateExtendedHeader will create an extended shard header with incoming scrs and mbs from the events of the received header
 func (ihp *incomingHeaderProcessor) CreateExtendedHeader(header sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
+	chainData, found := ihp.mapMainChainNotarization[header.GetSourceChainID().String()]
+	if !found {
+		return nil, fmt.Errorf("invalid chain id: %s", header.GetSourceChainID().String())
+	}
+
+	// should not process any incoming events on pre-genesis header
+	if header.GetNonce() == chainData.preGenesisRound {
+		log.Debug("CreateExtendedHeader: received pre-genesis header", "round", header.GetNonce())
+		return ihp.extendedHeaderProc.createChainSpecificExtendedHeader(header)
+	}
+
 	res, err := ihp.eventsProc.ProcessIncomingEvents(header.GetIncomingEventHandlers())
 	if err != nil {
 		return nil, err
 	}
 
-	return createExtendedHeader(header, res.Scrs)
+	return ihp.extendedHeaderProc.createExtendedHeader(header, res.Scrs)
 }
 
 // RegisterEventHandler will register an extra incoming event processor. For the registered processor, a subscription

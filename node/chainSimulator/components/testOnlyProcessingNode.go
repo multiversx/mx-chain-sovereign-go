@@ -38,7 +38,7 @@ type ArgsTestOnlyProcessingNode struct {
 	Configs                        config.Configs
 	APIInterface                   APIConfigurator
 	CreateRunTypeCoreComponents    func() (factory.RunTypeCoreComponentsHolder, error)
-	CreateIncomingHeaderSubscriber func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound uint64, runTypeComponents factory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error)
+	CreateIncomingHeaderSubscriber func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound map[string]config.MainChainNotarization, runTypeComponents factory.RunTypeComponentsHolder) (process.IncomingHeaderSubscriber, error)
 	CreateRunTypeComponents        func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error)
 	NodeFactory                    node.NodeFactory
 
@@ -229,7 +229,7 @@ func NewTestOnlyProcessingNode(args ArgsTestOnlyProcessingNode) (*testOnlyProces
 	instance.IncomingHeaderSubscriber, err = args.CreateIncomingHeaderSubscriber(
 		args.Configs.GeneralConfig.SovereignConfig.NotifierConfig.WebSocketConfig,
 		instance.DataComponentsHolder.Datapool(),
-		args.Configs.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound,
+		args.Configs.GeneralConfig.SovereignConfig.MainChainNotarization,
 		instance.RunTypeComponents,
 	)
 	if err != nil {

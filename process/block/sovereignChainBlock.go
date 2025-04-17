@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -19,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/holders"
 	"github.com/multiversx/mx-chain-go/common/logging"
+	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -59,7 +61,7 @@ type sovereignChainBlockProcessor struct {
 	scToProtocol          process.SmartContractToProtocolHandler
 	epochEconomics        process.EndOfEpochEconomics
 
-	mainChainNotarizationStartRound uint64
+	mainChainNotarizationStartRound map[string]config.MainChainNotarization
 }
 
 // ArgsSovereignChainBlockProcessor is a struct placeholder for args needed to create a new sovereign chain block processor
@@ -75,7 +77,7 @@ type ArgsSovereignChainBlockProcessor struct {
 	EpochSystemSCProcessor          process.EpochStartSystemSCProcessor
 	SCToProtocol                    process.SmartContractToProtocolHandler
 	EpochEconomics                  process.EndOfEpochEconomics
-	MainChainNotarizationStartRound uint64
+	MainChainNotarizationStartRound map[string]config.MainChainNotarization
 }
 
 // NewSovereignChainBlockProcessor creates a new sovereign chain block processor
@@ -974,7 +976,8 @@ func (scbp *sovereignChainBlockProcessor) checkExtendedShardHeadersValidity(
 //   - node is in re-sync/start in the exact epoch when we start to notarize main chain => no previous
 //     main chain tracking(notifier is also disabled)
 func (scbp *sovereignChainBlockProcessor) isGenesisHeaderWithNoPreviousTracking(incomingHeader data.HeaderHandler) bool {
-	return scbp.extendedShardHeaderTracker.IsGenesisLastCrossNotarizedHeader() && incomingHeader.GetRound() == scbp.mainChainNotarizationStartRound
+	//TODO: Here iterate for all chains when we have an extended header block tracker for multiple chains
+	return scbp.extendedShardHeaderTracker.IsGenesisLastCrossNotarizedHeader() && incomingHeader.GetRound() == scbp.mainChainNotarizationStartRound[dto.MVX.String()].StartRound
 }
 
 func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
