@@ -42,7 +42,7 @@ func NewSovereignIndexHashedNodesCoordinatorWithRater(
 	defer nodesConfig.mutNodesMaps.Unlock()
 
 	var err error
-	ihncr.consensusGroupCacher.Clear()
+	//ihncr.consensusGroupCacher.Clear()
 	nodesConfig.selectors, err = ihncr.createSelectors(nodesConfig)
 	if err != nil {
 		return nil, err

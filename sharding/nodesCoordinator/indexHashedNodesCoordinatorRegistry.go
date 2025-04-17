@@ -47,6 +47,8 @@ func (ihnc *indexHashedNodesCoordinator) baseLoadState(key []byte) error {
 	ihnc.nodesConfig = nodesConfig
 	ihnc.mutNodesConfig.Unlock()
 
+	ihnc.consensusGroupCacher.Clear()
+
 	return nil
 }
 
