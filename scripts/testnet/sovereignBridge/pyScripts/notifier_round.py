@@ -10,11 +10,11 @@ def update_notarization_round(lines, section, identifier, round) -> []:
     section_found = False
 
     for line in lines:
-        if line.startswith("[" + section + "]"):
+        if line.strip().startswith("[" + section + "]"):
             section_found = True
         if section_found and identifier in line:
         # TODO: Here fix these scripts to work for multiple chains, Octavian A.
-            line = re.sub(r"(MainChainNotarizationStartRound\s*=\s*)\d+", r"\g<1>" + str(round), line)
+            line = re.sub(rf"({identifier}\s*=\s*)\d+", r"\g<1>" + str(round), line)
             section_found = False
         updated_lines.append(line)
 
@@ -55,7 +55,7 @@ def main():
         lines = file.readlines()
 
     # TODO: Here fix these scripts to work for multiple chains, Octavian A.
-    updated_lines = update_notarization_round(lines, "MainChainNotarization", "MainChainNotarizationStartRound",
+    updated_lines = update_notarization_round(lines, "MainChainNotarization.MVX", "StartRound",
                                               current_round + 5)
 
     with open(toml_path, 'w') as file:
