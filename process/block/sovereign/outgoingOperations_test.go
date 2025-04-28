@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
@@ -344,7 +345,9 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, [][]byte{operationBytes}, outgoingTxData)
+	// todo: here and below maybe check directly require.Equal instead of 2 checks
+	require.Len(t, outgoingTxData, 1)
+	require.Equal(t, [][]byte{operationBytes}, outgoingTxData[dto.MVX])
 }
 
 func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
@@ -423,7 +426,8 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, [][]byte{operationBytes}, outgoingTxData)
+	require.Len(t, outgoingTxData, 1)
+	require.Equal(t, [][]byte{operationBytes}, outgoingTxData[dto.MVX])
 }
 
 func TestOutgoingOperations_CreateOutGoingChangeValidatorData(t *testing.T) {

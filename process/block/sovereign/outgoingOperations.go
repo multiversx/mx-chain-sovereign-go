@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"google.golang.org/protobuf/proto"
 
@@ -121,15 +122,15 @@ func checkEmptyAddresses(addresses map[string]string) error {
 
 // CreateOutgoingTxsData collects relevant outgoing events(based on subscribed addresses and topics) for bridge from the
 // logs and creates outgoing data that needs to be signed by validators to bridge tokens
-func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([][]byte, error) {
+func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[dto.ChainID][][]byte, error) {
 	outgoingEvents := op.createOutgoingEvents(logs)
 	if len(outgoingEvents) == 0 {
-		return make([][]byte, 0), nil
+		return make(map[dto.ChainID][][]byte, 0), nil
 	}
 
-	txsData := make([][]byte, 0)
+	txsData := make(map[dto.ChainID][][]byte, 0)
 	for i, event := range outgoingEvents {
-		operation, err := op.getOperationData(event)
+		chainID, operation, err := op.getOperationData(event)
 		if err != nil {
 			log.Error("outgoingOperations.CreateOutgoingTxsData error",
 				"tx hash", logs[i].TxHash,
@@ -139,7 +140,7 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([][]b
 			return nil, err
 		}
 
-		txsData = append(txsData, operation)
+		txsData[chainID] = append(txsData[chainID], operation)
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
@@ -191,29 +192,30 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, error) {
+func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.ChainID, []byte, error) {
 	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	topics := event.GetTopics()
 	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	operation, err := op.createOperationData(topics, evData)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	operationBytes, err := op.dataCodec.SerializeOperation(*operation)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
-	return operationBytes, nil
+	// TODO: Here, we should have contracts emitting chain id events
+	return dto.MVX, operationBytes, nil
 }
 
 func (op *outgoingOperations) createOperationData(topics [][]byte, eventData *sovereign.EventData) (*sovereign.Operation, error) {
