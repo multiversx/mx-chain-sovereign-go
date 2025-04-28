@@ -664,7 +664,7 @@ func TestSovereignShardProcessor_CreateNewBlockExpectCheckRoundCalled(t *testing
 	require.Equal(t, int64(1), checkRoundCt.Get())
 }
 
-func TestSovereignShardProcessor_CreateNewHeaderValsOK(t *testing.T) {
+func TestSovereignShardProcessor_CreateNewHeader(t *testing.T) {
 	t.Parallel()
 
 	round := uint64(7)
