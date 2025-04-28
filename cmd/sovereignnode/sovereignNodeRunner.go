@@ -408,8 +408,6 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		return true, err
 	}
 
-	time.Sleep(time.Second * 2)
-
 	log.Debug("starting status pooling components")
 	managedStatusComponents, err := snr.CreateManagedStatusComponents(
 		managedStatusCoreComponents,
