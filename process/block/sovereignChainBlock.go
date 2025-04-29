@@ -1506,6 +1506,7 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 	}
 
 	outGoingOperationsHash := scbp.operationsHasher.Compute(string(aggregatedOutGoingOperations))
+	// TODO: MX-16830 Here, this is not ok, we need a chained/sharded outgoing pool since we can have the same operation hash
 	scbp.outGoingOperationsPool.Add(&sovCore.BridgeOutGoingData{
 		Type:               int32(mbType),
 		ChainID:            int32(chainID),

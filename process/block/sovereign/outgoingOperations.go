@@ -217,7 +217,7 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.Cha
 		return 0, nil, err
 	}
 
-	// TODO: Here, we should have contracts emitting chain id events
+	// TODO: MX-16831 Here, we should have contracts emitting chain id events
 	return dto.MVX, operationBytes, nil
 }
 

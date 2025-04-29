@@ -349,9 +349,9 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	// todo: here and below maybe check directly require.Equal instead of 2 checks
-	require.Len(t, outgoingTxData, 1)
-	require.Equal(t, [][]byte{operationBytes}, outgoingTxData[dto.MVX])
+	require.Equal(t, map[dto.ChainID][][]byte{
+		dto.MVX: {operationBytes},
+	}, outgoingTxData)
 }
 
 func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
@@ -430,8 +430,9 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Len(t, outgoingTxData, 1)
-	require.Equal(t, [][]byte{operationBytes}, outgoingTxData[dto.MVX])
+	require.Equal(t, map[dto.ChainID][][]byte{
+		dto.MVX: {operationBytes},
+	}, outgoingTxData)
 }
 
 func TestOutgoingOperations_CreateOutGoingChangeValidatorData(t *testing.T) {
