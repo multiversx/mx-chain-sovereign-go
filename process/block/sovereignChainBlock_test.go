@@ -922,7 +922,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		_, _, err = scbp.ProcessBlock(nil, nil, nil)
+		header, body, err := scbp.ProcessBlock(nil, nil, nil)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilHaveTimeHandler, err)
 	})
 	t.Run("process header with incorrect epoch, should error", func(t *testing.T) {
