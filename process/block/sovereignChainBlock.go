@@ -1079,10 +1079,7 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 
 	err = scbp.createAndSetOutGoingMiniBlock(
 		header,
-		map[dto.ChainID][][]byte{
-			// todo: here, iterate in config
-			dto.MVX: {outGoingOperationChangeValidatorSet},
-		},
+		outGoingOperationChangeValidatorSet,
 		body,
 		block.OutGoingMbChangeValidatorSet,
 	)
@@ -1563,7 +1560,7 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
-		// todo: here we need to add chain id
+		ChainID:                chainID,
 		Type:                   mbType,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,

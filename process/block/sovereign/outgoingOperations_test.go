@@ -36,6 +36,10 @@ func createArgs() ArgsOutgoingOperations {
 		DataCodec:        &sovTests.DataCodecMock{},
 		TopicsChecker:    &sovTests.TopicsCheckerMock{},
 		PeerAccountsDB:   &state.AccountsStub{},
+		MapChainIDs: map[dto.ChainID]struct{}{
+			dto.MVX: {},
+			dto.ETH: {},
+		},
 	}
 }
 
@@ -460,9 +464,16 @@ func TestOutgoingOperations_CreateOutGoingChangeValidatorData(t *testing.T) {
 	res, err := formatter.CreateOutGoingChangeValidatorData(pubKeys, 4)
 	require.Nil(t, err)
 
-	resBridgeData := sovereign.BridgeOutGoingDataValidatorSetChange{}
-	err = proto.Unmarshal(res, &resBridgeData)
-	require.Nil(t, err)
-	require.Equal(t, uint32(4), resBridgeData.GetEpoch())
-	require.Equal(t, [][]byte{[]byte("id1"), []byte("id2")}, resBridgeData.GetPubKeyIDs())
+	require.Contains(t, res, dto.MVX)
+	require.Contains(t, res, dto.ETH)
+
+	for _, bridgeData := range res {
+		require.Len(t, bridgeData, 1)
+
+		resBridgeData := sovereign.BridgeOutGoingDataValidatorSetChange{}
+		err = proto.Unmarshal(bridgeData[0], &resBridgeData)
+		require.Nil(t, err)
+		require.Equal(t, uint32(4), resBridgeData.GetEpoch())
+		require.Equal(t, [][]byte{[]byte("id1"), []byte("id2")}, resBridgeData.GetPubKeyIDs())
+	}
 }

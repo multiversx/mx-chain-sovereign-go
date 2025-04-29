@@ -10,7 +10,7 @@ import (
 // that needs to be signed by validators to bridge tokens
 type OutgoingOperationsFormatter interface {
 	CreateOutgoingTxsData(logs []*data.LogData) (map[dto.ChainID][][]byte, error)
-	CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error)
+	CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error)
 	IsInterfaceNil() bool
 }
 

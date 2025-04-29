@@ -32,6 +32,7 @@ type SubscribedEvent struct {
 }
 
 type ArgsOutgoingOperations struct {
+	MapChainIDs      map[dto.ChainID]struct{}
 	SubscribedEvents []SubscribedEvent
 	DataCodec        DataCodecHandler
 	TopicsChecker    TopicsCheckerHandler
@@ -43,6 +44,7 @@ type outgoingOperations struct {
 	dataCodec        DataCodecHandler
 	topicsChecker    TopicsCheckerHandler
 	peerAccountsDB   state.AccountsAdapter
+	mapChainIDs      map[dto.ChainID]struct{}
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -65,6 +67,7 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		dataCodec:        args.DataCodec,
 		topicsChecker:    args.TopicsChecker,
 		peerAccountsDB:   args.PeerAccountsDB,
+		mapChainIDs:      args.MapChainIDs,
 	}, nil
 }
 
@@ -247,7 +250,7 @@ func (op *outgoingOperations) createOperationData(topics [][]byte, eventData *so
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change
-func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error) {
+func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error) {
 	validatorsID := make([][]byte, len(pubKeys))
 
 	for idx, pubKey := range pubKeys {
@@ -259,10 +262,20 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		validatorsID[idx] = peerAcc.GetMainChainID()
 	}
 
-	return proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
+	changeValidatorSetData, err := proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make(map[dto.ChainID][][]byte)
+	for chainID := range op.mapChainIDs {
+		ret[chainID] = [][]byte{changeValidatorSetData}
+	}
+
+	return ret, nil
 }
 
 func (op *outgoingOperations) getPeerAccount(key []byte) (state.PeerAccountHandler, error) {

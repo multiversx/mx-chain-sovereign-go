@@ -3,6 +3,8 @@ package sovereign
 import (
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/state"
 
@@ -16,6 +18,7 @@ func CreateOutgoingOperationsFormatter(
 	dataCodec DataCodecHandler,
 	topicsChecker TopicsCheckerHandler,
 	peerAccountsDB state.AccountsAdapter,
+	mapChainIDs map[dto.ChainID]struct{},
 ) (OutgoingOperationsFormatter, error) {
 	subscribedEvents, err := getSubscribedEvents(events, pubKeyConverter)
 	if err != nil {
@@ -27,6 +30,7 @@ func CreateOutgoingOperationsFormatter(
 		DataCodec:        dataCodec,
 		TopicsChecker:    topicsChecker,
 		PeerAccountsDB:   peerAccountsDB,
+		MapChainIDs:      mapChainIDs,
 	}
 
 	return NewOutgoingOperationsFormatter(args)

@@ -8,7 +8,7 @@ import (
 // OutgoingOperationsFormatterMock -
 type OutgoingOperationsFormatterMock struct {
 	CreateOutgoingTxDataCalled              func(logs []*data.LogData) (map[dto.ChainID][][]byte, error)
-	CreateOutGoingChangeValidatorDataCalled func(pubKeys []string, epoch uint32) ([]byte, error)
+	CreateOutGoingChangeValidatorDataCalled func(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error)
 }
 
 // CreateOutgoingTxsData -
@@ -21,12 +21,12 @@ func (stub *OutgoingOperationsFormatterMock) CreateOutgoingTxsData(logs []*data.
 }
 
 // CreateOutGoingChangeValidatorData -
-func (stub *OutgoingOperationsFormatterMock) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error) {
+func (stub *OutgoingOperationsFormatterMock) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error) {
 	if stub.CreateOutGoingChangeValidatorDataCalled != nil {
 		return stub.CreateOutGoingChangeValidatorDataCalled(pubKeys, epoch)
 	}
 
-	return make([]byte, 0), nil
+	return make(map[dto.ChainID][][]byte, 0), nil
 }
 
 // IsInterfaceNil -
