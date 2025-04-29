@@ -902,9 +902,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		var headerHandler data.HeaderHandler
-		_, _, err = scbp.ProcessBlock(headerHandler, &block.Body{}, haveTime)
-		require.Nil(t, headerHandler)
+		header, body, err := scbp.ProcessBlock(nil, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilBlockHeader, err)
 	})
 	t.Run("nil body handler, should error", func(t *testing.T) {
@@ -912,9 +912,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		var bodyHandler data.BodyHandler
-		_, _, err = scbp.ProcessBlock(&block.SovereignChainHeader{}, bodyHandler, haveTime)
-		require.Nil(t, bodyHandler)
+		header, body, err := scbp.ProcessBlock(&block.SovereignChainHeader{}, nil, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilBlockBody, err)
 	})
 	t.Run("not enough time, should error", func(t *testing.T) {
