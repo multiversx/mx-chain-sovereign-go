@@ -144,6 +144,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 func createMapMainChainNotarization(mainChainNotarizationStartRound map[string]config.MainChainNotarization) (map[string]*chainStartRoundCfg, error) {
 	supportedChains := map[string]struct{}{
 		dtoSov.MVX.String(): {},
+		dtoSov.ETH.String(): {},
 	}
 
 	ret := make(map[string]*chainStartRoundCfg)
