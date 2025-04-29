@@ -958,7 +958,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			Signature:     []byte("signature"),
 			RootHash:      []byte("root hash"),
 		}
-		_, _, err = scbp.ProcessBlock(hdr, &block.Body{}, haveTime)
+		header, body, err := scbp.ProcessBlock(hdr, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrEpochDoesNotMatch, err)
 	})
 	t.Run("create block started should error because add intermediate txs in tx coordinator returns error", func(t *testing.T) {
@@ -1041,7 +1043,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 
-		_, _, err = scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		header, body, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.NotNil(t, err)
 		require.Equal(t, process.ErrAccountStateDirty, err)
 	})
