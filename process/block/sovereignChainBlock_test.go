@@ -664,7 +664,7 @@ func TestSovereignShardProcessor_CreateNewBlockExpectCheckRoundCalled(t *testing
 	require.Equal(t, int64(1), checkRoundCt.Get())
 }
 
-func TestSovereignShardProcessor_CreateNewHeaderValsOK(t *testing.T) {
+func TestSovereignShardProcessor_CreateNewHeader(t *testing.T) {
 	t.Parallel()
 
 	round := uint64(7)
@@ -783,7 +783,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce: 37,
 				Round: 38,
@@ -791,7 +791,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			},
 		}
 
-		hdr, bodyHandler, err := scbp.CreateBlock(expectedSovHeader, doesHaveTime)
+		hdr, bodyHandler, err := scbp.CreateBlock(sovHeader, doesHaveTime)
 		require.True(t, check.IfNil(bodyHandler))
 		require.True(t, check.IfNil(hdr))
 		require.Equal(t, expectedErr, err)
@@ -876,19 +876,19 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce: 37,
 				Round: 38,
 				Epoch: currentEpoch,
 			},
 		}
-		hdr, bodyHandler, err := scbp.CreateBlock(expectedSovHeader, doesHaveTime)
+		hdr, bodyHandler, err := scbp.CreateBlock(sovHeader, doesHaveTime)
 		require.False(t, check.IfNil(bodyHandler))
 		body, ok := bodyHandler.(*block.Body)
 		require.True(t, ok)
 		require.Zero(t, len(body.MiniBlocks))
-		require.Equal(t, expectedSovHeader, hdr)
+		require.Equal(t, sovHeader, hdr)
 		require.Nil(t, err)
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
 	})
@@ -897,31 +897,37 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil header handler should error", func(t *testing.T) {
+	t.Run("nil header handler, should error", func(t *testing.T) {
 		sovArgs := createSovChainBlockProcessorArgs()
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		_, _, err = scbp.ProcessBlock(nil, &block.Body{}, haveTime)
+		header, body, err := scbp.ProcessBlock(nil, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilBlockHeader, err)
 	})
-	t.Run("nil body handler should error", func(t *testing.T) {
+	t.Run("nil body handler, should error", func(t *testing.T) {
 		sovArgs := createSovChainBlockProcessorArgs()
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		_, _, err = scbp.ProcessBlock(&block.SovereignChainHeader{}, nil, haveTime)
+		header, body, err := scbp.ProcessBlock(&block.SovereignChainHeader{}, nil, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilBlockBody, err)
 	})
-	t.Run("not enough time should error", func(t *testing.T) {
+	t.Run("not enough time, should error", func(t *testing.T) {
 		sovArgs := createSovChainBlockProcessorArgs()
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		_, _, err = scbp.ProcessBlock(nil, nil, nil)
+		header, body, err := scbp.ProcessBlock(nil, nil, nil)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrNilHaveTimeHandler, err)
 	})
-	t.Run("process header with incorrect epoch should error", func(t *testing.T) {
+	t.Run("process header with incorrect epoch, should error", func(t *testing.T) {
 		randSeed := []byte("rand seed")
 		blkc, _ := blockchain.NewBlockChain(&statusHandlerMock.AppStatusHandlerStub{})
 		_ = blkc.SetCurrentBlockHeaderAndRootHash(
@@ -952,7 +958,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			Signature:     []byte("signature"),
 			RootHash:      []byte("root hash"),
 		}
-		_, _, err = scbp.ProcessBlock(hdr, &block.Body{}, haveTime)
+		header, body, err := scbp.ProcessBlock(hdr, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.Equal(t, process.ErrEpochDoesNotMatch, err)
 	})
 	t.Run("create block started should error because add intermediate txs in tx coordinator returns error", func(t *testing.T) {
@@ -966,11 +974,10 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
-
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce: 1,
 				Round: 1,
@@ -978,12 +985,12 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 
-		hdr, bodyHandler, err := scbp.ProcessBlock(expectedSovHeader, &block.Body{}, haveTime)
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
 		require.True(t, check.IfNil(bodyHandler))
 		require.True(t, check.IfNil(hdr))
 		require.Equal(t, expectedErr, err)
 	})
-	t.Run("data not prepared for processing should error should error", func(t *testing.T) {
+	t.Run("data not prepared for processing, should error", func(t *testing.T) {
 		expectedErr := fmt.Errorf("expected error")
 
 		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
@@ -997,7 +1004,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce: 1,
 				Round: 1,
@@ -1005,12 +1012,12 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 
-		hdr, bodyHandler, err := scbp.ProcessBlock(expectedSovHeader, &block.Body{}, haveTime)
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
 		require.True(t, check.IfNil(bodyHandler))
 		require.True(t, check.IfNil(hdr))
 		require.Equal(t, expectedErr, err)
 	})
-	t.Run("account state dirty should error", func(t *testing.T) {
+	t.Run("account state dirty, should error", func(t *testing.T) {
 		journalLen := func() int { return 3 }
 		revToSnapshot := func(snapshot int) error { return nil }
 
@@ -1036,11 +1043,13 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 
-		_, _, err = scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		header, body, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
 		require.NotNil(t, err)
 		require.Equal(t, process.ErrAccountStateDirty, err)
 	})
-	t.Run("process block should work", func(t *testing.T) {
+	t.Run("process block, should work", func(t *testing.T) {
 		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
 		randSeed := []byte("rand seed")
 		blockHash := []byte("block hash")
@@ -1077,7 +1086,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce:         5,
 				Round:         5,
@@ -1090,13 +1099,13 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 
-		hdr, bodyHandler, err := scbp.ProcessBlock(expectedSovHeader, &block.Body{}, haveTime)
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
 		require.Nil(t, err)
-		require.Equal(t, expectedSovHeader, hdr)
+		require.Equal(t, sovHeader, hdr)
 		require.False(t, check.IfNil(bodyHandler))
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
 	})
-	t.Run("process block start of epoch should work", func(t *testing.T) {
+	t.Run("process block start of epoch, should work", func(t *testing.T) {
 		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
 		randSeed := []byte("rand seed")
 		blockHash := []byte("block hash")
@@ -1135,7 +1144,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
 
-		expectedSovHeader := &block.SovereignChainHeader{
+		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
 				Nonce:           5,
 				Round:           5,
@@ -1152,9 +1161,9 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			IsStartOfEpoch: true,
 		}
 
-		hdr, bodyHandler, err := scbp.ProcessBlock(expectedSovHeader, &block.Body{}, haveTime)
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
 		require.Nil(t, err)
-		require.Equal(t, expectedSovHeader, hdr)
+		require.Equal(t, sovHeader, hdr)
 		require.False(t, check.IfNil(bodyHandler))
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
 	})
