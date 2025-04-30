@@ -38,6 +38,8 @@ const (
 	RunTypeComponentsName = "managedRunTypeComponents"
 	// RunTypeCoreComponentsName is the runType core components identifier
 	RunTypeCoreComponentsName = "managedRunTypeCoreComponents"
+	// RunTypeChainComponentsName is the runType chain components identifier
+	RunTypeChainComponentsName = "managedRunTypeChainComponents"
 )
 
 // ArgsEpochStartTrigger is a struct placeholder for arguments needed to create an epoch start trigger

@@ -880,3 +880,9 @@ var ErrNilCrawlerAddressGetter = errors.New("nil crawler address getter has been
 
 // ErrReceivedSovereignEpochStartBlockWithExtendedHeaders signals that an invalid epoch start sovereign block has been received
 var ErrReceivedSovereignEpochStartBlockWithExtendedHeaders = errors.New("received invalid epoch start sovereign block, should not contain any extended headers")
+
+// ErrNilRunTypeChainComponentsFactory signals that the provided runType chain components factory is nil
+var ErrNilRunTypeChainComponentsFactory = errors.New("nil runType chain components factory")
+
+// ErrNilRunTypeChainComponents signals that nil runType chain components were provided
+var ErrNilRunTypeChainComponents = errors.New("nil runType chain components")

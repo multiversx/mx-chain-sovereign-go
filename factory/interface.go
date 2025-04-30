@@ -730,3 +730,18 @@ type OutportDataProviderFactoryHandler interface {
 	CreateOutportDataProvider(arg outportFactory.ArgOutportDataProviderFactory) (outport.DataProviderOutport, error)
 	IsInterfaceNil() bool
 }
+
+// RunTypeChainComponentsHandler defines the run type chain components handler actions
+type RunTypeChainComponentsHandler interface {
+	ComponentHandler
+	RunTypeChainComponentsHolder
+}
+
+// RunTypeChainComponentsHolder holds the run type chain components
+type RunTypeChainComponentsHolder interface {
+	Create() error
+	Close() error
+	CheckSubcomponents() error
+	String() string
+	IsInterfaceNil() bool
+}
