@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -64,31 +66,47 @@ func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Mes
 		return errors.ErrWrongTypeAssertion
 	}
 
-	outGoingMBHeader := sovHeader.GetOutGoingMiniBlockHeaderHandler()
-	if check.IfNil(outGoingMBHeader) {
-		return nil
+	for _, outGoingMbHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
+		err := sr.updatePoolForOutGoingMiniBlock(outGoingMbHdr, cnsDta)
+		if err != nil {
+			return err
+		}
 	}
 
-	err := outGoingMBHeader.SetAggregatedSignatureOutGoingOperations(cnsDta.AggregatedSignatureOutGoingTxData)
+	return nil
+}
+
+func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
+	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler,
+	cnsDta *consensus.Message,
+) error {
+	mbType := block.OutGoingMBType(outGoingMBHeader.GetOutGoingMBTypeInt32()).String()
+	extraSigData, found := cnsDta.ExtraSignatures[mbType]
+	if !found {
+		return fmt.Errorf("%w for type %s", ErrExtraSigShareDataNotFound, mbType)
+	}
+
+	err := outGoingMBHeader.SetAggregatedSignatureOutGoingOperations(extraSigData.AggregatedSignatureOutGoingTxData)
 	if err != nil {
-		log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded.SetAggregatedSignatureOutGoingOperations", "error", err)
+		log.Error("sovereignSubRoundEnd.updatePoolForOutGoingMiniBlock.SetAggregatedSignatureOutGoingOperations", "error", err)
 		return err
 	}
 
-	err = outGoingMBHeader.SetLeaderSignatureOutGoingOperations(cnsDta.LeaderSignatureOutGoingTxData)
+	err = outGoingMBHeader.SetLeaderSignatureOutGoingOperations(extraSigData.LeaderSignatureOutGoingTxData)
 	if err != nil {
-		log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded.SetLeaderSignatureOutGoingOperations", "error", err)
+		log.Error("sovereignSubRoundEnd.updatePoolForOutGoingMiniBlock.SetLeaderSignatureOutGoingOperations", "error", err)
 		return err
 	}
 
 	log.Debug("step 3.1: block header final info has been received with outgoing mb",
-		"LeaderSignatureOutGoingTxData", cnsDta.LeaderSignatureOutGoingTxData,
-		"AggregatedSignatureOutGoingTxData", cnsDta.AggregatedSignatureOutGoingTxData,
+		"LeaderSignatureOutGoingTxData", extraSigData.LeaderSignatureOutGoingTxData,
+		"AggregatedSignatureOutGoingTxData", extraSigData.AggregatedSignatureOutGoingTxData,
+		"type", mbType,
 	)
 
-	_, err = sr.updateBridgeDataWithSignatures(outGoingMBHeader)
+	_, err = sr.updateBridgeDataWithSignatures(outGoingMBHeader, cnsDta.PubKeysBitmap)
 	if err != nil {
-		log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded.updateBridgeDataWithSignatures", "error", err)
+		log.Error("sovereignSubRoundEnd.updatePoolForOutGoingMiniBlock.updateBridgeDataWithSignatures", "error", err)
 		return err
 	}
 
@@ -107,23 +125,27 @@ func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool
 		return false
 	}
 
-	outGoingMBHeader := sovHeader.GetOutGoingMiniBlockHeaderHandler()
-	if check.IfNil(outGoingMBHeader) {
+	outGoingMBHeaders := sovHeader.GetOutGoingMiniBlockHeaderHandlers()
+	if len(outGoingMBHeaders) == 0 {
 		sr.sendUnconfirmedOperationsIfFound(ctx)
 		return true
 	}
 
-	currBridgeData, err := sr.updateBridgeDataWithSignatures(outGoingMBHeader)
-	if err != nil {
-		log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.updateBridgeDataWithSignatures", "error", err)
-		return false
+	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
+	for idx, outGoingMBHdr := range outGoingMBHeaders {
+		currBridgeData, err := sr.updateBridgeDataWithSignatures(outGoingMBHdr, sovHeader.GetPubKeysBitmap())
+		if err != nil {
+			log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.updateBridgeDataWithSignatures", "error", err)
+			return false
+		}
+		currentOperations[idx] = currBridgeData
 	}
 
 	if !sr.isSelfLeader() {
 		return true
 	}
 
-	outGoingOperations := sr.getAllOutGoingOperations(currBridgeData)
+	outGoingOperations := sr.getAllOutGoingOperations(currentOperations)
 	go sr.sendOutGoingOperations(ctx, outGoingOperations)
 
 	return true
@@ -144,7 +166,7 @@ func (sr *sovereignSubRoundEnd) sendUnconfirmedOperationsIfFound(ctx context.Con
 }
 
 func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
-	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler,
+	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler, pubKeysBitmap []byte,
 ) (*sovereign.BridgeOutGoingData, error) {
 	hash := outGoingMBHeader.GetOutGoingOperationsHash()
 	currBridgeData := sr.outGoingOperationsPool.Get(hash)
@@ -155,6 +177,7 @@ func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
 
 	currBridgeData.LeaderSignature = outGoingMBHeader.GetLeaderSignatureOutGoingOperations()
 	currBridgeData.AggregatedSignature = outGoingMBHeader.GetAggregatedSignatureOutGoingOperations()
+	currBridgeData.PubKeysBitmap = pubKeysBitmap
 
 	sr.outGoingOperationsPool.Delete(hash)
 	sr.outGoingOperationsPool.Add(currBridgeData)
@@ -165,7 +188,7 @@ func (sr *sovereignSubRoundEnd) isSelfLeader() bool {
 	return sr.IsSelfLeaderInCurrentRound() || sr.IsMultiKeyLeaderInCurrentRound()
 }
 
-func (sr *sovereignSubRoundEnd) getAllOutGoingOperations(currentOperations *sovereign.BridgeOutGoingData) []*sovereign.BridgeOutGoingData {
+func (sr *sovereignSubRoundEnd) getAllOutGoingOperations(currentOperations []*sovereign.BridgeOutGoingData) []*sovereign.BridgeOutGoingData {
 	outGoingOperations := make([]*sovereign.BridgeOutGoingData, 0)
 	unconfirmedOperations := sr.outGoingOperationsPool.GetUnconfirmedOperations()
 	if len(unconfirmedOperations) != 0 {
@@ -173,8 +196,8 @@ func (sr *sovereignSubRoundEnd) getAllOutGoingOperations(currentOperations *sove
 		outGoingOperations = append(unconfirmedOperations, outGoingOperations...)
 	}
 
-	log.Debug("current outgoing operations", "hash", currentOperations.Hash)
-	return append(outGoingOperations, currentOperations)
+	log.Debug("current outgoing operations", "num", len(currentOperations))
+	return append(outGoingOperations, currentOperations...)
 }
 
 func (sr *sovereignSubRoundEnd) sendOutGoingOperations(ctx context.Context, data []*sovereign.BridgeOutGoingData) {
