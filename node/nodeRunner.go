@@ -33,6 +33,7 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -935,7 +936,7 @@ func (nr *nodeRunner) CreateManagedConsensusComponents(
 		IsInImportMode:        nr.configs.ImportDbConfig.IsImportDBMode,
 		ShouldDisableWatchdog: nr.configs.FlagsConfig.DisableConsensusWatchdog,
 		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    bls.NewEmptyExtraSignersHolder(),
+		ExtraSignersHolder:    holders.NewEmptyExtraSignersHolder(),
 		SubRoundEndV2Creator:  bls.NewSubRoundEndV2Creator(),
 	}
 
