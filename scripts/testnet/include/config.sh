@@ -207,6 +207,10 @@ updateNodeConfig() {
 	  sed -i '/^\[MainChainElasticSearchConnector\]/,/^\[/ s/Enabled *= *false/Enabled = true/' external_observer.toml
 	fi
 
+	if [ $SHARD_OBSERVERCOUNT -gt 0 ]; then
+	  sed -i '/^\[\[HostDriversConfig\]\]/,/^\[/ s/Enabled *= *true/Enabled = false/' external_validator.toml
+	fi
+
   sed -i '/^\[DbLookupExtensions\]/,/^\[/ s/Enabled *= *false/Enabled = true/' config_observer.toml
 
   cp nodesSetup_edit.json nodesSetup.json

@@ -13,7 +13,6 @@ deployHeaderVerifierContract() {
         --chain=${CHAIN_ID} \
         --gas-limit=200000000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -38,7 +37,6 @@ upgradeHeaderVerifierContract() {
         --chain=${CHAIN_ID} \
         --gas-limit=200000000 \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -58,9 +56,9 @@ registerBlsPubKeysInHeaderVerifier() {
         --chain=${CHAIN_ID} \
         --gas-limit=10000000 \
         --function="registerBlsPubKeys" \
-        --arguments ${BLS_PUB_KEYS} \
+        --arguments \
+            ${BLS_PUB_KEYS} \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 
@@ -78,9 +76,9 @@ setEsdtSafeAddressInHeaderVerifier() {
         --chain=${CHAIN_ID} \
         --gas-limit=10000000 \
         --function="setEsdtSafeAddress" \
-        --arguments ${ESDT_SAFE_ADDRESS} \
+        --arguments \
+            addr:${ESDT_SAFE_ADDRESS} \
         --outfile=${OUTFILE} \
-        --recall-nonce \
         --wait-result \
         --send || return
 

@@ -2,77 +2,43 @@ package block_test
 
 import (
 	"errors"
+	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	atomicCore "github.com/multiversx/mx-chain-core-go/core/atomic"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	blproc "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/process/track"
+	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
+	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
+	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	storageStub "github.com/multiversx/mx-chain-go/testscommon/storage"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
-	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
-	"github.com/stretchr/testify/require"
 )
 
-func createSovChainBaseBlockProcessorArgs() blproc.ArgShardProcessor {
-	shardArguments := CreateSovereignChainShardTrackerMockArguments()
-	sbt, _ := track.NewShardBlockTrack(shardArguments)
-
-	rrh, _ := requestHandlers.NewResolverRequestHandler(
-		&dataRetrieverMock.RequestersFinderStub{},
-		&mock.RequestedItemsHandlerStub{},
-		&testscommon.WhiteListHandlerStub{},
-		1,
-		0,
-		time.Second,
-	)
-
-	coreComp, dataComp, bootstrapComp, statusComp := createComponentHolderMocks()
-	coreComp.Hash = &hashingMocks.HasherMock{}
-
-	arguments := CreateMockArguments(coreComp, dataComp, bootstrapComp, statusComp)
-	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
-	arguments.RequestHandler, _ = requestHandlers.NewSovereignResolverRequestHandler(rrh)
-
-	return arguments
-}
-
-func createSovChainBlockProcessorArgs() blproc.ArgsSovereignChainBlockProcessor {
-	baseArgs := createSovChainBaseBlockProcessorArgs()
-	sp, _ := blproc.NewShardProcessor(baseArgs)
-	return blproc.ArgsSovereignChainBlockProcessor{
-		ShardProcessor:                  sp,
-		ValidatorStatisticsProcessor:    &testscommon.ValidatorStatisticsProcessorStub{},
-		OutgoingOperationsFormatter:     &sovereign.OutgoingOperationsFormatterMock{},
-		OutGoingOperationsPool:          &sovereign.OutGoingOperationsPoolMock{},
-		OperationsHasher:                &testscommon.HasherStub{},
-		EpochStartDataCreator:           &mock.EpochStartDataCreatorStub{},
-		EpochRewardsCreator:             &testscommon.RewardsCreatorStub{},
-		ValidatorInfoCreator:            &testscommon.EpochValidatorInfoCreatorStub{},
-		EpochSystemSCProcessor:          &testscommon.EpochStartSystemSCStub{},
-		EpochEconomics:                  &mock.EpochEconomicsStub{},
-		SCToProtocol:                    &mock.SCToProtocolStub{},
-		MainChainNotarizationStartRound: 11,
-	}
-}
-
-// CreateSovereignChainShardTrackerMockArguments -
-func CreateSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
+func createSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 	argsHeaderValidator := blproc.ArgsHeaderValidator{
 		Hasher:      &hashingMocks.HasherMock{},
 		Marshalizer: &marshallerMock.MarshalizerMock{},
@@ -98,15 +64,81 @@ func CreateSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 	return arguments
 }
 
+func createSovChainBaseBlockProcessorArgs(
+	coreComp *mock.CoreComponentsMock,
+	dataComp *mock.DataComponentsMock,
+	bootstrapComp *mock.BootstrapComponentsMock,
+	statusComp *mock.StatusComponentsMock,
+) blproc.ArgShardProcessor {
+	shardArguments := createSovereignChainShardTrackerMockArguments()
+	sbt, _ := track.NewShardBlockTrack(shardArguments)
+
+	rrh, _ := requestHandlers.NewResolverRequestHandler(
+		&dataRetrieverMock.RequestersFinderStub{},
+		&mock.RequestedItemsHandlerStub{},
+		&testscommon.WhiteListHandlerStub{},
+		1,
+		0,
+		time.Second,
+	)
+
+	arguments := CreateMockArguments(coreComp, dataComp, bootstrapComp, statusComp)
+	arguments.BootstrapComponents = &mock.BootstrapComponentsMock{
+		Coordinator:          mock.NewOneShardCoordinatorMock(),
+		HdrIntegrityVerifier: &mock.HeaderIntegrityVerifierStub{},
+		VersionedHdrFactory: &testscommon.VersionedHeaderFactoryStub{
+			CreateCalled: func(epoch uint32) data.HeaderHandler {
+				return &block.SovereignChainHeader{Header: &block.Header{}}
+			},
+		},
+	}
+	arguments.AccountsDB[state.PeerAccountsState] = &stateMock.AccountsStub{
+		CommitCalled: func() ([]byte, error) {
+			return nil, nil
+		},
+		RootHashCalled: func() ([]byte, error) {
+			return nil, nil
+		},
+	}
+
+	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
+	arguments.RequestHandler, _ = requestHandlers.NewSovereignResolverRequestHandler(rrh)
+
+	return arguments
+}
+
+func createArgsSovereignChainBlockProcessor(baseArgs blproc.ArgShardProcessor) blproc.ArgsSovereignChainBlockProcessor {
+	sp, _ := blproc.NewShardProcessor(baseArgs)
+	return blproc.ArgsSovereignChainBlockProcessor{
+		ShardProcessor:                  sp,
+		ValidatorStatisticsProcessor:    &testscommon.ValidatorStatisticsProcessorStub{},
+		OutgoingOperationsFormatter:     &sovereign.OutgoingOperationsFormatterMock{},
+		OutGoingOperationsPool:          &sovereign.OutGoingOperationsPoolMock{},
+		OperationsHasher:                &testscommon.HasherStub{},
+		EpochStartDataCreator:           &mock.EpochStartDataCreatorStub{},
+		EpochRewardsCreator:             &testscommon.RewardsCreatorStub{},
+		ValidatorInfoCreator:            &testscommon.EpochValidatorInfoCreatorStub{},
+		EpochSystemSCProcessor:          &testscommon.EpochStartSystemSCStub{},
+		EpochEconomics:                  &mock.EpochEconomicsStub{},
+		SCToProtocol:                    &mock.SCToProtocolStub{},
+		MainChainNotarizationStartRound: 11,
+	}
+}
+
+func createSovChainBlockProcessorArgs() blproc.ArgsSovereignChainBlockProcessor {
+	baseArgs := createSovChainBaseBlockProcessorArgs(createComponentHolderMocks())
+	return createArgsSovereignChainBlockProcessor(baseArgs)
+}
+
 func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should error when shard processor is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.ShardProcessor = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.ShardProcessor = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.ErrorIs(t, err, process.ErrNilBlockProcessor)
@@ -115,9 +147,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when validator statistics is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.ValidatorStatisticsProcessor = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.ValidatorStatisticsProcessor = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.ErrorIs(t, err, process.ErrNilValidatorStatistics)
@@ -126,9 +158,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when outgoing operations formatter is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.OutgoingOperationsFormatter = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.OutgoingOperationsFormatter = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.ErrorIs(t, err, errMx.ErrNilOutgoingOperationsFormatter)
@@ -137,9 +169,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when outgoing operation pool is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.OutGoingOperationsPool = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.OutGoingOperationsPool = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, errMx.ErrNilOutGoingOperationsPool, err)
@@ -148,9 +180,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when operations hasher is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.OperationsHasher = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.OperationsHasher = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, errMx.ErrNilOperationsHasher, err)
@@ -159,9 +191,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when epoch start data creator is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.EpochStartDataCreator = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.EpochStartDataCreator = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, process.ErrNilEpochStartDataCreator, err)
@@ -170,9 +202,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when epoch rewards creator is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.EpochRewardsCreator = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.EpochRewardsCreator = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, process.ErrNilRewardsCreator, err)
@@ -181,9 +213,9 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when epoch validator infor creator is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.ValidatorInfoCreator = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.ValidatorInfoCreator = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, process.ErrNilEpochStartValidatorInfoCreator, err)
@@ -192,22 +224,31 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when epoch start system sc processor is nil", func(t *testing.T) {
 		t.Parallel()
 
-		args := createSovChainBlockProcessorArgs()
-		args.EpochSystemSCProcessor = nil
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.EpochSystemSCProcessor = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.Equal(t, process.ErrNilEpochStartSystemSCProcessor, err)
+	})
+
+	t.Run("should error when epoch economics is nil", func(t *testing.T) {
+		t.Parallel()
+
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.EpochEconomics = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+
+		require.Nil(t, scbp)
+		require.Equal(t, process.ErrNilEpochEconomics, err)
 	})
 
 	t.Run("should error when type assertion to extendedShardHeaderTrackHandler fails", func(t *testing.T) {
 		t.Parallel()
 
 		arguments := CreateMockArguments(createComponentHolderMocks())
-		sp, _ := blproc.NewShardProcessor(arguments)
-		args := createSovChainBlockProcessorArgs()
-		args.ShardProcessor = sp
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.ErrorIs(t, err, process.ErrWrongTypeAssertion)
@@ -216,15 +257,13 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should error when type assertion to extendedShardHeaderRequestHandler fails", func(t *testing.T) {
 		t.Parallel()
 
-		shardArguments := CreateSovereignChainShardTrackerMockArguments()
+		shardArguments := createSovereignChainShardTrackerMockArguments()
 		sbt, _ := track.NewShardBlockTrack(shardArguments)
 
 		arguments := CreateMockArguments(createComponentHolderMocks())
 		arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
-		sp, _ := blproc.NewShardProcessor(arguments)
-		args := createSovChainBlockProcessorArgs()
-		args.ShardProcessor = sp
-		scbp, err := blproc.NewSovereignChainBlockProcessor(args)
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.Nil(t, scbp)
 		require.ErrorIs(t, err, process.ErrWrongTypeAssertion)
@@ -233,16 +272,16 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		arguments := createSovChainBlockProcessorArgs()
-		scbp, err := blproc.NewSovereignChainBlockProcessor(arguments)
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
 		require.NotNil(t, scbp)
 		require.Nil(t, err)
 	})
 }
 
-func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T) {
-	arguments := createSovChainBaseBlockProcessorArgs()
+func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testing.T) {
+	arguments := createSovChainBaseBlockProcessorArgs(createComponentHolderMocks())
 
 	expectedLogs := []*data.LogData{
 		{
@@ -269,7 +308,9 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T
 		},
 	}
 
+	epoch := uint32(4)
 	poolAddCt := 0
+	pubKeysBitmap := []byte("pubKeysBitmap")
 	outGoingOperationsPool := &sovereign.OutGoingOperationsPoolMock{
 		AddCalled: func(data *sovereignCore.BridgeOutGoingData) {
 			defer func() {
@@ -290,6 +331,8 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T
 							Data: bridgeOp2,
 						},
 					},
+					PubKeysBitmap: pubKeysBitmap,
+					Epoch:         epoch,
 				}, data)
 			default:
 				require.Fail(t, "should not add in pool any other operation")
@@ -312,7 +355,12 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T
 		SCToProtocol:                 &mock.SCToProtocolStub{},
 	})
 
-	sovChainHdr := &block.SovereignChainHeader{}
+	sovChainHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			Epoch:         epoch,
+			PubKeysBitmap: pubKeysBitmap,
+		},
+	}
 	processedMb := &block.MiniBlock{
 		ReceiverShardID: core.SovereignChainShardId,
 		SenderShardID:   core.MainChainShardId,
@@ -321,7 +369,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T
 		MiniBlocks: []*block.MiniBlock{processedMb},
 	}
 
-	err := scbp.CreateAndSetOutGoingMiniBlock(sovChainHdr, blockBody)
+	err := scbp.CreateAndSetOutGoingMiniBlockTxs(sovChainHdr, blockBody)
 	require.Nil(t, err)
 	require.Equal(t, 1, poolAddCt)
 
@@ -339,9 +387,15 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlock(t *testing.T
 	require.Nil(t, err)
 
 	expectedSovChainHeader := &block.SovereignChainHeader{
-		OutGoingMiniBlockHeader: &block.OutGoingMiniBlockHeader{
-			Hash:                   expectedOutGoingMbHash,
-			OutGoingOperationsHash: bridgeOpsHash,
+		Header: &block.Header{
+			Epoch:         epoch,
+			PubKeysBitmap: pubKeysBitmap,
+		},
+		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
+			{
+				Hash:                   expectedOutGoingMbHash,
+				OutGoingOperationsHash: bridgeOpsHash,
+			},
 		},
 	}
 	require.Equal(t, expectedSovChainHeader, sovChainHdr)
@@ -403,9 +457,7 @@ func TestSovereignChainBlockProcessor_RestoreBlockIntoPoolsShouldWorkWhenHeaderN
 		},
 	}
 
-	sp, _ := blproc.NewShardProcessor(arguments)
-	argsSovProc := createSovChainBlockProcessorArgs()
-	argsSovProc.ShardProcessor = sp
+	argsSovProc := createArgsSovereignChainBlockProcessor(arguments)
 	sovBlockProc, _ := blproc.NewSovereignChainBlockProcessor(argsSovProc)
 
 	extendedHeaderHash := []byte("extendedHdrHash")
@@ -484,9 +536,7 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 		},
 	}
 
-	sp, _ := blproc.NewShardProcessor(arguments)
-	argsSovProc := createSovChainBlockProcessorArgs()
-	argsSovProc.ShardProcessor = sp
+	argsSovProc := createArgsSovereignChainBlockProcessor(arguments)
 	sovBlockProc, _ := blproc.NewSovereignChainBlockProcessor(argsSovProc)
 
 	extendedHeaderHash := []byte("extendedHdrHash")
@@ -578,4 +628,639 @@ func createSovHeaderForRestoreBlocksTest(body *block.Body, extendedHeaderHash []
 	}
 }
 
-//TODO: More unit tests should be added. Created PR https://multiversxlabs.atlassian.net/browse/MX-14149
+// TODO: More unit tests should be added. Created PR https://multiversxlabs.atlassian.net/browse/MX-14149
+func TestSovereignShardProcessor_CreateNewBlockExpectCheckRoundCalled(t *testing.T) {
+	t.Parallel()
+
+	round := uint64(4)
+	checkRoundCt := atomicCore.Counter{}
+
+	roundsNotifier := &epochNotifier.RoundNotifierStub{
+		CheckRoundCalled: func(header data.HeaderHandler) {
+			checkRoundCt.Increment()
+			require.Equal(t, round, header.GetRound())
+		},
+	}
+
+	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+	coreComponents.RoundNotifierField = roundsNotifier
+	arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+
+	sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+	scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+	require.Nil(t, err)
+
+	headerHandler, err := scbp.CreateNewHeader(round, 1)
+	require.Nil(t, err)
+	require.Equal(t, &block.SovereignChainHeader{
+		Header: &block.Header{
+			Nonce:           1,
+			Round:           4,
+			AccumulatedFees: big.NewInt(0),
+			DeveloperFees:   big.NewInt(0),
+		},
+		AccumulatedFeesInEpoch: big.NewInt(0),
+	}, headerHandler)
+	require.Equal(t, int64(1), checkRoundCt.Get())
+}
+
+func TestSovereignShardProcessor_CreateNewHeader(t *testing.T) {
+	t.Parallel()
+
+	round := uint64(7)
+	nonce := uint64(5)
+
+	sovArgs := createSovChainBlockProcessorArgs()
+	scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+	require.Nil(t, err)
+
+	h, err := scbp.CreateNewHeader(round, nonce)
+	require.Nil(t, err)
+	require.Equal(t, &block.SovereignChainHeader{
+		Header: &block.Header{
+			Nonce:           5,
+			Round:           7,
+			AccumulatedFees: big.NewInt(0),
+			DeveloperFees:   big.NewInt(0),
+		},
+		AccumulatedFeesInEpoch: big.NewInt(0),
+	}, h)
+}
+
+func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
+	t.Parallel()
+
+	doesHaveTime := func() bool {
+		return true
+	}
+
+	t.Run("nil block should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		hdr, body, err := scbp.CreateBlock(nil, doesHaveTime)
+		require.True(t, check.IfNil(body))
+		require.True(t, check.IfNil(hdr))
+		require.Equal(t, process.ErrNilBlockHeader, err)
+	})
+	t.Run("wrong header type should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		meta := &block.MetaBlock{}
+
+		hdr, body, err := scbp.CreateBlock(meta, doesHaveTime)
+		require.True(t, check.IfNil(body))
+		require.True(t, check.IfNil(hdr))
+		require.ErrorContains(t, err, process.ErrWrongTypeAssertion.Error())
+	})
+	t.Run("account state dirty should error", func(t *testing.T) {
+		journalLen := func() int { return 3 }
+		revToSnapshot := func(snapshot int) error { return nil }
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.AccountsDB[state.UserAccountsState] = &stateMock.AccountsStub{
+			JournalLenCalled:       journalLen,
+			RevertToSnapshotCalled: revToSnapshot,
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce:         1,
+				PubKeysBitmap: []byte("0100101"),
+				PrevHash:      []byte(""),
+				PrevRandSeed:  []byte("rand seed"),
+				Signature:     []byte("signature"),
+				RootHash:      []byte("roothash"),
+			},
+		}
+
+		hdr, body, err := scbp.CreateBlock(sovHeader, doesHaveTime)
+		require.True(t, check.IfNil(body))
+		require.True(t, check.IfNil(hdr))
+		require.Equal(t, process.ErrAccountStateDirty, err)
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+	t.Run("create block started should error because add intermediate txs in tx coordinator returns error", func(t *testing.T) {
+		expectedErr := fmt.Errorf("createBlockStarted error")
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.TxCoordinator = &testscommon.TransactionCoordinatorMock{
+			AddIntermediateTransactionsCalled: func(_ map[block.Type][]data.TransactionHandler, _ []byte) error {
+				return expectedErr
+			},
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 37,
+				Round: 38,
+				Epoch: 1,
+			},
+		}
+
+		hdr, bodyHandler, err := scbp.CreateBlock(sovHeader, doesHaveTime)
+		require.True(t, check.IfNil(bodyHandler))
+		require.True(t, check.IfNil(hdr))
+		require.Equal(t, expectedErr, err)
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+	t.Run("should work with sovereign header and will change epoch", func(t *testing.T) {
+		currentEpoch := uint32(1)
+		nextEpoch := uint32(2)
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.EpochStartTrigger = &testscommon.EpochStartTriggerStub{
+			IsEpochStartCalled: func() bool {
+				return true
+			},
+			MetaEpochCalled: func() uint32 {
+				return nextEpoch
+			},
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 37,
+				Round: 38,
+				Epoch: currentEpoch,
+			},
+		}
+		expectedSovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 37,
+				Round: 38,
+				Epoch: nextEpoch,
+			},
+			IsStartOfEpoch: true,
+		}
+
+		hdr, bodyHandler, err := scbp.CreateBlock(sovHeader, doesHaveTime)
+		require.False(t, check.IfNil(bodyHandler))
+		body, ok := bodyHandler.(*block.Body)
+		require.True(t, ok)
+		require.Zero(t, len(body.MiniBlocks))
+		require.Equal(t, expectedSovHeader, hdr)
+		require.Nil(t, err)
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+	t.Run("should work with sovereign header", func(t *testing.T) {
+		currentEpoch := uint32(1)
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.EpochStartTrigger = &testscommon.EpochStartTriggerStub{
+			EpochCalled: func() uint32 {
+				return currentEpoch
+			},
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 37,
+				Round: 38,
+				Epoch: currentEpoch,
+			},
+		}
+		hdr, bodyHandler, err := scbp.CreateBlock(sovHeader, doesHaveTime)
+		require.False(t, check.IfNil(bodyHandler))
+		body, ok := bodyHandler.(*block.Body)
+		require.True(t, ok)
+		require.Zero(t, len(body.MiniBlocks))
+		require.Equal(t, sovHeader, hdr)
+		require.Nil(t, err)
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+}
+
+func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil header handler, should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		header, body, err := scbp.ProcessBlock(nil, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
+		require.Equal(t, process.ErrNilBlockHeader, err)
+	})
+	t.Run("nil body handler, should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		header, body, err := scbp.ProcessBlock(&block.SovereignChainHeader{}, nil, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
+		require.Equal(t, process.ErrNilBlockBody, err)
+	})
+	t.Run("not enough time, should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		header, body, err := scbp.ProcessBlock(nil, nil, nil)
+		require.Nil(t, header)
+		require.Nil(t, body)
+		require.Equal(t, process.ErrNilHaveTimeHandler, err)
+	})
+	t.Run("process header with incorrect epoch, should error", func(t *testing.T) {
+		randSeed := []byte("rand seed")
+		blkc, _ := blockchain.NewBlockChain(&statusHandlerMock.AppStatusHandlerStub{})
+		_ = blkc.SetCurrentBlockHeaderAndRootHash(
+			&block.Header{
+				Nonce:    0,
+				Round:    0,
+				Epoch:    1,
+				RandSeed: randSeed,
+			}, []byte("root hash"),
+		)
+		_ = blkc.SetGenesisHeader(&block.Header{Nonce: 0})
+		blkc.SetCurrentBlockHeaderHash([]byte("zzz"))
+
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		dataComponents.BlockChain = blkc
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		hdr := &block.Header{
+			Nonce:         1,
+			Round:         1,
+			Epoch:         0,
+			PubKeysBitmap: []byte("0100101"),
+			PrevHash:      []byte("zzz"),
+			PrevRandSeed:  randSeed,
+			Signature:     []byte("signature"),
+			RootHash:      []byte("root hash"),
+		}
+		header, body, err := scbp.ProcessBlock(hdr, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
+		require.Equal(t, process.ErrEpochDoesNotMatch, err)
+	})
+	t.Run("create block started should error because add intermediate txs in tx coordinator returns error", func(t *testing.T) {
+		expectedErr := fmt.Errorf("createBlockStarted error")
+
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.TxCoordinator = &testscommon.TransactionCoordinatorMock{
+			AddIntermediateTransactionsCalled: func(_ map[block.Type][]data.TransactionHandler, _ []byte) error {
+				return expectedErr
+			},
+		}
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 1,
+				Round: 1,
+				Epoch: 0,
+			},
+		}
+
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.True(t, check.IfNil(bodyHandler))
+		require.True(t, check.IfNil(hdr))
+		require.Equal(t, expectedErr, err)
+	})
+	t.Run("data not prepared for processing, should error", func(t *testing.T) {
+		expectedErr := fmt.Errorf("expected error")
+
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.TxCoordinator = &testscommon.TransactionCoordinatorMock{
+			IsDataPreparedForProcessingCalled: func(_ func() time.Duration) error {
+				return expectedErr
+			},
+		}
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 1,
+				Round: 1,
+				Epoch: 0,
+			},
+		}
+
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.True(t, check.IfNil(bodyHandler))
+		require.True(t, check.IfNil(hdr))
+		require.Equal(t, expectedErr, err)
+	})
+	t.Run("account state dirty, should error", func(t *testing.T) {
+		journalLen := func() int { return 3 }
+		revToSnapshot := func(snapshot int) error { return nil }
+
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.AccountsDB[state.UserAccountsState] = &stateMock.AccountsStub{
+			JournalLenCalled:       journalLen,
+			RevertToSnapshotCalled: revToSnapshot,
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce:         1,
+				PubKeysBitmap: []byte("0100101"),
+				PrevHash:      []byte(""),
+				PrevRandSeed:  []byte("rand seed"),
+				Signature:     []byte("signature"),
+				RootHash:      []byte("roothash"),
+			},
+		}
+
+		header, body, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.Nil(t, header)
+		require.Nil(t, body)
+		require.NotNil(t, err)
+		require.Equal(t, process.ErrAccountStateDirty, err)
+	})
+	t.Run("process block, should work", func(t *testing.T) {
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+		randSeed := []byte("rand seed")
+		blockHash := []byte("block hash")
+		blkc, _ := blockchain.NewBlockChain(&statusHandlerMock.AppStatusHandlerStub{})
+		_ = blkc.SetCurrentBlockHeaderAndRootHash(
+			&block.SovereignChainHeader{
+				Header: &block.Header{
+					Nonce:    4,
+					Round:    4,
+					Epoch:    0,
+					RandSeed: randSeed,
+				},
+				AccumulatedFeesInEpoch: big.NewInt(1),
+				DevFeesInEpoch:         big.NewInt(1),
+			},
+			[]byte("root hash"),
+		)
+		_ = blkc.SetGenesisHeader(&block.Header{Nonce: 0})
+		blkc.SetCurrentBlockHeaderHash(blockHash)
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		dataComponents.BlockChain = blkc
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce:         5,
+				Round:         5,
+				Epoch:         0,
+				PubKeysBitmap: []byte("0100101"),
+				PrevHash:      blockHash,
+				PrevRandSeed:  randSeed,
+				Signature:     []byte("signature"),
+				RootHash:      []byte("root hash"),
+			},
+		}
+
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.Nil(t, err)
+		require.Equal(t, sovHeader, hdr)
+		require.False(t, check.IfNil(bodyHandler))
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+	t.Run("process block start of epoch, should work", func(t *testing.T) {
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+		randSeed := []byte("rand seed")
+		blockHash := []byte("block hash")
+		blkc, _ := blockchain.NewBlockChain(&statusHandlerMock.AppStatusHandlerStub{})
+		_ = blkc.SetCurrentBlockHeaderAndRootHash(
+			&block.SovereignChainHeader{
+				Header: &block.Header{
+					Nonce:           4,
+					Round:           4,
+					Epoch:           0,
+					RandSeed:        randSeed,
+					AccumulatedFees: big.NewInt(0),
+					DeveloperFees:   big.NewInt(0),
+				},
+				AccumulatedFeesInEpoch: big.NewInt(0),
+				DevFeesInEpoch:         big.NewInt(0),
+			},
+			[]byte("root hash"),
+		)
+		_ = blkc.SetGenesisHeader(&block.Header{Nonce: 0})
+		blkc.SetCurrentBlockHeaderHash(blockHash)
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		dataComponents.BlockChain = blkc
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		sovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce:           5,
+				Round:           5,
+				Epoch:           0,
+				PubKeysBitmap:   []byte("0100101"),
+				PrevHash:        blockHash,
+				PrevRandSeed:    randSeed,
+				RandSeed:        []byte("seed"),
+				Signature:       []byte("signature"),
+				RootHash:        []byte("root hash"),
+				AccumulatedFees: big.NewInt(0),
+				DeveloperFees:   big.NewInt(0),
+			},
+			IsStartOfEpoch: true,
+		}
+
+		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
+		require.Nil(t, err)
+		require.Equal(t, sovHeader, hdr)
+		require.False(t, check.IfNil(bodyHandler))
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+}
+
+func TestSovereignShardProcessor_CommitBlock(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil header handler should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		err = scbp.CommitBlock(nil, &block.Body{})
+		require.Equal(t, process.ErrNilBlockHeader, err)
+	})
+	t.Run("nil body handler should error", func(t *testing.T) {
+		sovArgs := createSovChainBlockProcessorArgs()
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		err = scbp.CommitBlock(&block.SovereignChainHeader{}, nil)
+		require.Equal(t, process.ErrNilBlockBody, err)
+	})
+	t.Run("commit block should work", func(t *testing.T) {
+		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
+		randSeed := []byte("rand seed")
+		blockHash := []byte("block hash")
+		blkc, _ := blockchain.NewBlockChain(&statusHandlerMock.AppStatusHandlerStub{})
+		_ = blkc.SetCurrentBlockHeaderAndRootHash(
+			&block.SovereignChainHeader{
+				Header: &block.Header{
+					Nonce:    4,
+					Round:    4,
+					Epoch:    0,
+					RandSeed: randSeed,
+				},
+				AccumulatedFeesInEpoch: big.NewInt(1),
+				DevFeesInEpoch:         big.NewInt(1),
+			},
+			[]byte("root hash"),
+		)
+		_ = blkc.SetGenesisHeader(&block.Header{Nonce: 0})
+		blkc.SetCurrentBlockHeaderHash(blockHash)
+
+		expectedSovHeader := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce:         5,
+				Round:         5,
+				Epoch:         0,
+				PubKeysBitmap: []byte("0100101"),
+				PrevHash:      blockHash,
+				PrevRandSeed:  randSeed,
+				Signature:     []byte("signature"),
+				RootHash:      []byte("root hash"),
+			},
+		}
+
+		busyIdleCalled := make([]string, 0)
+		coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+		dataComponents.BlockChain = blkc
+		coreComponents.ProcessStatusHandlerField = &testscommon.ProcessStatusHandlerStub{
+			SetIdleCalled: func() {
+				busyIdleCalled = append(busyIdleCalled, idleIdentifier)
+			},
+			SetBusyCalled: func(reason string) {
+				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
+			},
+		}
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+		arguments.AccountsDB[state.UserAccountsState] = &stateMock.AccountsStub{
+			CommitCalled: func() ([]byte, error) {
+				return nil, nil
+			},
+			RootHashCalled: func() ([]byte, error) {
+				return nil, nil
+			},
+		}
+		forkDetectorAddHeaderCalled := false
+		arguments.ForkDetector = &mock.ForkDetectorMock{
+			AddHeaderCalled: func(header data.HeaderHandler, hash []byte, state process.BlockHeaderState, selfNotarizedHeaders []data.HeaderHandler, selfNotarizedHeadersHashes [][]byte) error {
+				if header == expectedSovHeader {
+					forkDetectorAddHeaderCalled = true
+					return nil
+				}
+
+				return fmt.Errorf("should error")
+			},
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		err = scbp.CommitBlock(expectedSovHeader, &block.Body{})
+		require.Nil(t, err)
+		require.True(t, forkDetectorAddHeaderCalled)
+		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+	})
+}
