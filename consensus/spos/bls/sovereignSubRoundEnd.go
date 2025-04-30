@@ -219,6 +219,8 @@ func (sr *sovereignSubRoundEnd) resetOutGoingOpTimer(data []*sovereign.BridgeOut
 		hashes[idx] = dta.Hash
 	}
 
+	// todo: here, we don't need to iterate anymore and append hashes, actually iterate over data []*sovereign.BridgeOutGoingData
+
 	sr.outGoingOperationsPool.ResetTimer(hashes)
 }
 
