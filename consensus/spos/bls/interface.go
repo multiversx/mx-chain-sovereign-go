@@ -61,13 +61,3 @@ type BridgeOperationsHandler interface {
 	Send(ctx context.Context, data *sovereign.BridgeOperations) (*sovereign.BridgeOperationsResponse, error)
 	IsInterfaceNil() bool
 }
-
-// OutGoingOperationsPool defines the behavior of a timed cache for outgoing operations
-type OutGoingOperationsPool interface {
-	Add(data *sovereign.BridgeOutGoingData)
-	Get(hash []byte) *sovereign.BridgeOutGoingData
-	Delete(hash []byte)
-	GetUnconfirmedOperations() []*sovereign.BridgeOutGoingData
-	ResetTimer(hashes [][]byte)
-	IsInterfaceNil() bool
-}
