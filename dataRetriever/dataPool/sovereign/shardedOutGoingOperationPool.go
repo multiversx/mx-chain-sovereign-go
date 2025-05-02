@@ -1,6 +1,7 @@
 package sovereign
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -14,6 +15,8 @@ type shardedOutGoingOperationPool struct {
 	cache   map[dto.ChainID]OutGoingOperationsPool
 }
 
+// NewShardedOutGoingOperationPool creates a new sharded outgoing operation pool with a specified timeout.
+// Each chain id is cached as a different "shard"
 func NewShardedOutGoingOperationPool(expiryTime time.Duration) *shardedOutGoingOperationPool {
 	return &shardedOutGoingOperationPool{
 		timeout: expiryTime,
@@ -21,26 +24,32 @@ func NewShardedOutGoingOperationPool(expiryTime time.Duration) *shardedOutGoingO
 	}
 }
 
-// Add -
+// Add inserts a new outgoing operation for a given chainID. If the chain id is not found in the cache, it creates
+// a new entry for it
 func (sop *shardedOutGoingOperationPool) Add(data *sovereign.BridgeOutGoingData, chainID dto.ChainID) {
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
-
+	sop.mutex.RLock()
 	shardedPool, exists := sop.cache[chainID]
+	sop.mutex.RUnlock()
+
 	if !exists {
-		shardedPool = NewOutGoingOperationPool(sop.timeout)
-		sop.cache[chainID] = shardedPool
+		sop.mutex.Lock()
+		shardedPool, exists = sop.cache[chainID]
+		if !exists {
+			shardedPool = NewOutGoingOperationPool(sop.timeout)
+			sop.cache[chainID] = shardedPool
+		}
+		sop.mutex.Unlock()
 	}
 
 	shardedPool.Add(data)
 }
 
-// Get -
+// Get retrieves a specific outgoing operation by its hash and chainID.
 func (sop *shardedOutGoingOperationPool) Get(hash []byte, chainID dto.ChainID) *sovereign.BridgeOutGoingData {
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
-
+	sop.mutex.RLock()
 	shardedPool, exists := sop.cache[chainID]
+	sop.mutex.RUnlock()
+
 	if !exists {
 		return nil
 	}
@@ -48,12 +57,12 @@ func (sop *shardedOutGoingOperationPool) Get(hash []byte, chainID dto.ChainID) *
 	return shardedPool.Get(hash)
 }
 
-// Delete -
+// Delete removes an outgoing operation identified by hash and chainID, if found.
 func (sop *shardedOutGoingOperationPool) Delete(hash []byte, chainID dto.ChainID) {
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
-
+	sop.mutex.RLock()
 	shardedPool, exists := sop.cache[chainID]
+	sop.mutex.RUnlock()
+
 	if !exists {
 		return
 	}
@@ -61,12 +70,12 @@ func (sop *shardedOutGoingOperationPool) Delete(hash []byte, chainID dto.ChainID
 	shardedPool.Delete(hash)
 }
 
-// GetUnconfirmedOperations -
+// GetUnconfirmedOperations retrieves all unconfirmed outgoing operations from all chains.
 func (sop *shardedOutGoingOperationPool) GetUnconfirmedOperations() []*sovereign.BridgeOutGoingData {
 	ret := make([]*sovereign.BridgeOutGoingData, 0)
 
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
+	sop.mutex.RLock()
+	defer sop.mutex.RUnlock()
 
 	for _, shardedPool := range sop.cache {
 		shardedUnconfirmedOps := shardedPool.GetUnconfirmedOperations()
@@ -78,26 +87,26 @@ func (sop *shardedOutGoingOperationPool) GetUnconfirmedOperations() []*sovereign
 	return ret
 }
 
-// ConfirmOperation -
+// ConfirmOperation marks an operation as confirmed by its hash and chainID.
 func (sop *shardedOutGoingOperationPool) ConfirmOperation(hashOfHashes []byte, hash []byte, chainID dto.ChainID) error {
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
-
+	sop.mutex.RLock()
 	shardedPool, exists := sop.cache[chainID]
+	sop.mutex.RUnlock()
+
 	if !exists {
-		// todo: here error maybe + optimize everywhere mutex usage
-		return nil
+		return fmt.Errorf("%w for chain: %s, hashOfHashes: %x, hash: %x ",
+			errChainIDNotFound, chainID.String(), hashOfHashes, hash)
 	}
 
 	return shardedPool.ConfirmOperation(hashOfHashes, hash)
 }
 
-// ResetTimer -
+// ResetTimer resets the timeout for the specified hashes on a given chainID.
 func (sop *shardedOutGoingOperationPool) ResetTimer(hashes [][]byte, chainID dto.ChainID) {
-	sop.mutex.Lock()
-	defer sop.mutex.Unlock()
-
+	sop.mutex.RLock()
 	shardedPool, exists := sop.cache[chainID]
+	sop.mutex.RUnlock()
+
 	if !exists {
 		return
 	}
@@ -105,7 +114,7 @@ func (sop *shardedOutGoingOperationPool) ResetTimer(hashes [][]byte, chainID dto
 	shardedPool.ResetTimer(hashes)
 }
 
-// IsInterfaceNil -
+// IsInterfaceNil returns true if the underlying interface is nil.
 func (sop *shardedOutGoingOperationPool) IsInterfaceNil() bool {
 	return sop == nil
 }
