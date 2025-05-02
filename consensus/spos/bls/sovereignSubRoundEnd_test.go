@@ -429,7 +429,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		aggregatedSig := []byte("aggregatedSig")
 		leaderSig := []byte("leaderSig")
 		wg := sync.WaitGroup{}
-		wg.Add(2)
+		wg.Add(3)
 		currentBridgeOutGoingData := &sovCore.BridgeOutGoingData{
 			Hash: outGoingDataHash,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
@@ -519,7 +519,169 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		wg.Wait()
 		require.True(t, success)
 		require.True(t, wasDataSent)
-		require.Equal(t, resetTimerCt.Load(), 2)
+		require.Equal(t, int32(2), resetTimerCt.Load())
+	})
+
+	t.Run("outgoing operations found with unconfirmed operations for multiple chains", func(t *testing.T) {
+		t.Parallel()
+
+		outGoingDataHash1 := []byte("hash1")
+		outGoingOpHash1 := []byte("hashOp1")
+		outGoingOpData1 := []byte("bridgeOp1")
+		aggregatedSig1 := []byte("aggregatedSig1")
+		leaderSig1 := []byte("leaderSig1")
+
+		outGoingDataHash2 := []byte("hash2")
+		outGoingOpHash2 := []byte("hashOp2")
+		outGoingOpData2 := []byte("bridgeOp2")
+		aggregatedSig2 := []byte("aggregatedSig2")
+		leaderSig2 := []byte("leaderSig2")
+		wg := sync.WaitGroup{}
+		wg.Add(5)
+		currentBridgeOutGoingData1 := &sovCore.BridgeOutGoingData{
+			ChainID: int32(dto.MVX),
+			Hash:    outGoingDataHash1,
+			OutGoingOperations: []*sovCore.OutGoingOperation{
+				{
+					Hash: outGoingOpHash1,
+					Data: outGoingOpData1,
+				},
+			},
+			AggregatedSignature: aggregatedSig1,
+			LeaderSignature:     leaderSig1,
+			Epoch:               4,
+		}
+
+		currentBridgeOutGoingData2 := &sovCore.BridgeOutGoingData{
+			ChainID: int32(dto.SUI),
+			Hash:    outGoingDataHash2,
+			OutGoingOperations: []*sovCore.OutGoingOperation{
+				{
+					Hash: outGoingOpHash2,
+					Data: outGoingOpData2,
+				},
+			},
+			AggregatedSignature: aggregatedSig2,
+			LeaderSignature:     leaderSig2,
+			Epoch:               4,
+		}
+
+		unconfirmedBridgeOutGoingData1 := &sovCore.BridgeOutGoingData{
+			ChainID: int32(dto.MVX),
+			Hash:    []byte("hash2"),
+			OutGoingOperations: []*sovCore.OutGoingOperation{
+				{
+					Hash: []byte("hashOp2"),
+					Data: []byte("bridgeOp2"),
+				},
+			},
+			Epoch: 3,
+		}
+		unconfirmedBridgeOutGoingData2 := &sovCore.BridgeOutGoingData{
+			ChainID: int32(dto.ETH),
+			Hash:    []byte("hash3"),
+			OutGoingOperations: []*sovCore.OutGoingOperation{
+				{
+					Hash: []byte("hashOp3"),
+					Data: []byte("bridgeOp3"),
+				},
+			},
+			Epoch: 3,
+		}
+
+		resetTimerCt := atomic.Int32{}
+		pool := &sovereign.ShardedOutGoingOperationsPoolMock{
+			GetCalled: func(hash []byte, chainID dto.ChainID) *sovCore.BridgeOutGoingData {
+				switch string(hash) {
+				case string(outGoingDataHash1):
+					require.Equal(t, dto.MVX, chainID)
+					return currentBridgeOutGoingData1
+				case string(outGoingDataHash2):
+					require.Equal(t, dto.SUI, chainID)
+					return currentBridgeOutGoingData2
+				}
+
+				require.Fail(t, "should not query pool data for any other hash")
+				return nil
+			},
+			GetUnconfirmedOperationsCalled: func() []*sovCore.BridgeOutGoingData {
+				return []*sovCore.BridgeOutGoingData{unconfirmedBridgeOutGoingData1, unconfirmedBridgeOutGoingData2}
+			},
+			ResetTimerCalled: func(hashes [][]byte, chainID dto.ChainID) {
+				defer func() {
+					resetTimerCt.Add(1)
+					wg.Done()
+				}()
+
+				switch resetTimerCt.Load() {
+				case 0:
+					require.Equal(t, [][]byte{unconfirmedBridgeOutGoingData1.Hash}, hashes)
+					require.Equal(t, dto.MVX, chainID)
+				case 1:
+					require.Equal(t, [][]byte{unconfirmedBridgeOutGoingData2.Hash}, hashes)
+					require.Equal(t, dto.ETH, chainID)
+				case 2:
+					require.Equal(t, [][]byte{currentBridgeOutGoingData1.Hash}, hashes)
+					require.Equal(t, dto.MVX, chainID)
+				case 3:
+					require.Equal(t, [][]byte{currentBridgeOutGoingData2.Hash}, hashes)
+					require.Equal(t, dto.SUI, chainID)
+				default:
+					require.Fail(t, "should not call reset timer more than four times")
+				}
+			},
+		}
+
+		wasDataSent := false
+		currCtx := context.Background()
+		bridgeHandler := &sovereign.BridgeOperationsHandlerMock{
+			SendCalled: func(ctx context.Context, data *sovCore.BridgeOperations) (*sovCore.BridgeOperationsResponse, error) {
+				defer func() {
+					wg.Done()
+				}()
+
+				require.Equal(t, currCtx, ctx)
+				require.Equal(t, &sovCore.BridgeOperations{
+					Data: []*sovCore.BridgeOutGoingData{
+						unconfirmedBridgeOutGoingData1,
+						unconfirmedBridgeOutGoingData2,
+						currentBridgeOutGoingData1,
+						currentBridgeOutGoingData2,
+					},
+				}, data)
+
+				wasDataSent = true
+				return &sovCore.BridgeOperationsResponse{}, nil
+			},
+		}
+
+		sovHdr := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 4,
+				Epoch: 4,
+			},
+			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
+				{
+					ChainID:                               dto.MVX,
+					OutGoingOperationsHash:                outGoingDataHash1,
+					AggregatedSignatureOutGoingOperations: aggregatedSig1,
+					LeaderSignatureOutGoingOperations:     leaderSig1,
+				},
+				{
+					ChainID:                               dto.SUI,
+					OutGoingOperationsHash:                outGoingDataHash2,
+					AggregatedSignatureOutGoingOperations: aggregatedSig2,
+					LeaderSignatureOutGoingOperations:     leaderSig2,
+				},
+			},
+		}
+		sovEndRound := createSovSubRoundEndWithSelfLeader(pool, bridgeHandler, sovHdr)
+		success := sovEndRound.DoSovereignEndRoundJob(currCtx)
+
+		wg.Wait()
+		require.True(t, success)
+		require.True(t, wasDataSent)
+		require.Equal(t, int32(4), resetTimerCt.Load())
 	})
 
 	t.Run("no outgoing operations in current block, but found unconfirmed operations, leader should send them", func(t *testing.T) {
