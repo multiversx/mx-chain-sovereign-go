@@ -96,7 +96,7 @@ type RunTypeComponentsHolder interface {
 	RequestersContainerFactoryCreator() requesterscontainer.RequesterContainerFactoryCreator
 	ValidatorAccountsSyncerFactoryHandler() syncerFactory.ValidatorAccountsSyncerFactoryHandler
 	ShardRequestersContainerCreatorHandler() storageRequestFactory.ShardRequestersContainerCreatorHandler
-	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool
 	DataCodecHandler() sovereign.DataCodecHandler
 	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
 	AccountsCreator() state.AccountFactory

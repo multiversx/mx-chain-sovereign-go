@@ -26,7 +26,7 @@ var log = logger.GetOrCreate("headerSubscriber")
 // ArgsIncomingHeaderProcessor is a struct placeholder for args needed to create a new incoming header processor
 type ArgsIncomingHeaderProcessor struct {
 	HeadersPool                     HeadersPool
-	OutGoingOperationsPool          sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPool          sovereignBlock.ShardedOutGoingOperationPool
 	TxPool                          TransactionPool
 	Marshaller                      marshal.Marshalizer
 	Hasher                          hashing.Hasher
@@ -44,7 +44,7 @@ type incomingHeaderProcessor struct {
 	eventsProc         IncomingEventsProcessor
 	extendedHeaderProc *extendedHeaderProcessor
 
-	outGoingPool             sovereignBlock.OutGoingOperationsPool
+	outGoingPool             sovereignBlock.ShardedOutGoingOperationPool
 	mapMainChainNotarization map[string]*chainStartRoundCfg
 }
 
@@ -214,7 +214,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 		return err
 	}
 
-	ihp.addConfirmedBridgeOpsToPool(res.ConfirmedBridgeOps)
+	ihp.addConfirmedBridgeOpsToPool(res.ConfirmedBridgeOps, header.GetSourceChainID())
 	return nil
 }
 
@@ -229,12 +229,12 @@ func checkNilInputs(header sovereign.IncomingHeaderHandler) error {
 	return nil
 }
 
-func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.ConfirmedBridgeOp) {
+func (ihp *incomingHeaderProcessor) addConfirmedBridgeOpsToPool(ops []*dto.ConfirmedBridgeOp, chainID dtoSov.ChainID) {
 	for _, op := range ops {
 		// This is not a critical error. This might just happen when a leader tries to re-send unconfirmed confirmation
 		// that have been already executed, but the confirmation from notifier comes too late, and we receive a double
 		// confirmation.
-		err := ihp.outGoingPool.ConfirmOperation(op.HashOfHashes, op.Hash)
+		err := ihp.outGoingPool.ConfirmOperation(op.HashOfHashes, op.Hash, chainID)
 		if err != nil {
 			log.Debug("incomingHeaderProcessor.AddHeader.addConfirmedBridgeOpsToPool",
 				"error", err,

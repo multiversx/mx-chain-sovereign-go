@@ -296,11 +296,12 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 	allPossiblePubKeyIDs [][]byte,
 ) {
 	outGoingMBHdrs := common.GetCurrentSovereignHeader(nodeHandler).GetOutGoingMiniBlockHeaderHandlers()
-	// TODO: MX-16830 We should actually have 2 outgoing mbs here for 2 chains: mvx and eth
+	// TODO: Here, actually, this will only work when we treat each chain id as a different shard
+	// We should actually have 2 outgoing mbs here for 2 chains: mvx and eth
 	require.Len(t, outGoingMBHdrs, 1)
 
 	for _, outGoingMBHdr := range outGoingMBHdrs {
-		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
+		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash(), outGoingMBHdr.GetChainID())
 		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.Type)
 		require.Equal(t, currentHeader.GetEpoch(), bridgeData.Epoch)
 		require.Len(t, bridgeData.OutGoingOperations, 1)

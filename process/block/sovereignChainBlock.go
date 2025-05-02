@@ -52,7 +52,7 @@ type sovereignChainBlockProcessor struct {
 	extendedShardHeaderRequester extendedShardHeaderRequestHandler
 	chRcvAllExtendedShardHdrs    chan bool
 	outgoingOperationsFormatter  sovereign.OutgoingOperationsFormatter
-	outGoingOperationsPool       sovereignBlock.OutGoingOperationsPool
+	outGoingOperationsPool       sovereignBlock.ShardedOutGoingOperationPool
 	operationsHasher             hashing.Hasher
 
 	epochStartDataCreator process.EpochStartDataCreator
@@ -69,7 +69,7 @@ type ArgsSovereignChainBlockProcessor struct {
 	ShardProcessor                  *shardProcessor
 	ValidatorStatisticsProcessor    process.ValidatorStatisticsProcessor
 	OutgoingOperationsFormatter     sovereign.OutgoingOperationsFormatter
-	OutGoingOperationsPool          sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPool          sovereignBlock.ShardedOutGoingOperationPool
 	OperationsHasher                hashing.Hasher
 	EpochStartDataCreator           process.EpochStartDataCreator
 	EpochRewardsCreator             process.RewardsCreator
@@ -1506,7 +1506,6 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 	}
 
 	outGoingOperationsHash := scbp.operationsHasher.Compute(string(aggregatedOutGoingOperations))
-	// TODO: MX-16830 Here, this is not ok, we need a chained/sharded outgoing pool since we can have the same operation hash
 	scbp.outGoingOperationsPool.Add(&sovCore.BridgeOutGoingData{
 		Type:               int32(mbType),
 		ChainID:            int32(chainID),
@@ -1514,7 +1513,7 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 		OutGoingOperations: outGoingOperationsData,
 		PubKeysBitmap:      headerHandler.GetPubKeysBitmap(),
 		Epoch:              headerHandler.GetEpoch(),
-	})
+	}, chainID)
 
 	return &block.MiniBlock{
 		TxHashes:        outGoingOpHashes,
