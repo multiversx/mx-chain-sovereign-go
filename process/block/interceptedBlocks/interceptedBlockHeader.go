@@ -6,9 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ process.HdrValidatorHandler = (*InterceptedHeader)(nil)
@@ -27,7 +28,8 @@ type InterceptedHeader struct {
 	validityAttester  process.ValidityAttester
 	epochStartTrigger process.EpochStartTriggerHandler
 
-	mbHeadersChecker mbHeadersChecker
+	mbHeadersChecker      mbHeadersChecker
+	acceptedCrossShardIDs map[uint32]struct{}
 }
 
 // NewInterceptedHeader creates a new instance of InterceptedHeader struct
@@ -50,6 +52,9 @@ func NewInterceptedHeader(arg *ArgInterceptedBlockHeader) (*InterceptedHeader, e
 		shardCoordinator:  arg.ShardCoordinator,
 		validityAttester:  arg.ValidityAttester,
 		epochStartTrigger: arg.EpochStartTrigger,
+		acceptedCrossShardIDs: map[uint32]struct{}{
+			core.MetachainShardId: {},
+		},
 	}
 	inHdr.processFields(arg.HdrBuff)
 	inHdr.mbHeadersChecker = inHdr
@@ -150,7 +155,7 @@ func (inHdr *InterceptedHeader) integrity() error {
 }
 
 func (inHdr *InterceptedHeader) checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator) error {
-	return checkMiniBlocksHeaders(mbHeaders, coordinator, core.MetachainShardId)
+	return checkMiniBlocksHeaders(mbHeaders, coordinator, inHdr.acceptedCrossShardIDs)
 }
 
 // Hash gets the hash of this header

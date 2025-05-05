@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -134,7 +135,7 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 				PrevEpochStartHash: prevEpochStartHash,
 			},
 			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
-				ShardID:    core.MainChainShardId,
+				ShardID:    uint32(dto.MVX),
 				HeaderHash: lastCrossChainHeaderHash,
 			},
 		},
@@ -146,7 +147,7 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 	headersSyncedCt := 0
 	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
 		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
-			require.Equal(t, []uint32{core.MainChainShardId, core.SovereignChainShardId}, shardIDs)
+			require.Equal(t, []uint32{uint32(dto.MVX), core.SovereignChainShardId}, shardIDs)
 			require.Equal(t, [][]byte{lastCrossChainHeaderHash, prevEpochStartHash}, headersHashes)
 			headersSyncedCt++
 			return nil
