@@ -63,6 +63,7 @@ func createIncomingHeadersWithIncrementalRound(numRounds uint64) []sovereign.Inc
 
 	for i := uint64(0); i <= numRounds; i++ {
 		ret[i] = &sovereign.IncomingHeader{
+			SourceChainID: dtoSov.MVX,
 			Proof: createHeaderProof(&block.HeaderV2{
 				Header: &block.Header{
 					Round: i,
@@ -291,8 +292,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		handler, _ := NewIncomingHeaderProcessor(args)
 
 		err := handler.AddHeader([]byte("hash"), &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: 2,
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
+			Nonce:         2,
 		})
 		require.Equal(t, errMarshaller, err)
 	})
@@ -310,7 +312,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -346,7 +349,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
 			IncomingEvents: []*transaction.Event{
 				{
 					Topics:     [][]byte{},
@@ -398,8 +402,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		args := createArgs()
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: 2,
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
+			Nonce:         2,
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte("eventID"),
@@ -438,8 +443,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: 2,
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
+			Nonce:         2,
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -468,8 +474,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: 2,
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
+			Nonce:         2,
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -497,8 +504,9 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		incomingHeader := &sovereign.IncomingHeader{
-			Proof: createHeaderProof(&block.HeaderV2{}),
-			Nonce: 2,
+			SourceChainID: dtoSov.MVX,
+			Proof:         createHeaderProof(&block.HeaderV2{}),
+			Nonce:         2,
 			IncomingEvents: []*transaction.Event{
 				{
 					Identifier: []byte(dto.EventIDDepositIncomingTransfer),
@@ -734,7 +742,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	extendedHeader := &block.ShardHeaderExtended{
 		Header:        headerV2,
 		Proof:         headerProof,
-		SourceChainID: 0,
+		SourceChainID: dtoSov.MVX,
 		IncomingMiniBlocks: []*block.MiniBlock{
 			{
 				TxHashes:        [][]byte{scrHash1, scrHash2, scrHash3, scrHash4},
@@ -891,6 +899,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 
 	handler, _ := NewIncomingHeaderProcessor(args)
 	incomingHeader := &sovereign.IncomingHeader{
+		SourceChainID:  dtoSov.MVX,
 		Nonce:          3,
 		Proof:          headerProof,
 		IncomingEvents: incomingEvents,

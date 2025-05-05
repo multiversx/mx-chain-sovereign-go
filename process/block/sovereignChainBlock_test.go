@@ -289,7 +289,8 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 			switch poolAddCt {
 			case 0:
 				require.Equal(t, &sovereignCore.BridgeOutGoingData{
-					Hash: bridgeOpsHash,
+					ChainID: int32(dto.MVX),
+					Hash:    bridgeOpsHash,
 					OutGoingOperations: []*sovereignCore.OutGoingOperation{
 						{
 							Hash: bridgeOp1Hash,
