@@ -234,7 +234,8 @@ func checkEpochChangeHeader(
 	require.Equal(t, mbs[2].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for mvx chain
 	require.Equal(t, mbs[3].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for eth chain
 
-	require.Equal(t, core.MainChainShardId, mbs[2].GetReceiverShardID())
+	// TODO: Here, I think we need to check for multiple chains
+	require.Equal(t, uint32(dto.MVX), mbs[2].GetReceiverShardID())
 	require.Equal(t, uint32(27), currentHeader.GetTxCount())
 
 	unComputedRootHash := nodeHandler.GetCoreComponents().Hasher().Compute("uncomputed root hash")

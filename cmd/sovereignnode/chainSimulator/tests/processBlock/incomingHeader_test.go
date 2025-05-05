@@ -189,7 +189,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		require.Nil(t, err)
 
 		currentSovHeader := common.GetCurrentSovereignHeader(nodeHandler)
-		lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
+		lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(uint32(sovDto.MVX))
 		require.Nil(t, err)
 
 		// Check tracker and blockchain hook state for incoming processed data
@@ -636,7 +636,7 @@ func getSovereignBlockTracker(t *testing.T, nodeHandler process.NodeHandler) sov
 }
 
 func checkLastCrossNotarizedRound(t *testing.T, sovBlockTracker sovChainBlockTracer, lastCrossNotarizedRound uint64) {
-	lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
+	lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(uint32(sovDto.MVX))
 	require.Nil(t, err)
 	require.Equal(t, lastCrossNotarizedRound, lastCrossNotarizedHeader.GetRound())
 	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())

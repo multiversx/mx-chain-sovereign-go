@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -51,6 +52,7 @@ func TestSovereignChainSimulator_NoCrossHeadersReceived(t *testing.T) {
 		checkNotarizedHeadersLen(t, nodeHandler, round)
 
 		// no cross headers received
+		// TODO: Here, maybe think of having tracker return all cross chain tracked headers by calling this with ALL_CHAINS
 		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(core.MainChainShardId)
 		require.Nil(t, crossTrackedHeaders)
 
@@ -103,10 +105,10 @@ func TestSovereignChainSimulator_BlockTrackerPoolsCleanup(t *testing.T) {
 		require.Equal(t, uint64(round)-1, selfNotarizedHeaders.GetNonce()) // in round X, header with nonce X-1 is notarized
 		checkNotarizedHeadersLen(t, nodeHandler, round)
 
-		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(core.MainChainShardId)
+		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(uint32(sovDto.MVX))
 		checkCrossTrackedHeaders(t, round, crossTrackedHeaders, headerNonce)
 
-		crossNotarizedHeader, _, err := nodeHandler.GetProcessComponents().BlockTracker().GetCrossNotarizedHeader(core.MainChainShardId, 0)
+		crossNotarizedHeader, _, err := nodeHandler.GetProcessComponents().BlockTracker().GetCrossNotarizedHeader(uint32(sovDto.MVX), 0)
 		require.Nil(t, err)
 		checkCrossNotarizedHeader(t, round, crossNotarizedHeader, headerNonce)
 
