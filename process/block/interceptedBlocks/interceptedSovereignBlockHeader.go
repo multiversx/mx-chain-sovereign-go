@@ -2,7 +2,6 @@ package interceptedBlocks
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/sharding"
 )
@@ -18,12 +17,7 @@ func NewSovereignInterceptedBlockHeader(arg *ArgInterceptedBlockHeader) (*interc
 		return nil, err
 	}
 
-	crossChainIDs := make(map[uint32]struct{})
-	for chainID := range dto.ValidChains {
-		crossChainIDs[uint32(chainID)] = struct{}{}
-	}
-
-	interceptedHdr.acceptedCrossShardIDs = crossChainIDs
+	interceptedHdr.acceptedCrossShardIDs = getSovereignAcceptedCrossShardIDs()
 	sovInterceptedBlock := &interceptedSovereignBlockHeader{
 		interceptedHdr,
 	}

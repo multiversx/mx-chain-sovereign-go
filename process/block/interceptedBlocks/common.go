@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
@@ -147,4 +148,19 @@ func checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator
 func isShardIDValid(shardID uint32, acceptedCrossShardIDs map[uint32]struct{}) bool {
 	_, found := acceptedCrossShardIDs[shardID]
 	return found
+}
+
+func getSovereignAcceptedCrossShardIDs() map[uint32]struct{} {
+	crossChainIDs := make(map[uint32]struct{})
+	for chainID := range dto.ValidChains {
+		crossChainIDs[uint32(chainID)] = struct{}{}
+	}
+
+	return crossChainIDs
+}
+
+func getMainChainAcceptedCrossShardID() map[uint32]struct{} {
+	return map[uint32]struct{}{
+		core.MetachainShardId: {},
+	}
 }

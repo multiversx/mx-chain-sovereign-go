@@ -64,7 +64,7 @@ func (ehp *extendedHeaderProcessor) createExtendedHeader(incomingHeader sovereig
 		return nil, err
 	}
 
-	incomingMBs := createIncomingMb(scrs)
+	incomingMBs := createIncomingMb(scrs, incomingHeader.GetSourceChainID())
 	err = extendedShardHeader.SetIncomingMiniBlockHandlers(incomingMBs)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func getEvents(events []data.EventHandler) ([]data.EventHandler, error) {
 	return ret, nil
 }
 
-func createIncomingMb(scrs []*dto.SCRInfo) []data.MiniBlockHandler {
+func createIncomingMb(scrs []*dto.SCRInfo, chainID sovDto.ChainID) []data.MiniBlockHandler {
 	if len(scrs) == 0 {
 		return make([]data.MiniBlockHandler, 0)
 	}
@@ -111,7 +111,7 @@ func createIncomingMb(scrs []*dto.SCRInfo) []data.MiniBlockHandler {
 		&block.MiniBlock{
 			TxHashes:        scrHashes,
 			ReceiverShardID: core.SovereignChainShardId,
-			SenderShardID:   core.MainChainShardId,
+			SenderShardID:   uint32(chainID),
 			Type:            block.SmartContractResultBlock,
 		},
 	}
@@ -132,13 +132,14 @@ func (ehp *extendedHeaderProcessor) addExtendedHeaderAndSCRsToPool(extendedHeade
 		return err
 	}
 
-	ehp.addSCRsToPool(scrs)
-	ehp.headersPool.AddHeaderInShard(extendedHeaderHash, extendedHeader, core.MainChainShardId)
+	chainID := uint32(extendedHeader.GetSourceChainID())
+	ehp.addSCRsToPool(scrs, chainID)
+	ehp.headersPool.AddHeaderInShard(extendedHeaderHash, extendedHeader, chainID)
 	return nil
 }
 
-func (ehp *extendedHeaderProcessor) addSCRsToPool(scrs []*dto.SCRInfo) {
-	cacheID := process.ShardCacherIdentifier(core.MainChainShardId, core.SovereignChainShardId)
+func (ehp *extendedHeaderProcessor) addSCRsToPool(scrs []*dto.SCRInfo, shard uint32) {
+	cacheID := process.ShardCacherIdentifier(shard, core.SovereignChainShardId)
 
 	for _, scrData := range scrs {
 		ehp.txPool.AddData(scrData.Hash, scrData.SCR, scrData.SCR.Size(), cacheID)

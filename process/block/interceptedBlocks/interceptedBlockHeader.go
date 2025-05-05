@@ -45,16 +45,14 @@ func NewInterceptedHeader(arg *ArgInterceptedBlockHeader) (*InterceptedHeader, e
 	}
 
 	inHdr := &InterceptedHeader{
-		hdr:               hdr,
-		hasher:            arg.Hasher,
-		sigVerifier:       arg.HeaderSigVerifier,
-		integrityVerifier: arg.HeaderIntegrityVerifier,
-		shardCoordinator:  arg.ShardCoordinator,
-		validityAttester:  arg.ValidityAttester,
-		epochStartTrigger: arg.EpochStartTrigger,
-		acceptedCrossShardIDs: map[uint32]struct{}{
-			core.MetachainShardId: {},
-		},
+		hdr:                   hdr,
+		hasher:                arg.Hasher,
+		sigVerifier:           arg.HeaderSigVerifier,
+		integrityVerifier:     arg.HeaderIntegrityVerifier,
+		shardCoordinator:      arg.ShardCoordinator,
+		validityAttester:      arg.ValidityAttester,
+		epochStartTrigger:     arg.EpochStartTrigger,
+		acceptedCrossShardIDs: getMainChainAcceptedCrossShardID(),
 	}
 	inHdr.processFields(arg.HdrBuff)
 	inHdr.mbHeadersChecker = inHdr

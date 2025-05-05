@@ -622,7 +622,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	scrHash4, err := core.CalculateHash(args.Marshaller, args.Hasher, scr4)
 	require.Nil(t, err)
 
-	cacheID := process.ShardCacherIdentifier(core.MainChainShardId, core.SovereignChainShardId)
+	cacheID := process.ShardCacherIdentifier(uint32(dtoSov.MVX), core.SovereignChainShardId)
 
 	type scrInPool struct {
 		data        *smartContractResult.SmartContractResult
@@ -747,7 +747,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 			{
 				TxHashes:        [][]byte{scrHash1, scrHash2, scrHash3, scrHash4},
 				ReceiverShardID: core.SovereignChainShardId,
-				SenderShardID:   core.MainChainShardId,
+				SenderShardID:   uint32(dtoSov.MVX),
 				Type:            block.SmartContractResultBlock,
 			},
 		},
@@ -761,7 +761,7 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 		AddHeaderInShardCalled: func(headerHash []byte, header data.HeaderHandler, shardID uint32) {
 			require.Equal(t, extendedHeaderHash, headerHash)
 			require.Equal(t, extendedHeader, header)
-			require.Equal(t, core.MainChainShardId, shardID)
+			require.Equal(t, uint32(dtoSov.MVX), shardID)
 
 			wasAddedInHeaderPool = true
 		},

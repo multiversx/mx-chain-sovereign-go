@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 )
@@ -15,12 +16,13 @@ var _ process.InterceptedData = (*InterceptedMiniblock)(nil)
 
 // InterceptedMiniblock is a wrapper over a miniblock
 type InterceptedMiniblock struct {
-	miniblock         *block.MiniBlock
-	marshalizer       marshal.Marshalizer
-	hasher            hashing.Hasher
-	shardCoordinator  sharding.Coordinator
-	hash              []byte
-	isForCurrentShard bool
+	miniblock             *block.MiniBlock
+	marshalizer           marshal.Marshalizer
+	hasher                hashing.Hasher
+	shardCoordinator      sharding.Coordinator
+	hash                  []byte
+	isForCurrentShard     bool
+	acceptedCrossShardIDs map[uint32]struct{}
 }
 
 // NewInterceptedMiniblock creates a new instance of InterceptedMiniblock struct
@@ -40,6 +42,9 @@ func NewInterceptedMiniblock(arg *ArgInterceptedMiniblock) (*InterceptedMinibloc
 		marshalizer:      arg.Marshalizer,
 		hasher:           arg.Hasher,
 		shardCoordinator: arg.ShardCoordinator,
+		acceptedCrossShardIDs: map[uint32]struct{}{
+			core.MetachainShardId: {},
+		},
 	}
 	inMiniblock.processFields(arg.MiniblockBuff)
 
@@ -82,7 +87,7 @@ func (inMb *InterceptedMiniblock) Miniblock() *block.MiniBlock {
 
 // CheckValidity checks if the received tx block body is valid (not nil fields)
 func (inMb *InterceptedMiniblock) CheckValidity() error {
-	return inMb.integrity(core.MetachainShardId)
+	return inMb.integrity(inMb.acceptedCrossShardIDs)
 }
 
 // IsForCurrentShard returns true if at least one contained miniblock is for current shard
@@ -91,17 +96,17 @@ func (inMb *InterceptedMiniblock) IsForCurrentShard() bool {
 }
 
 // integrity checks the integrity of the tx block body
-func (inMb *InterceptedMiniblock) integrity(acceptedCrossShardId uint32) error {
+func (inMb *InterceptedMiniblock) integrity(acceptedCrossShardIDs map[uint32]struct{}) error {
 	miniblock := inMb.miniblock
 
 	receiverNotCurrentShard := miniblock.ReceiverShardID >= inMb.shardCoordinator.NumberOfShards() &&
-		(miniblock.ReceiverShardID != acceptedCrossShardId && miniblock.ReceiverShardID != core.AllShardId)
+		(!isShardIDValid(miniblock.ReceiverShardID, acceptedCrossShardIDs) && miniblock.ReceiverShardID != core.AllShardId)
 	if receiverNotCurrentShard {
 		return process.ErrInvalidShardId
 	}
 
 	senderNotCurrentShard := miniblock.SenderShardID >= inMb.shardCoordinator.NumberOfShards() &&
-		miniblock.SenderShardID != acceptedCrossShardId
+		!isShardIDValid(miniblock.SenderShardID, acceptedCrossShardIDs)
 	if senderNotCurrentShard {
 		return process.ErrInvalidShardId
 	}

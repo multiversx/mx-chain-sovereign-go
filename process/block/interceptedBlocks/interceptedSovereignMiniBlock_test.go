@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/interceptedBlocks"
-	"github.com/stretchr/testify/require"
 )
 
 func createSovMBInterceptorWithMBInShard(shardID uint32) process.InterceptedData {
@@ -50,7 +52,9 @@ func TestInterceptedSovereignMiniBlock_CheckValidity(t *testing.T) {
 	err = sovMBInterceptor.CheckValidity()
 	require.Nil(t, err)
 
-	sovMBInterceptor = createSovMBInterceptorWithMBInShard(core.MainChainShardId)
-	err = sovMBInterceptor.CheckValidity()
-	require.Nil(t, err)
+	for chainID := range dto.ValidChains {
+		sovMBInterceptor = createSovMBInterceptorWithMBInShard(uint32(chainID))
+		err = sovMBInterceptor.CheckValidity()
+		require.Nil(t, err)
+	}
 }
