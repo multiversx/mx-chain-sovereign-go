@@ -49,6 +49,9 @@ const (
 	PeerAccountsUnit UnitType = 21
 	// ScheduledSCRsUnit is the scheduled SCRs storage unit identifier
 	ScheduledSCRsUnit UnitType = 22
+
+	// TODO: Here, for extended headers I think we need a storer unit similar to ShardHdrNonceHashDataUnit + chainID
+
 	// ExtendedShardHeadersNonceHashDataUnit is the extended shard headers nonce-hash pair data unit identifier
 	ExtendedShardHeadersNonceHashDataUnit UnitType = 25
 	// ExtendedShardHeadersUnit is the extended shard headers storage unit identifier

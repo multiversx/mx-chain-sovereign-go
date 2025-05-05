@@ -3,6 +3,8 @@ package resolverscontainer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/resolvers"
@@ -80,20 +82,38 @@ func (srcf *sovereignShardResolversContainerFactory) Create() (dataRetriever.Res
 }
 
 func (srcf *sovereignShardResolversContainerFactory) generateSovereignExtendedHeaderResolvers() error {
+	idx := uint32(0)
+	for chainID := range dto.ValidChains {
+		// TODO: Here, add delta after we have the task ready for multiple ExtendedShardHeadersUnit
+		err := srcf.generateOneSovereignExtendedHeaderResolver(uint32(chainID), idx)
+		if err != nil {
+			return err
+		}
+
+		idx++
+	}
+
+	return nil
+}
+
+func (srcf *sovereignShardResolversContainerFactory) generateOneSovereignExtendedHeaderResolver(
+	shardID uint32,
+	deltaUnit uint32,
+) error {
 	shardC := srcf.shardCoordinator
 
-	hdrStorer, err := srcf.store.GetStorer(dataRetriever.ExtendedShardHeadersUnit)
+	hdrStorer, err := srcf.store.GetStorer(dataRetriever.ExtendedShardHeadersUnit + dataRetriever.UnitType(deltaUnit))
 	if err != nil {
 		return err
 	}
 
-	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardC.SelfId())
-	resolverSender, err := srcf.createOneResolverSenderWithSpecifiedNumRequests(identifierHdr, EmptyExcludePeersOnTopic, core.MainChainShardId)
+	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardID)
+	resolverSender, err := srcf.createOneResolverSenderWithSpecifiedNumRequests(identifierHdr, EmptyExcludePeersOnTopic, shardID)
 	if err != nil {
 		return err
 	}
 
-	hdrNonceStorer, err := srcf.store.GetStorer(dataRetriever.ExtendedShardHeadersNonceHashDataUnit)
+	hdrNonceStorer, err := srcf.store.GetStorer(dataRetriever.ExtendedShardHeadersNonceHashDataUnit + dataRetriever.UnitType(deltaUnit))
 	if err != nil {
 		return err
 	}

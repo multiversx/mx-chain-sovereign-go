@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
@@ -121,7 +122,7 @@ func (hip *sovereignHeaderInterceptorProcessor) Save(data process.InterceptedDat
 
 	extendedHeaderHash := interceptedHdr.Hash()
 	extendedHeaderNonce := interceptedHdr.GetExtendedHeader().GetNonce()
-	_, hashes, err := hip.headersPool.GetHeadersByNonceAndShardId(extendedHeaderNonce, core.MainChainShardId)
+	_, hashes, err := hip.headersPool.GetHeadersByNonceAndShardId(extendedHeaderNonce, uint32(interceptedHdr.GetExtendedHeader().GetSourceChainID()))
 
 	// do not add header again + create scrs and mbs if already received
 	if err == nil && contains(hashes, extendedHeaderHash) {
