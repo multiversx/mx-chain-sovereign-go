@@ -1,30 +1,37 @@
 package block
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSovereignShardCrossNotarizer_getLastCrossNotarizedHeaders(t *testing.T) {
 	hash := []byte("hash")
-	header := &block.SovereignChainHeader{
-		Header: &block.Header{
-			ShardID: core.SovereignChainShardId,
-			Nonce:   4,
+	header := &block.ShardHeaderExtended{
+		SourceChainID: dto.MVX,
+		Header: &block.HeaderV2{
+			Header: &block.Header{
+				Nonce: 4,
+			},
 		},
 	}
 	sovereignNotarzier := &sovereignShardCrossNotarizer{
 		&baseBlockNotarizer{
 			blockTracker: &testscommon.BlockTrackerStub{
 				GetLastCrossNotarizedHeaderCalled: func(shardID uint32) (data.HeaderHandler, []byte, error) {
-					require.Equal(t, core.MainChainShardId, shardID)
-					return header, hash, nil
+					switch shardID {
+					case uint32(dto.MVX):
+						return header, hash, nil
+					}
+					return nil, nil, errors.New("not found")
 				},
 			},
 		},
@@ -33,7 +40,7 @@ func TestSovereignShardCrossNotarizer_getLastCrossNotarizedHeaders(t *testing.T)
 	headers := sovereignNotarzier.getLastCrossNotarizedHeaders()
 	expectedHeaders := []bootstrapStorage.BootstrapHeaderInfo{
 		{
-			ShardId: core.MainChainShardId,
+			ShardId: uint32(dto.MVX),
 			Nonce:   header.GetNonce(),
 			Hash:    hash,
 		},

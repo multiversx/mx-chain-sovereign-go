@@ -1,7 +1,8 @@
 package block
 
 import (
-	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
 )
 
@@ -10,14 +11,16 @@ type sovereignShardCrossNotarizer struct {
 }
 
 func (scn *sovereignShardCrossNotarizer) getLastCrossNotarizedHeaders() []bootstrapStorage.BootstrapHeaderInfo {
-	bootstrapHeaderInfo := scn.getLastCrossNotarizedHeadersForShard(core.MainChainShardId)
-	if bootstrapHeaderInfo == nil {
-		return nil
+	lastCrossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0)
+	for chainID := range dto.ValidChains {
+		bootstrapHeaderInfo := scn.getLastCrossNotarizedHeadersForShard(uint32(chainID))
+		if bootstrapHeaderInfo == nil {
+			continue
+		}
+
+		bootstrapHeaderInfo.ShardId = uint32(chainID)
+		lastCrossNotarizedHeaders = append(lastCrossNotarizedHeaders, *bootstrapHeaderInfo)
 	}
 
-	bootstrapHeaderInfo.ShardId = core.MainChainShardId
-
-	lastCrossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0, 1)
-	lastCrossNotarizedHeaders = append(lastCrossNotarizedHeaders, *bootstrapHeaderInfo)
 	return trimSliceBootstrapHeaderInfo(lastCrossNotarizedHeaders)
 }

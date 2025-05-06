@@ -8,6 +8,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
@@ -21,8 +25,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	storageMock "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestShardStorageBootstrapper_LoadFromStorageShouldWork(t *testing.T) {
@@ -265,8 +267,8 @@ func TestGetCrossNotarizedHeaderNonce(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, uint64(2), nonce)
 
-	crossNotarizedHeaders = append(crossNotarizedHeaders, bootstrapStorage.BootstrapHeaderInfo{ShardId: core.MainChainShardId, Nonce: 4})
-	nonce, err = getLastCrossNotarizedHeaderNonce(crossNotarizedHeaders, core.MainChainShardId)
+	crossNotarizedHeaders = append(crossNotarizedHeaders, bootstrapStorage.BootstrapHeaderInfo{ShardId: uint32(dto.MVX), Nonce: 4})
+	nonce, err = getLastCrossNotarizedHeaderNonce(crossNotarizedHeaders, uint32(dto.MVX))
 	require.Nil(t, err)
 	require.Equal(t, uint64(4), nonce)
 }
