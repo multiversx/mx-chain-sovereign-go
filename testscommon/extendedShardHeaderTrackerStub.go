@@ -2,20 +2,21 @@ package testscommon
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 )
 
 // ExtendedShardHeaderTrackerStub -
 type ExtendedShardHeaderTrackerStub struct {
 	BlockTrackerStub
-	ComputeLongestExtendedShardChainFromLastNotarizedCalled func() ([]data.HeaderHandler, [][]byte, error)
+	ComputeLongestExtendedShardChainFromLastNotarizedCalled func(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error)
 	RemoveLastCrossNotarizedHeadersCalled                   func()
 	RemoveLastSelfNotarizedHeadersCalled                    func()
 }
 
 // ComputeLongestExtendedShardChainFromLastNotarized -
-func (eshts *ExtendedShardHeaderTrackerStub) ComputeLongestExtendedShardChainFromLastNotarized() ([]data.HeaderHandler, [][]byte, error) {
+func (eshts *ExtendedShardHeaderTrackerStub) ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error) {
 	if eshts.ComputeLongestExtendedShardChainFromLastNotarizedCalled != nil {
-		return eshts.ComputeLongestMetaChainFromLastNotarizedCalled()
+		return eshts.ComputeLongestExtendedShardChainFromLastNotarizedCalled(chainID)
 	}
 	return nil, nil, nil
 }
@@ -35,6 +36,6 @@ func (eshts *ExtendedShardHeaderTrackerStub) RemoveLastSelfNotarizedHeaders() {
 }
 
 // IsGenesisLastCrossNotarizedHeader -
-func (eshts *ExtendedShardHeaderTrackerStub) IsGenesisLastCrossNotarizedHeader() bool {
+func (eshts *ExtendedShardHeaderTrackerStub) IsGenesisLastCrossNotarizedHeader(_ dto.ChainID) bool {
 	return false
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"golang.org/x/exp/slices"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/holders"
@@ -33,8 +34,8 @@ import (
 var rootHash = "uncomputed root hash"
 
 type extendedShardHeaderTrackHandler interface {
-	ComputeLongestExtendedShardChainFromLastNotarized() ([]data.HeaderHandler, [][]byte, error)
-	IsGenesisLastCrossNotarizedHeader() bool
+	ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error)
+	IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool
 	RemoveLastCrossNotarizedHeaders()
 	RemoveLastSelfNotarizedHeaders()
 }
@@ -62,6 +63,7 @@ type sovereignChainBlockProcessor struct {
 	epochEconomics        process.EndOfEpochEconomics
 
 	mainChainNotarizationStartRound map[string]config.MainChainNotarization
+	orderedChainIDs                 []dto.ChainID
 }
 
 // ArgsSovereignChainBlockProcessor is a struct placeholder for args needed to create a new sovereign chain block processor
@@ -113,6 +115,21 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 		return nil, process.ErrNilEpochEconomics
 	}
 
+	orderedChainIDs := make([]dto.ChainID, 0, len(args.MainChainNotarizationStartRound))
+	for chainIDStr := range args.MainChainNotarizationStartRound {
+		chainID, valid := dto.ChainID_value[chainIDStr]
+		if !valid {
+			// todo: here
+			return nil, fmt.Errorf("invalid chain id provided")
+		}
+
+		orderedChainIDs = append(orderedChainIDs, dto.ChainID(chainID))
+	}
+
+	slices.SortStableFunc(orderedChainIDs, func(a, b dto.ChainID) bool {
+		return a < b
+	})
+
 	scbp := &sovereignChainBlockProcessor{
 		shardProcessor:                  args.ShardProcessor,
 		validatorStatisticsProcessor:    args.ValidatorStatisticsProcessor,
@@ -125,6 +142,7 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 		scToProtocol:                    args.SCToProtocol,
 		epochEconomics:                  args.EpochEconomics,
 		mainChainNotarizationStartRound: args.MainChainNotarizationStartRound,
+		orderedChainIDs:                 orderedChainIDs,
 	}
 
 	scbp.baseProcessor.epochSystemSCProcessor = args.EpochSystemSCProcessor
@@ -394,10 +412,59 @@ func (scbp *sovereignChainBlockProcessor) createAllMiniBlocks(
 func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTime func() bool) (*createAndProcessMiniBlocksDestMeInfo, error) {
 	log.Debug("createIncomingMiniBlocksDestMe has been started")
 
+	haveAdditionalTimeFalse := func() bool {
+		return false
+	}
+
+	createAndProcessInfo := &createAndProcessMiniBlocksDestMeInfo{
+		haveTime:                   haveTime,
+		haveAdditionalTime:         haveAdditionalTimeFalse,
+		miniBlocks:                 make(block.MiniBlockSlice, 0),
+		allProcessedMiniBlocksInfo: make(map[string]*processedMb.ProcessedMiniBlockInfo),
+		numTxsAdded:                uint32(0),
+		numHdrsAdded:               uint32(0),
+		scheduledMode:              true,
+	}
+
+	maxExtendedHeadersInSovBlock := uint32(process.MaxExtendedShardHeadersAllowedInOneSovereignBlock)
+	for _, chainID := range scbp.orderedChainIDs {
+		chainIdProcessInfo, err := scbp.createIncomingMiniBlocksDestMeFromChain(haveTime, chainID, maxExtendedHeadersInSovBlock)
+		if err != nil {
+			log.Error("sovereignChainBlockProcessor.createIncomingMiniBlocksDestMe", "chain", chainID.String(), "error", err)
+			continue
+		}
+
+		createAndProcessInfo.miniBlocks = append(chainIdProcessInfo.miniBlocks)
+		createAndProcessInfo.numTxsAdded += chainIdProcessInfo.numTxsAdded
+		createAndProcessInfo.numHdrsAdded += chainIdProcessInfo.numHdrsAdded
+		createAndProcessInfo.hdrAdded = createAndProcessInfo.hdrAdded || chainIdProcessInfo.hdrAdded
+		maxExtendedHeadersInSovBlock -= chainIdProcessInfo.numHdrsAdded
+	}
+
+	for _, miniBlock := range createAndProcessInfo.miniBlocks {
+		log.Debug("mini block info",
+			"type", miniBlock.Type,
+			"sender shard", miniBlock.SenderShardID,
+			"receiver shard", miniBlock.ReceiverShardID,
+			"txs added", len(miniBlock.TxHashes))
+	}
+
+	log.Debug("createIncomingMiniBlocksDestMe has been finished",
+		"num txs added", createAndProcessInfo.numTxsAdded,
+		"num hdrs added", createAndProcessInfo.numHdrsAdded)
+
+	return createAndProcessInfo, nil
+}
+
+func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMeFromChain(
+	haveTime func() bool,
+	chainID dto.ChainID,
+	maxAllowedExtendedHeaders uint32,
+) (*createAndProcessMiniBlocksDestMeInfo, error) {
 	sw := core.NewStopWatch()
-	sw.Start("ComputeLongestExtendedShardChainFromLastNotarized")
-	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainFromLastNotarized()
-	sw.Stop("ComputeLongestExtendedShardChainFromLastNotarized")
+	sw.Start(fmt.Sprintf("sovereignChainBlockProcessor.ComputeLongestExtendedShardChainFromLastNotarized for chain: %s", chainID.String()))
+	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainFromLastNotarized(chainID)
+	sw.Stop(fmt.Sprintf("sovereignChainBlockProcessor.ComputeLongestExtendedShardChainFromLastNotarized for chain: %s", chainID.String()))
 	log.Debug("measurements", sw.GetMeasurements()...)
 
 	if err != nil {
@@ -408,7 +475,7 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 		"num extended shard headers", len(orderedExtendedShardHeaders),
 	)
 
-	lastExtendedShardHdr, _, err := scbp.blockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
+	lastExtendedShardHdr, _, err := scbp.blockTracker.GetLastCrossNotarizedHeader(uint32(chainID))
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +505,7 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 			break
 		}
 
-		if createAndProcessInfo.numHdrsAdded >= process.MaxExtendedShardHeadersAllowedInOneSovereignBlock {
+		if createAndProcessInfo.numHdrsAdded >= maxAllowedExtendedHeaders {
 			log.Debug("maximum extended shard headers allowed to be included in one sovereign block has been reached",
 				"scheduled mode", createAndProcessInfo.scheduledMode,
 				"extended shard headers added", createAndProcessInfo.numHdrsAdded,
@@ -489,18 +556,6 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 	scbp.hdrsForCurrBlock.mutHdrsForBlock.Unlock()
 
 	go scbp.requestExtendedShardHeadersIfNeeded(createAndProcessInfo.numHdrsAdded, lastExtendedShardHdr)
-
-	for _, miniBlock := range createAndProcessInfo.miniBlocks {
-		log.Debug("mini block info",
-			"type", miniBlock.Type,
-			"sender shard", miniBlock.SenderShardID,
-			"receiver shard", miniBlock.ReceiverShardID,
-			"txs added", len(miniBlock.TxHashes))
-	}
-
-	log.Debug("createIncomingMiniBlocksDestMe has been finished",
-		"num txs added", createAndProcessInfo.numTxsAdded,
-		"num hdrs added", createAndProcessInfo.numHdrsAdded)
 
 	return createAndProcessInfo, nil
 }
@@ -977,7 +1032,7 @@ func (scbp *sovereignChainBlockProcessor) checkExtendedShardHeadersValidity(
 //     main chain tracking(notifier is also disabled)
 func (scbp *sovereignChainBlockProcessor) isGenesisHeaderWithNoPreviousTracking(incomingHeader data.HeaderHandler) bool {
 	//TODO: Here iterate for all chains when we have an extended header block tracker for multiple chains
-	return scbp.extendedShardHeaderTracker.IsGenesisLastCrossNotarizedHeader() && incomingHeader.GetRound() == scbp.mainChainNotarizationStartRound[dto.MVX.String()].StartRound
+	return scbp.extendedShardHeaderTracker.IsGenesisLastCrossNotarizedHeader(incomingHeader.cha) && incomingHeader.GetRound() == scbp.mainChainNotarizationStartRound[dto.MVX.String()].StartRound
 }
 
 func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(

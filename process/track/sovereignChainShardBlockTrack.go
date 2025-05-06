@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/process"
 )
@@ -52,18 +53,22 @@ func (scsbt *sovereignChainShardBlockTrack) initCrossNotarizedStartHeaders() err
 	// TODO MX-15667:
 	// 1. Versioning header for shard extended?
 	// 2. Perhaps add dummy header nonce from config cross main chain notarized
-	extendedShardHeader := &block.ShardHeaderExtended{
-		Header: &block.HeaderV2{
-			Header: &block.Header{},
-		},
+
+	for chainID := range dto.ValidChains {
+		extendedShardHeader := &block.ShardHeaderExtended{
+			Header: &block.HeaderV2{
+				Header: &block.Header{},
+			},
+		}
+
+		extendedShardHeaderHash, err := core.CalculateHash(scsbt.marshalizer, scsbt.hasher, extendedShardHeader)
+		if err != nil {
+			return fmt.Errorf("%w in sovereignChainShardBlockTrack.initCrossNotarizedStartHeaders", err)
+		}
+
+		scsbt.AddCrossNotarizedHeader(uint32(chainID), extendedShardHeader, extendedShardHeaderHash)
 	}
 
-	extendedShardHeaderHash, err := core.CalculateHash(scsbt.marshalizer, scsbt.hasher, extendedShardHeader)
-	if err != nil {
-		return fmt.Errorf("%w in sovereignChainShardBlockTrack.initCrossNotarizedStartHeaders", err)
-	}
-
-	scsbt.AddCrossNotarizedHeader(core.MainChainShardId, extendedShardHeader, extendedShardHeaderHash)
 	return nil
 }
 
@@ -109,8 +114,8 @@ func (scsbt *sovereignChainShardBlockTrack) receivedExtendedShardHeader(
 
 	// TODO: This condition will permit to the sovereign chain to follow the main chain headers starting with a header
 	// having a nonce higher than nonce 1 (the first block after genesis)
-	if scsbt.IsGenesisLastCrossNotarizedHeader() {
-		scsbt.crossNotarizer.AddNotarizedHeader(core.MainChainShardId, extendedShardHeaderHandler, extendedShardHeaderHash)
+	if scsbt.IsGenesisLastCrossNotarizedHeader(extendedShardHeaderHandler.GetSourceChainID()) {
+		scsbt.crossNotarizer.AddNotarizedHeader(uint32(extendedShardHeaderHandler.GetSourceChainID()), extendedShardHeaderHandler, extendedShardHeaderHash)
 	}
 
 	if !scsbt.shouldAddExtendedShardHeader(extendedShardHeaderHandler) {
@@ -118,7 +123,7 @@ func (scsbt *sovereignChainShardBlockTrack) receivedExtendedShardHeader(
 		return
 	}
 
-	if !scsbt.addHeader(extendedShardHeaderHandler, extendedShardHeaderHash, core.MainChainShardId) {
+	if !scsbt.addHeader(extendedShardHeaderHandler, extendedShardHeaderHash, uint32(extendedShardHeaderHandler.GetSourceChainID())) {
 		log.Trace("received extended shard header was not added", "nonce", extendedShardHeaderHandler.GetNonce())
 		return
 	}
@@ -128,8 +133,8 @@ func (scsbt *sovereignChainShardBlockTrack) receivedExtendedShardHeader(
 }
 
 // IsGenesisLastCrossNotarizedHeader returns true if the last cross chain notarized header is the dummy genesis header
-func (scsbt *sovereignChainShardBlockTrack) IsGenesisLastCrossNotarizedHeader() bool {
-	lastNotarizedHeader, _, err := scsbt.crossNotarizer.GetLastNotarizedHeader(core.MainChainShardId)
+func (scsbt *sovereignChainShardBlockTrack) IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool {
+	lastNotarizedHeader, _, err := scsbt.crossNotarizer.GetLastNotarizedHeader(uint32(chainID))
 
 	isGenesisLastCrossNotarizedHeader := err != nil && errors.Is(err, process.ErrNotarizedHeadersSliceForShardIsNil) ||
 		lastNotarizedHeader != nil && lastNotarizedHeader.GetNonce() == 0
@@ -138,7 +143,7 @@ func (scsbt *sovereignChainShardBlockTrack) IsGenesisLastCrossNotarizedHeader() 
 }
 
 func (scsbt *sovereignChainShardBlockTrack) shouldAddExtendedShardHeader(extendedShardHeaderHandler data.ShardHeaderExtendedHandler) bool {
-	lastNotarizedHeader, _, err := scsbt.crossNotarizer.GetLastNotarizedHeader(core.MainChainShardId)
+	lastNotarizedHeader, _, err := scsbt.crossNotarizer.GetLastNotarizedHeader(uint32(extendedShardHeaderHandler.GetSourceChainID()))
 	if err != nil {
 		log.Debug("shouldAddExtendedShardHeader.GetLastNotarizedHeader",
 			"shard", extendedShardHeaderHandler.GetShardID(),
@@ -177,7 +182,7 @@ func (scsbt *sovereignChainShardBlockTrack) doWhitelistWithExtendedShardHeaderIf
 }
 
 func (scsbt *sovereignChainShardBlockTrack) isExtendedShardHeaderOutOfRange(extendedShardHeaderHandler data.ShardHeaderExtendedHandler) bool {
-	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(core.MainChainShardId)
+	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(uint32(extendedShardHeaderHandler.GetSourceChainID()))
 	if err != nil {
 		log.Debug("isExtendedShardHeaderOutOfRange.GetLastCrossNotarizedHeader",
 			"shard", extendedShardHeaderHandler.GetShardID(),
@@ -190,15 +195,15 @@ func (scsbt *sovereignChainShardBlockTrack) isExtendedShardHeaderOutOfRange(exte
 }
 
 // ComputeLongestExtendedShardChainFromLastNotarized returns the longest valid chain for extended shard chain from its last cross notarized header
-func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFromLastNotarized() ([]data.HeaderHandler, [][]byte, error) {
-	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(core.MainChainShardId)
+func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error) {
+	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(uint32(chainID))
 	if err != nil {
 		return nil, nil, err
 	}
 
 	log.Debug("sovereignChainShardBlockTrack.ComputeLongestExtendedShardChainFromLastNotarized: GetLastCrossNotarizedHeader", "nonce", lastCrossNotarizedHeader.GetNonce())
 
-	hdrsForShard, hdrsHashesForShard := scsbt.ComputeLongestChain(core.MainChainShardId, lastCrossNotarizedHeader)
+	hdrsForShard, hdrsHashesForShard := scsbt.ComputeLongestChain(uint32(chainID), lastCrossNotarizedHeader)
 
 	log.Debug("sovereignChainShardBlockTrack.ComputeLongestExtendedShardChainFromLastNotarized: ComputeLongestChain", "num headers", len(hdrsForShard))
 	for index := range hdrsForShard {
@@ -222,16 +227,18 @@ func (scsbt *sovereignChainShardBlockTrack) DisplayTrackedHeaders() {
 	scsbt.displayTrackedHeadersForShard(scsbt.shardCoordinator.SelfId(), "tracked headers")
 	scsbt.selfNotarizer.DisplayNotarizedHeaders(scsbt.shardCoordinator.SelfId(), "self notarized headers")
 
-	scsbt.displayTrackedHeadersForShard(core.MainChainShardId, "cross tracked headers")
-	scsbt.crossNotarizer.DisplayNotarizedHeaders(core.MainChainShardId, "cross notarized headers")
+	for chainID := range dto.ValidChains {
+		scsbt.displayTrackedHeadersForShard(uint32(chainID), fmt.Sprintf("cross tracked headers, chain: %s", dto.ChainID_name[int32(chainID)]))
+		scsbt.crossNotarizer.DisplayNotarizedHeaders(uint32(chainID), fmt.Sprintf("cross notarized headers, chain: %s", dto.ChainID_name[int32(chainID)]))
+	}
 }
 
 func (scsbt *sovereignChainShardBlockTrack) getFinalHeader(headerHandler data.HeaderHandler) (data.HeaderHandler, error) {
 	shardID := headerHandler.GetShardID()
 
-	_, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
+	extendedHeader, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
 	if isExtendedShardHeaderReceived {
-		shardID = core.MainChainShardId
+		shardID = uint32(extendedHeader.GetSourceChainID())
 	}
 
 	finalHeader, _, err := scsbt.getFinalHeaderForShard(shardID)

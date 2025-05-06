@@ -6,6 +6,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -57,7 +59,7 @@ func (scr *sovereignChainIncomingSCR) ProcessBlockTransactions(
 		if miniBlock.ReceiverShardID != core.SovereignChainShardId {
 			continue
 		}
-		if miniBlock.SenderShardID != core.MainChainShardId {
+		if !sovDto.IsValidCrossChainID(sovDto.ChainID(miniBlock.SenderShardID)) {
 			continue
 		}
 
