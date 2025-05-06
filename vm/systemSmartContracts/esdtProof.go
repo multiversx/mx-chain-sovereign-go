@@ -23,12 +23,7 @@ const (
 	proofTypeDAG   = "dPFT"
 
 	// Storage prefixes and suffixes
-	pftPrefix             = "PFT:"      // Prefix for storing PFT data in the global state trie
-	pftRolePrefix         = "PFTRole:"  // Prefix for role keys on the owner account
-	pftNoncePrefix        = "PFTNonce:" // Prefix for nonce keys on the owner account
-	pftCreateRoleSuffix   = ":Create"   // Suffix for the create role key
-	pftDataSeparator      = "@"         // Separator used in input data strings
-	pftParentKeySeparator = ","         // Separator for parent keys in dPFT input
+	pftPrefix = "PFT:" // Prefix for storing PFT data in the global state trie
 
 	// PFT Data constants
 	algoIDMicroPFTSize = 4          // bytes
@@ -39,18 +34,11 @@ const (
 	timestampSize      = 8          // bytes (uint64)
 
 	// Costs (These are placeholders - should be defined properly in gas schedule)
-	basePFTGasCost           = 50_000
-	registerProofTickerCost  = 5_000_000 // Similar to ESDT registration
 	createMicroPFTBaseCost   = 100_000
 	createDPFTBaseCost       = 200_000
 	parentCheckCostPerParent = 10_000 // Cost for each parent existence check
 	storageCostPerByte       = 1_000  // Placeholder cost for storing data
 )
-
-// Add PFT functions to the existing esdtSystemSC struct (or create a new PFTSystemSC if preferred)
-// For this example, we'll add methods to esdtSystemSC
-
-// --- Register Proof Ticker ---
 
 // registerProofTicker handles the registration of a new proof ticker and assigns the create role.
 // Expected input: registerProofTicker@MYTICKER
@@ -196,8 +184,6 @@ func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
 
 	return pftValue
 }
-
-// --- Create DAG Proof (dPFT) ---
 
 // createDPFT handles the creation of a DAGProof token, linking to parents.
 // Expected input parts: [ "createProof", "MYTICKER", "dPFT", "proof_data", "<list_parent_keys>" ]
