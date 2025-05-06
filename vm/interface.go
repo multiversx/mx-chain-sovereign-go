@@ -137,5 +137,6 @@ type BlockchainHook interface {
 	RevertToSnapshot(snapshot int) error
 	IsBuiltinFunctionName(functionName string) bool
 	ProcessBuiltInFunction(input *vmcommon.ContractCallInput) (*vmcommon.VMOutput, error)
+	LastTimeStamp() uint64
 	IsInterfaceNil() bool
 }

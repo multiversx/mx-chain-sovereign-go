@@ -244,6 +244,10 @@ func (e *esdt) Execute(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
 		return e.registerAndSetAllRolesDynamic(args)
 	case "changeToDynamic":
 		return e.changeToDynamic(args)
+	case funcRegisterProofTicker:
+		return e.registerProofTicker(args)
+	case funcCreateProof:
+		return e.createProof(args)
 	}
 
 	e.eei.AddReturnMessage("invalid method to call")
