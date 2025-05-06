@@ -2,13 +2,14 @@ package systemSmartContracts
 
 import (
 	"bytes"
+	"math/big"
+	"sort"
+	"strconv"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/vm"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/pkg/errors"
-	"math/big"
-	"sort"
-	"strconv"
 )
 
 // Constants related to Proof Tokens (PFTs) - Adapt prefixes as needed to avoid collision
@@ -30,12 +31,12 @@ const (
 	pftParentKeySeparator = ","         // Separator for parent keys in dPFT input
 
 	// PFT Data constants
-	algoIDMicroPFTSize = 4                  // bytes
-	algoIDMicroPFT     = "0001"             // Example Algo ID for µPFT (hex encoded)
-	flagsDPFTSize      = 8                  // bytes
-	flagsDPFT          = "0000000000000001" // Example Flags for dPFT (hex encoded)
-	hashSize           = 32                 // bytes (SHA256)
-	timestampSize      = 8                  // bytes (uint64)
+	algoIDMicroPFTSize = 4          // bytes
+	algoIDMicroPFT     = "0001"     // Example Algo ID for µPFT
+	flagsDPFTSize      = 8          // bytes
+	flagsDPFT          = "00000001" // Example Flags for dPFT
+	hashSize           = 32         // bytes (SHA256)
+	timestampSize      = 8          // bytes (uint64)
 
 	// Costs (These are placeholders - should be defined properly in gas schedule)
 	basePFTGasCost           = 50_000
@@ -229,7 +230,6 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 
 	for _, pkBytes := range parents {
 		pkKey := append([]byte(pftPrefix), pkBytes...)
-
 		parentValue := e.eei.GetStorageFromAddress(core.SystemAccountAddress, pkKey)
 		if len(parentValue) == 0 {
 			return errors.New("parent does not exist " + string(pkBytes))
@@ -278,10 +278,6 @@ func (e *esdt) generatePFTStorageKey(ticker []byte, nonce uint64) []byte {
 
 // computeParentListHash calculates the SHA256 hash of a sorted list of parent keys.
 func (e *esdt) computeParentListHash(parentKeys [][]byte) []byte {
-	if len(parentKeys) == 0 {
-		return e.hasher.Compute("")
-	}
-
 	sort.Slice(parentKeys, func(i, j int) bool {
 		return bytes.Compare(parentKeys[i], parentKeys[j]) < 0
 	})
