@@ -5,12 +5,14 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/heartbeat/data"
@@ -30,14 +32,14 @@ type FacadeStub struct {
 	GetAccountsCalled                           func(addresses []string, options api.AccountQueryOptions) (map[string]*api.AccountResponse, api.BlockInfo, error)
 	GenerateTransactionHandler                  func(sender string, receiver string, value *big.Int, code string) (*transaction.Transaction, error)
 	GetTransactionHandler                       func(hash string, withResults bool) (*transaction.ApiTransactionResult, error)
-	CreateTransactionHandler                    func(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error)
-	ValidateTransactionHandler                  func(tx *transaction.Transaction) error
-	ValidateTransactionForSimulationHandler     func(tx *transaction.Transaction, bypassSignature bool) error
-	SendBulkTransactionsHandler                 func(txs []*transaction.Transaction) (uint64, error)
+	CreateTransactionHandler                    func(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error)
+	ValidateTransactionHandler                  func(tx coreData.TransactionHandler) error
+	ValidateTransactionForSimulationHandler     func(tx coreData.TransactionHandler, bypassSignature bool) error
+	SendBulkTransactionsHandler                 func(txs []coreData.TransactionHandler) (uint64, error)
 	ExecuteSCQueryHandler                       func(query *process.SCQuery) (*vm.VMOutputApi, api.BlockInfo, error)
 	StatusMetricsHandler                        func() external.StatusMetricsHandler
 	ValidatorStatisticsHandler                  func() (map[string]*validator.ValidatorStatistics, error)
-	ComputeTransactionGasLimitHandler           func(tx *transaction.Transaction) (*transaction.CostResponse, error)
+	ComputeTransactionGasLimitHandler           func(tx coreData.TransactionHandler) (*transaction.CostResponse, error)
 	NodeConfigCalled                            func() map[string]interface{}
 	GetQueryHandlerCalled                       func(name string) (debug.QueryHandler, error)
 	GetValueForKeyCalled                        func(address string, key string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
@@ -49,7 +51,7 @@ type FacadeStub struct {
 	GetUsernameCalled                           func(address string, options api.AccountQueryOptions) (string, api.BlockInfo, error)
 	GetCodeHashCalled                           func(address string, options api.AccountQueryOptions) ([]byte, api.BlockInfo, error)
 	GetKeyValuePairsCalled                      func(address string, options api.AccountQueryOptions) (map[string]string, api.BlockInfo, error)
-	SimulateTransactionExecutionHandler         func(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
+	SimulateTransactionExecutionHandler         func(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	GetESDTDataCalled                           func(address string, key string, nonce uint64, options api.AccountQueryOptions) (*esdt.ESDigitalToken, api.BlockInfo, error)
 	GetAllESDTTokensCalled                      func(address string, options api.AccountQueryOptions) (map[string]*esdt.ESDigitalToken, api.BlockInfo, error)
 	GetESDTsWithRoleCalled                      func(address string, role string, options api.AccountQueryOptions) ([]string, api.BlockInfo, error)
@@ -322,9 +324,9 @@ func (f *FacadeStub) GetAccounts(addresses []string, options api.AccountQueryOpt
 }
 
 // CreateTransaction is  mock implementation of a handler's CreateTransaction method
-func (f *FacadeStub) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
+func (f *FacadeStub) CreateTransaction(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 	if f.CreateTransactionHandler != nil {
-		return f.CreateTransactionHandler(txArgs)
+		return f.CreateTransactionHandler(requestTx)
 	}
 
 	return nil, nil, nil
@@ -340,7 +342,7 @@ func (f *FacadeStub) GetTransaction(hash string, withResults bool) (*transaction
 }
 
 // SimulateTransactionExecution is the mock implementation of a handler's SimulateTransactionExecution method
-func (f *FacadeStub) SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (f *FacadeStub) SimulateTransactionExecution(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	if f.SimulateTransactionExecutionHandler != nil {
 		return f.SimulateTransactionExecutionHandler(tx)
 	}
@@ -349,7 +351,7 @@ func (f *FacadeStub) SimulateTransactionExecution(tx *transaction.Transaction) (
 }
 
 // SendBulkTransactions is the mock implementation of a handler's SendBulkTransactions method
-func (f *FacadeStub) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (f *FacadeStub) SendBulkTransactions(txs []coreData.TransactionHandler) (uint64, error) {
 	if f.SendBulkTransactionsHandler != nil {
 		return f.SendBulkTransactionsHandler(txs)
 	}
@@ -358,7 +360,7 @@ func (f *FacadeStub) SendBulkTransactions(txs []*transaction.Transaction) (uint6
 }
 
 // ValidateTransaction -
-func (f *FacadeStub) ValidateTransaction(tx *transaction.Transaction) error {
+func (f *FacadeStub) ValidateTransaction(tx coreData.TransactionHandler) error {
 	if f.ValidateTransactionHandler != nil {
 		return f.ValidateTransactionHandler(tx)
 	}
@@ -367,7 +369,7 @@ func (f *FacadeStub) ValidateTransaction(tx *transaction.Transaction) error {
 }
 
 // ValidateTransactionForSimulation -
-func (f *FacadeStub) ValidateTransactionForSimulation(tx *transaction.Transaction, bypassSignature bool) error {
+func (f *FacadeStub) ValidateTransactionForSimulation(tx coreData.TransactionHandler, bypassSignature bool) error {
 	if f.ValidateTransactionForSimulationHandler != nil {
 		return f.ValidateTransactionForSimulationHandler(tx, bypassSignature)
 	}
@@ -439,7 +441,7 @@ func (f *FacadeStub) GetDelegatorsList() ([]*api.Delegator, error) {
 }
 
 // ComputeTransactionGasLimit -
-func (f *FacadeStub) ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+func (f *FacadeStub) ComputeTransactionGasLimit(tx coreData.TransactionHandler) (*transaction.CostResponse, error) {
 	if f.ComputeTransactionGasLimitHandler != nil {
 		return f.ComputeTransactionGasLimitHandler(tx)
 	}

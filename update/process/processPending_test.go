@@ -6,13 +6,15 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/testscommon"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/multiversx/mx-chain-go/update"
 	"github.com/multiversx/mx-chain-go/update/mock"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/assert"
 )
 
 func createMockArgsPendingTransactionProcessor() ArgsPendingTransactionProcessor {
@@ -58,8 +60,8 @@ func TestPendingTransactionProcessor_ProcessTransactionsDstMe(t *testing.T) {
 	args.ShardCoordinator = shardCoordinator
 
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
-			if bytes.Equal(transaction.SndAddr, addr4) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
+			if bytes.Equal(transaction.GetSndAddr(), addr4) {
 				return 0, errors.New("localErr")
 			}
 			return 0, nil

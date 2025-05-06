@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -708,7 +709,7 @@ func (s *simulator) sendTx(tx *transaction.Transaction) (string, error) {
 	}
 
 	txHashHex := hex.EncodeToString(txHash)
-	_, err = node.GetFacadeHandler().SendBulkTransactions([]*transaction.Transaction{tx})
+	_, err = node.GetFacadeHandler().SendBulkTransactions([]data.TransactionHandler{tx})
 	if err != nil {
 		return "", err
 	}

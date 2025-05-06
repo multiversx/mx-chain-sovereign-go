@@ -100,7 +100,7 @@ func NewTransactionSimulator(args ArgsTxSimulator) (*transactionSimulator, error
 }
 
 // ProcessTx will process the transaction in a special environment, where state-writing is not allowed
-func (ts *transactionSimulator) ProcessTx(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (ts *transactionSimulator) ProcessTx(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	ts.mutOperation.Lock()
 	defer ts.mutOperation.Unlock()
 
@@ -160,7 +160,7 @@ func (ts *transactionSimulator) addLogsFromVmOutput(results *txSimData.Simulatio
 	}
 }
 
-func (ts *transactionSimulator) getVMOutputOfTx(tx *transaction.Transaction) (*vmcommon.VMOutput, bool) {
+func (ts *transactionSimulator) getVMOutputOfTx(tx data.TransactionHandler) (*vmcommon.VMOutput, bool) {
 	txHash, err := core.CalculateHash(ts.marshalizer, ts.hasher, tx)
 	if err != nil {
 		return nil, false

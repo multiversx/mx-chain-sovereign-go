@@ -1,6 +1,9 @@
 package disabled
 
-import "github.com/multiversx/mx-chain-core-go/data/transaction"
+import (
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+)
 
 // TxVersionChecker implements the TxVersionChecker interface, it does nothing as it is a disabled component
 type TxVersionChecker struct{}
@@ -11,7 +14,7 @@ func NewDisabledTxVersionChecker() *TxVersionChecker {
 }
 
 // IsGuardedTransaction returns false as this is a disabled component
-func (tvc *TxVersionChecker) IsGuardedTransaction(_ *transaction.Transaction) bool {
+func (tvc *TxVersionChecker) IsGuardedTransaction(_ data.TransactionHandler) bool {
 	return false
 }
 

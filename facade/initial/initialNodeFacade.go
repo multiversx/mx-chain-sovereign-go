@@ -6,12 +6,14 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -137,17 +139,17 @@ func (inf *initialNodeFacade) GetESDTsWithRole(_ string, _ string, _ api.Account
 }
 
 // CreateTransaction return nil and error
-func (inf *initialNodeFacade) CreateTransaction(_ *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
+func (inf *initialNodeFacade) CreateTransaction(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 	return nil, nil, errNodeStarting
 }
 
 // ValidateTransaction returns error
-func (inf *initialNodeFacade) ValidateTransaction(_ *transaction.Transaction) error {
+func (inf *initialNodeFacade) ValidateTransaction(_ coreData.TransactionHandler) error {
 	return errNodeStarting
 }
 
 // ValidateTransactionForSimulation returns error
-func (inf *initialNodeFacade) ValidateTransactionForSimulation(_ *transaction.Transaction, _ bool) error {
+func (inf *initialNodeFacade) ValidateTransactionForSimulation(_ coreData.TransactionHandler, _ bool) error {
 	return errNodeStarting
 }
 
@@ -162,12 +164,12 @@ func (inf *initialNodeFacade) AuctionListApi() ([]*common.AuctionListValidatorAP
 }
 
 // SendBulkTransactions returns 0 and error
-func (inf *initialNodeFacade) SendBulkTransactions(_ []*transaction.Transaction) (uint64, error) {
+func (inf *initialNodeFacade) SendBulkTransactions(_ []coreData.TransactionHandler) (uint64, error) {
 	return uint64(0), errNodeStarting
 }
 
 // SimulateTransactionExecution returns nil and error
-func (inf *initialNodeFacade) SimulateTransactionExecution(_ *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (inf *initialNodeFacade) SimulateTransactionExecution(_ coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	return nil, errNodeStarting
 }
 
@@ -177,7 +179,7 @@ func (inf *initialNodeFacade) GetTransaction(_ string, _ bool) (*transaction.Api
 }
 
 // ComputeTransactionGasLimit returns 0 and error
-func (inf *initialNodeFacade) ComputeTransactionGasLimit(_ *transaction.Transaction) (*transaction.CostResponse, error) {
+func (inf *initialNodeFacade) ComputeTransactionGasLimit(_ coreData.TransactionHandler) (*transaction.CostResponse, error) {
 	return nil, errNodeStarting
 }
 

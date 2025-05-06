@@ -40,9 +40,9 @@ import (
 
 // TransactionProcessor is the main interface for transaction execution engine
 type TransactionProcessor interface {
-	ProcessTransaction(transaction *transaction.Transaction) (vmcommon.ReturnCode, error)
+	ProcessTransaction(transaction data.TransactionHandler) (vmcommon.ReturnCode, error)
 	VerifyTransaction(transaction *transaction.Transaction) error
-	VerifyGuardian(tx *transaction.Transaction, account state.UserAccountHandler) error
+	VerifyGuardian(tx data.TransactionHandler, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccounts(transaction *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
 	GetRelayerAccount(transaction *transaction.Transaction) (state.UserAccountHandler, error)
 	IsInterfaceNil() bool
@@ -107,7 +107,7 @@ type InterceptedTransactionHandler interface {
 
 // TxVersionCheckerHandler defines the functionality that is needed for a TxVersionChecker to validate transaction version
 type TxVersionCheckerHandler interface {
-	IsGuardedTransaction(tx *transaction.Transaction) bool
+	IsGuardedTransaction(tx data.TransactionHandler) bool
 	IsSignedWithHash(tx *transaction.Transaction) bool
 	CheckTxVersion(tx *transaction.Transaction) error
 	IsInterfaceNil() bool
@@ -1345,7 +1345,7 @@ type DoubleTransactionDetector interface {
 
 // TxsSenderHandler handles transactions sending
 type TxsSenderHandler interface {
-	SendBulkTransactions(txs []*transaction.Transaction) (uint64, error)
+	SendBulkTransactions(txs []data.TransactionHandler) (uint64, error)
 	Close() error
 	IsInterfaceNil() bool
 }

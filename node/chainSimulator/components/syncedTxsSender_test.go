@@ -6,7 +6,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
 	"github.com/multiversx/mx-chain-go/process"
@@ -14,7 +17,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/stretchr/testify/assert"
 )
 
 func createMockSyncedTxsSenderArgs() ArgsSyncedTxsSender {
@@ -107,17 +109,17 @@ func TestSyncedTxsSender_SendBulkTransactions(t *testing.T) {
 	senderBShard1 := []byte("sender B shard 1")
 	senderCShard0 := []byte("sender C shard 0")
 	senderDShard1 := []byte("sender D shard 1")
-	testTransactions := []*transaction.Transaction{
-		{
+	testTransactions := []data.TransactionHandler{
+		&transaction.Transaction{
 			SndAddr: senderAShard0,
 		},
-		{
+		&transaction.Transaction{
 			SndAddr: senderBShard1,
 		},
-		{
+		&transaction.Transaction{
 			SndAddr: senderCShard0,
 		},
-		{
+		&transaction.Transaction{
 			SndAddr: senderDShard1,
 		},
 	}

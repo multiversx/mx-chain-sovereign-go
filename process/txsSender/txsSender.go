@@ -8,15 +8,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/accumulator"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/storage"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("txsSender")
@@ -88,7 +90,7 @@ func NewTxsSenderWithAccumulator(args ArgsTxsSenderWithAccumulator) (*txsSender,
 }
 
 // SendBulkTransactions sends the provided transactions as a bulk, optimizing transfer between nodes
-func (ts *txsSender) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (ts *txsSender) SendBulkTransactions(txs []data.TransactionHandler) (uint64, error) {
 	if len(txs) == 0 {
 		return 0, process.ErrNoTxToProcess
 	}
@@ -98,7 +100,7 @@ func (ts *txsSender) SendBulkTransactions(txs []*transaction.Transaction) (uint6
 	return uint64(len(txs)), nil
 }
 
-func (ts *txsSender) addTransactionsToSendPipe(txs []*transaction.Transaction) {
+func (ts *txsSender) addTransactionsToSendPipe(txs []data.TransactionHandler) {
 	for _, tx := range txs {
 		ts.txAccumulator.AddData(tx)
 	}
@@ -124,13 +126,14 @@ func (ts *txsSender) sendTxObjsFromChannel(objs []interface{}) {
 		return
 	}
 
-	txs := make([]*transaction.Transaction, 0, len(objs))
+	txs := make([]data.TransactionHandler, 0, len(objs))
 	for _, obj := range objs {
-		tx, ok := obj.(*transaction.Transaction)
+		_, ok := obj.(*transaction.Transaction)
 		if !ok {
 			continue
 		}
 
+		tx, _ := obj.(data.TransactionHandler)
 		txs = append(txs, tx)
 	}
 
@@ -138,7 +141,7 @@ func (ts *txsSender) sendTxObjsFromChannel(objs []interface{}) {
 	ts.sendBulkTransactions(txs)
 }
 
-func (ts *txsSender) sendBulkTransactions(txs []*transaction.Transaction) {
+func (ts *txsSender) sendBulkTransactions(txs []data.TransactionHandler) {
 	transactionsByShards := make(map[uint32][][]byte)
 	log.Trace("txsSender.sendBulkTransactions sending txs",
 		"num", len(txs),
@@ -153,7 +156,7 @@ func (ts *txsSender) sendBulkTransactions(txs []*transaction.Transaction) {
 			continue
 		}
 
-		senderShardId := ts.shardCoordinator.ComputeId(tx.SndAddr)
+		senderShardId := ts.shardCoordinator.ComputeId(tx.GetSndAddr())
 		transactionsByShards[senderShardId] = append(transactionsByShards[senderShardId], marshalledTx)
 	}
 

@@ -13,16 +13,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/storage/txcache"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewTransactionSimulator(t *testing.T) {
@@ -128,7 +129,7 @@ func TestTransactionSimulator_ProcessTxProcessingErrShouldSignal(t *testing.T) {
 	expErr := errors.New("transaction failed")
 	args := getTxSimulatorArgs()
 	args.TransactionProcessor = &testscommon.TxProcessorStub{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return expRetCode, expErr
 		},
 	}
@@ -255,7 +256,7 @@ func TestTransactionSimulator_ProcessTxConcurrentCalls(t *testing.T) {
 	numTransactionProcessorCalls := 0
 	args := getTxSimulatorArgs()
 	args.TransactionProcessor = &testscommon.TxProcessorStub{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			// deliberately not used a mutex here as to catch race conditions
 			numTransactionProcessorCalls++
 

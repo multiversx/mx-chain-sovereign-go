@@ -11,13 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+
 	"github.com/multiversx/mx-chain-go/api/errors"
 	"github.com/multiversx/mx-chain-go/api/middleware"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	"github.com/multiversx/mx-chain-go/api/shared/logging"
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/node/external"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 )
 
@@ -46,18 +47,18 @@ const (
 
 // transactionFacadeHandler defines the methods to be implemented by a facade for transaction requests
 type transactionFacadeHandler interface {
-	CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error)
-	ValidateTransaction(tx *transaction.Transaction) error
-	ValidateTransactionForSimulation(tx *transaction.Transaction, checkSignature bool) error
-	SendBulkTransactions([]*transaction.Transaction) (uint64, error)
-	SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
+	CreateTransaction(requestTx map[string]interface{}) (data.TransactionHandler, []byte, error)
+	ValidateTransaction(tx data.TransactionHandler) error
+	ValidateTransactionForSimulation(tx data.TransactionHandler, checkSignature bool) error
+	SendBulkTransactions([]data.TransactionHandler) (uint64, error)
+	SimulateTransactionExecution(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	GetTransaction(hash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetSCRsByTxHash(txHash string, scrHash string) ([]*transaction.ApiSmartContractResult, error)
 	GetTransactionsPool(fields string) (*common.TransactionsPoolAPIResponse, error)
 	GetTransactionsPoolForSender(sender, fields string) (*common.TransactionsPoolForSenderApiResponse, error)
 	GetLastPoolNonceForSender(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSender(sender string) (*common.TransactionsPoolNonceGapsForSenderApiResponse, error)
-	ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error)
+	ComputeTransactionGasLimit(tx data.TransactionHandler) (*transaction.CostResponse, error)
 	EncodeAddressPubkey(pk []byte) (string, error)
 	GetThrottlerForEndpoint(endpoint string) (core.Throttler, bool)
 	IsInterfaceNil() bool
@@ -170,8 +171,8 @@ type TxResponse struct {
 
 // simulateTransaction will receive a transaction from the client and will simulate its execution and return the results
 func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
-	var ftx = transaction.FrontendTransaction{}
-	err := c.ShouldBindJSON(&ftx)
+	var requestTx map[string]interface{}
+	err := c.ShouldBindJSON(&requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -197,7 +198,7 @@ func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
 		return
 	}
 
-	tx, txHash, err := tg.createTransaction(&ftx)
+	tx, txHash, err := tg.createTransaction(requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -253,8 +254,8 @@ func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
 
 // sendTransaction will receive a transaction from the client and propagate it for processing
 func (tg *transactionGroup) sendTransaction(c *gin.Context) {
-	var ftx = transaction.FrontendTransaction{}
-	err := c.ShouldBindJSON(&ftx)
+	var requestTx map[string]interface{}
+	err := c.ShouldBindJSON(&requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -267,7 +268,7 @@ func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 		return
 	}
 
-	tx, txHash, err := tg.createTransaction(&ftx)
+	tx, txHash, err := tg.createTransaction(requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -296,7 +297,7 @@ func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 	}
 
 	start = time.Now()
-	_, err = tg.getFacade().SendBulkTransactions([]*transaction.Transaction{tx})
+	_, err = tg.getFacade().SendBulkTransactions([]data.TransactionHandler{tx})
 	logging.LogAPIActionDurationIfNeeded(start, "API call: SendBulkTransactions")
 	if err != nil {
 		c.JSON(
@@ -323,8 +324,8 @@ func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 
 // sendMultipleTransactions will receive a number of transactions and will propagate them for processing
 func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
-	var ftxs []transaction.FrontendTransaction
-	err := c.ShouldBindJSON(&ftxs)
+	var requestTxs []map[string]interface{}
+	err := c.ShouldBindJSON(&requestTxs)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -338,15 +339,15 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 	}
 
 	var (
-		txs    []*transaction.Transaction
-		tx     *transaction.Transaction
+		txs    []data.TransactionHandler
+		tx     data.TransactionHandler
 		txHash []byte
 	)
 
 	var start time.Time
 	txsHashes := make(map[int]string)
-	for idx, receivedTx := range ftxs {
-		tx, txHash, err = tg.createTransaction(&receivedTx)
+	for idx, receivedTx := range requestTxs {
+		tx, txHash, err = tg.createTransaction(receivedTx)
 		if err != nil {
 			continue
 		}
@@ -494,8 +495,8 @@ func (tg *transactionGroup) getTransaction(c *gin.Context) {
 
 // computeTransactionGasLimit returns how many gas units a transaction wil consume
 func (tg *transactionGroup) computeTransactionGasLimit(c *gin.Context) {
-	var ftx transaction.FrontendTransaction
-	err := c.ShouldBindJSON(&ftx)
+	var requestTx map[string]interface{}
+	err := c.ShouldBindJSON(&requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -508,7 +509,7 @@ func (tg *transactionGroup) computeTransactionGasLimit(c *gin.Context) {
 		return
 	}
 
-	tx, _, err := tg.createTransaction(&ftx)
+	tx, _, err := tg.createTransaction(requestTx)
 	if err != nil {
 		c.JSON(
 			http.StatusInternalServerError,
@@ -718,28 +719,9 @@ func (tg *transactionGroup) getTransactionsPoolNonceGapsForSender(sender string,
 	)
 }
 
-func (tg *transactionGroup) createTransaction(receivedTx *transaction.FrontendTransaction) (*transaction.Transaction, []byte, error) {
-	txArgs := &external.ArgsCreateTransaction{
-		Nonce:               receivedTx.Nonce,
-		Value:               receivedTx.Value,
-		Receiver:            receivedTx.Receiver,
-		ReceiverUsername:    receivedTx.ReceiverUsername,
-		Sender:              receivedTx.Sender,
-		SenderUsername:      receivedTx.SenderUsername,
-		GasPrice:            receivedTx.GasPrice,
-		GasLimit:            receivedTx.GasLimit,
-		DataField:           receivedTx.Data,
-		SignatureHex:        receivedTx.Signature,
-		ChainID:             receivedTx.ChainID,
-		Version:             receivedTx.Version,
-		Options:             receivedTx.Options,
-		Guardian:            receivedTx.GuardianAddr,
-		GuardianSigHex:      receivedTx.GuardianSignature,
-		Relayer:             receivedTx.RelayerAddr,
-		RelayerSignatureHex: receivedTx.RelayerSignature,
-	}
+func (tg *transactionGroup) createTransaction(requestTx map[string]interface{}) (data.TransactionHandler, []byte, error) {
 	start := time.Now()
-	tx, txHash, err := tg.getFacade().CreateTransaction(txArgs)
+	tx, txHash, err := tg.getFacade().CreateTransaction(requestTx)
 	logging.LogAPIActionDurationIfNeeded(start, "API call: CreateTransaction")
 
 	return tx, txHash, err

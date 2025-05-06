@@ -18,6 +18,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/debug"
@@ -29,8 +32,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/state"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 // DefaultRestInterface is the default interface the rest API will start on if not specified
@@ -266,17 +267,17 @@ func (nf *nodeFacade) getContextForApiTrieRangeOperations() (context.Context, co
 }
 
 // CreateTransaction creates a transaction from all needed fields
-func (nf *nodeFacade) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
-	return nf.node.CreateTransaction(txArgs)
+func (nf *nodeFacade) CreateTransaction(requestTx map[string]interface{}) (chainData.TransactionHandler, []byte, error) {
+	return nf.node.CreateTransaction(requestTx)
 }
 
 // ValidateTransaction will validate a transaction
-func (nf *nodeFacade) ValidateTransaction(tx *transaction.Transaction) error {
+func (nf *nodeFacade) ValidateTransaction(tx chainData.TransactionHandler) error {
 	return nf.node.ValidateTransaction(tx)
 }
 
 // ValidateTransactionForSimulation will validate a transaction for the simulation process
-func (nf *nodeFacade) ValidateTransactionForSimulation(tx *transaction.Transaction, checkSignature bool) error {
+func (nf *nodeFacade) ValidateTransactionForSimulation(tx chainData.TransactionHandler, checkSignature bool) error {
 	return nf.node.ValidateTransactionForSimulation(tx, checkSignature)
 }
 
@@ -291,12 +292,12 @@ func (nf *nodeFacade) AuctionListApi() ([]*common.AuctionListValidatorAPIRespons
 }
 
 // SendBulkTransactions will send a bulk of transactions on the topic channel
-func (nf *nodeFacade) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (nf *nodeFacade) SendBulkTransactions(txs []chainData.TransactionHandler) (uint64, error) {
 	return nf.node.SendBulkTransactions(txs)
 }
 
 // SimulateTransactionExecution will simulate a transaction's execution and will return the results
-func (nf *nodeFacade) SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (nf *nodeFacade) SimulateTransactionExecution(tx chainData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	return nf.apiResolver.SimulateTransactionExecution(tx)
 }
 
@@ -336,7 +337,7 @@ func (nf *nodeFacade) GetTransactionsPoolNonceGapsForSender(sender string) (*com
 }
 
 // ComputeTransactionGasLimit will estimate how many gas a transaction will consume
-func (nf *nodeFacade) ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+func (nf *nodeFacade) ComputeTransactionGasLimit(tx chainData.TransactionHandler) (*transaction.CostResponse, error) {
 	return nf.apiResolver.ComputeTransactionGasLimit(tx)
 }
 

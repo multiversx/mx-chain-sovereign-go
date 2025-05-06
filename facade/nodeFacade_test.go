@@ -20,6 +20,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/debug"
@@ -32,9 +36,6 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var expectedErr = errors.New("expected error")
@@ -573,7 +574,7 @@ func TestNodeFacade_SendBulkTransactions(t *testing.T) {
 	expectedNumOfSuccessfulTxs := uint64(1)
 	sendBulkTxsWasCalled := false
 	node := &mock.NodeStub{
-		SendBulkTransactionsHandler: func(txs []*transaction.Transaction) (uint64, error) {
+		SendBulkTransactionsHandler: func(txs []nodeData.TransactionHandler) (uint64, error) {
 			sendBulkTxsWasCalled = true
 			return expectedNumOfSuccessfulTxs, nil
 		},
@@ -583,7 +584,7 @@ func TestNodeFacade_SendBulkTransactions(t *testing.T) {
 	arg.Node = node
 	nf, _ := NewNodeFacade(arg)
 
-	txs := make([]*transaction.Transaction, 0)
+	txs := make([]nodeData.TransactionHandler, 0)
 	txs = append(txs, &transaction.Transaction{Nonce: 1})
 
 	res, err := nf.SendBulkTransactions(txs)
@@ -647,7 +648,7 @@ func TestNodeFacade_CreateTransaction(t *testing.T) {
 
 	nodeCreateTxWasCalled := false
 	node := &mock.NodeStub{
-		CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
+		CreateTransactionHandler: func(requestTx map[string]interface{}) (nodeData.TransactionHandler, []byte, error) {
 			nodeCreateTxWasCalled = true
 			return nil, nil, nil
 		},
@@ -656,7 +657,7 @@ func TestNodeFacade_CreateTransaction(t *testing.T) {
 	arg.Node = node
 	nf, _ := NewNodeFacade(arg)
 
-	_, _, _ = nf.CreateTransaction(&external.ArgsCreateTransaction{})
+	_, _, _ = nf.CreateTransaction(nil)
 
 	require.True(t, nodeCreateTxWasCalled)
 }
@@ -1024,7 +1025,7 @@ func TestNodeFacade_ValidateTransactionForSimulation(t *testing.T) {
 	called := false
 	arg := createMockArguments()
 	arg.Node = &mock.NodeStub{
-		ValidateTransactionForSimulationCalled: func(tx *transaction.Transaction, bypassSignature bool) error {
+		ValidateTransactionForSimulationCalled: func(tx nodeData.TransactionHandler, bypassSignature bool) error {
 			called = true
 			return nil
 		},
@@ -2171,7 +2172,7 @@ func TestNodeFacade_ValidateTransaction(t *testing.T) {
 	args := createMockArguments()
 	wasCalled := false
 	args.Node = &mock.NodeStub{
-		ValidateTransactionHandler: func(tx *transaction.Transaction) error {
+		ValidateTransactionHandler: func(tx nodeData.TransactionHandler) error {
 			wasCalled = true
 			return nil
 		},
@@ -2198,7 +2199,7 @@ func TestNodeFacade_SimulateTransactionExecution(t *testing.T) {
 	}
 	args := createMockArguments()
 	args.ApiResolver = &mock.ApiResolverStub{
-		SimulateTransactionExecutionHandler: func(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+		SimulateTransactionExecutionHandler: func(tx nodeData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return providedResponse, nil
 		},
 	}
@@ -2218,7 +2219,7 @@ func TestNodeFacade_ComputeTransactionGasLimit(t *testing.T) {
 	}
 	args := createMockArguments()
 	args.ApiResolver = &mock.ApiResolverStub{
-		ComputeTransactionGasLimitHandler: func(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+		ComputeTransactionGasLimitHandler: func(tx nodeData.TransactionHandler) (*transaction.CostResponse, error) {
 			return providedResponse, nil
 		},
 	}

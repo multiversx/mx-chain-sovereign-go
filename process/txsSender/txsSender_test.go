@@ -13,9 +13,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/atomic"
 	"github.com/multiversx/mx-chain-core-go/core/partitioning"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/batch"
 	scrData "github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/dataRetriever/mock"
@@ -25,8 +29,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewTxsSenderWithAccumulator(t *testing.T) {
@@ -114,7 +116,7 @@ func TestTxsSender_SendBulkTransactions(t *testing.T) {
 		return uint32(sId)
 	}
 
-	var txsToSend []*transaction.Transaction
+	var txsToSend []data.TransactionHandler
 	txsToSend = append(txsToSend, &transaction.Transaction{
 		Nonce:     10,
 		Value:     big.NewInt(15),
@@ -307,7 +309,7 @@ func TestTxsSender_sendBulkTransactionsSendTwoTxsFailToMarshallOneExpectOnlyOneT
 	senderAddrTx2 := []byte("senderAddrTx2")
 	tx1 := &transaction.Transaction{SndAddr: senderAddrTx1}
 	tx2 := &transaction.Transaction{SndAddr: senderAddrTx2}
-	txs := []*transaction.Transaction{tx1, tx2}
+	txs := []data.TransactionHandler{tx1, tx2}
 
 	ctMarshallCalled := atomic.Counter{}
 	ctComputeIdCalled := atomic.Counter{}
@@ -418,7 +420,7 @@ func TestTxsSender_SendBulkTransactionsNoTxToProcessExpectError(t *testing.T) {
 	args := generateMockArgsTxsSender()
 	txsHandler, _ := NewTxsSenderWithAccumulator(args)
 
-	numOfProcessedTxs, err := txsHandler.SendBulkTransactions([]*transaction.Transaction{})
+	numOfProcessedTxs, err := txsHandler.SendBulkTransactions([]data.TransactionHandler{})
 	assert.Equal(t, uint64(0), numOfProcessedTxs)
 	assert.Equal(t, process.ErrNoTxToProcess, err)
 }

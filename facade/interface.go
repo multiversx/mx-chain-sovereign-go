@@ -11,6 +11,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/heartbeat/data"
@@ -18,7 +20,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 // NodeHandler contains all functions that a node should contain.
@@ -63,14 +64,14 @@ type NodeHandler interface {
 	GetTokenSupply(token string) (*api.ESDTSupply, error)
 
 	// CreateTransaction will return a transaction from all needed fields
-	CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error)
+	CreateTransaction(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error)
 
 	// ValidateTransaction will validate a transaction
-	ValidateTransaction(tx *transaction.Transaction) error
-	ValidateTransactionForSimulation(tx *transaction.Transaction, checkSignature bool) error
+	ValidateTransaction(tx coreData.TransactionHandler) error
+	ValidateTransactionForSimulation(tx coreData.TransactionHandler, checkSignature bool) error
 
 	// SendBulkTransactions will send a bulk of transactions on the 'send transactions pipe' channel
-	SendBulkTransactions(txs []*transaction.Transaction) (uint64, error)
+	SendBulkTransactions(txs []coreData.TransactionHandler) (uint64, error)
 
 	// GetAccount returns an accountResponse containing information
 	//  about the account correlated with provided address
@@ -113,15 +114,15 @@ type NodeHandler interface {
 
 // TransactionSimulatorProcessor defines the actions which a transaction simulator processor has to implement
 type TransactionSimulatorProcessor interface {
-	ProcessTx(tx *transaction.Transaction, currentHeader coreData.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error)
+	ProcessTx(tx coreData.TransactionHandler, currentHeader coreData.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	IsInterfaceNil() bool
 }
 
 // ApiResolver defines a structure capable of resolving REST API requests
 type ApiResolver interface {
 	ExecuteSCQuery(query *process.SCQuery) (*vmcommon.VMOutput, common.BlockInfo, error)
-	ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error)
-	SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
+	ComputeTransactionGasLimit(tx coreData.TransactionHandler) (*transaction.CostResponse, error)
+	SimulateTransactionExecution(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	StatusMetrics() external.StatusMetricsHandler
 	GetTotalStakedValue(ctx context.Context) (*api.StakeValues, error)
 	GetDirectStakedList(ctx context.Context) ([]*api.DirectStakedValue, error)

@@ -1,6 +1,7 @@
 package testscommon
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
@@ -9,15 +10,15 @@ import (
 
 // TxProcessorStub -
 type TxProcessorStub struct {
-	ProcessTransactionCalled           func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error)
+	ProcessTransactionCalled           func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error)
 	VerifyTransactionCalled            func(tx *transaction.Transaction) error
-	VerifyGuardianCalled               func(tx *transaction.Transaction, account state.UserAccountHandler) error
+	VerifyGuardianCalled               func(tx data.TransactionHandler, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccountsCalled func(tx *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
 	GetRelayerAccountCalled            func(tx *transaction.Transaction) (state.UserAccountHandler, error)
 }
 
 // ProcessTransaction -
-func (tps *TxProcessorStub) ProcessTransaction(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+func (tps *TxProcessorStub) ProcessTransaction(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 	if tps.ProcessTransactionCalled != nil {
 		return tps.ProcessTransactionCalled(transaction)
 	}
@@ -35,7 +36,7 @@ func (tps *TxProcessorStub) VerifyTransaction(tx *transaction.Transaction) error
 }
 
 // VerifyGuardian -
-func (tps *TxProcessorStub) VerifyGuardian(tx *transaction.Transaction, account state.UserAccountHandler) error {
+func (tps *TxProcessorStub) VerifyGuardian(tx data.TransactionHandler, account state.UserAccountHandler) error {
 	if tps.VerifyGuardianCalled != nil {
 		return tps.VerifyGuardianCalled(tx, account)
 	}

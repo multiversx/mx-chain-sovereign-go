@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-go/facade"
-	"github.com/multiversx/mx-chain-go/node/external"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/multiversx/mx-chain-go/facade"
+	"github.com/multiversx/mx-chain-go/testscommon"
 )
 
 func createInitialNodeFacadeArgs() ArgInitialNodeFacade {
@@ -80,7 +80,7 @@ func TestInitialNodeFacade_AllMethodsShouldNotPanic(t *testing.T) {
 	assert.Nil(t, s3)
 	assert.Equal(t, errNodeStarting, err)
 
-	n1, n2, err := inf.CreateTransaction(&external.ArgsCreateTransaction{})
+	n1, n2, err := inf.CreateTransaction(nil)
 	assert.Nil(t, n1)
 	assert.Nil(t, n2)
 	assert.Equal(t, errNodeStarting, err)
