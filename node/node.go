@@ -1019,7 +1019,7 @@ func (n *Node) CreateTransaction(requestTx map[string]interface{}) (data.Transac
 	return tx, txHash, nil
 }
 
-func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx *transaction.Transaction) error {
+func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx data.TransactionHandler) error {
 	addrPubKeyConverter := n.coreComponents.AddressPubKeyConverter()
 	guardianAddress, err := addrPubKeyConverter.Decode(guardian)
 	if err != nil {
@@ -1033,8 +1033,8 @@ func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx *tra
 		return errors.New("transaction has guardian but guardian option not set")
 	}
 
-	tx.GuardianAddr = guardianAddress
-	tx.GuardianSignature = guardianSigBytes
+	tx.SetGuardianAddr(guardianAddress)
+	tx.SetGuardianSignature(guardianSigBytes)
 
 	return nil
 }
