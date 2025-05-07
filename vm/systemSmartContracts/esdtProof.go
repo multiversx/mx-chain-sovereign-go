@@ -229,7 +229,7 @@ func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
 }
 
 // createDPFT handles the creation of a DAGProof token, linking to parents.
-// Expected input parts: [ "createProof", "MYTICKER", "dPFT", "proof_data", "<list_parent_keys>" ]
+// Expected input parts: [ "createProof", "MYTICKER", "dPFT", "proof_data", "<list_parent_token_ids>" ]
 func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	if len(parts) < 2 {
 		return errors.New("expected at least 2 arguments for createDPFT")
