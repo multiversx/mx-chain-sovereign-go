@@ -60,7 +60,7 @@ func (e *esdt) registerProofTicker(args *vmcommon.ContractCallInput) vmcommon.Re
 		args.Arguments[1],
 		big.NewInt(0),
 		0,
-		[][]byte{},
+		[][]byte{[]byte(canCreateMultiShard), []byte("true")},
 		tokenType)
 	if err != nil {
 		e.eei.AddReturnMessage(err.Error())

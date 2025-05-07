@@ -1789,8 +1789,10 @@ func (e *esdt) checkSpecialRolesAccordingToTokenType(args [][]byte, token *ESDTD
 		return validateRoles(args, e.isSpecialRoleValidForDynamicNFT)
 	case core.DynamicSFTESDT, core.DynamicMetaESDT:
 		return validateRoles(args, e.isSpecialRoleValidForDynamicSFT)
+	case "proof":
+		return validateRoles(args, e.isSpecialRoleValidForDynamicSFT)
 	}
-	return nil
+	return vm.ErrInvalidArgument
 }
 
 type rolesProperties struct {
