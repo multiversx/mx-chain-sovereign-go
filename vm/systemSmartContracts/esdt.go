@@ -248,6 +248,8 @@ func (e *esdt) Execute(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
 		return e.registerProofTicker(args)
 	case funcCreateProof:
 		return e.createProof(args)
+	case "deleteProof":
+		return e.deleteProofs(args)
 	}
 
 	e.eei.AddReturnMessage("invalid method to call")

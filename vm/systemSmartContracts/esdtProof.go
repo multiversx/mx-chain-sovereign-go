@@ -2,9 +2,11 @@ package systemSmartContracts
 
 import (
 	"bytes"
+	esdtCore "github.com/multiversx/mx-chain-core-go/data/esdt"
 	"math/big"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/vm"
@@ -36,7 +38,11 @@ const (
 	// Costs (These are placeholders - should be defined properly in gas schedule)
 	createMicroPFTBaseCost   = 100_000
 	createDPFTBaseCost       = 200_000
+	deleteProofBaseCost      = 50_000
+	deleteCostPerProof       = 1_000
 	parentCheckCostPerParent = 10_000 // Cost for each parent existence check
+
+	deleteCutOff = 259_200_000
 )
 
 // registerProofTicker handles the registration of a new proof ticker and assigns the create role.
@@ -94,8 +100,6 @@ func (e *esdt) registerProofTicker(args *vmcommon.ContractCallInput) vmcommon.Re
 	return vmcommon.Ok
 }
 
-// --- Create Proof (Dispatcher) ---
-
 // createProof acts as a dispatcher based on the proof type provided in the input.
 // Expected input: createProof@MYTICKER@PROOF_TYPE@... (specific format depends on PROOF_TYPE)
 func (e *esdt) createProof(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
@@ -134,6 +138,52 @@ func (e *esdt) createProof(args *vmcommon.ContractCallInput) vmcommon.ReturnCode
 	return vmcommon.Ok
 }
 
+// deleteProof@List<Proofs>
+// it will delete the proofs given in the list which are older than 3 days
+func (e *esdt) deleteProofs(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
+	err := e.eei.UseGas(uint64(deleteProofBaseCost + len(args.Arguments)*deleteCostPerProof))
+	if err != nil {
+		e.eei.AddReturnMessage(err.Error())
+		return vmcommon.OutOfGas
+	}
+
+	currentTimestamp := e.eei.BlockChainHook().LastTimeStamp()
+	for _, pkBytes := range args.Arguments {
+		if !validateProofTokenID(pkBytes) {
+			continue
+		}
+
+		pkKey := pftPrefix + string(pkBytes)
+		timeStamp := e.getProofTimestamp([]byte(pkKey))
+		if currentTimestamp-timeStamp > deleteCutOff {
+			e.eei.SetStorageForAddress(core.SystemAccountAddress, []byte(pkKey), nil)
+		}
+	}
+
+	return vmcommon.Ok
+}
+
+func validateProofTokenID(token []byte) bool {
+	splits := strings.Split(string(token), "-")
+	if len(splits) != 3 {
+		return false
+	}
+
+	if !esdtCore.IsTickerValid(splits[0]) {
+		return false
+	}
+
+	if !esdtCore.IsRandomSeqValid(splits[1]) {
+		return false
+	}
+
+	if len(splits[2]) > 20 {
+		return false
+	}
+
+	return true
+}
+
 // createMicroPFT handles the creation of a simple MicroProof token.
 // Expected input parts (from createProof): [ "createProof", "MYTICKER", "proof_data" ]
 func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) error {
@@ -169,11 +219,11 @@ func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
 
 	timestampBytes := big.NewInt(0).SetUint64(e.eei.BlockChainHook().LastTimeStamp()).Bytes()
 
-	// Value = [32b_hash | 4b_algo_id | 8b_timestamp]
-	pftValue := make([]byte, 0, hashSize+algoIDMicroPFTSize+timestampSize)
+	// Value = [32b_hash | 8b_timestamp | 4b_algo_id ]
+	pftValue := make([]byte, 0, hashSize+timestampSize+algoIDMicroPFTSize)
 	pftValue = append(pftValue, hashBytes...)
-	pftValue = append(pftValue, algoIDMicroPFT...)
 	pftValue = append(pftValue, timestampBytes...)
+	pftValue = append(pftValue, algoIDMicroPFT...)
 
 	return pftValue
 }
@@ -201,7 +251,7 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	pftKey := e.generatePFTStorageKey(ticker, newNonce)
 
 	for _, pkBytes := range parents {
-		if !vmcommon.ValidateToken(pkBytes) {
+		if !validateProofTokenID(pkBytes) {
 			return errors.New("invalid token id")
 		}
 
@@ -236,12 +286,12 @@ func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]
 
 	timestampBytes := big.NewInt(0).SetUint64(e.eei.BlockChainHook().LastTimeStamp()).Bytes()
 
-	// Value = [32b_digest | 32b_parent_hash | 8b_flags | 8b_timestamp]
-	pftValue := make([]byte, 0, hashSize+hashSize+flagsDPFTSize+timestampSize)
+	// Value = [32b_digest | 8b_timestamp | 32b_parent_hash | 8b_flags]
+	pftValue := make([]byte, 0, hashSize+timestampSize+hashSize+flagsDPFTSize)
 	pftValue = append(pftValue, proofHash...)
+	pftValue = append(pftValue, timestampBytes...)
 	pftValue = append(pftValue, parentHashBytes...)
 	pftValue = append(pftValue, flagsDPFT...)
-	pftValue = append(pftValue, timestampBytes...)
 
 	return pftValue, nil
 }
@@ -250,6 +300,16 @@ func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]
 func (e *esdt) generatePFTStorageKey(ticker []byte, nonce uint64) []byte {
 	key := pftPrefix + string(ticker) + "-" + strconv.FormatUint(nonce, 10)
 	return []byte(key)
+}
+
+func (e *esdt) getProofTimestamp(pkKey []byte) uint64 {
+	proofData := e.eei.GetStorageFromAddress(core.SystemAccountAddress, pkKey)
+	if len(proofData) < 40 {
+		return e.eei.BlockChainHook().LastTimeStamp()
+	}
+
+	timeStampData := proofData[32:40]
+	return big.NewInt(0).SetBytes(timeStampData).Uint64()
 }
 
 // computeParentListHash calculates the SHA256 hash of a sorted list of parent keys.
