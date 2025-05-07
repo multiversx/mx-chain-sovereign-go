@@ -37,7 +37,6 @@ const (
 	createMicroPFTBaseCost   = 100_000
 	createDPFTBaseCost       = 200_000
 	parentCheckCostPerParent = 10_000 // Cost for each parent existence check
-	storageCostPerByte       = 1_000  // Placeholder cost for storing data
 )
 
 // registerProofTicker handles the registration of a new proof ticker and assigns the create role.
@@ -148,12 +147,6 @@ func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) erro
 	}
 
 	proofData := parts[0]
-	dataGas := uint64(len(proofData) * storageCostPerByte)
-	err = e.eei.UseGas(dataGas)
-	if err != nil {
-		return err
-	}
-
 	newNonce := e.incrementLatestNonce(ticker)
 	pftKey := e.generatePFTStorageKey(ticker, newNonce)
 	pftValue := e.generateMicroPFTValue(proofData)
@@ -198,15 +191,8 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	}
 
 	proofData := parts[0]
-	dataGas := uint64(len(proofData) * storageCostPerByte)
-	err = e.eei.UseGas(dataGas)
-	if err != nil {
-		return err
-	}
-
 	parents := parts[1:]
-	lenParents := len(parents)
-	err = e.eei.UseGas(uint64(lenParents * parentCheckCostPerParent))
+	err = e.eei.UseGas(uint64(len(parents) * parentCheckCostPerParent))
 	if err != nil {
 		return err
 	}
@@ -215,6 +201,10 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	pftKey := e.generatePFTStorageKey(ticker, newNonce)
 
 	for _, pkBytes := range parents {
+		if !vmcommon.ValidateToken(pkBytes) {
+			return errors.New("invalid token id")
+		}
+
 		pkKey := append([]byte(pftPrefix), pkBytes...)
 		parentValue := e.eei.GetStorageFromAddress(core.SystemAccountAddress, pkKey)
 		if len(parentValue) == 0 {
