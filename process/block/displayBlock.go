@@ -184,6 +184,7 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 	shardLines = append(shardLines, headerLines...)
 	shardLines = append(shardLines, lines...)
 
+	// TODO: Here, this cast is wrong
 	sovereignChainHeaderHandler, castOk := header.(sovereignChainHeader)
 	if castOk {
 		shardLines = txc.displaySovereignChainHeader(shardLines, sovereignChainHeaderHandler)
@@ -277,6 +278,7 @@ func (txc *transactionCounter) displayLastCrossChainNotarizedHeader(
 		return lines
 	}
 
+	// TODO: Here, too
 	lastCrossChainData := sovHeader.GetLastFinalizedCrossChainHeaderHandler()
 	lines = append(lines, display.NewLineData(false, []string{
 		"Last cross chain notarized header",

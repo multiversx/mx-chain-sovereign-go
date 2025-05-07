@@ -74,9 +74,14 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorage(shard
 		return
 	}
 
-	var extendedHeader data.HeaderHandler
-	for _, extendedHeaderHash := range sovereignHeader.GetExtendedShardHeaderHashes() {
-		extendedHeader, err = process.GetExtendedShardHeaderFromStorage(extendedHeaderHash, ssb.marshalizer, ssb.store)
+	for _, chainData := range sovereignHeader.GetChainDataHandlers() {
+		ssb.cleanupNotarizedStorageForChain(chainData)
+	}
+}
+
+func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForChain(chainData data.ChainDataHandler) {
+	for _, extendedHeaderHash := range chainData.GetExtendedShardHeaderHashes() {
+		extendedHeader, err := process.GetExtendedShardHeaderFromStorage(extendedHeaderHash, ssb.marshalizer, ssb.store)
 		if err != nil {
 			log.Debug("extended block is not found in ExtendedShardHeadersUnit storage",
 				"hash", extendedHeaderHash)
