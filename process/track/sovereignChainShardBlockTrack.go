@@ -268,6 +268,11 @@ func (scsbt *sovereignChainShardBlockTrack) RemoveLastCrossNotarizedHeaders() {
 	scsbt.crossNotarizer.RemoveLastNotarizedHeader()
 }
 
+// RemoveLastCrossNotarizedHeader removes last cross notarized header for a specific chain from tracker list
+func (scsbt *sovereignChainShardBlockTrack) RemoveLastCrossNotarizedHeader(chainID dto.ChainID) {
+	scsbt.crossNotarizer.RemoveLastNotarizedHeaderForShard(uint32(chainID))
+}
+
 // RemoveLastSelfNotarizedHeaders removes last self notarized headers from tracker list
 func (scsbt *sovereignChainShardBlockTrack) RemoveLastSelfNotarizedHeaders() {
 	scsbt.selfNotarizer.RemoveLastNotarizedHeader()

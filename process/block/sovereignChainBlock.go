@@ -36,7 +36,7 @@ var rootHash = "uncomputed root hash"
 type extendedShardHeaderTrackHandler interface {
 	ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error)
 	IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool
-	RemoveLastCrossNotarizedHeaders()
+	RemoveLastCrossNotarizedHeader(chainID dto.ChainID)
 	RemoveLastSelfNotarizedHeaders()
 }
 
@@ -2055,13 +2055,28 @@ func (scbp *sovereignChainBlockProcessor) addProcessedCrossMiniBlocksFromExtende
 	if !ok {
 		return process.ErrWrongTypeAssertion
 	}
+
+	for _, chainData := range sovereignChainShardHeader.GetChainDataHandlers() {
+		err := scbp.addProcessedCrossMiniBlocksFromExtendedShardHeaderForChain(chainData, headerHandler)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (scbp *sovereignChainBlockProcessor) addProcessedCrossMiniBlocksFromExtendedShardHeaderForChain(
+	chainData data.ChainDataHandler,
+	headerHandler data.HeaderHandler,
+) error {
 	miniBlockHashes := make(map[int][]byte, len(headerHandler.GetMiniBlockHeaderHandlers()))
 	for i := 0; i < len(headerHandler.GetMiniBlockHeaderHandlers()); i++ {
 		miniBlockHashes[i] = headerHandler.GetMiniBlockHeaderHandlers()[i].GetHash()
 	}
 
 	scbp.hdrsForCurrBlock.mutHdrsForBlock.RLock()
-	for _, extendedShardHeaderHash := range sovereignChainShardHeader.GetExtendedShardHeaderHashes() {
+	for _, extendedShardHeaderHash := range chainData.GetExtendedShardHeaderHashes() {
 		headerInfo, found := scbp.hdrsForCurrBlock.hdrHashAndInfo[string(extendedShardHeaderHash)]
 		if !found {
 			scbp.hdrsForCurrBlock.mutHdrsForBlock.RUnlock()
@@ -2223,20 +2238,24 @@ func (scbp *sovereignChainBlockProcessor) RestoreBlockIntoPools(header data.Head
 		return fmt.Errorf("%w in sovereignChainBlockProcessor.RestoreBlockIntoPools", errors.ErrWrongTypeAssertion)
 	}
 
+	// todo: Here, check if we should call this func by chain id
+	scbp.extendedShardHeaderTracker.RemoveLastSelfNotarizedHeaders()
+
 	err := scbp.restoreExtendedHeaderIntoPool(sovChainHdr.GetExtendedShardHeaderHashes())
 	if err != nil {
 		return err
 	}
 
-	scbp.extendedShardHeaderTracker.RemoveLastSelfNotarizedHeaders()
+	for _, chainData := range sovChainHdr.GetChainDataHandlers() {
+		numOfNotarizedExtendedHeaders := len(chainData.GetExtendedShardHeaderHashes())
+		log.Debug("sovereignChainBlockProcessor.RestoreBlockIntoPools", "numOfNotarizedExtendedHeaders", numOfNotarizedExtendedHeaders)
+		if numOfNotarizedExtendedHeaders == 0 {
+			continue
+		}
 
-	numOfNotarizedExtendedHeaders := len(sovChainHdr.GetExtendedShardHeaderHashes())
-	log.Debug("sovereignChainBlockProcessor.RestoreBlockIntoPools", "numOfNotarizedExtendedHeaders", numOfNotarizedExtendedHeaders)
-	if numOfNotarizedExtendedHeaders == 0 {
-		return nil
+		scbp.extendedShardHeaderTracker.RemoveLastCrossNotarizedHeader(chainData.GetChainID())
 	}
 
-	scbp.extendedShardHeaderTracker.RemoveLastCrossNotarizedHeaders()
 	return nil
 }
 
