@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,6 +50,10 @@ func createDisplayLinesForOutGoingMb(outGoingMb *block.OutGoingMiniBlockHeader) 
 	return []*display.LineData{
 		{
 			Values:              []string{"OutGoing mini block header", "Hash", hex.EncodeToString(outGoingMb.GetHash())},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Chain", outGoingMb.ChainID.String()},
 			HorizontalRuleAfter: false,
 		},
 		{
@@ -134,8 +139,9 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 
 	shardLines := make([]*display.LineData, 0)
 
-	extendedShardHeaderHashes := [][]byte{[]byte("hash1"), []byte("hash2"), []byte("hash3")}
+	extendedShardHeaderHashes := [][]byte{[]byte("hash1"), []byte("hash2"), []byte("hash3"), []byte("hash4")}
 	outGoingMbHeader1 := &block.OutGoingMiniBlockHeader{
+		ChainID:                               dto.MVX,
 		Type:                                  block.OutGoingMbTx,
 		Hash:                                  []byte("outGoingTxDataHash1"),
 		OutGoingOperationsHash:                []byte("outGoingOperationsHash1"),
@@ -143,6 +149,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		LeaderSignatureOutGoingOperations:     []byte("leaderSig1"),
 	}
 	outGoingMbHeader2 := &block.OutGoingMiniBlockHeader{
+		ChainID:                               dto.ETH,
 		Type:                                  block.OutGoingMbChangeValidatorSet,
 		Hash:                                  []byte("outGoingTxDataHash2"),
 		OutGoingOperationsHash:                []byte("outGoingOperationsHash2"),
@@ -150,8 +157,17 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		LeaderSignatureOutGoingOperations:     []byte("leaderSig2"),
 	}
 	sovChainHeader := &block.SovereignChainHeader{
-		OutGoingMiniBlockHeaders:  []*block.OutGoingMiniBlockHeader{outGoingMbHeader1, outGoingMbHeader2},
-		ExtendedShardHeaderHashes: extendedShardHeaderHashes,
+		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{outGoingMbHeader1, outGoingMbHeader2},
+		ChainsData: []block.ChainData{
+			{
+				ChainID:                   dto.MVX,
+				ExtendedShardHeaderHashes: [][]byte{extendedShardHeaderHashes[0], extendedShardHeaderHashes[1], extendedShardHeaderHashes[2]},
+			},
+			{
+				ChainID:                   dto.ETH,
+				ExtendedShardHeaderHashes: [][]byte{extendedShardHeaderHashes[3]},
+			},
+		},
 	}
 
 	args := createMockArgsTransactionCounter()
@@ -165,7 +181,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 	linesOutGoingMB2 := createDisplayLinesForOutGoingMb(outGoingMbHeader2)
 	expectedLines := []*display.LineData{
 		{
-			Values:              []string{"ExtendedShardHeaderHashes", "ExtendedShardHeaderHash_1", hex.EncodeToString(extendedShardHeaderHashes[0])},
+			Values:              []string{"ExtendedShardHeaderHashes chain MVX", "ExtendedShardHeaderHash_1", hex.EncodeToString(extendedShardHeaderHashes[0])},
 			HorizontalRuleAfter: false,
 		},
 		{
@@ -176,26 +192,37 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 			Values:              []string{"", "ExtendedShardHeaderHash_3", hex.EncodeToString(extendedShardHeaderHashes[2])},
 			HorizontalRuleAfter: true,
 		},
+		{
+			Values:              []string{"ExtendedShardHeaderHashes chain ETH", "ExtendedShardHeaderHash_1", hex.EncodeToString(extendedShardHeaderHashes[3])},
+			HorizontalRuleAfter: true,
+		},
 	}
 	expectedLines = append(expectedLines, linesOutGoingMB1...)
 	expectedLines = append(expectedLines, linesOutGoingMB2...)
 	require.Equal(t, expectedLines, lines)
 
-	crossChainData := block.EpochStartCrossChainData{
-		ShardID:    core.MainChainShardId,
+	crossChainData1 := block.EpochStartCrossChainData{
+		ShardID:    uint32(dto.MVX),
 		Epoch:      5,
 		Round:      12,
 		Nonce:      13,
 		HeaderHash: []byte{0xa, 0xb},
 	}
-	sovChainHeader.EpochStart.LastFinalizedCrossChainHeader = crossChainData
+	crossChainData2 := block.EpochStartCrossChainData{
+		ShardID:    uint32(dto.ETH),
+		Epoch:      6,
+		Round:      14,
+		Nonce:      15,
+		HeaderHash: []byte{0xc, 0xd},
+	}
+	sovChainHeader.EpochStart.LastFinalizedCrossChainHeader = []block.EpochStartCrossChainData{crossChainData1, crossChainData2}
 	lastFinalizedCrossChainHeaderLines := []*display.LineData{
 		{
-			Values:              []string{"Last cross chain notarized header", "Hash", hex.EncodeToString(crossChainData.HeaderHash)},
+			Values:              []string{"Last cross chain notarized header", "Hash", hex.EncodeToString(crossChainData1.HeaderHash)},
 			HorizontalRuleAfter: false,
 		},
 		{
-			Values:              []string{"", "ShardID", getShardName(core.MainChainShardId)},
+			Values:              []string{"", "Chain", dto.MVX.String()},
 			HorizontalRuleAfter: false,
 		},
 		{
@@ -208,6 +235,26 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		},
 		{
 			Values:              []string{"", "Nonce", "13"},
+			HorizontalRuleAfter: true,
+		},
+		{
+			Values:              []string{"Last cross chain notarized header", "Hash", hex.EncodeToString(crossChainData2.HeaderHash)},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Chain", dto.ETH.String()},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Epoch", "6"},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Round", "14"},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Nonce", "15"},
 			HorizontalRuleAfter: true,
 		},
 	}
@@ -228,16 +275,23 @@ func TestDisplayBlock_DisplayExtendedShardHeaderHashesIncluded(t *testing.T) {
 	hash2 := []byte("hash2")
 	hash3 := []byte("hash3")
 	extendedShardHeaderHashes := [][]byte{hash1, hash2, hash3}
+	chainsData := []data.ChainDataHandler{
+		&block.ChainData{
+			ChainID:                   dto.MVX,
+			ExtendedShardHeaderHashes: extendedShardHeaderHashes,
+		},
+	}
+
 	args := createMockArgsTransactionCounter()
 	txCounter, _ := NewTransactionCounter(args)
 	lines := txCounter.displayExtendedShardHeaderHashesIncluded(
 		shardLines,
-		extendedShardHeaderHashes,
+		chainsData,
 	)
 
 	require.Equal(t, []*display.LineData{
 		{
-			Values:              []string{"ExtendedShardHeaderHashes", "ExtendedShardHeaderHash_1", hex.EncodeToString(hash1)},
+			Values:              []string{"ExtendedShardHeaderHashes chain MVX", "ExtendedShardHeaderHash_1", hex.EncodeToString(hash1)},
 			HorizontalRuleAfter: false,
 		},
 		{

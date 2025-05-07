@@ -333,7 +333,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 	}
 	processedMb := &block.MiniBlock{
 		ReceiverShardID: core.SovereignChainShardId,
-		SenderShardID:   core.MainChainShardId,
+		SenderShardID:   uint32(dto.MVX),
 	}
 	blockBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{processedMb},
@@ -345,7 +345,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 
 	expectedOutGoingMb := &block.MiniBlock{
 		TxHashes:        [][]byte{bridgeOp1Hash, bridgeOp2Hash},
-		ReceiverShardID: core.MainChainShardId,
+		ReceiverShardID: uint32(dto.MVX),
 		SenderShardID:   arguments.BootstrapComponents.ShardCoordinator().SelfId(),
 	}
 	expectedBlockBody := &block.Body{
@@ -392,7 +392,7 @@ func TestSovereignChainBlockProcessor_RestoreBlockIntoPoolsShouldWorkWhenHeaderN
 	expectedBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
 			{
-				SenderShardID:   core.MainChainShardId,
+				SenderShardID:   uint32(dto.MVX),
 				ReceiverShardID: core.SovereignChainShardId,
 				TxHashes:        [][]byte{[]byte("txHash1")},
 			},
@@ -422,7 +422,8 @@ func TestSovereignChainBlockProcessor_RestoreBlockIntoPoolsShouldWorkWhenHeaderN
 		RemoveLastSelfNotarizedHeadersCalled: func() {
 			wasLastSelfNotarizedHeaderRemoved = true
 		},
-		RemoveLastCrossNotarizedHeadersCalled: func() {
+		RemoveLastCrossNotarizedHeadersCalled: func(chainID dto.ChainID) {
+			require.Equal(t, dto.MVX, chainID)
 			wasLastCrossNotarizedHeaderRemoved = true
 		},
 	}
@@ -464,7 +465,7 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 	expectedBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
 			{
-				SenderShardID:   core.MainChainShardId,
+				SenderShardID:   uint32(dto.MVX),
 				ReceiverShardID: core.SovereignChainShardId,
 				TxHashes:        [][]byte{[]byte("txHash1")},
 			},
@@ -503,7 +504,8 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 		RemoveLastSelfNotarizedHeadersCalled: func() {
 			wasLastSelfNotarizedHeaderRemoved = true
 		},
-		RemoveLastCrossNotarizedHeadersCalled: func() {
+		RemoveLastCrossNotarizedHeadersCalled: func(chainID dto.ChainID) {
+			require.Equal(t, dto.MVX, chainID)
 			wasLastCrossNotarizedHeaderRemoved = true
 		},
 	}
@@ -557,7 +559,7 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 
 	sovHdr := createSovHeaderForRestoreBlocksTest(expectedBody, extendedHeaderHash)
 	if !withExtendedHeader {
-		sovHdr.ExtendedShardHeaderHashes = nil
+		sovHdr.ChainsData = nil
 	}
 
 	retrievedHdr, err := dataPool.Headers().GetHeaderByHash(extendedHeaderHash)
@@ -598,7 +600,12 @@ func createSovHeaderForRestoreBlocksTest(body *block.Body, extendedHeaderHash []
 		Header: &block.Header{
 			MiniBlockHeaders: []block.MiniBlockHeader{miniBlockHeader},
 		},
-		ExtendedShardHeaderHashes: [][]byte{extendedHeaderHash},
+		ChainsData: []block.ChainData{
+			{
+				ChainID:                   dto.MVX,
+				ExtendedShardHeaderHashes: [][]byte{extendedHeaderHash},
+			},
+		},
 	}
 }
 

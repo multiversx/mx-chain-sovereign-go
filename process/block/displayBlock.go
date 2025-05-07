@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/counting"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -184,8 +185,7 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 	shardLines = append(shardLines, headerLines...)
 	shardLines = append(shardLines, lines...)
 
-	// TODO: Here, this cast is wrong
-	sovereignChainHeaderHandler, castOk := header.(sovereignChainHeader)
+	sovereignChainHeaderHandler, castOk := header.(data.SovereignChainHeaderHandler)
 	if castOk {
 		shardLines = txc.displaySovereignChainHeader(shardLines, sovereignChainHeaderHandler)
 	}
@@ -211,9 +211,9 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 
 func (txc *transactionCounter) displaySovereignChainHeader(
 	lines []*display.LineData,
-	header sovereignChainHeader,
+	header data.SovereignChainHeaderHandler,
 ) []*display.LineData {
-	lines = txc.displayExtendedShardHeaderHashesIncluded(lines, header.GetExtendedShardHeaderHashes())
+	lines = txc.displayExtendedShardHeaderHashesIncluded(lines, header.GetChainDataHandlers())
 	lines = txc.displayOutGoingMiniBlocks(lines, header.GetOutGoingMiniBlockHeaderHandlers())
 	lines = txc.displayLastCrossChainNotarizedHeader(lines, header)
 
@@ -246,6 +246,11 @@ func (txc *transactionCounter) displayOutGoingTxData(
 	)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
+		"Chain",
+		outGoingMb.GetChainID().String()}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
 		"Type",
 		block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()}),
 	)
@@ -272,55 +277,66 @@ func (txc *transactionCounter) displayOutGoingTxData(
 
 func (txc *transactionCounter) displayLastCrossChainNotarizedHeader(
 	lines []*display.LineData,
-	sovHeader sovereignChainHeader,
+	sovHeader data.SovereignChainHeaderHandler,
 ) []*display.LineData {
-	if len(sovHeader.GetEpochStartHandler().GetLastFinalizedHeaderHandlers()) == 0 {
-		return lines
+	for _, lastCrossChainData := range sovHeader.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
+		lines = append(lines, display.NewLineData(false, []string{
+			"Last cross chain notarized header",
+			"Hash",
+			logger.DisplayByteSlice(lastCrossChainData.GetHeaderHash())}),
+		)
+		lines = append(lines, display.NewLineData(false, []string{
+			"",
+			"Chain",
+			getShardName(lastCrossChainData.GetShardID())}),
+		)
+		lines = append(lines, display.NewLineData(false, []string{
+			"",
+			"Epoch",
+			fmt.Sprintf("%d", lastCrossChainData.GetEpoch())}),
+		)
+		lines = append(lines, display.NewLineData(false, []string{
+			"",
+			"Round",
+			fmt.Sprintf("%d", lastCrossChainData.GetRound())}),
+		)
+		lines = append(lines, display.NewLineData(false, []string{
+			"",
+			"Nonce",
+			fmt.Sprintf("%d", lastCrossChainData.GetNonce())}),
+		)
+
+		lines[len(lines)-1].HorizontalRuleAfter = true
 	}
-
-	// TODO: Here, too
-	lastCrossChainData := sovHeader.GetLastFinalizedCrossChainHeaderHandler()
-	lines = append(lines, display.NewLineData(false, []string{
-		"Last cross chain notarized header",
-		"Hash",
-		logger.DisplayByteSlice(lastCrossChainData.GetHeaderHash())}),
-	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"ShardID",
-		getShardName(lastCrossChainData.GetShardID())}),
-	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"Epoch",
-		fmt.Sprintf("%d", lastCrossChainData.GetEpoch())}),
-	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"Round",
-		fmt.Sprintf("%d", lastCrossChainData.GetRound())}),
-	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"Nonce",
-		fmt.Sprintf("%d", lastCrossChainData.GetNonce())}),
-	)
-
-	lines[len(lines)-1].HorizontalRuleAfter = true
 
 	return lines
 }
 
 func (txc *transactionCounter) displayExtendedShardHeaderHashesIncluded(
 	lines []*display.LineData,
-	extendedShardHeaderHashes [][]byte,
+	chainsData []data.ChainDataHandler,
 ) []*display.LineData {
+	if len(chainsData) == 0 {
+		return lines
+	}
 
+	for _, chainData := range chainsData {
+		lines = txc.displayExtendedShardHeaderHashesInChain(lines, chainData)
+	}
+
+	return lines
+}
+
+func (txc *transactionCounter) displayExtendedShardHeaderHashesInChain(
+	lines []*display.LineData,
+	chainData data.ChainDataHandler,
+) []*display.LineData {
+	extendedShardHeaderHashes := chainData.GetExtendedShardHeaderHashes()
 	if len(extendedShardHeaderHashes) == 0 {
 		return lines
 	}
 
-	part := "ExtendedShardHeaderHashes"
+	part := fmt.Sprintf("ExtendedShardHeaderHashes chain %s", chainData.GetChainID().String())
 	for i := 0; i < len(extendedShardHeaderHashes); i++ {
 		if i == 0 || i >= len(extendedShardHeaderHashes)-1 {
 			lines = append(lines, display.NewLineData(false, []string{
@@ -455,6 +471,11 @@ func (txc *transactionCounter) displayTxBlockBody(
 
 // TODO: Could move this in mx-chain-core-go
 func getShardName(shardID uint32) string {
+	chainID := dto.ChainID(shardID)
+	if dto.IsValidCrossChainID(chainID) {
+		return chainID.String()
+	}
+
 	var shardStr string
 
 	switch shardID {
