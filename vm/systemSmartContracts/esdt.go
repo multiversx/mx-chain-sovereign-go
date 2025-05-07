@@ -1948,7 +1948,7 @@ func (e *esdt) setRolesForTokenAndAddress(
 	}
 
 	isMultiShardNFTCreateSet := token.CanCreateMultiShard && isDefinedRoleInArgs(roles, []byte(core.ESDTRoleNFTCreate))
-	if isMultiShardNFTCreateSet {
+	if isMultiShardNFTCreateSet && string(token.TokenType) != "proof" {
 		err = checkCorrectAddressForNFTCreateMultiShard(token)
 		if err != nil {
 			e.eei.AddReturnMessage(err.Error())
