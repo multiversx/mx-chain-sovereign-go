@@ -219,7 +219,7 @@ func (scsbt *sovereignChainShardBlockTrack) CleanupHeadersBehindNonce(
 	selfNotarizedNonce uint64,
 	crossNotarizedNonce uint64,
 ) {
-	scsbt.cleanupHeadersBehindNonce(shardID, core.MainChainShardId, selfNotarizedNonce, crossNotarizedNonce)
+	scsbt.cleanupHeadersBehindNonce(shardID, shardID, selfNotarizedNonce, crossNotarizedNonce)
 }
 
 // DisplayTrackedHeaders displays tracked headers
