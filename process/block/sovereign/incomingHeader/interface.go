@@ -25,7 +25,7 @@ type TransactionPool interface {
 
 // RunTypeComponentsHolder defines run type components needed to create an incoming header processor
 type RunTypeComponentsHolder interface {
-	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool
 	DataCodecHandler() sovBlock.DataCodecHandler
 	TopicsCheckerHandler() sovBlock.TopicsCheckerHandler
 	IsInterfaceNil() bool

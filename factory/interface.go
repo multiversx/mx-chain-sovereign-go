@@ -620,7 +620,7 @@ type RunTypeComponentsHolder interface {
 	AccountsParser() genesis.AccountsParser
 	AccountsCreator() state.AccountFactory
 	VMContextCreator() systemSmartContracts.VMContextCreatorHandler
-	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool
 	DataCodecHandler() sovereign.DataCodecHandler
 	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
 	ShardCoordinatorCreator() sharding.ShardCoordinatorFactory

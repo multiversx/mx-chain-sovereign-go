@@ -5,27 +5,28 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	sovData "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/errors"
-
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2
-	outGoingOperationsPool OutGoingOperationsPool
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool
 	bridgeOpHandler        BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndRound creates a new sovereign end subround
 func NewSovereignSubRoundEndRound(
 	subRoundEnd *subroundEndRoundV2,
-	outGoingOperationsPool OutGoingOperationsPool,
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool,
 	bridgeOpHandler BridgeOperationsHandler,
 ) (*sovereignSubRoundEnd, error) {
 	if check.IfNil(subRoundEnd) {
@@ -168,8 +169,9 @@ func (sr *sovereignSubRoundEnd) sendUnconfirmedOperationsIfFound(ctx context.Con
 func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
 	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler, pubKeysBitmap []byte,
 ) (*sovereign.BridgeOutGoingData, error) {
+	chainID := outGoingMBHeader.GetChainID()
 	hash := outGoingMBHeader.GetOutGoingOperationsHash()
-	currBridgeData := sr.outGoingOperationsPool.Get(hash)
+	currBridgeData := sr.outGoingOperationsPool.Get(hash, chainID)
 	if currBridgeData == nil {
 		return nil, fmt.Errorf("%w in sovereignSubRoundEnd.updateBridgeDataWithSignatures for hash: %s",
 			errors.ErrOutGoingOperationsNotFound, hex.EncodeToString(hash))
@@ -179,8 +181,8 @@ func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
 	currBridgeData.AggregatedSignature = outGoingMBHeader.GetAggregatedSignatureOutGoingOperations()
 	currBridgeData.PubKeysBitmap = pubKeysBitmap
 
-	sr.outGoingOperationsPool.Delete(hash)
-	sr.outGoingOperationsPool.Add(currBridgeData)
+	sr.outGoingOperationsPool.Delete(hash, chainID)
+	sr.outGoingOperationsPool.Add(currBridgeData, chainID)
 	return currBridgeData, nil
 }
 
@@ -214,12 +216,9 @@ func (sr *sovereignSubRoundEnd) sendOutGoingOperations(ctx context.Context, data
 }
 
 func (sr *sovereignSubRoundEnd) resetOutGoingOpTimer(data []*sovereign.BridgeOutGoingData) {
-	hashes := make([][]byte, len(data))
-	for idx, dta := range data {
-		hashes[idx] = dta.Hash
+	for _, dta := range data {
+		sr.outGoingOperationsPool.ResetTimer([][]byte{dta.Hash}, dto.ChainID(dta.ChainID))
 	}
-
-	sr.outGoingOperationsPool.ResetTimer(hashes)
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

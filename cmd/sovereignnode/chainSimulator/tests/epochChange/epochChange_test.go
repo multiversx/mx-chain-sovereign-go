@@ -304,7 +304,7 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 		dto.ETH: {},
 	}
 	for _, outGoingMBHdr := range outGoingMBHdrs {
-		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
+		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash(), outGoingMBHdr.GetChainID())
 		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.Type)
 		require.Equal(t, currentHeader.GetEpoch(), bridgeData.Epoch)
 		require.Len(t, bridgeData.OutGoingOperations, 1)

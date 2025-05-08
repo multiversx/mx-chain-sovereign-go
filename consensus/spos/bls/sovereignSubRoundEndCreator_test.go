@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSovereignSubRoundEndV2Creator(t *testing.T) {
@@ -24,12 +25,12 @@ func TestNewSovereignSubRoundEndV2Creator(t *testing.T) {
 		require.Equal(t, errors.ErrNilOutGoingOperationsPool, err)
 	})
 	t.Run("nil bridge op handler, should return error", func(t *testing.T) {
-		creator, err := bls.NewSovereignSubRoundEndCreator(&sovereign.OutGoingOperationsPoolMock{}, nil)
+		creator, err := bls.NewSovereignSubRoundEndCreator(&sovereign.ShardedOutGoingOperationsPoolMock{}, nil)
 		require.Nil(t, creator)
 		require.Equal(t, errors.ErrNilBridgeOpHandler, err)
 	})
 	t.Run("should work", func(t *testing.T) {
-		creator, err := bls.NewSovereignSubRoundEndCreator(&sovereign.OutGoingOperationsPoolMock{}, &sovereign.BridgeOperationsHandlerMock{})
+		creator, err := bls.NewSovereignSubRoundEndCreator(&sovereign.ShardedOutGoingOperationsPoolMock{}, &sovereign.BridgeOperationsHandlerMock{})
 		require.Nil(t, err)
 		require.NotNil(t, creator)
 		require.False(t, creator.IsInterfaceNil())
@@ -65,7 +66,7 @@ func TestSovereignSubRoundEndV2Creator_CreateAndAddSubRoundEnd(t *testing.T) {
 
 	sr := initSubroundEndRound(&statusHandler.AppStatusHandlerStub{})
 
-	creator, _ := bls.NewSovereignSubRoundEndCreator(&sovereign.OutGoingOperationsPoolMock{}, &sovereign.BridgeOperationsHandlerMock{})
+	creator, _ := bls.NewSovereignSubRoundEndCreator(&sovereign.ShardedOutGoingOperationsPoolMock{}, &sovereign.BridgeOperationsHandlerMock{})
 	err := creator.CreateAndAddSubRoundEnd(sr, workerHandler, consensusCore)
 	require.Nil(t, err)
 	require.Equal(t, 2, addReceivedMessageCallCt)
