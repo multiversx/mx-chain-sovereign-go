@@ -28,7 +28,6 @@ type InterceptedHeader struct {
 	validityAttester  process.ValidityAttester
 	epochStartTrigger process.EpochStartTriggerHandler
 
-	mbHeadersChecker      mbHeadersChecker
 	acceptedCrossShardIDs map[uint32]struct{}
 }
 
@@ -55,7 +54,6 @@ func NewInterceptedHeader(arg *ArgInterceptedBlockHeader) (*InterceptedHeader, e
 		acceptedCrossShardIDs: getMainChainAcceptedCrossShardID(),
 	}
 	inHdr.processFields(arg.HdrBuff)
-	inHdr.mbHeadersChecker = inHdr
 
 	return inHdr, nil
 }
@@ -144,16 +142,12 @@ func (inHdr *InterceptedHeader) integrity() error {
 		return err
 	}
 
-	err = inHdr.mbHeadersChecker.checkMiniBlocksHeaders(inHdr.hdr.GetMiniBlockHeaderHandlers(), inHdr.shardCoordinator)
+	err = checkMiniBlocksHeaders(inHdr.hdr.GetMiniBlockHeaderHandlers(), inHdr.shardCoordinator, inHdr.acceptedCrossShardIDs)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (inHdr *InterceptedHeader) checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator) error {
-	return checkMiniBlocksHeaders(mbHeaders, coordinator, inHdr.acceptedCrossShardIDs)
 }
 
 // Hash gets the hash of this header

@@ -2,6 +2,7 @@ package interceptedBlocks
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/sharding"
 )
 
@@ -12,5 +13,5 @@ func (imh *InterceptedMetaHeader) IsMetaHeaderOutOfRange() bool {
 
 // CheckMiniBlocksHeaders -
 func (isbh *interceptedSovereignBlockHeader) CheckMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator) error {
-	return isbh.checkMiniBlocksHeaders(mbHeaders, coordinator)
+	return checkMiniBlocksHeaders(mbHeaders, coordinator, isbh.acceptedCrossShardIDs)
 }

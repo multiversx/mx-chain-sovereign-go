@@ -71,7 +71,7 @@ func TestSovereignShardResolversContainerFactory_Create(t *testing.T) {
 	numResolverTrieNodes := 2
 	numResolverPeerAuth := 1
 	numResolverValidatorInfo := 1
-	numResolverExtendedHeader := 2 // mvx + eth
+	numResolverExtendedHeader := 1
 	totalResolvers := numResolverTxs + numResolverHeaders + numResolverMiniBlocks + numResolverMetaBlockHeaders +
 		numResolverSCRs + numResolverRewardTxs + numResolverTrieNodes + numResolverPeerAuth + numResolverValidatorInfo + numResolverExtendedHeader
 
@@ -90,7 +90,6 @@ func TestSovereignShardResolversContainerFactory_Create(t *testing.T) {
 		common.PeerAuthenticationTopic:                                                                       {},
 		common.ValidatorInfoTopic + sovShardIDStr:                                                            {},
 		factory.ExtendedHeaderProofTopic + args.ShardCoordinator.CommunicationIdentifier(uint32(dtoSov.MVX)): {},
-		factory.ExtendedHeaderProofTopic + args.ShardCoordinator.CommunicationIdentifier(uint32(dtoSov.ETH)): {},
 	}
 
 	iterateFunc := func(key string, resolver dataRetriever.Resolver) bool {
