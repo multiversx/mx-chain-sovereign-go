@@ -61,7 +61,7 @@ func createSovChainBlockProcessorArgs() blproc.ArgsSovereignChainBlockProcessor 
 		ShardProcessor:               sp,
 		ValidatorStatisticsProcessor: &testscommon.ValidatorStatisticsProcessorStub{},
 		OutgoingOperationsFormatter:  &sovereign.OutgoingOperationsFormatterMock{},
-		OutGoingOperationsPool:       &sovereign.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool:       &sovereign.ShardedOutGoingOperationsPoolMock{},
 		OperationsHasher:             &testscommon.HasherStub{},
 		EpochStartDataCreator:        &mock.EpochStartDataCreatorStub{},
 		EpochRewardsCreator:          &testscommon.RewardsCreatorStub{},
@@ -280,8 +280,10 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 	epoch := uint32(4)
 	poolAddCt := 0
 	pubKeysBitmap := []byte("pubKeysBitmap")
-	outGoingOperationsPool := &sovereign.OutGoingOperationsPoolMock{
-		AddCalled: func(data *sovereignCore.BridgeOutGoingData) {
+	outGoingOperationsPool := &sovereign.ShardedOutGoingOperationsPoolMock{
+		AddCalled: func(data *sovereignCore.BridgeOutGoingData, chainID dto.ChainID) {
+			require.Equal(t, dto.MVX, chainID)
+
 			defer func() {
 				poolAddCt++
 			}()
