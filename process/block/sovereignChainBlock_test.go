@@ -325,6 +325,9 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		EpochSystemSCProcessor:       &testscommon.EpochStartSystemSCStub{},
 		EpochEconomics:               &mock.EpochEconomicsStub{},
 		SCToProtocol:                 &mock.SCToProtocolStub{},
+		MainChainNotarizationStartRound: map[string]config.MainChainNotarization{
+			dto.MVX.String(): {StartRound: 0},
+		},
 	})
 
 	sovChainHdr := &block.SovereignChainHeader{
@@ -365,6 +368,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Hash:                   expectedOutGoingMbHash,
 				OutGoingOperationsHash: bridgeOpsHash,
 			},

@@ -119,8 +119,7 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 	for chainIDStr := range args.MainChainNotarizationStartRound {
 		chainID, valid := dto.ChainID_value[chainIDStr]
 		if !valid {
-			// todo: here
-			return nil, fmt.Errorf("invalid chain id provided")
+			return nil, fmt.Errorf("%w for chain:%s in NewSovereignChainBlockProcessor", process.ErrInvalidChainID, chainIDStr)
 		}
 
 		orderedChainIDs = append(orderedChainIDs, dto.ChainID(chainID))

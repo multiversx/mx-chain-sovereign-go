@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
@@ -106,7 +105,8 @@ func (ssh *sovereignShardStorageHandler) saveLastCrossChainNotarizedHeaders(
 	crossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0)
 
 	// TODO: Here and everywhere, perhaps have this in shard coord or a separate comp instead of iterating over a const?
-	for chainID := range dto.ValidChains {
+	for _, chainData := range sovBlock.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
+		chainID := chainData.GetShardID()
 		log.Debug("sovereignShardStorageHandler.saveLastCrossChainNotarizedHeaders", "chainID", chainID)
 
 		lastCrossChainNotarizedData, err := getEpochStartShardData(sovBlock, uint32(chainID))

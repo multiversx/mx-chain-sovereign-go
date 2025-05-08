@@ -146,7 +146,12 @@ func TestSovereignShardBootstrapFactory_cleanupNotarizedStorage(t *testing.T) {
 			SoftwareVersion: process.SovereignHeaderVersion,
 		},
 
-		ExtendedShardHeaderHashes: [][]byte{extendedHdrhash},
+		ChainsData: []block.ChainData{
+			{
+				ChainID:                   sovDto.MVX,
+				ExtendedShardHeaderHashes: [][]byte{extendedHdrhash},
+			},
+		},
 	}
 
 	wasExtendedHeaderRemoved := false
