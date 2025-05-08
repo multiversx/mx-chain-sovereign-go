@@ -481,8 +481,6 @@ func getShardName(shardID uint32) string {
 	switch shardID {
 	case core.MetachainShardId:
 		shardStr = "MetaChain"
-	case core.MainChainShardId:
-		shardStr = "MainChain"
 	case core.SovereignChainShardId:
 		shardStr = "SovereignChain"
 	default:

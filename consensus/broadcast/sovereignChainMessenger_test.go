@@ -10,13 +10,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/stretchr/testify/require"
 )
 
 type delayedBlockBroadcasterMock struct {
@@ -234,7 +236,10 @@ func TestSovereignChainMessenger_shouldSkipShard(t *testing.T) {
 	sovMsg, _ := NewSovereignShardChainMessenger(args)
 	require.False(t, sovMsg.shouldSkipShard(core.SovereignChainShardId))
 	require.True(t, sovMsg.shouldSkipShard(core.SovereignChainShardId+1))
-	require.True(t, sovMsg.shouldSkipShard(core.MainChainShardId))
+
+	for chainID := range dto.ValidChains {
+		require.True(t, sovMsg.shouldSkipShard(uint32(chainID)))
+	}
 }
 
 func TestSovereignChainMessenger_shouldSkipTopic(t *testing.T) {
@@ -244,6 +249,9 @@ func TestSovereignChainMessenger_shouldSkipTopic(t *testing.T) {
 	sovMsg, _ := NewSovereignShardChainMessenger(args)
 	require.False(t, sovMsg.shouldSkipTopic("topic"))
 	require.False(t, sovMsg.shouldSkipTopic(fmt.Sprintf("%s_%d", "topic", core.SovereignChainShardId)))
-	require.True(t, sovMsg.shouldSkipTopic(fmt.Sprintf("%s_%d", "topic", core.MainChainShardId)))
-	require.True(t, sovMsg.shouldSkipTopic(fmt.Sprintf("%s_%d_%d", "topic", core.SovereignChainShardId, core.MainChainShardId)))
+
+	for chainID := range dto.ValidChains {
+		require.True(t, sovMsg.shouldSkipTopic(fmt.Sprintf("%s_%d", "topic", uint32(chainID))))
+		require.True(t, sovMsg.shouldSkipTopic(fmt.Sprintf("%s_%d_%d", "topic", core.SovereignChainShardId, uint32(chainID))))
+	}
 }

@@ -83,15 +83,15 @@ func (srcf *sovereignShardResolversContainerFactory) Create() (dataRetriever.Res
 
 func (srcf *sovereignShardResolversContainerFactory) generateSovereignExtendedHeaderResolvers() error {
 	idx := uint32(0)
-	for chainID := range dto.ValidChains {
-		// TODO: Here, add delta after we have the task ready for multiple ExtendedShardHeadersUnit
-		err := srcf.generateOneSovereignExtendedHeaderResolver(uint32(chainID), idx)
-		if err != nil {
-			return err
-		}
-
-		idx++
+	//for chainID := range dto.ValidChains {
+	// TODO: Here, add delta after we have the task ready for multiple ExtendedShardHeadersUnit
+	err := srcf.generateOneSovereignExtendedHeaderResolver(uint32(dto.MVX), idx)
+	if err != nil {
+		return err
 	}
+
+	idx++
+	//}
 
 	return nil
 }
