@@ -234,8 +234,8 @@ func checkEpochChangeHeader(
 	require.Equal(t, mbs[2].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for mvx chain
 	require.Equal(t, mbs[3].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for eth chain
 
-	// TODO: Here, I think we need to check for multiple chains
 	require.Equal(t, uint32(dto.MVX), mbs[2].GetReceiverShardID())
+	require.Equal(t, uint32(dto.ETH), mbs[3].GetReceiverShardID())
 	require.Equal(t, uint32(27), currentHeader.GetTxCount())
 
 	unComputedRootHash := nodeHandler.GetCoreComponents().Hasher().Compute("uncomputed root hash")
@@ -297,9 +297,12 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 	allPossiblePubKeyIDs [][]byte,
 ) {
 	outGoingMBHdrs := common.GetCurrentSovereignHeader(nodeHandler).GetOutGoingMiniBlockHeaderHandlers()
-	// TODO: MX-16830 We should actually have 2 outgoing mbs here for 2 chains: mvx and eth
-	require.Len(t, outGoingMBHdrs, 1)
+	require.Len(t, outGoingMBHdrs, 2)
 
+	chainsMapToSendOutGoingMB := map[dto.ChainID]struct{}{
+		dto.MVX: {},
+		dto.ETH: {},
+	}
 	for _, outGoingMBHdr := range outGoingMBHdrs {
 		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
 		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.Type)
@@ -314,7 +317,11 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 
 		currValIDs := getCurrentValidatorIDs(t, nodeHandler, currentHeader)
 		require.ElementsMatch(t, currValIDs, outGoingBridgeDataValidators.PubKeyIDs)
+
+		delete(chainsMapToSendOutGoingMB, outGoingMBHdr.GetChainID())
 	}
+
+	require.Empty(t, chainsMapToSendOutGoingMB)
 }
 
 func getCurrentValidatorIDs(

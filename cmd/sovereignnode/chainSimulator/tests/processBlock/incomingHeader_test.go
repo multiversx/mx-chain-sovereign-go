@@ -45,8 +45,8 @@ const (
 
 type sovChainBlockTracer interface {
 	proc.BlockTracker
-	ComputeLongestExtendedShardChainFromLastNotarized() ([]data.HeaderHandler, [][]byte, error)
-	IsGenesisLastCrossNotarizedHeader() bool
+	ComputeLongestExtendedShardChainFromLastNotarized(chainID sovDto.ChainID) ([]data.HeaderHandler, [][]byte, error)
+	IsGenesisLastCrossNotarizedHeader(chainID sovDto.ChainID) bool
 }
 
 // This test will simulate an incoming header.
@@ -162,7 +162,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		// We just received header in pool and notified all subscribed components, header has not been processed + committed.
 		// We check how leader will compute the longest incoming header chain
 		extendedHeaderHash := getExtendedHeaderHash(t, nodeHandler, incomingHdr)
-		longestChain, longestChainHdrHashes, err := sovBlockTracker.ComputeLongestExtendedShardChainFromLastNotarized()
+		longestChain, longestChainHdrHashes, err := sovBlockTracker.ComputeLongestExtendedShardChainFromLastNotarized(sovDto.MVX)
 		require.Nil(t, err)
 
 		if currIncomingHeaderRound < startRound {
@@ -195,26 +195,26 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		// Check tracker and blockchain hook state for incoming processed data
 		if currIncomingHeaderRound <= 99 {
 			require.Zero(t, lastCrossNotarizedHeader.GetRound())
-			require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+			require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 			require.Empty(t, currentSovHeader.GetChainDataHandlers())
 		} else if currIncomingHeaderRound == 100 { // pre-genesis incoming header is notarized
 			require.Equal(t, uint64(100), lastCrossNotarizedHeader.GetRound())
-			require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+			require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 			require.Empty(t, currentSovHeader.GetChainDataHandlers())
 		} else { // since genesis main-chain header, each incoming header is instantly notarized (0 block finality)
 			if currentSovHeader.IsStartOfEpochBlock() { // epoch start block, no incoming header process is added to sovereign block
 				require.Equal(t, currIncomingHeaderRound-1, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 				require.Empty(t, currentSovHeader.GetChainDataHandlers())
 			} else if prevSovHdr.IsStartOfEpochBlock() { // prev sov block was epoch start, should have 2 accumulated incoming headers
 				require.Equal(t, currIncomingHeaderRound, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 				require.Len(t, currentSovHeader.GetChainDataHandlers(), 1)
 				require.Equal(t, sovDto.MVX, currentSovHeader.GetChainDataHandlers()[0].GetChainID())
 				require.Equal(t, [][]byte{previousExtendedHeaderHash, extendedHeaderHash}, currentSovHeader.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 			} else { // normal processing, in each sovereign block, there is an extended header hash
 				require.Equal(t, currIncomingHeaderRound, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 				require.Len(t, currentSovHeader.GetChainDataHandlers(), 1)
 				require.Equal(t, sovDto.MVX, currentSovHeader.GetChainDataHandlers()[0].GetChainID())
 				require.Equal(t, [][]byte{extendedHeaderHash}, currentSovHeader.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
@@ -266,7 +266,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	sovBlockTracker := getSovereignBlockTracker(t, nodeHandler)
-	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 
 	incomingHdrNonce := startRound - 1
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
@@ -373,7 +373,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	sovBlockTracker := getSovereignBlockTracker(t, nodeHandler)
-	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 
 	incomingHdrNonce := startRound - 3
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
@@ -649,5 +649,5 @@ func checkLastCrossNotarizedRound(t *testing.T, sovBlockTracker sovChainBlockTra
 	lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(uint32(sovDto.MVX))
 	require.Nil(t, err)
 	require.Equal(t, lastCrossNotarizedRound, lastCrossNotarizedHeader.GetRound())
-	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 }

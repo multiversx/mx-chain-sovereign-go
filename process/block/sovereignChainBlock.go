@@ -647,18 +647,20 @@ func (scbp *sovereignChainBlockProcessor) sortExtendedShardHeaderHashesForCurren
 		})
 	}
 
-	hdrsHashesForCurrentBlock := make([]data.ChainDataHandler, len(hdrsForCurrentBlockInfo))
+	hdrsHashesForCurrentBlock := make([]data.ChainDataHandler, 0)
 	index := 0
 	for chainID, hdrForCurrentBlockInfo := range hdrsForCurrentBlockInfo {
-		extendedHashes := make([][]byte, len(hdrsForCurrentBlockInfo))
+		extendedHashes := make([][]byte, len(hdrForCurrentBlockInfo))
 		for idxHash, hash := range hdrForCurrentBlockInfo {
 			extendedHashes[idxHash] = hash.hash
 		}
 
-		hdrsHashesForCurrentBlock[index] = &block.ChainData{
-			ChainID:                   chainID,
-			ExtendedShardHeaderHashes: extendedHashes,
-		}
+		hdrsHashesForCurrentBlock = append(hdrsHashesForCurrentBlock,
+			&block.ChainData{
+				ChainID:                   chainID,
+				ExtendedShardHeaderHashes: extendedHashes,
+			},
+		)
 
 		index++
 	}
@@ -1609,7 +1611,11 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlock(
 		return nil
 	}
 
-	for chainID, outGoingOps := range outGoingOperations {
+	for _, chainID := range scbp.orderedChainIDs {
+		outGoingOps, found := outGoingOperations[chainID]
+		if !found {
+			continue
+		}
 		outGoingMb, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(headerHandler, outGoingOps, mbType, chainID)
 		err := scbp.setOutGoingMiniBlock(headerHandler, blockBody, outGoingMb, outGoingOperationsHash, mbType, chainID)
 		if err != nil {
