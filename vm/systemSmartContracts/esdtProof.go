@@ -2,16 +2,18 @@ package systemSmartContracts
 
 import (
 	"bytes"
-	esdtCore "github.com/multiversx/mx-chain-core-go/data/esdt"
+	"encoding/binary"
 	"math/big"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-go/vm"
+	esdtCore "github.com/multiversx/mx-chain-core-go/data/esdt"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/pkg/errors"
+
+	"github.com/multiversx/mx-chain-go/vm"
 )
 
 // Constants related to Proof Tokens (PFTs) - Adapt prefixes as needed to avoid collision
@@ -51,6 +53,11 @@ func (e *esdt) registerProofTicker(args *vmcommon.ContractCallInput) vmcommon.Re
 	returnCode := e.checkBasicCreateArguments(args)
 	if returnCode != vmcommon.Ok {
 		return returnCode
+	}
+
+	if len(args.Arguments) != 2 {
+		e.eei.AddReturnMessage("arguments length mismatch")
+		return vmcommon.FunctionWrongSignature
 	}
 
 	tokenType := []byte("proof")
@@ -141,6 +148,11 @@ func (e *esdt) createProof(args *vmcommon.ContractCallInput) vmcommon.ReturnCode
 // deleteProof@List<Proofs>
 // it will delete the proofs given in the list which are older than 3 days
 func (e *esdt) deleteProofs(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
+	if len(args.Arguments) < 1 {
+		e.eei.AddReturnMessage("not enough arguments")
+		return vmcommon.FunctionWrongSignature
+	}
+
 	err := e.eei.UseGas(uint64(deleteProofBaseCost + len(args.Arguments)*deleteCostPerProof))
 	if err != nil {
 		e.eei.AddReturnMessage(err.Error())
@@ -165,19 +177,23 @@ func (e *esdt) deleteProofs(args *vmcommon.ContractCallInput) vmcommon.ReturnCod
 
 func validateProofTokenID(token []byte) bool {
 	splits := strings.Split(string(token), "-")
-	if len(splits) != 3 {
+	if len(splits) != 4 {
 		return false
 	}
 
-	if !esdtCore.IsTickerValid(splits[0]) {
+	if !esdtCore.IsValidTokenPrefix(splits[0]) {
 		return false
 	}
 
-	if !esdtCore.IsRandomSeqValid(splits[1]) {
+	if !esdtCore.IsTickerValid(splits[1]) {
 		return false
 	}
 
-	if len(splits[2]) > 20 {
+	if !esdtCore.IsRandomSeqValid(splits[2]) {
+		return false
+	}
+
+	if len(splits[3]) > 20 {
 		return false
 	}
 
@@ -198,7 +214,7 @@ func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) erro
 
 	proofData := parts[0]
 	newNonce := e.incrementLatestNonce(ticker)
-	pftKey := e.generatePFTStorageKey(ticker, newNonce)
+	pftKey := generatePFTStorageKey(ticker, newNonce)
 	pftValue := e.generateMicroPFTValue(proofData)
 
 	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, pftValue)
@@ -217,7 +233,8 @@ func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) erro
 func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
 	hashBytes := e.hasher.Compute(string(proofData))
 
-	timestampBytes := big.NewInt(0).SetUint64(e.eei.BlockChainHook().LastTimeStamp()).Bytes()
+	timestampBytes := make([]byte, timestampSize)
+	binary.BigEndian.PutUint64(timestampBytes, e.eei.BlockChainHook().LastTimeStamp())
 
 	// Value = [32b_hash | 8b_timestamp | 4b_algo_id ]
 	pftValue := make([]byte, 0, hashSize+timestampSize+algoIDMicroPFTSize)
@@ -248,7 +265,7 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	}
 
 	newNonce := e.incrementLatestNonce(ticker)
-	pftKey := e.generatePFTStorageKey(ticker, newNonce)
+	pftKey := generatePFTStorageKey(ticker, newNonce)
 
 	for _, pkBytes := range parents {
 		if !validateProofTokenID(pkBytes) {
@@ -284,7 +301,8 @@ func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]
 	proofHash := e.hasher.Compute(string(dPFTData))
 	parentHashBytes := e.computeParentListHash(sortedParentKeys)
 
-	timestampBytes := big.NewInt(0).SetUint64(e.eei.BlockChainHook().LastTimeStamp()).Bytes()
+	timestampBytes := make([]byte, timestampSize)
+	binary.BigEndian.PutUint64(timestampBytes, e.eei.BlockChainHook().LastTimeStamp())
 
 	// Value = [32b_digest | 8b_timestamp | 32b_parent_hash | 8b_flags]
 	pftValue := make([]byte, 0, hashSize+timestampSize+hashSize+flagsDPFTSize)
@@ -297,7 +315,7 @@ func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]
 }
 
 // generatePFTStorageKey creates the key used to store PFT data in the global state trie.
-func (e *esdt) generatePFTStorageKey(ticker []byte, nonce uint64) []byte {
+func generatePFTStorageKey(ticker []byte, nonce uint64) []byte {
 	key := pftPrefix + string(ticker) + "-" + strconv.FormatUint(nonce, 10)
 	return []byte(key)
 }
@@ -326,8 +344,8 @@ func (e *esdt) computeParentListHash(parentKeys [][]byte) []byte {
 	return e.hasher.Compute(string(combined))
 }
 
-func (e *esdt) getESDTRolesForAcnt(address []byte, key []byte) (*ESDTRoles, error) {
-	roles := &ESDTRoles{
+func (e *esdt) getESDTRolesForAcnt(address []byte, key []byte) (*esdtCore.ESDTRoles, error) {
+	roles := &esdtCore.ESDTRoles{
 		Roles: make([][]byte, 0),
 	}
 
@@ -344,7 +362,7 @@ func (e *esdt) getESDTRolesForAcnt(address []byte, key []byte) (*ESDTRoles, erro
 	return roles, nil
 }
 
-func doesRoleExist(roles *ESDTRoles, role []byte) (int, bool) {
+func doesRoleExist(roles *esdtCore.ESDTRoles, role []byte) (int, bool) {
 	for i, currentRole := range roles.Roles {
 		if bytes.Equal(currentRole, role) {
 			return i, true
@@ -369,7 +387,7 @@ func (e *esdt) checkAllowedToExecute(address []byte, tokenID []byte, action []by
 	return nil
 }
 
-var noncePrefixProof = []byte(core.ProtectedKeyPrefix + core.ESDTNFTLatestNonceIdentifier)
+var noncePrefixProof = []byte(core.ESDTNFTLatestNonceIdentifier)
 
 func getNonceKey(tokenID []byte) []byte {
 	return append(noncePrefixProof, tokenID...)
