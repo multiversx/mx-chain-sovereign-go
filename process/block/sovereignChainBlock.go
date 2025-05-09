@@ -16,11 +16,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	logger "github.com/multiversx/mx-chain-logger-go"
-	"golang.org/x/exp/slices"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/holders"
 	"github.com/multiversx/mx-chain-go/common/logging"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -34,9 +34,9 @@ import (
 var rootHash = "uncomputed root hash"
 
 type extendedShardHeaderTrackHandler interface {
-	ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error)
 	IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool
 	RemoveLastCrossNotarizedHeader(chainID dto.ChainID)
+	// TODO: Here, return args of these funcs can be minimized
 	ComputeLongestExtendedShardChainsFromLastNotarized(chainIDs []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error)
 	RemoveLastSelfNotarizedHeaders()
 }
@@ -116,19 +116,10 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 		return nil, process.ErrNilEpochEconomics
 	}
 
-	orderedChainIDs := make([]dto.ChainID, 0, len(args.MainChainNotarizationStartRound))
-	for chainIDStr := range args.MainChainNotarizationStartRound {
-		chainID, valid := dto.ChainID_value[chainIDStr]
-		if !valid {
-			return nil, fmt.Errorf("%w for chain:%s in NewSovereignChainBlockProcessor", process.ErrInvalidChainID, chainIDStr)
-		}
-
-		orderedChainIDs = append(orderedChainIDs, dto.ChainID(chainID))
+	orderedChainIDs, err := runType.GetOrderedCrossChainIDs(args.MainChainNotarizationStartRound)
+	if err != nil {
+		return nil, err
 	}
-
-	slices.SortStableFunc(orderedChainIDs, func(a, b dto.ChainID) bool {
-		return a < b
-	})
 
 	scbp := &sovereignChainBlockProcessor{
 		shardProcessor:                  args.ShardProcessor,
@@ -2287,7 +2278,6 @@ func (scbp *sovereignChainBlockProcessor) RestoreBlockIntoPools(header data.Head
 		return fmt.Errorf("%w in sovereignChainBlockProcessor.RestoreBlockIntoPools", errors.ErrWrongTypeAssertion)
 	}
 
-	// todo: Here, check if we should call this func by chain id
 	scbp.extendedShardHeaderTracker.RemoveLastSelfNotarizedHeaders()
 
 	for _, chainData := range sovChainHdr.GetChainDataHandlers() {

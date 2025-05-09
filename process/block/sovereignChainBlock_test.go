@@ -31,6 +31,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var orderedChainIDs = []dto.ChainID{dto.MVX}
+
 func createSovChainBaseBlockProcessorArgs() blproc.ArgShardProcessor {
 	shardArguments := CreateSovereignChainShardTrackerMockArguments()
 	sbt, _ := track.NewShardBlockTrack(shardArguments)
@@ -48,7 +50,7 @@ func createSovChainBaseBlockProcessorArgs() blproc.ArgShardProcessor {
 	coreComp.Hash = &hashingMocks.HasherMock{}
 
 	arguments := CreateMockArguments(coreComp, dataComp, bootstrapComp, statusComp)
-	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
+	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt, orderedChainIDs)
 	arguments.RequestHandler, _ = requestHandlers.NewSovereignResolverRequestHandler(rrh)
 
 	return arguments
@@ -226,7 +228,7 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 		sbt, _ := track.NewShardBlockTrack(shardArguments)
 
 		arguments := CreateMockArguments(createComponentHolderMocks())
-		arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
+		arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt, orderedChainIDs)
 		sp, _ := blproc.NewShardProcessor(arguments)
 		args := createSovChainBlockProcessorArgs()
 		args.ShardProcessor = sp

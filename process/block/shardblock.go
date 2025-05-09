@@ -1134,7 +1134,6 @@ func (sp *shardProcessor) commonHeaderAndBodyCommit(
 		log.Debug("removeTxsFromPools", "error", errNotCritical.Error())
 	}
 
-	// TODO: Here, check this cleanup, maybe we need a pointer func
 	sp.cleanupPools(header)
 
 	sp.blockProcessingCutoffHandler.HandlePauseCutoff(header)

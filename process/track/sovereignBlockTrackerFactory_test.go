@@ -13,12 +13,12 @@ import (
 func TestNewSovereignBlockTrackerFactory(t *testing.T) {
 	t.Parallel()
 
-	sbtcf, err := track.NewSovereignBlockTrackerFactory(nil)
+	sbtcf, err := track.NewSovereignBlockTrackerFactory(nil, nil)
 	require.NotNil(t, err)
 	require.Nil(t, sbtcf)
 
 	sf := track.NewShardBlockTrackerFactory()
-	sbtcf, err = track.NewSovereignBlockTrackerFactory(sf)
+	sbtcf, err = track.NewSovereignBlockTrackerFactory(sf, nil)
 	require.Nil(t, err)
 	require.NotNil(t, sbtcf)
 	require.Implements(t, new(track.BlockTrackerCreator), sbtcf)
@@ -28,7 +28,7 @@ func TestSovereignBlockTrackerFactory_CreateBlockTracker(t *testing.T) {
 	t.Parallel()
 
 	sf := track.NewShardBlockTrackerFactory()
-	sbtcf, _ := track.NewSovereignBlockTrackerFactory(sf)
+	sbtcf, _ := track.NewSovereignBlockTrackerFactory(sf, nil)
 
 	bt, err := sbtcf.CreateBlockTracker(track.ArgShardTracker{})
 	require.NotNil(t, err)
@@ -46,7 +46,7 @@ func TestSovereignBlockTrackerFactory_IsInterfaceNil(t *testing.T) {
 	t.Parallel()
 
 	sf := track.NewShardBlockTrackerFactory()
-	sbtcf, _ := track.NewSovereignBlockTrackerFactory(sf)
+	sbtcf, _ := track.NewSovereignBlockTrackerFactory(sf, nil)
 
 	require.False(t, sbtcf.IsInterfaceNil())
 }

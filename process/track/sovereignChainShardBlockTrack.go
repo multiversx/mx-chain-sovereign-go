@@ -15,16 +15,18 @@ import (
 
 type sovereignChainShardBlockTrack struct {
 	*shardBlockTrack
+	orderedChainIDs []dto.ChainID
 }
 
 // NewSovereignChainShardBlockTrack creates an object for tracking the received shard blocks
-func NewSovereignChainShardBlockTrack(shardBlockTrack *shardBlockTrack) (*sovereignChainShardBlockTrack, error) {
+func NewSovereignChainShardBlockTrack(shardBlockTrack *shardBlockTrack, orderedChainIDs []dto.ChainID) (*sovereignChainShardBlockTrack, error) {
 	if shardBlockTrack == nil {
 		return nil, process.ErrNilBlockTracker
 	}
 
 	scsbt := &sovereignChainShardBlockTrack{
 		shardBlockTrack,
+		orderedChainIDs,
 	}
 
 	bp, ok := scsbt.blockProcessor.(*blockProcessor)
@@ -54,11 +56,12 @@ func (scsbt *sovereignChainShardBlockTrack) initCrossNotarizedStartHeaders() err
 	// 1. Versioning header for shard extended?
 	// 2. Perhaps add dummy header nonce from config cross main chain notarized
 
-	for chainID := range dto.ValidChains {
+	for _, chainID := range scsbt.orderedChainIDs {
 		extendedShardHeader := &block.ShardHeaderExtended{
 			Header: &block.HeaderV2{
 				Header: &block.Header{},
 			},
+			SourceChainID: chainID,
 		}
 
 		extendedShardHeaderHash, err := core.CalculateHash(scsbt.marshalizer, scsbt.hasher, extendedShardHeader)
@@ -194,6 +197,8 @@ func (scsbt *sovereignChainShardBlockTrack) isExtendedShardHeaderOutOfRange(exte
 	return isExtendedShardHeaderOutOfRange
 }
 
+// TODO: Here, maybe remove this
+
 // ComputeLongestExtendedShardChainFromLastNotarized returns the longest valid chain for extended shard chain from its last cross notarized header
 func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error) {
 	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(uint32(chainID))
@@ -239,7 +244,7 @@ func (scsbt *sovereignChainShardBlockTrack) DisplayTrackedHeaders() {
 	scsbt.displayTrackedHeadersForShard(scsbt.shardCoordinator.SelfId(), "tracked headers")
 	scsbt.selfNotarizer.DisplayNotarizedHeaders(scsbt.shardCoordinator.SelfId(), "self notarized headers")
 
-	for chainID := range dto.ValidChains {
+	for chainID := range scsbt.orderedChainIDs {
 		scsbt.displayTrackedHeadersForShard(uint32(chainID), fmt.Sprintf("cross tracked headers, chain: %s", dto.ChainID_name[int32(chainID)]))
 		scsbt.crossNotarizer.DisplayNotarizedHeaders(uint32(chainID), fmt.Sprintf("cross notarized headers, chain: %s", dto.ChainID_name[int32(chainID)]))
 	}
