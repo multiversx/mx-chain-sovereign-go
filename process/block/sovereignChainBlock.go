@@ -37,6 +37,7 @@ type extendedShardHeaderTrackHandler interface {
 	ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error)
 	IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool
 	RemoveLastCrossNotarizedHeader(chainID dto.ChainID)
+	ComputeLongestExtendedShardChainsFromLastNotarized(chainIDs []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error)
 	RemoveLastSelfNotarizedHeaders()
 }
 
@@ -413,8 +414,6 @@ func (scbp *sovereignChainBlockProcessor) createAllMiniBlocks(
 }
 
 func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTime func() bool) (*createAndProcessMiniBlocksDestMeInfo, error) {
-	log.Debug("createIncomingMiniBlocksDestMe has been started")
-
 	haveAdditionalTimeFalse := func() bool {
 		return false
 	}
@@ -429,21 +428,112 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 		scheduledMode:              true,
 	}
 
-	// TODO: Here: check meta code createAndProcessCrossMiniBlocksDstMe and also use maxShardHeadersPerChain
-	maxExtendedHeadersInSovBlock := uint32(process.MaxExtendedShardHeadersAllowedInOneSovereignBlock)
-	for _, chainID := range scbp.orderedChainIDs {
-		chainIdProcessInfo, err := scbp.createIncomingMiniBlocksDestMeFromChain(haveTime, chainID, maxExtendedHeadersInSovBlock)
-		if err != nil {
-			log.Error("sovereignChainBlockProcessor.createIncomingMiniBlocksDestMe", "chain", chainID.String(), "error", err)
+	numOrderedChains := uint32(len(scbp.orderedChainIDs))
+	if numOrderedChains == 0 {
+		return createAndProcessInfo, nil
+	}
+
+	log.Debug("createIncomingMiniBlocksDestMe has been started")
+
+	sw := core.NewStopWatch()
+	sw.Start("ComputeLongestExtendedShardChainFromLastNotarized")
+	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, _, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainsFromLastNotarized(scbp.orderedChainIDs)
+	sw.Stop("ComputeLongestExtendedShardChainFromLastNotarized")
+	log.Debug("measurements", sw.GetMeasurements()...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug("extended shard headers ordered",
+		"num extended shard headers", len(orderedExtendedShardHeaders),
+	)
+
+	lastExtendedShardHdr, err := scbp.getLastCrossChainNotarizedShardHeaders()
+	if err != nil {
+		return nil, err
+	}
+
+	maxExtendedShardHeadersFromSameChain := core.MaxUint32(
+		process.MinExtendedShardHeadersFromSameChainInOneSovereignBlock,
+		process.MaxExtendedShardHeadersAllowedInOneSovereignBlock/numOrderedChains,
+	)
+	maxExtendedShardHeadersAllowedInOneBlock := maxExtendedShardHeadersFromSameChain * numOrderedChains
+	headersAddedForChain := make(map[dto.ChainID]uint32)
+
+	// do processing in order
+	scbp.hdrsForCurrBlock.mutHdrsForBlock.Lock()
+	for i := 0; i < len(orderedExtendedShardHeadersHashes); i++ {
+		if !createAndProcessInfo.haveTime() && !createAndProcessInfo.haveAdditionalTime() {
+			log.Debug("time is up in creating incoming mini blocks destination me",
+				"scheduled mode", createAndProcessInfo.scheduledMode,
+				"num txs added", createAndProcessInfo.numTxsAdded,
+			)
+			break
+		}
+
+		if createAndProcessInfo.numHdrsAdded >= maxExtendedShardHeadersAllowedInOneBlock {
+			log.Debug("maximum extended shard headers allowed to be included in one sovereign block has been reached",
+				"scheduled mode", createAndProcessInfo.scheduledMode,
+				"extended shard headers added", createAndProcessInfo.numHdrsAdded,
+			)
+			break
+		}
+
+		extendedShardHeader, ok := orderedExtendedShardHeaders[i].(data.ShardHeaderExtendedHandler)
+		if !ok {
+			log.Debug("wrong type assertion from data.HeaderHandler to data.ShardHeaderExtendedHandler",
+				"hash", orderedExtendedShardHeadersHashes[i],
+				"shard", orderedExtendedShardHeaders[i].GetShardID(),
+				"round", orderedExtendedShardHeaders[i].GetRound(),
+				"nonce", orderedExtendedShardHeaders[i].GetNonce())
 			continue
 		}
 
-		createAndProcessInfo.miniBlocks = append(chainIdProcessInfo.miniBlocks)
-		createAndProcessInfo.numTxsAdded += chainIdProcessInfo.numTxsAdded
-		createAndProcessInfo.numHdrsAdded += chainIdProcessInfo.numHdrsAdded
-		createAndProcessInfo.hdrAdded = createAndProcessInfo.hdrAdded || chainIdProcessInfo.hdrAdded
-		maxExtendedHeadersInSovBlock -= chainIdProcessInfo.numHdrsAdded
+		currChainID := extendedShardHeader.GetSourceChainID()
+		createAndProcessInfo.currentHeader = orderedExtendedShardHeaders[i]
+		if createAndProcessInfo.currentHeader.GetNonce() > lastExtendedShardHdr[currChainID].GetNonce()+1 {
+			log.Debug("skip searching",
+				"scheduled mode", createAndProcessInfo.scheduledMode,
+				"last extended shard hdr nonce", lastExtendedShardHdr[currChainID].GetNonce(),
+				"curr extended shard hdr nonce", createAndProcessInfo.currentHeader.GetNonce())
+			continue
+		}
+
+		if headersAddedForChain[currChainID] >= maxExtendedShardHeadersFromSameChain {
+			log.Debug("maximum headers from same chain allowed to be included in one sovereign block has been reached",
+				"chain", extendedShardHeader.GetShardID(),
+				"shard headers added", headersAddedForChain[currChainID],
+			)
+			continue
+		}
+
+		createAndProcessInfo.currentHeaderHash = orderedExtendedShardHeadersHashes[i]
+		if len(extendedShardHeader.GetIncomingMiniBlockHandlers()) == 0 {
+			scbp.hdrsForCurrBlock.hdrHashAndInfo[string(createAndProcessInfo.currentHeaderHash)] = &hdrInfo{hdr: createAndProcessInfo.currentHeader, usedInBlock: true}
+			createAndProcessInfo.numHdrsAdded++
+			headersAddedForChain[currChainID]++
+			lastExtendedShardHdr[currChainID] = createAndProcessInfo.currentHeader
+			continue
+		}
+
+		createAndProcessInfo.currProcessedMiniBlocksInfo = scbp.processedMiniBlocksTracker.GetProcessedMiniBlocksInfo(createAndProcessInfo.currentHeaderHash)
+		createAndProcessInfo.hdrAdded = false
+
+		shouldContinue, errCreated := scbp.createIncomingMiniBlocksAndTransactionsDestMe(createAndProcessInfo)
+		if errCreated != nil {
+			return nil, errCreated
+		}
+		if !shouldContinue {
+			break
+		}
+
+		headersAddedForChain[currChainID]++
+		lastExtendedShardHdr[currChainID] = createAndProcessInfo.currentHeader
 	}
+	scbp.hdrsForCurrBlock.mutHdrsForBlock.Unlock()
+
+	go scbp.requestExtendedShardHeadersIfNeeded(createAndProcessInfo.numHdrsAdded, lastExtendedShardHdr)
 
 	for _, miniBlock := range createAndProcessInfo.miniBlocks {
 		log.Debug("mini block info",
@@ -460,108 +550,19 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 	return createAndProcessInfo, nil
 }
 
-func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMeFromChain(
-	haveTime func() bool,
-	chainID dto.ChainID,
-	maxAllowedExtendedHeaders uint32,
-) (*createAndProcessMiniBlocksDestMeInfo, error) {
-	sw := core.NewStopWatch()
-	sw.Start(fmt.Sprintf("sovereignChainBlockProcessor.ComputeLongestExtendedShardChainFromLastNotarized for chain: %s", chainID.String()))
-	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainFromLastNotarized(chainID)
-	sw.Stop(fmt.Sprintf("sovereignChainBlockProcessor.ComputeLongestExtendedShardChainFromLastNotarized for chain: %s", chainID.String()))
-	log.Debug("measurements", sw.GetMeasurements()...)
+func (scbp *sovereignChainBlockProcessor) getLastCrossChainNotarizedShardHeaders() (map[dto.ChainID]data.HeaderHandler, error) {
+	lastCrossNotarizedHeaders := make(map[dto.ChainID]data.HeaderHandler)
 
-	if err != nil {
-		return nil, err
+	for _, chainID := range scbp.orderedChainIDs {
+		lastExtendedShardHeader, _, err := scbp.blockTracker.GetLastCrossNotarizedHeader(uint32(chainID))
+		if err != nil {
+			return nil, err
+		}
+
+		lastCrossNotarizedHeaders[chainID] = lastExtendedShardHeader
 	}
 
-	log.Debug("extended shard headers ordered",
-		"num extended shard headers", len(orderedExtendedShardHeaders),
-	)
-
-	lastExtendedShardHdr, _, err := scbp.blockTracker.GetLastCrossNotarizedHeader(uint32(chainID))
-	if err != nil {
-		return nil, err
-	}
-
-	haveAdditionalTimeFalse := func() bool {
-		return false
-	}
-
-	createAndProcessInfo := &createAndProcessMiniBlocksDestMeInfo{
-		haveTime:                   haveTime,
-		haveAdditionalTime:         haveAdditionalTimeFalse,
-		miniBlocks:                 make(block.MiniBlockSlice, 0),
-		allProcessedMiniBlocksInfo: make(map[string]*processedMb.ProcessedMiniBlockInfo),
-		numTxsAdded:                uint32(0),
-		numHdrsAdded:               uint32(0),
-		scheduledMode:              true,
-	}
-
-	// do processing in order
-	scbp.hdrsForCurrBlock.mutHdrsForBlock.Lock()
-	for i := 0; i < len(orderedExtendedShardHeadersHashes); i++ {
-		if !createAndProcessInfo.haveTime() && !createAndProcessInfo.haveAdditionalTime() {
-			log.Debug("time is up in creating incoming mini blocks destination me",
-				"scheduled mode", createAndProcessInfo.scheduledMode,
-				"num txs added", createAndProcessInfo.numTxsAdded,
-			)
-			break
-		}
-
-		if createAndProcessInfo.numHdrsAdded >= maxAllowedExtendedHeaders {
-			log.Debug("maximum extended shard headers allowed to be included in one sovereign block has been reached",
-				"scheduled mode", createAndProcessInfo.scheduledMode,
-				"extended shard headers added", createAndProcessInfo.numHdrsAdded,
-			)
-			break
-		}
-
-		extendedShardHeader, ok := orderedExtendedShardHeaders[i].(data.ShardHeaderExtendedHandler)
-		if !ok {
-			log.Debug("wrong type assertion from data.HeaderHandler to data.ShardHeaderExtendedHandler",
-				"hash", orderedExtendedShardHeadersHashes[i],
-				"shard", orderedExtendedShardHeaders[i].GetShardID(),
-				"round", orderedExtendedShardHeaders[i].GetRound(),
-				"nonce", orderedExtendedShardHeaders[i].GetNonce())
-			break
-		}
-
-		createAndProcessInfo.currentHeader = orderedExtendedShardHeaders[i]
-		if createAndProcessInfo.currentHeader.GetNonce() > lastExtendedShardHdr.GetNonce()+1 {
-			log.Debug("skip searching",
-				"scheduled mode", createAndProcessInfo.scheduledMode,
-				"last extended shard hdr nonce", lastExtendedShardHdr.GetNonce(),
-				"curr extended shard hdr nonce", createAndProcessInfo.currentHeader.GetNonce())
-			break
-		}
-
-		createAndProcessInfo.currentHeaderHash = orderedExtendedShardHeadersHashes[i]
-		if len(extendedShardHeader.GetIncomingMiniBlockHandlers()) == 0 {
-			scbp.hdrsForCurrBlock.hdrHashAndInfo[string(createAndProcessInfo.currentHeaderHash)] = &hdrInfo{hdr: createAndProcessInfo.currentHeader, usedInBlock: true}
-			createAndProcessInfo.numHdrsAdded++
-			lastExtendedShardHdr = createAndProcessInfo.currentHeader
-			continue
-		}
-
-		createAndProcessInfo.currProcessedMiniBlocksInfo = scbp.processedMiniBlocksTracker.GetProcessedMiniBlocksInfo(createAndProcessInfo.currentHeaderHash)
-		createAndProcessInfo.hdrAdded = false
-
-		shouldContinue, errCreated := scbp.createIncomingMiniBlocksAndTransactionsDestMe(createAndProcessInfo)
-		if errCreated != nil {
-			return nil, errCreated
-		}
-		if !shouldContinue {
-			break
-		}
-
-		lastExtendedShardHdr = createAndProcessInfo.currentHeader
-	}
-	scbp.hdrsForCurrBlock.mutHdrsForBlock.Unlock()
-
-	go scbp.requestExtendedShardHeadersIfNeeded(createAndProcessInfo.numHdrsAdded, lastExtendedShardHdr)
-
-	return createAndProcessInfo, nil
+	return lastCrossNotarizedHeaders, nil
 }
 
 func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksAndTransactionsDestMe(
@@ -612,10 +613,9 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksAndTransaction
 	return true, nil
 }
 
-func (scbp *sovereignChainBlockProcessor) requestExtendedShardHeadersIfNeeded(hdrsAdded uint32, lastExtendedShardHdr data.HeaderHandler) {
-	log.Debug("extended shard headers added",
+func (scbp *sovereignChainBlockProcessor) requestExtendedShardHeadersIfNeeded(hdrsAdded uint32, _ map[dto.ChainID]data.HeaderHandler) {
+	log.Debug("sovereignChainBlockProcessor.requestExtendedShardHeadersIfNeeded not implemented",
 		"num", hdrsAdded,
-		"highest nonce", lastExtendedShardHdr.GetNonce(),
 	)
 	//TODO: A request mechanism should be implemented if extended shard header(s) is(are) needed
 }

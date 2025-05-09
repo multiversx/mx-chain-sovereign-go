@@ -213,6 +213,18 @@ func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFrom
 	return hdrsForShard, hdrsHashesForShard, nil
 }
 
+// TODO: Here, we should get orderedChains []dto.Chain on constructor and use existing function ComputeLongestShardsChainsFromLastNotarized
+
+// ComputeLongestExtendedShardChainsFromLastNotarized returns the longest valid chain for all chain from its last cross notarized header
+func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainsFromLastNotarized(chainIDs []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error) {
+	shards := make([]uint32, len(chainIDs))
+	for idx, chainID := range chainIDs {
+		shards[idx] = uint32(chainID)
+	}
+
+	return scsbt.baseComputeLongestShardsChainsFromLastNotarized(shards)
+}
+
 // CleanupHeadersBehindNonce removes from local pools old headers
 func (scsbt *sovereignChainShardBlockTrack) CleanupHeadersBehindNonce(
 	shardID uint32,

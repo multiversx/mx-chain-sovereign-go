@@ -344,16 +344,29 @@ func (bbt *baseBlockTrack) ComputeLongestMetaChainFromLastNotarized() ([]data.He
 
 // ComputeLongestShardsChainsFromLastNotarized returns the longest valid chains for all shards from theirs last cross notarized headers
 func (bbt *baseBlockTrack) ComputeLongestShardsChainsFromLastNotarized() ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error) {
+	shards := bbt.getShards()
+	return bbt.baseComputeLongestShardsChainsFromLastNotarized(shards)
+}
+
+func (bbt *baseBlockTrack) getShards() []uint32 {
+	shards := make([]uint32, bbt.shardCoordinator.NumberOfShards())
+	for shardID := uint32(0); shardID < bbt.shardCoordinator.NumberOfShards(); shardID++ {
+		shards[shardID] = shardID
+	}
+	return shards
+}
+
+func (bbt *baseBlockTrack) baseComputeLongestShardsChainsFromLastNotarized(shards []uint32) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error) {
 	hdrsMap := make(map[uint32][]data.HeaderHandler)
 	hdrsHashesMap := make(map[uint32][][]byte)
 
-	lastCrossNotarizedHeaders, err := bbt.GetLastCrossNotarizedHeadersForAllShards()
+	lastCrossNotarizedHeaders, err := bbt.baseGetLastCrossNotarizedHeadersForAllShards(shards)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	maxHdrLen := 0
-	for shardID := uint32(0); shardID < bbt.shardCoordinator.NumberOfShards(); shardID++ {
+	for _, shardID := range shards {
 		hdrsForShard, hdrsHashesForShard := bbt.ComputeLongestChain(shardID, lastCrossNotarizedHeaders[shardID])
 
 		hdrsMap[shardID] = append(hdrsMap[shardID], hdrsForShard...)
@@ -370,7 +383,7 @@ func (bbt *baseBlockTrack) ComputeLongestShardsChainsFromLastNotarized() ([]data
 
 	// copy from map to lists - equality between number of headers per shard
 	for i := 0; i < maxHdrLen; i++ {
-		for shardID := uint32(0); shardID < bbt.shardCoordinator.NumberOfShards(); shardID++ {
+		for _, shardID := range shards {
 			hdrsForShard := hdrsMap[shardID]
 			hdrsHashesForShard := hdrsHashesMap[shardID]
 			if i >= len(hdrsForShard) {
@@ -517,10 +530,15 @@ func (bbt *baseBlockTrack) GetLastCrossNotarizedHeader(shardID uint32) (data.Hea
 
 // GetLastCrossNotarizedHeadersForAllShards returns last cross notarized headers for all shards
 func (bbt *baseBlockTrack) GetLastCrossNotarizedHeadersForAllShards() (map[uint32]data.HeaderHandler, error) {
-	lastCrossNotarizedHeaders := make(map[uint32]data.HeaderHandler, bbt.shardCoordinator.NumberOfShards())
+	shards := bbt.getShards()
+	return bbt.baseGetLastCrossNotarizedHeadersForAllShards(shards)
+}
+
+func (bbt *baseBlockTrack) baseGetLastCrossNotarizedHeadersForAllShards(shards []uint32) (map[uint32]data.HeaderHandler, error) {
+	lastCrossNotarizedHeaders := make(map[uint32]data.HeaderHandler, len(shards))
 
 	// save last committed header for verification
-	for shardID := uint32(0); shardID < bbt.shardCoordinator.NumberOfShards(); shardID++ {
+	for _, shardID := range shards {
 		lastCrossNotarizedHeader, _, err := bbt.GetLastCrossNotarizedHeader(shardID)
 		if err != nil {
 			return nil, err
