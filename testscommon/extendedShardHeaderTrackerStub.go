@@ -8,17 +8,17 @@ import (
 // ExtendedShardHeaderTrackerStub -
 type ExtendedShardHeaderTrackerStub struct {
 	BlockTrackerStub
-	ComputeLongestExtendedShardChainsFromLastNotarizedCalled func(chainID []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error)
+	ComputeLongestExtendedShardChainsFromLastNotarizedCalled func() ([]data.HeaderHandler, [][]byte, error)
 	RemoveLastCrossNotarizedHeadersCalled                    func(chainID dto.ChainID)
 	RemoveLastSelfNotarizedHeadersCalled                     func()
 }
 
 // ComputeLongestExtendedShardChainsFromLastNotarized -
-func (eshts *ExtendedShardHeaderTrackerStub) ComputeLongestExtendedShardChainsFromLastNotarized(chainID []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error) {
+func (eshts *ExtendedShardHeaderTrackerStub) ComputeLongestExtendedShardChainsFromLastNotarized() ([]data.HeaderHandler, [][]byte, error) {
 	if eshts.ComputeLongestExtendedShardChainsFromLastNotarizedCalled != nil {
-		return eshts.ComputeLongestExtendedShardChainsFromLastNotarizedCalled(chainID)
+		return eshts.ComputeLongestExtendedShardChainsFromLastNotarizedCalled()
 	}
-	return nil, nil, nil, nil
+	return nil, nil, nil
 }
 
 // RemoveLastCrossNotarizedHeader -

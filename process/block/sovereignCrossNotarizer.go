@@ -8,11 +8,12 @@ import (
 
 type sovereignShardCrossNotarizer struct {
 	*baseBlockNotarizer
+	orderedChainIDs []dto.ChainID
 }
 
 func (scn *sovereignShardCrossNotarizer) getLastCrossNotarizedHeaders() []bootstrapStorage.BootstrapHeaderInfo {
 	lastCrossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0)
-	for chainID := range dto.ValidChains {
+	for _, chainID := range scn.orderedChainIDs {
 		bootstrapHeaderInfo := scn.getLastCrossNotarizedHeadersForShard(uint32(chainID))
 		if bootstrapHeaderInfo == nil {
 			continue

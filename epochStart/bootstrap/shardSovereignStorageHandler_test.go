@@ -156,12 +156,14 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 			Epoch: 2,
 		},
 		EpochStart: block.EpochStartSovereign{
-			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
-				ShardID:    uint32(dtoSov.MVX),
-				Epoch:      1,
-				Round:      4,
-				Nonce:      4,
-				HeaderHash: lastFinalizedCrossChainHeaderHash,
+			LastFinalizedCrossChainHeader: []block.EpochStartCrossChainData{
+				{
+					ShardID:    uint32(dtoSov.MVX),
+					Epoch:      1,
+					Round:      4,
+					Nonce:      4,
+					HeaderHash: lastFinalizedCrossChainHeaderHash,
+				},
 			},
 		},
 	}

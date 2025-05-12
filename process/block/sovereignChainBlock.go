@@ -36,8 +36,7 @@ var rootHash = "uncomputed root hash"
 type extendedShardHeaderTrackHandler interface {
 	IsGenesisLastCrossNotarizedHeader(chainID dto.ChainID) bool
 	RemoveLastCrossNotarizedHeader(chainID dto.ChainID)
-	// TODO: Here, return args of these funcs can be minimized
-	ComputeLongestExtendedShardChainsFromLastNotarized(chainIDs []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error)
+	ComputeLongestExtendedShardChainsFromLastNotarized() ([]data.HeaderHandler, [][]byte, error)
 	RemoveLastSelfNotarizedHeaders()
 }
 
@@ -169,6 +168,7 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 		baseBlockNotarizer: &baseBlockNotarizer{
 			blockTracker: scbp.blockTracker,
 		},
+		orderedChainIDs: orderedChainIDs,
 	}
 
 	return scbp, nil
@@ -428,7 +428,7 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 
 	sw := core.NewStopWatch()
 	sw.Start("ComputeLongestExtendedShardChainFromLastNotarized")
-	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, _, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainsFromLastNotarized(scbp.orderedChainIDs)
+	orderedExtendedShardHeaders, orderedExtendedShardHeadersHashes, err := scbp.extendedShardHeaderTracker.ComputeLongestExtendedShardChainsFromLastNotarized()
 	sw.Stop("ComputeLongestExtendedShardChainFromLastNotarized")
 	log.Debug("measurements", sw.GetMeasurements()...)
 
@@ -493,7 +493,7 @@ func (scbp *sovereignChainBlockProcessor) createIncomingMiniBlocksDestMe(haveTim
 
 		if headersAddedForChain[currChainID] >= maxExtendedShardHeadersFromSameChain {
 			log.Debug("maximum headers from same chain allowed to be included in one sovereign block has been reached",
-				"chain", extendedShardHeader.GetShardID(),
+				"chain", currChainID.String(),
 				"shard headers added", headersAddedForChain[currChainID],
 			)
 			continue

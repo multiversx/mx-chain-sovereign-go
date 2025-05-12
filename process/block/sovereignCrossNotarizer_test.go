@@ -24,7 +24,7 @@ func TestSovereignShardCrossNotarizer_getLastCrossNotarizedHeaders(t *testing.T)
 		},
 	}
 	sovereignNotarzier := &sovereignShardCrossNotarizer{
-		&baseBlockNotarizer{
+		baseBlockNotarizer: &baseBlockNotarizer{
 			blockTracker: &testscommon.BlockTrackerStub{
 				GetLastCrossNotarizedHeaderCalled: func(shardID uint32) (data.HeaderHandler, []byte, error) {
 					switch shardID {
@@ -35,6 +35,7 @@ func TestSovereignShardCrossNotarizer_getLastCrossNotarizedHeaders(t *testing.T)
 				},
 			},
 		},
+		orderedChainIDs: []dto.ChainID{dto.MVX},
 	}
 
 	headers := sovereignNotarzier.getLastCrossNotarizedHeaders()

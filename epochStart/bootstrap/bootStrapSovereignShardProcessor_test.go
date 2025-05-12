@@ -134,9 +134,11 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 			Economics: block.Economics{
 				PrevEpochStartHash: prevEpochStartHash,
 			},
-			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
-				ShardID:    uint32(dto.MVX),
-				HeaderHash: lastCrossChainHeaderHash,
+			LastFinalizedCrossChainHeader: []block.EpochStartCrossChainData{
+				{
+					ShardID:    uint32(dto.MVX),
+					HeaderHash: lastCrossChainHeaderHash,
+				},
 			},
 		},
 	}

@@ -24,6 +24,11 @@ func NewSovereignChainShardBlockTrack(shardBlockTrack *shardBlockTrack, orderedC
 		return nil, process.ErrNilBlockTracker
 	}
 
+	shards := make([]uint32, len(orderedChainIDs))
+	for idx, chainID := range orderedChainIDs {
+		shards[idx] = uint32(chainID)
+	}
+
 	scsbt := &sovereignChainShardBlockTrack{
 		shardBlockTrack,
 		orderedChainIDs,
@@ -42,6 +47,7 @@ func NewSovereignChainShardBlockTrack(shardBlockTrack *shardBlockTrack, orderedC
 	scsbt.blockProcessor = scbp
 	scsbt.doReceivedHeaderJobFunc = scsbt.doReceivedHeaderJob
 	scsbt.getFinalHeaderFunc = scsbt.getFinalHeader
+	scsbt.orderedShards = shards
 
 	err = scsbt.initCrossNotarizedStartHeaders()
 	if err != nil {
@@ -218,16 +224,10 @@ func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFrom
 	return hdrsForShard, hdrsHashesForShard, nil
 }
 
-// TODO: Here, we should get orderedChains []dto.Chain on constructor and use existing function ComputeLongestShardsChainsFromLastNotarized
-
 // ComputeLongestExtendedShardChainsFromLastNotarized returns the longest valid chain for all chain from its last cross notarized header
-func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainsFromLastNotarized(chainIDs []dto.ChainID) ([]data.HeaderHandler, [][]byte, map[uint32][]data.HeaderHandler, error) {
-	shards := make([]uint32, len(chainIDs))
-	for idx, chainID := range chainIDs {
-		shards[idx] = uint32(chainID)
-	}
-
-	return scsbt.baseComputeLongestShardsChainsFromLastNotarized(shards)
+func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainsFromLastNotarized() ([]data.HeaderHandler, [][]byte, error) {
+	orderedHeaders, orderedHashes, _, err := scsbt.baseComputeLongestShardsChainsFromLastNotarized()
+	return orderedHeaders, orderedHashes, err
 }
 
 // CleanupHeadersBehindNonce removes from local pools old headers
@@ -244,9 +244,9 @@ func (scsbt *sovereignChainShardBlockTrack) DisplayTrackedHeaders() {
 	scsbt.displayTrackedHeadersForShard(scsbt.shardCoordinator.SelfId(), "tracked headers")
 	scsbt.selfNotarizer.DisplayNotarizedHeaders(scsbt.shardCoordinator.SelfId(), "self notarized headers")
 
-	for chainID := range scsbt.orderedChainIDs {
-		scsbt.displayTrackedHeadersForShard(uint32(chainID), fmt.Sprintf("cross tracked headers, chain: %s", dto.ChainID_name[int32(chainID)]))
-		scsbt.crossNotarizer.DisplayNotarizedHeaders(uint32(chainID), fmt.Sprintf("cross notarized headers, chain: %s", dto.ChainID_name[int32(chainID)]))
+	for _, chainID := range scsbt.orderedChainIDs {
+		scsbt.displayTrackedHeadersForShard(uint32(chainID), fmt.Sprintf("cross tracked headers, chain: %s", chainID.String()))
+		scsbt.crossNotarizer.DisplayNotarizedHeaders(uint32(chainID), fmt.Sprintf("cross notarized headers, chain: %s", chainID.String()))
 	}
 }
 
