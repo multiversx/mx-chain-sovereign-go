@@ -316,10 +316,6 @@ func (txc *transactionCounter) displayExtendedShardHeaderHashesIncluded(
 	lines []*display.LineData,
 	chainsData []data.ChainDataHandler,
 ) []*display.LineData {
-	if len(chainsData) == 0 {
-		return lines
-	}
-
 	for _, chainData := range chainsData {
 		lines = txc.displayExtendedShardHeaderHashesInChain(lines, chainData)
 	}

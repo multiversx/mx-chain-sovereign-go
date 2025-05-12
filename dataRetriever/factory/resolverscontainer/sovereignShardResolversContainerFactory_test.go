@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -81,15 +80,15 @@ func TestSovereignShardResolversContainerFactory_Create(t *testing.T) {
 
 	sovShardIDStr := fmt.Sprintf("_%d", core.SovereignChainShardId)
 	allKeys := map[string]struct{}{
-		factory.TransactionTopic + sovShardIDStr:                                                             {},
-		factory.UnsignedTransactionTopic + sovShardIDStr:                                                     {},
-		factory.ShardBlocksTopic + sovShardIDStr:                                                             {},
-		factory.MiniBlocksTopic + sovShardIDStr:                                                              {},
-		factory.ValidatorTrieNodesTopic + sovShardIDStr:                                                      {},
-		factory.AccountTrieNodesTopic + sovShardIDStr:                                                        {},
-		common.PeerAuthenticationTopic:                                                                       {},
-		common.ValidatorInfoTopic + sovShardIDStr:                                                            {},
-		factory.ExtendedHeaderProofTopic + args.ShardCoordinator.CommunicationIdentifier(uint32(dtoSov.MVX)): {},
+		factory.TransactionTopic + sovShardIDStr:         {},
+		factory.UnsignedTransactionTopic + sovShardIDStr: {},
+		factory.ShardBlocksTopic + sovShardIDStr:         {},
+		factory.MiniBlocksTopic + sovShardIDStr:          {},
+		factory.ValidatorTrieNodesTopic + sovShardIDStr:  {},
+		factory.AccountTrieNodesTopic + sovShardIDStr:    {},
+		common.PeerAuthenticationTopic:                   {},
+		common.ValidatorInfoTopic + sovShardIDStr:        {},
+		factory.ExtendedHeaderProofTopic + sovShardIDStr: {},
 	}
 
 	iterateFunc := func(key string, resolver dataRetriever.Resolver) bool {

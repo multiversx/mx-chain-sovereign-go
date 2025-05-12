@@ -104,7 +104,7 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForHig
 	for supportedChainID := range dtoSov.ValidChains {
 		lastCrossNotarizedNonce, err := getLastCrossNotarizedHeaderNonce(crossNotarizedHeaders, uint32(supportedChainID))
 		if err != nil {
-			log.Warn("cleanupNotarizedStorageForHigherNoncesIfExist", "chainID", supportedChainID, "error", err.Error())
+			log.Warn("cleanupNotarizedStorageForHigherNoncesIfExist", "chainID", supportedChainID.String(), "error", err.Error())
 			continue
 		}
 

@@ -203,8 +203,6 @@ func (scsbt *sovereignChainShardBlockTrack) isExtendedShardHeaderOutOfRange(exte
 	return isExtendedShardHeaderOutOfRange
 }
 
-// TODO: Here, maybe remove this
-
 // ComputeLongestExtendedShardChainFromLastNotarized returns the longest valid chain for extended shard chain from its last cross notarized header
 func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFromLastNotarized(chainID dto.ChainID) ([]data.HeaderHandler, [][]byte, error) {
 	lastCrossNotarizedHeader, _, err := scsbt.GetLastCrossNotarizedHeader(uint32(chainID))
@@ -224,7 +222,7 @@ func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainFrom
 	return hdrsForShard, hdrsHashesForShard, nil
 }
 
-// ComputeLongestExtendedShardChainsFromLastNotarized returns the longest valid chain for all chain from its last cross notarized header
+// ComputeLongestExtendedShardChainsFromLastNotarized returns the longest valid chain for all chains from their last cross notarized header
 func (scsbt *sovereignChainShardBlockTrack) ComputeLongestExtendedShardChainsFromLastNotarized() ([]data.HeaderHandler, [][]byte, error) {
 	orderedHeaders, orderedHashes, _, err := scsbt.baseComputeLongestShardsChainsFromLastNotarized()
 	return orderedHeaders, orderedHashes, err

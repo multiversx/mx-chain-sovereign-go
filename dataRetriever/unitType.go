@@ -50,7 +50,7 @@ const (
 	// ScheduledSCRsUnit is the scheduled SCRs storage unit identifier
 	ScheduledSCRsUnit UnitType = 22
 
-	// TODO: Here, for extended headers I think we need a storer unit similar to ShardHdrNonceHashDataUnit + chainID
+	// TODO: Here (MX-16866), for extended headers we need a storer unit similar to ShardHdrNonceHashDataUnit + chainID
 
 	// ExtendedShardHeadersNonceHashDataUnit is the extended shard headers nonce-hash pair data unit identifier
 	ExtendedShardHeadersNonceHashDataUnit UnitType = 25

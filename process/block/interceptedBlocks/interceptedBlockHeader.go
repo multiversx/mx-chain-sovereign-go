@@ -51,7 +51,7 @@ func NewInterceptedHeader(arg *ArgInterceptedBlockHeader) (*InterceptedHeader, e
 		shardCoordinator:      arg.ShardCoordinator,
 		validityAttester:      arg.ValidityAttester,
 		epochStartTrigger:     arg.EpochStartTrigger,
-		acceptedCrossShardIDs: getMainChainAcceptedCrossShardID(),
+		acceptedCrossShardIDs: getNormalRunTypeChainAcceptedCrossShardID(),
 	}
 	inHdr.processFields(arg.HdrBuff)
 

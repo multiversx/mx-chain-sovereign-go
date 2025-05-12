@@ -84,13 +84,12 @@ func (srcf *sovereignShardResolversContainerFactory) Create() (dataRetriever.Res
 func (srcf *sovereignShardResolversContainerFactory) generateSovereignExtendedHeaderResolvers() error {
 	idx := uint32(0)
 	//for chainID := range dto.ValidChains {
-	// TODO: Here, add delta after we have the task ready for multiple ExtendedShardHeadersUnit
+	// TODO: Here (MX-16866) add delta for each ExtendedShardHeadersUnit chain
 	err := srcf.generateOneSovereignExtendedHeaderResolver(uint32(dto.MVX), idx)
 	if err != nil {
 		return err
 	}
-
-	idx++
+	//idx++
 	//}
 
 	return nil
@@ -107,7 +106,8 @@ func (srcf *sovereignShardResolversContainerFactory) generateOneSovereignExtende
 		return err
 	}
 
-	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardID)
+	// TODO: Here (MX-16866) check if the mechanism would work with a different chain id as communication identifier
+	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardC.SelfId())
 	resolverSender, err := srcf.createOneResolverSenderWithSpecifiedNumRequests(identifierHdr, EmptyExcludePeersOnTopic, shardID)
 	if err != nil {
 		return err

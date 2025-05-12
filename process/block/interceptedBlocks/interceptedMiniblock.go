@@ -38,13 +38,11 @@ func NewInterceptedMiniblock(arg *ArgInterceptedMiniblock) (*InterceptedMinibloc
 	}
 
 	inMiniblock := &InterceptedMiniblock{
-		miniblock:        miniblock,
-		marshalizer:      arg.Marshalizer,
-		hasher:           arg.Hasher,
-		shardCoordinator: arg.ShardCoordinator,
-		acceptedCrossShardIDs: map[uint32]struct{}{
-			core.MetachainShardId: {},
-		},
+		miniblock:             miniblock,
+		marshalizer:           arg.Marshalizer,
+		hasher:                arg.Hasher,
+		shardCoordinator:      arg.ShardCoordinator,
+		acceptedCrossShardIDs: getNormalRunTypeChainAcceptedCrossShardID(),
 	}
 	inMiniblock.processFields(arg.MiniblockBuff)
 

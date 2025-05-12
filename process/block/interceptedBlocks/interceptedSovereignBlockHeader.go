@@ -11,7 +11,7 @@ func NewSovereignInterceptedBlockHeader(arg *ArgInterceptedBlockHeader) (*interc
 		return nil, err
 	}
 
-	interceptedHdr.acceptedCrossShardIDs = getSovereignAcceptedCrossShardIDs()
+	interceptedHdr.acceptedCrossShardIDs = getSovereignRunTypeAcceptedCrossShardIDs()
 	sovInterceptedBlock := &interceptedSovereignBlockHeader{
 		interceptedHdr,
 	}

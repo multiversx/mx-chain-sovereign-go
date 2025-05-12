@@ -14,12 +14,11 @@ import (
 func GetOrderedCrossChainIDs(mainChainNotarizationStartRound map[string]config.MainChainNotarization) ([]dto.ChainID, error) {
 	orderedChainIDs := make([]dto.ChainID, 0, len(mainChainNotarizationStartRound))
 	for chainIDStr := range mainChainNotarizationStartRound {
-		chainID, valid := dto.ChainID_value[chainIDStr]
-		if !valid {
+		if !dto.IsValidCrossChainIDString(chainIDStr) {
 			return nil, fmt.Errorf("%w for chain:%s in GetOrderedCrossChainIDs", process.ErrInvalidChainID, chainIDStr)
 		}
 
-		orderedChainIDs = append(orderedChainIDs, dto.ChainID(chainID))
+		orderedChainIDs = append(orderedChainIDs, dto.ChainID(dto.ChainID_value[chainIDStr]))
 	}
 
 	slices.SortStableFunc(orderedChainIDs, func(a, b dto.ChainID) bool {

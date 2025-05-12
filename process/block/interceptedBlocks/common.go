@@ -150,7 +150,7 @@ func isShardIDValid(shardID uint32, acceptedCrossShardIDs map[uint32]struct{}) b
 	return found
 }
 
-func getSovereignAcceptedCrossShardIDs() map[uint32]struct{} {
+func getSovereignRunTypeAcceptedCrossShardIDs() map[uint32]struct{} {
 	crossChainIDs := make(map[uint32]struct{})
 	for chainID := range dto.ValidChains {
 		crossChainIDs[uint32(chainID)] = struct{}{}
@@ -159,7 +159,7 @@ func getSovereignAcceptedCrossShardIDs() map[uint32]struct{} {
 	return crossChainIDs
 }
 
-func getMainChainAcceptedCrossShardID() map[uint32]struct{} {
+func getNormalRunTypeChainAcceptedCrossShardID() map[uint32]struct{} {
 	return map[uint32]struct{}{
 		core.MetachainShardId: {},
 	}

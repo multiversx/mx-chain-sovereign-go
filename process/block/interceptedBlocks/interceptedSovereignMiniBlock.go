@@ -11,7 +11,7 @@ func NewInterceptedSovereignMiniBlock(arg *ArgInterceptedMiniblock) (*intercepte
 		return nil, err
 	}
 
-	interceptedMbHandler.acceptedCrossShardIDs = getSovereignAcceptedCrossShardIDs()
+	interceptedMbHandler.acceptedCrossShardIDs = getSovereignRunTypeAcceptedCrossShardIDs()
 	return &interceptedSovereignMiniBlock{
 		interceptedMbHandler,
 	}, nil
