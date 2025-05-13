@@ -223,7 +223,7 @@ func (e *esdt) createPlainPFT(caller []byte, ticker []byte, parts [][]byte) erro
 	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, proofData)
 
 	newEntry := vmcommon.LogEntry{
-		Identifier: []byte("createMicroPFT"),
+		Identifier: []byte("createPlainPFT"),
 		Address:    caller,
 		Topics:     [][]byte{ticker, big.NewInt(0).SetUint64(newNonce).Bytes(), pftKey},
 		Data:       parts,
