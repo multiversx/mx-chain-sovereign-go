@@ -145,7 +145,8 @@ func createDAGProofFT(
 	args := "createProof" +
 		"@" + hex.EncodeToString([]byte(proofIdentifier)) +
 		"@" + hex.EncodeToString([]byte(proofTypeDAG)) +
-		"@" + hex.EncodeToString([]byte("proofData"))
+		"@" + hex.EncodeToString([]byte("proofData")) +
+		"@" + hex.EncodeToString(big.NewInt(int64(len(parentKeys))).Bytes())
 	for _, parentKey := range parentKeys {
 		args = args +
 			"@" + hex.EncodeToString([]byte(parentKey))
