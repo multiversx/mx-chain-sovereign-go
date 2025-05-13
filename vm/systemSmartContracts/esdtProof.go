@@ -23,6 +23,7 @@ const (
 	funcCreateProof         = "createProof"
 
 	// Proof Types (as expected in input data)
+	proofTypePlain = "pPFT"
 	proofTypeMicro = "uPFT"
 	proofTypeDAG   = "dPFT"
 
@@ -133,6 +134,8 @@ func (e *esdt) createProof(args *vmcommon.ContractCallInput) vmcommon.ReturnCode
 		err = e.createMicroPFT(args.CallerAddr, ticker, args.Arguments[2:])
 	case proofTypeDAG:
 		err = e.createDPFT(args.CallerAddr, ticker, args.Arguments[2:])
+	case proofTypePlain:
+		err = e.createPlainPFT(args.CallerAddr, ticker, args.Arguments[2:])
 	default:
 		err = errors.New("unknown proof type")
 	}
@@ -200,11 +203,12 @@ func validateProofTokenID(token []byte) bool {
 	return true
 }
 
-// createMicroPFT handles the creation of a simple MicroProof token.
-// Expected input parts (from createProof): [ "createProof", "MYTICKER", "proof_data" ]
-func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) error {
-	if len(parts) != 1 {
-		return errors.New("expected 1 part for createMicroPFT")
+// createPlainPFT handles the creation of a simple PlainProof token.
+// Expected input parts (from createProof): [ "createProof", "MYTICKER", "proof_data", list<key, value> for tags ]
+func (e *esdt) createPlainPFT(caller []byte, ticker []byte, parts [][]byte) error {
+	lenParts := len(parts)
+	if lenParts%2 != 1 {
+		return errors.New("expected impair number of parts for createMicroPFT")
 	}
 
 	err := e.eei.UseGas(createMicroPFTBaseCost)
@@ -215,22 +219,55 @@ func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) erro
 	proofData := parts[0]
 	newNonce := e.incrementLatestNonce(ticker)
 	pftKey := generatePFTStorageKey(ticker, newNonce)
-	pftValue := e.generateMicroPFTValue(proofData)
 
-	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, pftValue)
+	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, proofData)
 
 	newEntry := vmcommon.LogEntry{
 		Identifier: []byte("createMicroPFT"),
 		Address:    caller,
 		Topics:     [][]byte{ticker, big.NewInt(0).SetUint64(newNonce).Bytes(), pftKey},
-		Data:       [][]byte{pftValue},
+		Data:       parts,
 	}
 	e.eei.AddLogEntry(&newEntry)
 
 	return nil
 }
 
-func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
+// createMicroPFT handles the creation of a simple MicroProof token.
+// Expected input parts (from createProof): [ "createProof", "MYTICKER", "proof_data", list<key, value> for tags ]
+func (e *esdt) createMicroPFT(caller []byte, ticker []byte, parts [][]byte) error {
+	lenParts := len(parts)
+	if lenParts%2 != 1 {
+		return errors.New("expected impair number of parts for createMicroPFT")
+	}
+
+	err := e.eei.UseGas(createMicroPFTBaseCost)
+	if err != nil {
+		return err
+	}
+
+	proofData := parts[0]
+	newNonce := e.incrementLatestNonce(ticker)
+	pftKey := generatePFTStorageKey(ticker, newNonce)
+	pftValue, hashBytes := e.generateMicroPFTValue(proofData)
+
+	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, pftValue)
+
+	newEntry := vmcommon.LogEntry{
+		Identifier: []byte("createMicroPFT"),
+		Address:    caller,
+		Topics:     [][]byte{ticker, big.NewInt(0).SetUint64(newNonce).Bytes(), pftKey, hashBytes, []byte(algoIDMicroPFT)},
+		Data:       [][]byte{pftValue},
+	}
+	if len(parts) > 1 {
+		newEntry.Data = append(newEntry.Data, parts[1:]...)
+	}
+	e.eei.AddLogEntry(&newEntry)
+
+	return nil
+}
+
+func (e *esdt) generateMicroPFTValue(proofData []byte) ([]byte, []byte) {
 	hashBytes := e.hasher.Compute(string(proofData))
 
 	timestampBytes := make([]byte, timestampSize)
@@ -242,13 +279,14 @@ func (e *esdt) generateMicroPFTValue(proofData []byte) []byte {
 	pftValue = append(pftValue, timestampBytes...)
 	pftValue = append(pftValue, algoIDMicroPFT...)
 
-	return pftValue
+	return pftValue, hashBytes
 }
 
 // createDPFT handles the creation of a DAGProof token, linking to parents.
-// Expected input parts: [ "createProof", "MYTICKER", "dPFT", "proof_data", "<list_parent_token_ids>" ]
+// Expected input parts: [ "createProof", "MYTICKER", "dPFT", "proof_data", "num_parents", <list_parent_token_ids>", list<key, value> for tags ]
 func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
-	if len(parts) < 2 {
+	lenArgs := len(parts)
+	if lenArgs < 3 {
 		return errors.New("expected at least 2 arguments for createDPFT")
 	}
 
@@ -258,8 +296,14 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 	}
 
 	proofData := parts[0]
-	parents := parts[1:]
-	err = e.eei.UseGas(uint64(len(parents) * parentCheckCostPerParent))
+	lenParents := big.NewInt(0).SetBytes(parts[1]).Uint64()
+
+	if uint64(lenArgs) < 2+lenParents {
+		return errors.New("invalid number of parts")
+	}
+
+	parents := parts[2 : 2+lenParents]
+	err = e.eei.UseGas(lenParents * parentCheckCostPerParent)
 	if err != nil {
 		return err
 	}
@@ -279,25 +323,24 @@ func (e *esdt) createDPFT(caller []byte, ticker []byte, parts [][]byte) error {
 		}
 	}
 
-	pftValue, err := e.generateDPFTValue(proofData, parents)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate dPFT value")
-	}
-
+	pftValue, proofHash := e.generateDPFTValue(proofData, parents)
 	e.eei.SetStorageForAddress(core.SystemAccountAddress, pftKey, pftValue)
 
 	newEntry := vmcommon.LogEntry{
 		Identifier: []byte("createDPFT"),
 		Address:    caller,
-		Topics:     [][]byte{ticker, big.NewInt(0).SetUint64(newNonce).Bytes(), pftKey},
+		Topics:     [][]byte{ticker, big.NewInt(0).SetUint64(newNonce).Bytes(), pftKey, proofHash, []byte(flagsDPFT)},
 		Data:       [][]byte{pftValue},
+	}
+	if uint64(lenArgs) > lenParents+2 {
+		newEntry.Data = append(newEntry.Data, parts[2+lenParents])
 	}
 	e.eei.AddLogEntry(&newEntry)
 
 	return nil
 }
 
-func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]byte, error) {
+func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]byte, []byte) {
 	proofHash := e.hasher.Compute(string(dPFTData))
 	parentHashBytes := e.computeParentListHash(sortedParentKeys)
 
@@ -311,7 +354,7 @@ func (e *esdt) generateDPFTValue(dPFTData []byte, sortedParentKeys [][]byte) ([]
 	pftValue = append(pftValue, parentHashBytes...)
 	pftValue = append(pftValue, flagsDPFT...)
 
-	return pftValue, nil
+	return pftValue, proofHash
 }
 
 // generatePFTStorageKey creates the key used to store PFT data in the global state trie.

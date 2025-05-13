@@ -79,7 +79,7 @@ func TestEsdtProof_generateMicroPFTValue(t *testing.T) {
 	args := createMockArgumentsForESDT()
 	e, _ := NewESDTSmartContract(args)
 
-	pftValue := e.generateMicroPFTValue([]byte("proof"))
+	pftValue, _ := e.generateMicroPFTValue([]byte("proof"))
 	require.Len(t, pftValue, 44)
 }
 
@@ -187,8 +187,7 @@ func TestEsdtProof_generateDPFTValue(t *testing.T) {
 	args := createMockArgumentsForESDT()
 	e, _ := NewESDTSmartContract(args)
 
-	dpftValue, err := e.generateDPFTValue([]byte("proof"), [][]byte{[]byte("parents")})
-	require.NoError(t, err)
+	dpftValue, _ := e.generateDPFTValue([]byte("proof"), [][]byte{[]byte("parents")})
 	require.Len(t, dpftValue, 80)
 }
 
@@ -272,7 +271,7 @@ func TestEsdtProof_createDAGProofFT(t *testing.T) {
 	}
 	e, _ := NewESDTSmartContract(args)
 
-	arguments := [][]byte{proofToken, []byte(proofTypeDAG), proofData}
+	arguments := [][]byte{proofToken, []byte(proofTypeDAG), proofData, big.NewInt(int64(len(parentKeys))).Bytes()}
 	arguments = append(arguments, parentKeys...)
 	vmInput := getDefaultVmInputForFunc(funcCreateProof, arguments)
 	output := e.Execute(vmInput)
