@@ -271,6 +271,7 @@ func CreateDummyEconomicsConfig() config.EconomicsConfig {
 					MaxGasLimitPerTx:            "1500000000",
 					MinGasLimit:                 "50000",
 					ExtraGasLimitGuardedTx:      "50000",
+					MaxGasHigherFactorAccepted:  "10",
 				},
 			},
 			MinGasPrice:            "1000000000",

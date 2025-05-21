@@ -10,10 +10,22 @@ import (
 	"sync"
 	"time"
 
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/factory"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/components"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/heartbeat"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	chainSimulatorErrors "github.com/multiversx/mx-chain-go/node/chainSimulator/errors"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
+	mxChainSharding "github.com/multiversx/mx-chain-go/sharding"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -205,6 +217,8 @@ func (s *simulator) createChainHandlers(args ArgsBaseChainSimulator) error {
 		return err
 	}
 
+	monitor := heartbeat.NewHeartbeatMonitor()
+
 	for idx := -1; idx < int(args.NumOfShards); idx++ {
 		shardIDStr := fmt.Sprintf("%d", idx)
 		if idx == -1 {
@@ -214,12 +228,12 @@ func (s *simulator) createChainHandlers(args ArgsBaseChainSimulator) error {
 			shardIDStr = "metachain"
 		}
 
-		node, errCreate := s.createTestNode(*outputConfigs, args, shardIDStr)
+		node, errCreate := s.createTestNode(*outputConfigs, args, shardIDStr, monitor)
 		if errCreate != nil {
 			return errCreate
 		}
 
-		chainHandler, errCreate := args.ChainProcessorFactory.CreateChainHandler(node)
+		chainHandler, errCreate := args.ChainProcessorFactory.CreateChainHandler(node, monitor)
 		if errCreate != nil {
 			return errCreate
 		}
@@ -227,6 +241,8 @@ func (s *simulator) createChainHandlers(args ArgsBaseChainSimulator) error {
 		shardID := node.GetShardCoordinator().SelfId()
 		s.nodes[shardID] = node
 		s.handlers = append(s.handlers, chainHandler)
+
+		var epochStartBlockHeader data.HeaderHandler
 
 		if node.GetShardCoordinator().SelfId() == core.MetachainShardId {
 			currentRootHash, errRootHash := node.GetProcessComponents().ValidatorsStatistics().RootHash()
@@ -251,6 +267,27 @@ func (s *simulator) createChainHandlers(args ArgsBaseChainSimulator) error {
 			if err != nil {
 				return err
 			}
+
+			epochStartBlockHeader = &block.MetaBlock{
+				Nonce:     args.InitialNonce,
+				Epoch:     args.InitialEpoch,
+				Round:     uint64(args.InitialRound),
+				TimeStamp: uint64(node.GetCoreComponents().RoundHandler().TimeStamp().Unix()),
+			}
+		} else {
+			epochStartBlockHeader = &block.HeaderV2{
+				Header: &block.Header{
+					Nonce:     args.InitialNonce,
+					Epoch:     args.InitialEpoch,
+					Round:     uint64(args.InitialRound),
+					TimeStamp: uint64(node.GetCoreComponents().RoundHandler().TimeStamp().Unix()),
+				},
+			}
+		}
+
+		err = node.GetProcessComponents().BlockchainHook().SetEpochStartHeader(epochStartBlockHeader)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -273,7 +310,7 @@ func computeStartTimeBaseOnInitialRound(args ArgsChainSimulator) int64 {
 }
 
 func (s *simulator) createTestNode(
-	outputConfigs configs.ArgsConfigsSimulator, args ArgsBaseChainSimulator, shardIDStr string,
+	outputConfigs configs.ArgsConfigsSimulator, args ArgsBaseChainSimulator, shardIDStr string, monitor factory.HeartbeatV2Monitor,
 ) (process.NodeHandler, error) {
 	argsTestOnlyProcessorNode := components.ArgsTestOnlyProcessingNode{
 		Configs:                        outputConfigs.Configs,
@@ -292,6 +329,7 @@ func (s *simulator) createTestNode(
 		MetaChainConsensusGroupSize:    args.MetaChainConsensusGroupSize,
 		RoundDurationInMillis:          args.RoundDurationInMillis,
 		VmQueryDelayAfterStartInMs:     args.VmQueryDelayAfterStartInMs,
+		Monitor:                        monitor,
 		CreateRunTypeCoreComponents:    args.CreateRunTypeCoreComponents,
 		CreateIncomingHeaderSubscriber: args.CreateIncomingHeaderSubscriber,
 		CreateRunTypeComponents:        args.CreateRunTypeComponents,

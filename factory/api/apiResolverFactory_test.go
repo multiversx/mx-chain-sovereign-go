@@ -414,7 +414,7 @@ func createMockSCQueryElementArgs(shardId uint32) api.SCQueryElementArgs {
 			EpochChangeNotifier:          &epochNotifierMock.EpochNotifierStub{},
 			EnableEpochsHandlerField:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 			UInt64ByteSliceConv:          &testsMocks.Uint64ByteSliceConverterMock{},
-			EconomicsHandler:             &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler:             &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:                  &genesisMocks.NodesSetupStub{},
 			Hash:                         &testscommon.HasherStub{},
 			RatingHandler:                &testscommon.RaterMock{},

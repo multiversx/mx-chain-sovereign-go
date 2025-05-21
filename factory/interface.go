@@ -346,6 +346,7 @@ type ProcessComponentsHolder interface {
 	ReceiptsRepository() ReceiptsRepository
 	SentSignaturesTracker() process.SentSignaturesTracker
 	EpochSystemSCProcessor() process.EpochStartSystemSCProcessor
+	BlockchainHook() process.BlockChainHookWithAccountsAdapter
 	IsInterfaceNil() bool
 }
 
@@ -370,6 +371,7 @@ type StateComponentsHolder interface {
 	TriesContainer() common.TriesHolder
 	TrieStorageManagers() map[string]common.StorageManager
 	MissingTrieNodesNotifier() common.MissingTrieNodesNotifier
+	TrieLeavesRetriever() common.TrieLeavesRetriever
 	Close() error
 	IsInterfaceNil() bool
 }

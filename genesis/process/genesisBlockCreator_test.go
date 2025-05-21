@@ -247,7 +247,7 @@ func createArgument(
 	gasMap := wasmConfig.MakeGasMapForTests()
 	defaults.FillGasMapInternal(gasMap, 1)
 	arg.GasSchedule = testscommon.NewGasScheduleNotifierMock(gasMap)
-	ted := &economicsmocks.EconomicsHandlerStub{
+	ted := &economicsmocks.EconomicsHandlerMock{
 		GenesisTotalSupplyCalled: func() *big.Int {
 			return entireSupply
 		},

@@ -57,7 +57,7 @@ func createMockSmartContractProcessorArguments() scrCommon.ArgsNewSmartContractP
 		BadTxForwarder:   &mock.IntermediateTransactionHandlerMock{},
 		TxFeeHandler:     &mock.FeeAccumulatorStub{},
 		TxLogsProcessor:  &mock.TxLogsProcessorStub{},
-		EconomicsFee: &economicsmocks.EconomicsHandlerStub{
+		EconomicsFee: &economicsmocks.EconomicsHandlerMock{
 			DeveloperPercentageCalled: func() float64 {
 				return 0.0
 			},

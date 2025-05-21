@@ -562,6 +562,7 @@ func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
 		AppStatusHandler:           appStatusHandler,
 		PeersRatingMonitor:         peersRatingMonitor,
 		TxExecutionOrderHandler:    ordering.NewOrderedCollection(),
+		EpochStartTrigger:          &mock.EpochStartTriggerStub{},
 		RequestHandlerCreator:      requestHandlers.NewResolverRequestHandlerFactory(),
 		BlockProcessorCreator:      args.RunTypeComponents.BlockProcessorCreator(),
 		BlockTrackerCreator:        args.RunTypeComponents.BlockTrackerCreator(),
@@ -938,6 +939,8 @@ func (tpn *TestProcessorNode) createFullSCQueryService(gasMap map[string]map[str
 		GasSchedule:              gasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: &testscommon.MissingTrieNodesNotifierStub{},
+		EpochStartTrigger:        tpn.EpochStartTrigger,
+		RoundHandler:             tpn.RoundHandler,
 	}
 
 	var apiBlockchain data.ChainHandler
@@ -1143,11 +1146,14 @@ func (tpn *TestProcessorNode) initChainHandler() {
 
 func (tpn *TestProcessorNode) initEconomicsData(economicsConfig *config.EconomicsConfig) {
 	tpn.EnableEpochs.PenalizedTooMuchGasEnableEpoch = 0
+	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 	argsNewEconomicsData := economics.ArgsNewEconomicsData{
 		Economics:           economicsConfig,
 		EpochNotifier:       tpn.EpochNotifier,
 		EnableEpochsHandler: tpn.EnableEpochsHandler,
 		TxVersionChecker:    &testscommon.TxVersionCheckerStub{},
+		PubkeyConverter:     pubKeyConv,
+		ShardCoordinator:    tpn.ShardCoordinator,
 	}
 	economicsData, _ := economics.NewEconomicsData(argsNewEconomicsData)
 	tpn.EconomicsData = economics.NewTestEconomicsData(economicsData)
@@ -1191,6 +1197,7 @@ func createDefaultEconomicsConfig() *config.EconomicsConfig {
 					MaxGasLimitPerTx:            maxGasLimitPerBlock,
 					MinGasLimit:                 minGasLimit,
 					ExtraGasLimitGuardedTx:      "50000",
+					MaxGasHigherFactorAccepted:  "10",
 				},
 			},
 			MinGasPrice:            minGasPrice,
@@ -1693,6 +1700,8 @@ func (tpn *TestProcessorNode) initInnerProcessors(gasMap map[string]map[string]u
 		GasSchedule:              gasSchedule,
 		Counter:                  counter,
 		MissingTrieNodesNotifier: &testscommon.MissingTrieNodesNotifierStub{},
+		EpochStartTrigger:        tpn.EpochStartTrigger,
+		RoundHandler:             tpn.RoundHandler,
 	}
 
 	maxGasLimitPerBlock := uint64(0xFFFFFFFFFFFFFFFF)
@@ -1929,6 +1938,8 @@ func (tpn *TestProcessorNode) initMetaInnerProcessors(gasMap map[string]map[stri
 		GasSchedule:              gasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: &testscommon.MissingTrieNodesNotifierStub{},
+		EpochStartTrigger:        tpn.EpochStartTrigger,
+		RoundHandler:             tpn.RoundHandler,
 	}
 
 	var signVerifier vm.MessageSignVerifier
@@ -2426,14 +2437,14 @@ func (tpn *TestProcessorNode) createMetaBlockProcessorArgs(argumentsBase block.A
 			Hasher:                        TestHasher,
 			Marshalizer:                   TestMarshalizer,
 			DataPool:                      tpn.DataPool,
-			ProtocolSustainabilityAddress: testProtocolSustainabilityAddress,
+
 			NodesConfigProvider:           tpn.NodesCoordinator,
 			UserAccountsDB:                tpn.AccntState,
 			EnableEpochsHandler:           tpn.EnableEpochsHandler,
 			ExecutionOrderHandler:         tpn.TxExecutionOrderHandler,
-		},
+		RewardsHandler:        tpn.EconomicsData,},
 		StakingDataProvider:   stakingDataProvider,
-		RewardsHandler:        tpn.EconomicsData,
+
 		EconomicsDataProvider: economicsDataProvider,
 	}
 	epochStartRewards, _ := metachain.NewRewardsCreatorProxy(argsEpochRewards)
@@ -3376,7 +3387,7 @@ func GetDefaultCoreComponents(enableEpochsConfig config.EnableEpochs) *mock.Core
 		AlarmSchedulerField:          &testscommon.AlarmSchedulerStub{},
 		SyncTimerField:               &testscommon.SyncTimerStub{},
 		RoundHandlerField:            &testscommon.RoundHandlerMock{},
-		EconomicsDataField:           &economicsmocks.EconomicsHandlerStub{},
+		EconomicsDataField:           &economicsmocks.EconomicsHandlerMock{},
 		RatingsDataField:             &testscommon.RatingsInfoMock{},
 		RaterField:                   &testscommon.RaterMock{},
 		GenesisNodesSetupField:       &genesisMocks.NodesSetupStub{},

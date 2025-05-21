@@ -803,6 +803,9 @@ var ErrNilOperationsHasher = errors.New("nil outgoing operations hasher")
 // ErrNilEpochSystemSCProcessor defines the error for setting a nil EpochSystemSCProcessor
 var ErrNilEpochSystemSCProcessor = errors.New("nil epoch system SC processor")
 
+// ErrNilTrieLeavesRetriever defines the error for setting a nil TrieLeavesRetriever
+var ErrNilTrieLeavesRetriever = errors.New("nil trie leaves retriever")
+
 // ErrInvalidTokenPrefix signals that an invalid token prefix has been provided
 var ErrInvalidTokenPrefix = errors.New("invalid token prefix, should have max 4 (lowercase/alphanumeric) characters")
 

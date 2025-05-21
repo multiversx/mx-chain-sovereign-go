@@ -447,6 +447,8 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
 		Accounts:                 accountsAdapterApi,
 		BlockChain:               apiBlockchain,
+		EpochStartTrigger:        args.processComponents.EpochStartTrigger(),
+		RoundHandler:             args.processComponents.RoundHandler(),
 	}
 
 	var vmContainer process.VirtualMachinesContainer
