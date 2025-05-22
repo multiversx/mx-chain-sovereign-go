@@ -310,7 +310,7 @@ func TestBlocksCreator_CreateNewBlock(t *testing.T) {
 		blockProcessor.ProcessBlockCalled = func(blockProcessor process.BlockProcessor, header data.HeaderHandler) (data.HeaderHandler, data.BodyHandler, error) {
 			return nil, nil, expectedErr
 		}
-		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor)
+		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor, heartbeat.NewHeartbeatMonitor())
 		require.NoError(t, err)
 
 		err = creator.CreateNewBlock()
@@ -418,7 +418,7 @@ func TestBlocksCreator_CreateNewBlock(t *testing.T) {
 				},
 			}, &block.Body{}, nil
 		}
-		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor)
+		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor, heartbeat.NewHeartbeatMonitor())
 		require.NoError(t, err)
 
 		err = creator.CreateNewBlock()
@@ -439,7 +439,7 @@ func TestBlocksCreator_CreateNewBlock(t *testing.T) {
 				},
 			}, &block.Body{}, nil
 		}
-		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor)
+		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor, heartbeat.NewHeartbeatMonitor())
 		require.NoError(t, err)
 
 		err = creator.CreateNewBlock()
@@ -459,7 +459,7 @@ func TestBlocksCreator_CreateNewBlock(t *testing.T) {
 				},
 			}, &block.Body{}, nil
 		}
-		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor)
+		creator, err := chainSimulatorProcess.NewBlocksCreator(getNodeHandler(), blockProcessor, heartbeat.NewHeartbeatMonitor())
 		require.NoError(t, err)
 
 		err = creator.CreateNewBlock()

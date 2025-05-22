@@ -22,13 +22,13 @@ func TestNewSovereignProcessorFactory(t *testing.T) {
 func TestNewSovereignProcessorFactory_CreateChainHandler(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil node handler should error", func(t *testing.T) {
+	t.Run("nil node handler, should error", func(t *testing.T) {
 		fact := NewSovereignChainHandlerFactory()
 		chainHandler, err := fact.CreateChainHandler(nil, heartbeat.NewHeartbeatMonitor())
 		require.Nil(t, chainHandler)
 		require.ErrorIs(t, err, process.ErrNilNodeHandler)
 	})
-	t.Run("nil heart beat monitor should error", func(t *testing.T) {
+	t.Run("nil heart beat monitor, should error", func(t *testing.T) {
 		fact := NewSovereignChainHandlerFactory()
 		chainHandler, err := fact.CreateChainHandler(&chainSimulator.NodeHandlerMock{}, nil)
 		require.Nil(t, chainHandler)
