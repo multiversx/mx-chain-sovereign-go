@@ -18,7 +18,7 @@ import (
 func createMockArgsPendingEpochStartShardHeader() ArgsPendingEpochStartShardHeaderSyncer {
 
 	return ArgsPendingEpochStartShardHeaderSyncer{
-		HeadersPool:    &mock.HeadersCacherStub{},
+		HeadersPool:    &testscommon.HeadersCacherStub{},
 		Marshalizer:    &mock.MarshalizerFake{},
 		RequestHandler: &testscommon.RequestHandlerStub{},
 	}
@@ -83,7 +83,7 @@ func TestSyncEpochStartShardHeader_Success(t *testing.T) {
 		EpochStartMetaHash: []byte("metaHash"),
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
@@ -129,7 +129,7 @@ func TestSyncEpochStartShardHeader_Timeout(t *testing.T) {
 	epoch := uint32(10)
 	startNonce := uint64(100)
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
@@ -176,7 +176,7 @@ func TestSyncEpochStartShardHeader_ClearFields(t *testing.T) {
 		EpochStartMetaHash: []byte("metaHash"),
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
@@ -229,7 +229,7 @@ func TestSyncEpochStartShardHeader_DifferentShardIDsShouldNotInterfere(t *testin
 		EpochStartMetaHash: []byte("metaHash"),
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
@@ -290,7 +290,7 @@ func TestSyncEpochStartShardHeader_NonEpochStartHeadersShouldTriggerNextAttempt(
 		EpochStartMetaHash: []byte("metaHash"),
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
@@ -338,7 +338,7 @@ func TestSyncEpochStartShardHeader_MultipleGoroutines(t *testing.T) {
 		EpochStartMetaHash: []byte("methaHash"),
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &testscommon.HeadersCacherStub{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
 		Marshalizer: &mock.MarshalizerFake{},
