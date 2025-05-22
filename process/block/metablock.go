@@ -301,7 +301,7 @@ func (mp *metaProcessor) ProcessBlock(
 
 	err = mp.blockChainHook.SetCurrentHeader(header)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	err = mp.processIfFirstBlockAfterEpochStart()

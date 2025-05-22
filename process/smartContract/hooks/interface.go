@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-go/process"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 

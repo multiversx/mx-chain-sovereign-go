@@ -75,7 +75,7 @@ func (rc *sovereignRewards) CreateRewardsMiniBlocks(
 		return nil, err
 	}
 
-	nodesRewardInfo, dustFromRewardsPerNode := rc.computeRewardsPerNode(validatorsInfo)
+	nodesRewardInfo, dustFromRewardsPerNode := rc.computeRewardsPerNode(validatorsInfo, metaBlock.GetEpoch())
 	log.Debug("arithmetic difference from dust rewards per node", "value", dustFromRewardsPerNode)
 
 	dust, err := rc.addValidatorRewardsToMiniBlocks(metaBlock, miniBlocks, nodesRewardInfo)

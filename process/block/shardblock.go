@@ -326,7 +326,7 @@ func (sp *shardProcessor) ProcessBlock(
 
 	err = sp.blockChainHook.SetCurrentHeader(header)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	defer func() {

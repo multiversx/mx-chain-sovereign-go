@@ -918,6 +918,7 @@ func (pcf *processComponentsFactory) createArgsMetaBlockProcessor(
 		},
 		StakingDataProvider:   stakingDataProvider,
 		EconomicsDataProvider: economicsDataProvider,
+		RewardsHandler:        pcf.coreData.EconomicsData(),
 	}
 	epochRewards, err := pcf.runTypeComponents.RewardsCreatorFactory().CreateRewardsCreator(argsEpochRewards)
 	if err != nil {
@@ -1156,18 +1157,18 @@ func (pcf *processComponentsFactory) createExtraMetaBlockProcessorArgs(
 
 		argsEpochRewards := metachainEpochStart.RewardsCreatorProxyArgs{
 			BaseRewardsCreatorArgs: metachainEpochStart.BaseRewardsCreatorArgs{
-				ShardCoordinator:              pcf.bootstrapComponents.ShardCoordinator(),
-				PubkeyConverter:               pcf.coreData.AddressPubKeyConverter(),
-				RewardsStorage:                rewardsStorage,
-				MiniBlockStorage:              miniBlockStorage,
-				Hasher:                        pcf.coreData.Hasher(),
-				Marshalizer:                   pcf.coreData.InternalMarshalizer(),
-				DataPool:                      pcf.data.Datapool(),
-				ProtocolSustainabilityAddress: pcf.coreData.EconomicsData().ProtocolSustainabilityAddress(),
-				NodesConfigProvider:           pcf.nodesCoordinator,
-				UserAccountsDB:                pcf.state.AccountsAdapter(),
-				EnableEpochsHandler:           pcf.coreData.EnableEpochsHandler(),
-				ExecutionOrderHandler:         pcf.txExecutionOrderHandler,
+				ShardCoordinator:      pcf.bootstrapComponents.ShardCoordinator(),
+				PubkeyConverter:       pcf.coreData.AddressPubKeyConverter(),
+				RewardsStorage:        rewardsStorage,
+				MiniBlockStorage:      miniBlockStorage,
+				Hasher:                pcf.coreData.Hasher(),
+				Marshalizer:           pcf.coreData.InternalMarshalizer(),
+				DataPool:              pcf.data.Datapool(),
+				RewardsHandler:        pcf.coreData.EconomicsData(),
+				NodesConfigProvider:   pcf.nodesCoordinator,
+				UserAccountsDB:        pcf.state.AccountsAdapter(),
+				EnableEpochsHandler:   pcf.coreData.EnableEpochsHandler(),
+				ExecutionOrderHandler: pcf.txExecutionOrderHandler,
 			},
 			StakingDataProvider:   stakingDataProvider,
 			RewardsHandler:        pcf.coreData.EconomicsData(),

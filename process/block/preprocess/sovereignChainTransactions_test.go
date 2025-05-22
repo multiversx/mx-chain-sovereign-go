@@ -487,7 +487,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(1)
 			},
@@ -519,7 +519,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(1)
 			},
@@ -552,7 +552,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(1)
 			},
@@ -644,7 +644,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(10)
 			},
@@ -682,7 +682,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(1)
 			},
@@ -729,7 +729,7 @@ func TestTxsPreprocessor_IsTransactionEligibleForExecutionShouldWork(t *testing.
 		t.Parallel()
 
 		args := createDefaultTransactionsProcessorArgs()
-		args.EconomicsFee = &economicsmocks.EconomicsHandlerStub{
+		args.EconomicsFee = &economicsmocks.EconomicsHandlerMock{
 			ComputeTxFeeCalled: func(tx data.TransactionWithFeeHandler) *big.Int {
 				return big.NewInt(1)
 			},
