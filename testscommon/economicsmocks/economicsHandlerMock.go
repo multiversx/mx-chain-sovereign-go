@@ -66,7 +66,11 @@ func (ehm *EconomicsHandlerMock) ComputeGasUnitsFromRefundValue(_ data.Transacti
 
 // LeaderPercentage -
 func (ehm *EconomicsHandlerMock) LeaderPercentage() float64 {
-	return ehm.LeaderPercentageCalled()
+	if ehm.LeaderPercentageCalled != nil {
+		return ehm.LeaderPercentageCalled()
+	}
+
+	return 0
 }
 
 // ProtocolSustainabilityPercentage will return the protocol sustainability percentage value

@@ -57,7 +57,7 @@ func createSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 			StartHeaders:     createGenesisBlocks(&testscommon.ShardsCoordinatorMock{NoShards: 1}),
 			PoolsHolder:      dataRetrieverMock.NewPoolsHolderMock(),
 			WhitelistHandler: &testscommon.WhiteListHandlerStub{},
-			FeeHandler:       &economicsmocks.EconomicsHandlerStub{},
+			FeeHandler:       &economicsmocks.EconomicsHandlerMock{},
 		},
 	}
 

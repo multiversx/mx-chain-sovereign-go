@@ -20,7 +20,6 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
 	epochStart "github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/errors"
-	factoryBlock "github.com/multiversx/mx-chain-go/factory/block"
 	"github.com/multiversx/mx-chain-go/factory/vm"
 	"github.com/multiversx/mx-chain-go/genesis"
 	"github.com/multiversx/mx-chain-go/genesis/process/disabled"
