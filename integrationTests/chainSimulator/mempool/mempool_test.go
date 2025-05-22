@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-go/process"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -22,10 +23,10 @@ func TestMempoolWithChainSimulator_Selection(t *testing.T) {
 	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection(t, simulator)
+	testSelection(t, simulator, process.TxCacheSelectionMaxNumTxs, 27_756)
 }
 
-func testSelection(t *testing.T, simulator chainSimulator.ChainSimulator) {
+func testSelection(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int, numTxsInCurrentBlock int) {
 	numSenders := 10000
 	numTransactionsPerSender := 3
 	shard := 0
@@ -61,17 +62,17 @@ func testSelection(t *testing.T, simulator chainSimulator.ChainSimulator) {
 	time.Sleep(durationWaitAfterSendMany)
 	require.Equal(t, 30_000, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, gas := selectTransactions(t, simulator, shard)
-	require.Equal(t, 30_000, len(selectedTransactions))
-	require.Equal(t, 50_000*30_000, int(gas))
+	selectedTransactions, gas := selectTransactions(t, simulator, shard, maxNumTxs)
+	require.Equal(t, maxNumTxs, len(selectedTransactions))
+	require.Equal(t, 50_000*maxNumTxs, int(gas))
 
 	err := simulator.GenerateBlocks(1)
 	require.Nil(t, err)
-	require.Equal(t, 27_756, getNumTransactionsInCurrentBlock(simulator, shard))
+	require.Equal(t, numTxsInCurrentBlock, getNumTransactionsInCurrentBlock(simulator, shard))
 
-	selectedTransactions, gas = selectTransactions(t, simulator, shard)
-	require.Equal(t, 30_000-27_756, len(selectedTransactions))
-	require.Equal(t, 50_000*(30_000-27_756), int(gas))
+	selectedTransactions, gas = selectTransactions(t, simulator, shard, maxNumTxs)
+	require.Equal(t, 30_000-numTxsInCurrentBlock, len(selectedTransactions))
+	require.Equal(t, 50_000*(30_000-numTxsInCurrentBlock), int(gas))
 }
 
 func TestMempoolWithChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T) {
@@ -82,10 +83,10 @@ func TestMempoolWithChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelaye
 	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t, simulator)
+	testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxs)
 }
 
-func testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator) {
+func testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int) {
 	shard := 0
 
 	err := simulator.GenerateBlocksUntilEpochIsReached(2)
@@ -145,7 +146,7 @@ func testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T, simulato
 	time.Sleep(durationWaitAfterSendSome)
 	require.Equal(t, 2, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, _ := selectTransactions(t, simulator, shard)
+	selectedTransactions, _ := selectTransactions(t, simulator, shard, maxNumTxs)
 	require.Equal(t, 2, len(selectedTransactions))
 	require.Equal(t, alice.Bytes, selectedTransactions[0].Tx.GetSndAddr())
 	require.Equal(t, bob.Bytes, selectedTransactions[1].Tx.GetSndAddr())
@@ -166,10 +167,10 @@ func TestMempoolWithChainSimulator_Selection_WhenInsufficientBalanceForFee_WithR
 	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t, simulator)
+	testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxs)
 }
 
-func testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator) {
+func testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int) {
 	numSenders := 3
 	shard := 0
 
@@ -257,7 +258,7 @@ func testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t *testing.T, sim
 	time.Sleep(durationWaitAfterSendSome)
 	require.Equal(t, 4, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, _ := selectTransactions(t, simulator, shard)
+	selectedTransactions, _ := selectTransactions(t, simulator, shard, maxNumTxs)
 	require.Equal(t, 3, len(selectedTransactions))
 	require.Equal(t, relayer.Bytes, selectedTransactions[0].Tx.GetSndAddr())
 	require.Equal(t, alice.Bytes, selectedTransactions[1].Tx.GetSndAddr())

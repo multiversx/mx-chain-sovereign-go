@@ -180,7 +180,7 @@ func sendTransaction(t *testing.T, simulator testsChainSimulator.ChainSimulator,
 	sendTransactions(t, simulator, []*transaction.Transaction{tx})
 }
 
-func selectTransactions(t *testing.T, simulator testsChainSimulator.ChainSimulator, shard int) ([]*txcache.WrappedTransaction, uint64) {
+func selectTransactions(t *testing.T, simulator testsChainSimulator.ChainSimulator, shard int, maxNumTxs int) ([]*txcache.WrappedTransaction, uint64) {
 	shardAsString := strconv.Itoa(shard)
 	node := simulator.GetNodeHandler(uint32(shard))
 	accountsAdapter := node.GetStateComponents().AccountsAdapter()
@@ -197,7 +197,7 @@ func selectTransactions(t *testing.T, simulator testsChainSimulator.ChainSimulat
 	selectedTransactions, gas := mempool.SelectTransactions(
 		selectionSession,
 		process.TxCacheSelectionGasRequested,
-		process.TxCacheSelectionMaxNumTxs,
+		maxNumTxs,
 		process.TxCacheSelectionLoopMaximumDuration,
 	)
 
