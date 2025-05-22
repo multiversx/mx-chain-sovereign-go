@@ -319,7 +319,7 @@ func (node *testOnlyProcessingNode) createNodesCoordinator(pref config.Preferenc
 		return err
 	}
 
-	bootstrapStorer, err := node.DataComponentsHolder.StorageService().GetStorer(dataRetriever.BootstrapUnit)
+	bootstrapStorer, err := node.StoreService.GetStorer(dataRetriever.BootstrapUnit)
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func (node *testOnlyProcessingNode) createNodesCoordinator(pref config.Preferenc
 		node.CoreComponentsHolder.ChanStopNodeProcess(),
 		node.CoreComponentsHolder.NodeTypeProvider(),
 		node.CoreComponentsHolder.EnableEpochsHandler(),
-		node.DataComponentsHolder.Datapool().CurrentEpochValidatorInfo(),
+		node.DataPool.CurrentEpochValidatorInfo(),
 		node.BootstrapComponentsHolder.NodesCoordinatorRegistryFactory(),
 		node.RunTypeComponents.NodesCoordinatorWithRaterCreator(),
 	)

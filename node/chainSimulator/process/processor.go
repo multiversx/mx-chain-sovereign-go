@@ -7,11 +7,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/heartbeat"
 	heartbeatData "github.com/multiversx/mx-chain-go/heartbeat/data"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
 
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -34,6 +33,9 @@ func NewBlocksCreator(nodeHandler NodeHandler, blocksProcessor BlocksProcessorFa
 	}
 	if check.IfNil(blocksProcessor) {
 		return nil, ErrNilBlockProcessor
+	}
+	if check.IfNil(monitor) {
+		return nil, heartbeat.ErrNilHeartbeatMonitor
 	}
 
 	return &blocksCreator{

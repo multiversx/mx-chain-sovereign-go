@@ -4,7 +4,7 @@ import "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 
 // ChainHandlerFactory defines what the chain factory should be able to do
 type ChainHandlerFactory interface {
-	CreateChainHandler(nodeHandler process.NodeHandler) (ChainHandler, error)
+	CreateChainHandler(nodeHandler process.NodeHandler, monitor process.HeartbeatMonitorWithSet) (ChainHandler, error)
 	IsInterfaceNil() bool
 }
 
