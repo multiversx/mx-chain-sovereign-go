@@ -158,9 +158,8 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorForMeta(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
-
-		// TODO: Marius C
-		// add epochStartTrigger
+		RoundHandler:             pcf.coreData.RoundHandler(),
+		EpochStartTrigger:        epochStartTrigger,
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -340,21 +339,6 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 		return args, nil, nil, err
 	}
 
-	// TODO: Marius C
-	/*
-		vmContainerFactory, err := pcf.createVMFactoryShard(
-			accountsAdapter,
-			syncer.NewMissingTrieNodesNotifier(),
-			builtInFuncFactory.BuiltInFunctionContainer(),
-			esdtTransferParser,
-			pcf.coreData.WasmVMChangeLocker(),
-			smartContractStorageSimulate,
-			builtInFuncFactory.NFTStorageHandler(),
-			builtInFuncFactory.ESDTGlobalSettingsHandler(),
-			epochStartTrigger,
-		)
-	 */
-
 	counter, err := counters.NewUsageCounter(esdtTransferParser)
 	if err != nil {
 		return args, nil, nil, err
@@ -381,6 +365,8 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counter,
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		RoundHandler:             pcf.coreData.RoundHandler(),
+		EpochStartTrigger:        epochStartTrigger,
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -455,29 +441,29 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 	argsParser := smartContract.NewArgumentParser()
 
 	scProcArgs := scrCommon.ArgsNewSmartContractProcessor{
-		VmContainer:             vmContainer,
-		ArgsParser:              argsParser,
-		Hasher:                  pcf.coreData.Hasher(),
-		Marshalizer:             pcf.coreData.InternalMarshalizer(),
-		AccountsDB:              accountsAdapter,
-		BlockChainHook:          vmFactory.BlockChainHookImpl(),
-		BuiltInFunctions:        builtInFuncFactory.BuiltInFunctionContainer(),
-		PubkeyConv:              pcf.coreData.AddressPubKeyConverter(),
-		ShardCoordinator:        pcf.bootstrapComponents.ShardCoordinator(),
-		ScrForwarder:            scForwarder,
-		TxFeeHandler:            &processDisabled.FeeHandler{},
-		EconomicsFee:            pcf.coreData.EconomicsData(),
-		TxTypeHandler:           txTypeHandler,
-		GasHandler:              gasHandler,
-		GasSchedule:             pcf.gasSchedule,
-		TxLogsProcessor:         txLogsProcessor,
-		EnableEpochsHandler:     pcf.coreData.EnableEpochsHandler(),
-		EnableRoundsHandler:     pcf.coreData.EnableRoundsHandler(),
-		BadTxForwarder:          badTxInterim,
-		VMOutputCacher:          vmOutputCacher,
-		WasmVMChangeLocker:      pcf.coreData.WasmVMChangeLocker(),
-		IsGenesisProcessing:     false,
-		EpochNotifier:           pcf.epochNotifier,
+		VmContainer:         vmContainer,
+		ArgsParser:          argsParser,
+		Hasher:              pcf.coreData.Hasher(),
+		Marshalizer:         pcf.coreData.InternalMarshalizer(),
+		AccountsDB:          accountsAdapter,
+		BlockChainHook:      vmFactory.BlockChainHookImpl(),
+		BuiltInFunctions:    builtInFuncFactory.BuiltInFunctionContainer(),
+		PubkeyConv:          pcf.coreData.AddressPubKeyConverter(),
+		ShardCoordinator:    pcf.bootstrapComponents.ShardCoordinator(),
+		ScrForwarder:        scForwarder,
+		TxFeeHandler:        &processDisabled.FeeHandler{},
+		EconomicsFee:        pcf.coreData.EconomicsData(),
+		TxTypeHandler:       txTypeHandler,
+		GasHandler:          gasHandler,
+		GasSchedule:         pcf.gasSchedule,
+		TxLogsProcessor:     txLogsProcessor,
+		EnableEpochsHandler: pcf.coreData.EnableEpochsHandler(),
+		EnableRoundsHandler: pcf.coreData.EnableRoundsHandler(),
+		BadTxForwarder:      badTxInterim,
+		VMOutputCacher:      vmOutputCacher,
+		WasmVMChangeLocker:  pcf.coreData.WasmVMChangeLocker(),
+		IsGenesisProcessing: false,
+		EpochNotifier:       pcf.epochNotifier,
 	}
 
 	scProcessor, err := pcf.runTypeComponents.SCProcessorCreator().CreateSCProcessor(scProcArgs)
