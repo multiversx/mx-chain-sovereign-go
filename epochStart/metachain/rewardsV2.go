@@ -292,7 +292,7 @@ func (rc *rewardsCreatorV2) computeRewardsPerNode(
 		"baseRewards", baseRewards.String(),
 		"topUpRewards", topUpRewards.String())
 
-	rc.fillBaseRewardsPerBlockPerNodeFunc(baseRewardsPerBlock)
+	rc.fillBaseRewardsPerBlockPerNodeFunc(baseRewardsPerBlock, epoch)
 
 	accumulatedDust := big.NewInt(0)
 	dust := rc.computeBaseRewardsPerNode(nodesRewardInfo, baseRewards)

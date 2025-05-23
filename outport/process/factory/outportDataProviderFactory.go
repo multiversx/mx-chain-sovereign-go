@@ -7,6 +7,7 @@ import (
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/outport/process"
 	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts"
@@ -38,6 +39,7 @@ type ArgOutportDataProviderFactory struct {
 	MbsStorer              storage.Storer
 	EnableEpochsHandler    common.EnableEpochsHandler
 	ExecutionOrderGetter   common.ExecutionOrderGetter
+	ProofsPool             dataRetriever.ProofsPool
 }
 
 type outportDataProviderFactory struct {
@@ -103,6 +105,8 @@ func createArgs(arg ArgOutportDataProviderFactory) (*process.ArgOutportDataProvi
 		ExecutionOrderHandler:    arg.ExecutionOrderGetter,
 		Hasher:                   arg.Hasher,
 		Marshaller:               arg.Marshaller,
+		ProofsPool:               arg.ProofsPool,
+		EnableEpochsHandler:      arg.EnableEpochsHandler,
 	}, nil
 }
 

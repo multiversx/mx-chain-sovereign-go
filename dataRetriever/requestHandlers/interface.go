@@ -34,6 +34,11 @@ type HeaderRequester interface {
 	EpochRequester
 }
 
+// EquivalentProofsRequester defines what an equivalent proofs requester can do
+type EquivalentProofsRequester interface {
+	RequestDataFromNonce(nonceShardKey []byte, epoch uint32) error
+}
+
 // RequestHandlerArgs holds all dependencies required by the process data factory to create components
 type RequestHandlerArgs struct {
 	RequestersFinder      dataRetriever.RequestersFinder

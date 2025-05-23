@@ -4,12 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/process"
@@ -27,23 +30,28 @@ type epochStartMetaSyncer struct {
 	marshalizer                    marshal.Marshalizer
 	hasher                         hashing.Hasher
 	singleDataInterceptor          process.Interceptor
+	proofsInterceptor              process.Interceptor
 	metaBlockProcessor             EpochStartMetaBlockInterceptorProcessor
+	interceptedDataVerifierFactory process.InterceptedDataVerifierFactory
 	epochStartTopicProviderHandler epochStartTopicProviderHandler
 }
 
 // ArgsNewEpochStartMetaSyncer -
 type ArgsNewEpochStartMetaSyncer struct {
-	CoreComponentsHolder    process.CoreComponentsHolder
-	CryptoComponentsHolder  process.CryptoComponentsHolder
-	RequestHandler          RequestHandler
-	Messenger               Messenger
-	ShardCoordinator        sharding.Coordinator
-	EconomicsData           process.EconomicsDataHandler
-	WhitelistHandler        process.WhiteListHandler
-	StartInEpochConfig      config.EpochStartConfig
-	ArgsParser              process.ArgumentsParser
-	HeaderIntegrityVerifier process.HeaderIntegrityVerifier
-	MetaBlockProcessor      EpochStartMetaBlockInterceptorProcessor
+	CoreComponentsHolder           process.CoreComponentsHolder
+	CryptoComponentsHolder         process.CryptoComponentsHolder
+	RequestHandler                 RequestHandler
+	Messenger                      Messenger
+	ShardCoordinator               sharding.Coordinator
+	EconomicsData                  process.EconomicsDataHandler
+	WhitelistHandler               process.WhiteListHandler
+	StartInEpochConfig             config.EpochStartConfig
+	ArgsParser                     process.ArgumentsParser
+	HeaderIntegrityVerifier        process.HeaderIntegrityVerifier
+	MetaBlockProcessor             EpochStartMetaBlockInterceptorProcessor
+	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
+	ProofsPool                     dataRetriever.ProofsPool
+	ProofsInterceptorProcessor     process.InterceptorProcessor
 }
 
 // NewEpochStartMetaSyncer will return a new instance of epochStartMetaSyncer
@@ -78,33 +86,76 @@ func newEpochStartMetaSyncer(args ArgsNewEpochStartMetaSyncer) (*epochStartMetaS
 	if check.IfNil(args.MetaBlockProcessor) {
 		return nil, epochStart.ErrNilMetablockProcessor
 	}
+	if check.IfNil(args.InterceptedDataVerifierFactory) {
+		return nil, epochStart.ErrNilInterceptedDataVerifierFactory
+	}
+	if check.IfNil(args.ProofsInterceptorProcessor) {
+		return nil, epochStart.ErrNilEquivalentProofsProcessor
+	}
 
 	return &epochStartMetaSyncer{
-		requestHandler:     args.RequestHandler,
-		messenger:          args.Messenger,
-		marshalizer:        args.CoreComponentsHolder.InternalMarshalizer(),
-		hasher:             args.CoreComponentsHolder.Hasher(),
-		metaBlockProcessor: args.MetaBlockProcessor,
+		requestHandler:                 args.RequestHandler,
+		messenger:                      args.Messenger,
+		marshalizer:                    args.CoreComponentsHolder.InternalMarshalizer(),
+		hasher:                         args.CoreComponentsHolder.Hasher(),
+		metaBlockProcessor:             args.MetaBlockProcessor,
+		interceptedDataVerifierFactory: args.InterceptedDataVerifierFactory,
 	}, nil
 }
+	argsInterceptedMetaHeaderFactory := interceptorsFactory.ArgInterceptedMetaHeaderFactory{
+		ArgInterceptedDataFactory: argsInterceptedDataFactory,
+	}
 
 func createMetaSingleDataInterceptor(args ArgsNewEpochStartMetaSyncer) (process.Interceptor, error) {
 	argsInterceptedDataFactory := createArgsInterceptedDataFactory(args)
-	interceptedMetaHdrDataFactory, err := interceptorsFactory.NewInterceptedMetaHeaderDataFactory(&argsInterceptedDataFactory)
+	interceptedMetaHdrDataFactory, err := interceptorsFactory.NewInterceptedMetaHeaderDataFactory(&argsInterceptedMetaHeaderFactory)
+	if err != nil {
+		return nil, err
+	}
+
+	interceptedDataVerifier, err := e.interceptedDataVerifierFactory.Create(factory.MetachainBlocksTopic)
 	if err != nil {
 		return nil, err
 	}
 
 	return interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
-			Topic:                factory.MetachainBlocksTopic,
-			DataFactory:          interceptedMetaHdrDataFactory,
-			Processor:            args.MetaBlockProcessor,
-			Throttler:            disabled.NewThrottler(),
-			AntifloodHandler:     disabled.NewAntiFloodHandler(),
-			WhiteListRequest:     args.WhitelistHandler,
-			CurrentPeerId:        args.Messenger.ID(),
-			PreferredPeersHolder: disabled.NewPreferredPeersHolder(),
+			Topic:                   factory.MetachainBlocksTopic,
+			DataFactory:             interceptedMetaHdrDataFactory,
+			Processor:               args.MetaBlockProcessor,
+			Throttler:               disabled.NewThrottler(),
+			AntifloodHandler:        disabled.NewAntiFloodHandler(),
+			WhiteListRequest:        args.WhitelistHandler,
+			CurrentPeerId:           args.Messenger.ID(),
+			PreferredPeersHolder:    disabled.NewPreferredPeersHolder(),
+			InterceptedDataVerifier: interceptedDataVerifier,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	argsInterceptedEquivalentProofsFactory := interceptorsFactory.ArgInterceptedEquivalentProofsFactory{
+		ArgInterceptedDataFactory: argsInterceptedDataFactory,
+		ProofsPool:                args.ProofsPool,
+	}
+	interceptedEquivalentProofsFactory := interceptorsFactory.NewInterceptedEquivalentProofsFactory(argsInterceptedEquivalentProofsFactory)
+	if err != nil {
+		return nil, err
+	}
+
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	e.proofsInterceptor, err = interceptors.NewSingleDataInterceptor(
+		interceptors.ArgSingleDataInterceptor{
+			Topic:                   proofsTopic,
+			DataFactory:             interceptedEquivalentProofsFactory,
+			Processor:               args.ProofsInterceptorProcessor,
+			Throttler:               disabled.NewThrottler(),
+			AntifloodHandler:        disabled.NewAntiFloodHandler(),
+			WhiteListRequest:        args.WhitelistHandler,
+			CurrentPeerId:           args.Messenger.ID(),
+			PreferredPeersHolder:    disabled.NewPreferredPeersHolder(),
+			InterceptedDataVerifier: interceptedDataVerifier,
 		},
 	)
 }
@@ -150,6 +201,12 @@ func (e *epochStartMetaSyncer) resetTopicsAndInterceptors() {
 	if err != nil {
 		log.Trace("error unregistering message processors", "error", err)
 	}
+
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	err = e.messenger.UnregisterMessageProcessor(proofsTopic, common.EpochStartInterceptorsIdentifier)
+	if err != nil {
+		log.Trace("error unregistering message processors", "error", err)
+	}
 }
 
 func (e *epochStartMetaSyncer) initTopicForEpochStartMetaBlockInterceptor() error {
@@ -159,13 +216,20 @@ func (e *epochStartMetaSyncer) initTopicForEpochStartMetaBlockInterceptor() erro
 		return err
 	}
 
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	err = e.messenger.CreateTopic(proofsTopic, true)
+	if err != nil {
+		log.Warn("error messenger create topic", "topic", proofsTopic, "error", err)
+		return err
+	}
+
 	e.resetTopicsAndInterceptors()
 	err = e.messenger.RegisterMessageProcessor(e.epochStartTopicProviderHandler.getTopic(), common.EpochStartInterceptorsIdentifier, e.singleDataInterceptor)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return e.messenger.RegisterMessageProcessor(proofsTopic, common.EpochStartInterceptorsIdentifier, e.proofsInterceptor)
 }
 
 func (e *epochStartMetaSyncer) getTopic() string {

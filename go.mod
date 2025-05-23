@@ -1,7 +1,7 @@
 module github.com/multiversx/mx-chain-go
 
 replace (
-	github.com/multiversx/mx-chain-communication-go => github.com/multiversx/mx-chain-communication-go v1.1.2-0.20250218164645-1f6964baffbe
+	//github.com/multiversx/mx-chain-communication-go => github.com/multiversx/mx-chain-communication-go v1.1.2-0.20250218164645-1f6964baffbe
 	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250521135959-7db9d641a703
 	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250521130800-2613933f0b30
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250521130706-591665a418d7
@@ -20,29 +20,29 @@ require (
 	github.com/google/gops v0.3.18
 	github.com/gorilla/websocket v1.5.3
 	github.com/klauspost/cpuid/v2 v2.2.9
+	github.com/libp2p/go-libp2p v0.38.2
+	github.com/libp2p/go-libp2p-pubsub v0.13.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/multiversx/mx-chain-communication-go v1.2.1-0.20250520083403-3f2bad6d5476
 	github.com/multiversx/mx-chain-core-go v1.3.2-0.20250520074139-18b645ad397a
 	github.com/multiversx/mx-chain-crypto-go v1.2.13-0.20250520075055-8ab2a164945d
-	github.com/multiversx/mx-chain-es-indexer-go v1.7.17-0.20250218165903-7923d170f8f0
+	github.com/multiversx/mx-chain-es-indexer-go v1.8.2-0.20250520083544-09915e4d9bae
 	github.com/multiversx/mx-chain-logger-go v1.0.16-0.20250520074859-b2faf3c90273
-	github.com/multiversx/mx-chain-scenario-go v1.5.1-0.20250218162624-877d8b9870a4
-	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250521134815-c221bf171684
-	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250521135337-3d100ffc1d49
+	github.com/multiversx/mx-chain-scenario-go v1.5.1-0.20250520075713-734e46b4c66d
 	github.com/multiversx/mx-chain-storage-go v1.0.20-0.20250520075958-65fd4c7bcaae
 	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20250520075408-c94bee9ee163
-	github.com/multiversx/mx-chain-vm-go v1.5.38-0.20250402090832-b10bb1d622d6
-	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69-0.20250220133402-01591d72f671
-	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.70-0.20250220133720-4abbb3b36387
-	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.99-0.20250220144348-9455d2a4e6e6
-	github.com/pelletier/go-toml v1.9.5
+	github.com/multiversx/mx-chain-vm-go v1.5.41-0.20250520080530-2838146363b4
+	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69-0.20250520080927-410c413d962f
+	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.70-0.20250520081414-edf8b75e054d
+	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.99-0.20250520081749-516b5ae0e49c
+	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
-	golang.org/x/crypto v0.38.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
+	golang.org/x/crypto v0.32.0
+	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
 
@@ -115,11 +115,9 @@ require (
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-cidranger v1.1.0 // indirect
 	github.com/libp2p/go-flow-metrics v0.2.0 // indirect
-	github.com/libp2p/go-libp2p v0.38.2 // indirect
 	github.com/libp2p/go-libp2p-asn-util v0.4.1 // indirect
 	github.com/libp2p/go-libp2p-kad-dht v0.29.0 // indirect
 	github.com/libp2p/go-libp2p-kbucket v0.6.5 // indirect
-	github.com/libp2p/go-libp2p-pubsub v0.13.0 // indirect
 	github.com/libp2p/go-libp2p-record v0.3.1 // indirect
 	github.com/libp2p/go-libp2p-routing-helpers v0.7.4 // indirect
 	github.com/libp2p/go-msgio v0.3.0 // indirect
@@ -209,7 +207,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect

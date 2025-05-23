@@ -11,6 +11,10 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/mock"
 	"github.com/multiversx/mx-chain-go/storage/pruning"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/multiversx/mx-chain-go/testscommon"
 )
 
@@ -45,7 +49,7 @@ func TestTriePruningStorer_GetFromOldEpochsWithoutCacheSearchesOnlyOldEpochsAndR
 
 	args := getDefaultArgs()
 	ps, _ := pruning.NewTriePruningStorer(args)
-	cacher := testscommon.NewCacherMock()
+	cacher := cache.NewCacherMock()
 	ps.SetCacher(cacher)
 
 	testKey1 := []byte("key1")
@@ -82,7 +86,7 @@ func TestTriePruningStorer_GetFromOldEpochsWithCache(t *testing.T) {
 
 	args := getDefaultArgs()
 	ps, _ := pruning.NewTriePruningStorer(args)
-	cacher := testscommon.NewCacherMock()
+	cacher := cache.NewCacherMock()
 	ps.SetCacher(cacher)
 
 	testKey1 := []byte("key1")
@@ -186,7 +190,7 @@ func TestTriePruningStorer_GetFromOldEpochsWithoutCacheDoesNotSearchInCurrentSto
 
 	args := getDefaultArgs()
 	ps, _ := pruning.NewTriePruningStorer(args)
-	cacher := testscommon.NewCacherStub()
+	cacher := cache.NewCacherStub()
 	cacher.PutCalled = func(_ []byte, _ interface{}, _ int) bool {
 		require.Fail(t, "this should not be called")
 		return false
@@ -210,7 +214,7 @@ func TestTriePruningStorer_GetFromLastEpochSearchesOnlyLastEpoch(t *testing.T) {
 
 	args := getDefaultArgs()
 	ps, _ := pruning.NewTriePruningStorer(args)
-	cacher := testscommon.NewCacherMock()
+	cacher := cache.NewCacherMock()
 	ps.SetCacher(cacher)
 
 	testKey1 := []byte("key1")
@@ -259,7 +263,7 @@ func TestTriePruningStorer_GetFromCurrentEpochSearchesOnlyCurrentEpoch(t *testin
 
 	args := getDefaultArgs()
 	ps, _ := pruning.NewTriePruningStorer(args)
-	cacher := testscommon.NewCacherMock()
+	cacher := cache.NewCacherMock()
 	ps.SetCacher(cacher)
 
 	testKey1 := []byte("key1")

@@ -188,7 +188,7 @@ func TestStorageEpochStartBootstrap_BootstrapMetablockNotFound(t *testing.T) {
 	args.GeneralConfig = testscommon.GetGeneralConfig()
 	args.GeneralConfig.EpochStartConfig.RoundsPerEpoch = roundsPerEpoch
 
-	sesb := initializeStorageEpochStartBootstrap(args)
+args.InterceptedDataVerifierFactory = &processMock.InterceptedDataVerifierFactoryMock{}	sesb := initializeStorageEpochStartBootstrap(args)
 
 	params, err := sesb.Bootstrap()
 	assert.Equal(t, process.ErrNilMetaBlockHeader, err)

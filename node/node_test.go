@@ -55,6 +55,7 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks"
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/dblookupext"
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
@@ -4891,7 +4892,6 @@ func TestNode_Getters(t *testing.T) {
 	heartbeatComponents := &factoryMock.HeartbeatV2ComponentsStub{}
 	networkComponents := getDefaultNetworkComponents()
 	processComponents := getDefaultProcessComponents()
-	consensusGroupSize := 10
 
 	n, err := node.NewNode(
 		node.WithCoreComponents(coreComponents),
@@ -4903,7 +4903,6 @@ func TestNode_Getters(t *testing.T) {
 		node.WithHeartbeatV2Components(heartbeatComponents),
 		node.WithNetworkComponents(networkComponents),
 		node.WithProcessComponents(processComponents),
-		node.WithConsensusGroupSize(consensusGroupSize),
 		node.WithImportMode(true),
 	)
 	require.Nil(t, err)
@@ -4918,7 +4917,6 @@ func TestNode_Getters(t *testing.T) {
 	assert.True(t, n.GetHeartbeatV2Components() == heartbeatComponents)
 	assert.True(t, n.GetNetworkComponents() == networkComponents)
 	assert.True(t, n.GetProcessComponents() == processComponents)
-	assert.Equal(t, consensusGroupSize, n.GetConsensusGroupSize())
 	assert.True(t, n.IsInImportMode())
 }
 
@@ -5556,6 +5554,7 @@ func getDefaultCoreComponents() *nodeMockFactory.CoreComponentsMock {
 		EpochChangeNotifier:      &epochNotifier.EpochNotifierStub{},
 		TxVersionCheckHandler:    versioning.NewTxVersionChecker(0),
 		EnableEpochsHandlerField: enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.RelayedTransactionsV3Flag),
+		FieldsSizeCheckerField:   &testscommon.FieldsSizeCheckerMock{},
 		ChanStopProcess:          make(chan endProcess.ArgEndProcess, 1),
 	}
 }
@@ -5576,7 +5575,7 @@ func getDefaultProcessComponents() *factoryMock.ProcessComponentsMock {
 		BlockProcess:                         &testscommon.BlockProcessorStub{},
 		BlackListHdl:                         &testscommon.TimeCacheStub{},
 		BootSore:                             &mock.BootstrapStorerMock{},
-		HeaderSigVerif:                       &mock.HeaderSigVerifierStub{},
+		HeaderSigVerif:                       &consensus.HeaderSigVerifierMock{},
 		HeaderIntegrVerif:                    &mock.HeaderIntegrityVerifierStub{},
 		ValidatorStatistics:                  &testscommon.ValidatorStatisticsProcessorStub{},
 		ValidatorProvider:                    &stakingcommon.ValidatorsProviderStub{},

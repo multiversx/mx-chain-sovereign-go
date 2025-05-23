@@ -4,9 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"testing"
+	"time"
 
+	p2pMessage "github.com/multiversx/mx-chain-communication-go/p2p/message"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -37,6 +42,7 @@ func internalInitConsensusStateWithKeysHandler(keysHandler consensus.KeysHandler
 	)
 
 	rcns.SetConsensusGroup(eligibleList)
+	rcns.SetLeader(eligibleList[0])
 	rcns.ResetRoundState()
 
 	rthr := spos.NewRoundThreshold()
@@ -69,12 +75,13 @@ func TestConsensusState_ResetConsensusStateShouldWork(t *testing.T) {
 	t.Parallel()
 
 	cns := internalInitConsensusState()
-	cns.RoundCanceled = true
-	cns.ExtendedCalled = true
-	cns.WaitingAllSignaturesTimeOut = true
+	cns.SetRoundCanceled(true)
+	require.True(t, cns.GetRoundCanceled())
+	cns.SetExtendedCalled(true)
+	cns.SetWaitingAllSignaturesTimeOut(true)
 	cns.ResetConsensusState()
 	assert.False(t, cns.RoundCanceled)
-	assert.False(t, cns.ExtendedCalled)
+	assert.False(t, cns.GetExtendedCalled())
 	assert.False(t, cns.WaitingAllSignaturesTimeOut)
 }
 
@@ -101,22 +108,6 @@ func TestConsensusState_IsNodeLeaderInCurrentRoundShouldReturnTrue(t *testing.T)
 	cns := internalInitConsensusState()
 
 	assert.Equal(t, true, cns.IsNodeLeaderInCurrentRound("1"))
-}
-
-func TestConsensusState_IsSelfLeaderInCurrentRoundShouldReturnFalse(t *testing.T) {
-	t.Parallel()
-
-	cns := internalInitConsensusState()
-
-	assert.False(t, cns.IsSelfLeaderInCurrentRound())
-}
-
-func TestConsensusState_IsSelfLeaderInCurrentRoundShouldReturnTrue(t *testing.T) {
-	t.Parallel()
-
-	cns := internalInitConsensusState()
-
-	assert.False(t, cns.IsSelfLeaderInCurrentRound())
 }
 
 func TestConsensusState_GetLeaderShoudErrNilConsensusGroup(t *testing.T) {
@@ -163,11 +154,11 @@ func TestConsensusState_GetNextConsensusGroupShouldFailWhenComputeValidatorsGrou
 		round uint64,
 		shardId uint32,
 		epoch uint32,
-	) ([]nodesCoordinator.Validator, error) {
-		return nil, err
+	) (nodesCoordinator.Validator, []nodesCoordinator.Validator, error) {
+		return nil, nil, err
 	}
 
-	_, err2 := cns.GetNextConsensusGroup([]byte(""), 0, 0, nodesCoord, 0)
+	_, _, err2 := cns.GetNextConsensusGroup([]byte(""), 0, 0, nodesCoord, 0)
 	assert.Equal(t, err, err2)
 }
 
@@ -177,10 +168,11 @@ func TestConsensusState_GetNextConsensusGroupShouldWork(t *testing.T) {
 	cns := internalInitConsensusState()
 
 	nodesCoord := &shardingMocks.NodesCoordinatorMock{
-		ComputeValidatorsGroupCalled: func(randomness []byte, round uint64, shardId uint32, epoch uint32) ([]nodesCoordinator.Validator, error) {
+		ComputeValidatorsGroupCalled: func(randomness []byte, round uint64, shardId uint32, epoch uint32) (nodesCoordinator.Validator, []nodesCoordinator.Validator, error) {
 			defaultSelectionChances := uint32(1)
-			return []nodesCoordinator.Validator{
-				shardingMocks.NewValidatorMock([]byte("A"), 1, defaultSelectionChances),
+			leader := shardingMocks.NewValidatorMock([]byte("A"), 1, defaultSelectionChances)
+			return leader, []nodesCoordinator.Validator{
+				leader,
 				shardingMocks.NewValidatorMock([]byte("B"), 1, defaultSelectionChances),
 				shardingMocks.NewValidatorMock([]byte("C"), 1, defaultSelectionChances),
 				shardingMocks.NewValidatorMock([]byte("D"), 1, defaultSelectionChances),
@@ -193,9 +185,10 @@ func TestConsensusState_GetNextConsensusGroupShouldWork(t *testing.T) {
 		},
 	}
 
-	nextConsensusGroup, err := cns.GetNextConsensusGroup(nil, 0, 0, nodesCoord, 0)
+	leader, nextConsensusGroup, err := cns.GetNextConsensusGroup(nil, 0, 0, nodesCoord, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, nextConsensusGroup)
+	assert.NotEmpty(t, leader)
 }
 
 func TestConsensusState_IsConsensusDataSetShouldReturnTrue(t *testing.T) {
@@ -335,7 +328,7 @@ func TestConsensusState_IsBlockBodyAlreadyReceivedShouldReturnFalse(t *testing.T
 
 	cns := internalInitConsensusState()
 
-	cns.Body = nil
+	cns.SetBody(nil)
 
 	assert.False(t, cns.IsBlockBodyAlreadyReceived())
 }
@@ -345,7 +338,7 @@ func TestConsensusState_IsBlockBodyAlreadyReceivedShouldReturnTrue(t *testing.T)
 
 	cns := internalInitConsensusState()
 
-	cns.Body = &block.Body{}
+	cns.SetBody(&block.Body{})
 
 	assert.True(t, cns.IsBlockBodyAlreadyReceived())
 }
@@ -355,7 +348,7 @@ func TestConsensusState_IsHeaderAlreadyReceivedShouldReturnFalse(t *testing.T) {
 
 	cns := internalInitConsensusState()
 
-	cns.Header = nil
+	cns.SetHeader(nil)
 
 	assert.False(t, cns.IsHeaderAlreadyReceived())
 }
@@ -365,7 +358,7 @@ func TestConsensusState_IsHeaderAlreadyReceivedShouldReturnTrue(t *testing.T) {
 
 	cns := internalInitConsensusState()
 
-	cns.Header = &block.Header{}
+	cns.SetHeader(&block.Header{})
 
 	assert.True(t, cns.IsHeaderAlreadyReceived())
 }
@@ -638,6 +631,62 @@ func TestConsensusState_ResetRoundsWithoutReceivedMessages(t *testing.T) {
 
 	cns.ResetRoundsWithoutReceivedMessages(testPkBytes, testPid)
 	assert.True(t, resetRoundsWithoutReceivedMessagesCalled)
+}
+
+func TestConsensusState_GettersSetters(t *testing.T) {
+	t.Parallel()
+
+	keysHandler := &testscommon.KeysHandlerStub{}
+	cns := internalInitConsensusStateWithKeysHandler(keysHandler)
+
+	providedIndex := int64(123)
+	cns.SetRoundIndex(providedIndex)
+	require.Equal(t, providedIndex, cns.GetRoundIndex())
+
+	providedTimestamp := time.Now()
+	cns.SetRoundTimeStamp(providedTimestamp)
+	require.Equal(t, providedTimestamp, cns.GetRoundTimeStamp())
+
+	cns.SetExtendedCalled(true)
+	require.True(t, cns.GetExtendedCalled())
+
+	providedBody := &block.Body{}
+	cns.SetBody(providedBody)
+	require.Equal(t, providedBody, cns.GetBody())
+
+	providedHeader := &block.Header{}
+	cns.SetHeader(providedHeader)
+	require.Equal(t, providedHeader, cns.GetHeader())
+
+	cns.SetWaitingAllSignaturesTimeOut(true)
+	require.True(t, cns.GetWaitingAllSignaturesTimeOut())
+
+	providedData := []byte("hash")
+	cns.SetData(providedData)
+	require.Equal(t, string(providedData), string(cns.GetData()))
+
+	cns.AddReceivedHeader(providedHeader)
+	receivedHeaders := cns.GetReceivedHeaders()
+	require.Equal(t, 1, len(receivedHeaders))
+	require.Equal(t, providedHeader, receivedHeaders[0])
+
+	providedMsg := &p2pMessage.Message{}
+	providedKey := "key"
+	cns.AddMessageWithSignature(providedKey, providedMsg)
+	msg, ok := cns.GetMessageWithSignature(providedKey)
+	require.True(t, ok)
+	require.Equal(t, providedMsg, msg)
+}
+
+func TestConsensusState_IsInterfaceNil(t *testing.T) {
+	t.Parallel()
+
+	var cns *spos.ConsensusState
+	require.True(t, cns.IsInterfaceNil())
+
+	keysHandler := &testscommon.KeysHandlerStub{}
+	cns = internalInitConsensusStateWithKeysHandler(keysHandler)
+	require.False(t, cns.IsInterfaceNil())
 }
 
 func TestConsensusState_InitAddGetProcessedHeadersHashesShouldWork(t *testing.T) {

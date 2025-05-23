@@ -409,6 +409,7 @@ func TestStatusMetrics_EnableEpochMetrics(t *testing.T) {
 	sm.SetUInt64Value(common.MetricFixRelayedMoveBalanceToNonPayableSCEnableEpoch, uint64(4))
 	sm.SetUInt64Value(common.MetricRelayedTransactionsV3EnableEpoch, uint64(4))
 	sm.SetUInt64Value(common.MetricRelayedTransactionsV3FixESDTTransferEnableEpoch, uint64(4))
+	sm.SetUInt64Value(common.MetricCheckBuiltInCallOnTransferValueAndFailEnableRound, uint64(4))
 	sm.SetUInt64Value(common.MetricMaskVMInternalDependenciesErrorsEnableEpoch, uint64(4))
 	sm.SetUInt64Value(common.MetricFixBackTransferOPCODEEnableEpoch, uint64(4))
 	sm.SetUInt64Value(common.MetricValidationOnGobDecodeEnableEpoch, uint64(4))
@@ -547,6 +548,7 @@ func TestStatusMetrics_EnableEpochMetrics(t *testing.T) {
 		common.MetricFixRelayedMoveBalanceToNonPayableSCEnableEpoch:           uint64(4),
 		common.MetricRelayedTransactionsV3EnableEpoch:                         uint64(4),
 		common.MetricRelayedTransactionsV3FixESDTTransferEnableEpoch:          uint64(4),
+		common.MetricCheckBuiltInCallOnTransferValueAndFailEnableRound:        uint64(4),
 		common.MetricMaskVMInternalDependenciesErrorsEnableEpoch:              uint64(4),
 		common.MetricFixBackTransferOPCODEEnableEpoch:                         uint64(4),
 		common.MetricValidationOnGobDecodeEnableEpoch:                         uint64(4),

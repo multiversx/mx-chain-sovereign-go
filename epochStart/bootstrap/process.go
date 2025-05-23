@@ -7,6 +7,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/core/partitioning"
+	"github.com/multiversx/mx-chain-core-go/core/throttler"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
+	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
+
 	"github.com/multiversx/mx-chain-go/common"
 	disabledCommon "github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/ordering"
@@ -40,13 +51,6 @@ import (
 	"github.com/multiversx/mx-chain-go/trie/storageMarker"
 	"github.com/multiversx/mx-chain-go/update"
 	updateSync "github.com/multiversx/mx-chain-go/update/sync"
-
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/core/throttler"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("epochStart/bootstrap")
@@ -115,6 +119,8 @@ type epochStartBootstrap struct {
 	nodeProcessingMode         common.NodeProcessingMode
 	nodeOperationMode          common.NodeOperation
 	stateStatsHandler          common.StateStatisticsHandler
+	enableEpochsHandler        common.EnableEpochsHandler
+
 	// created components
 	requestHandler                  process.RequestHandler
 	mainInterceptorContainer        process.InterceptorsContainer
@@ -147,6 +153,9 @@ type epochStartBootstrap struct {
 	nodeType                    core.NodeType
 	startEpoch                  uint32
 	shuffledOut                 bool
+
+	interceptedDataVerifierFactory process.InterceptedDataVerifierFactory
+
 	shardForLatestEpochComputer ShardForLatestEpochComputer
 	runTypeComponents           RunTypeComponentsHolder
 
@@ -189,6 +198,8 @@ type ArgsEpochStartBootstrap struct {
 	NodeProcessingMode              common.NodeProcessingMode
 	StateStatsHandler               common.StateStatisticsHandler
 	NodesCoordinatorRegistryFactory nodesCoordinator.NodesCoordinatorRegistryFactory
+	EnableEpochsHandler             common.EnableEpochsHandler
+	InterceptedDataVerifierFactory  process.InterceptedDataVerifierFactory
 	RunTypeComponents               RunTypeComponentsHolder
 }
 
@@ -242,6 +253,8 @@ func NewEpochStartBootstrap(args ArgsEpochStartBootstrap) (*epochStartBootstrap,
 		stateStatsHandler:               args.StateStatsHandler,
 		startEpoch:                      args.GeneralConfig.EpochStartConfig.GenesisEpoch,
 		nodesCoordinatorRegistryFactory: args.NodesCoordinatorRegistryFactory,
+		enableEpochsHandler:             args.EnableEpochsHandler,
+		interceptedDataVerifierFactory:  args.InterceptedDataVerifierFactory,
 		runTypeComponents:               args.RunTypeComponents,
 	}
 	epochStartProvider.bootStrapShardProcessor = &bootStrapShardProcessor{
@@ -544,6 +557,49 @@ func (e *epochStartBootstrap) prepareComponentsToSyncFromNetwork() error {
 		return err
 	}
 
+	// TODO: Marius C
+
+	/// THIS IS FROM ORIGINAL BARNARD CODE< MISSING INIT PARAMS FOR PROOFS AND ENABLE EPOCHS
+
+	/*
+	epochStartConfig := e.generalConfig.EpochStartConfig
+		metaBlockProcessor, err := NewEpochStartMetaBlockProcessor(
+			e.mainMessenger,
+			e.requestHandler,
+			e.coreComponentsHolder.InternalMarshalizer(),
+			e.coreComponentsHolder.Hasher(),
+			thresholdForConsideringMetaBlockCorrect,
+			epochStartConfig.MinNumConnectedPeersToStart,
+			epochStartConfig.MinNumOfPeersToConsiderBlockValid,
+			e.enableEpochsHandler,
+			e.dataPool.Proofs(),
+		)
+		if err != nil {
+			return err
+		}
+
+		argsEpochStartSyncer := ArgsNewEpochStartMetaSyncer{
+			CoreComponentsHolder:           e.coreComponentsHolder,
+			CryptoComponentsHolder:         e.cryptoComponentsHolder,
+			RequestHandler:                 e.requestHandler,
+			Messenger:                      e.mainMessenger,
+			ShardCoordinator:               e.shardCoordinator,
+			EconomicsData:                  e.economicsData,
+			WhitelistHandler:               e.whiteListHandler,
+			StartInEpochConfig:             epochStartConfig,
+			HeaderIntegrityVerifier:        e.headerIntegrityVerifier,
+			MetaBlockProcessor:             metaBlockProcessor,
+			InterceptedDataVerifierFactory: e.interceptedDataVerifierFactory,
+			ProofsPool:                     e.dataPool.Proofs(),
+			ProofsInterceptorProcessor:     processor.NewEquivalentProofsInterceptorProcessor(),
+		}
+		e.epochStartMetaBlockSyncer, err = NewEpochStartMetaSyncer(argsEpochStartSyncer)
+		if err != nil {
+			return err
+		}
+	 */
+
+
 	e.epochStartMetaBlockSyncer, err = e.bootStrapShardProcessor.createEpochStartMetaSyncer()
 	if err != nil {
 		return err
@@ -569,6 +625,7 @@ func (e *epochStartBootstrap) createSyncers() error {
 		RequestHandler:          e.requestHandler,
 		SignaturesHandler:       e.mainMessenger,
 		NodeOperationMode:       e.nodeOperationMode,
+		InterceptedDataVerifierFactory: e.interceptedDataVerifierFactory,
 		AccountFactory:          e.runTypeComponents.AccountsCreator(),
 	}
 
@@ -594,10 +651,12 @@ func (e *epochStartBootstrap) createSyncers() error {
 	}
 
 	syncMissingHeadersArgs := updateSync.ArgsNewMissingHeadersByHashSyncer{
-		Storage:              disabled.CreateMemUnit(),
-		Cache:                e.dataPool.Headers(),
-		Marshalizer:          e.coreComponentsHolder.InternalMarshalizer(),
-		RequestHandler:       e.requestHandler,
+		Storage:             disabled.CreateMemUnit(),
+		Cache:               e.dataPool.Headers(),
+		ProofsPool:          e.dataPool.Proofs(),
+		Marshalizer:         e.coreComponentsHolder.InternalMarshalizer(),
+		RequestHandler:      e.requestHandler,
+		EnableEpochsHandler: e.enableEpochsHandler,
 		CrossHeaderRequester: crossHeaderRequester,
 	}
 	e.headersSyncer, err = updateSync.NewMissingheadersByHashSyncer(syncMissingHeadersArgs)
@@ -629,6 +688,55 @@ func (e *epochStartBootstrap) createSyncers() error {
 
 	return nil
 }
+
+// TODO: MARIUS C
+// FROM ORIGINAL CODE<<<< CHECK syncHeadersFrom
+
+/*
+
+func (e *epochStartBootstrap) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
+	hashesToRequest := make([][]byte, 0, len(meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers())+1)
+	shardIds := make([]uint32, 0, len(meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers())+1)
+	epochStartMetaHash, err := core.CalculateHash(e.coreComponentsHolder.InternalMarshalizer(), e.coreComponentsHolder.Hasher(), meta)
+	if err != nil {
+		return nil, err
+	}
+	for _, epochStartData := range meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
+		hashesToRequest = append(hashesToRequest, epochStartData.GetHeaderHash())
+		shardIds = append(shardIds, epochStartData.GetShardID())
+	}
+
+	if meta.GetEpoch() > e.startEpoch+1 { // no need to request genesis block
+		hashesToRequest = append(hashesToRequest, meta.GetEpochStartHandler().GetEconomicsHandler().GetPrevEpochStartHash())
+		shardIds = append(shardIds, core.MetachainShardId)
+	}
+
+	// add the epoch start meta hash to the list to sync its proof
+	// TODO: this can be removed when the proof will be loaded from storage
+	hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+	shardIds = append(shardIds, core.MetachainShardId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+	err = e.headersSyncer.SyncMissingHeadersByHash(shardIds, hashesToRequest, ctx)
+	cancel()
+	if err != nil {
+		return nil, err
+	}
+
+	syncedHeaders, err := e.headersSyncer.GetHeaders()
+	if err != nil {
+		return nil, err
+	}
+
+	if meta.GetEpoch() == e.startEpoch+1 {
+		syncedHeaders[string(meta.GetEpochStartHandler().GetEconomicsHandler().GetPrevEpochStartHash())] = &block.MetaBlock{}
+	}
+
+	return syncedHeaders, nil
+}
+
+ */
+
 
 // Bootstrap will handle requesting and receiving the needed information the node will bootstrap from
 func (e *epochStartBootstrap) requestAndProcessing() (Parameters, error) {
@@ -728,6 +836,7 @@ func (e *epochStartBootstrap) processNodesConfig(pubKey []byte) ([]*block.MiniBl
 		RequestHandler:                   e.requestHandler,
 		ChanceComputer:                   e.rater,
 		GenesisNodesConfig:               e.genesisNodesConfig,
+		ChainParametersHandler:          e.coreComponentsHolder.ChainParametersHandler(),
 		NodeShuffler:                     e.nodeShuffler,
 		Hasher:                           e.coreComponentsHolder.Hasher(),
 		PubKey:                           pubKey,
@@ -769,6 +878,8 @@ func (e *epochStartBootstrap) requestAndProcessForMeta(peerMiniBlocks []*block.M
 		ManagedPeersHolder:              e.cryptoComponentsHolder.ManagedPeersHolder(),
 		NodeProcessingMode:              e.nodeProcessingMode,
 		StateStatsHandler:               e.stateStatsHandler,
+		ProofsPool:                      e.dataPool.Proofs(),
+		EnableEpochsHandler:             e.enableEpochsHandler,
 		AdditionalStorageServiceCreator: e.runTypeComponents.AdditionalStorageServiceCreator(),
 	}
 	storageHandlerComponent, err := NewMetaStorageHandler(argsStorageHandler)
@@ -995,6 +1106,8 @@ func (e *epochStartBootstrap) requestAndProcessForShard(peerMiniBlocks []*block.
 		ManagedPeersHolder:              e.cryptoComponentsHolder.ManagedPeersHolder(),
 		NodeProcessingMode:              e.nodeProcessingMode,
 		StateStatsHandler:               e.stateStatsHandler,
+		ProofsPool:                      e.dataPool.Proofs(),
+		EnableEpochsHandler:             e.enableEpochsHandler,
 	}
 	storageHandlerComponent, err := NewShardStorageHandler(argsStorageHandler)
 	if err != nil {
@@ -1233,6 +1346,106 @@ func (e *epochStartBootstrap) syncValidatorAccountsState(rootHash []byte) error 
 
 	return nil
 }
+
+// TODO: MARIUS C ALSO THESE FUNCS HAVE BEEN CHANGED
+
+/*
+func (e *epochStartBootstrap) createResolversContainer() error {
+	dataPacker, err := partitioning.NewSimpleDataPacker(e.coreComponentsHolder.InternalMarshalizer())
+	if err != nil {
+		return err
+	}
+
+	storageService := disabled.NewChainStorer()
+
+	payloadValidator, err := validator.NewPeerAuthenticationPayloadValidator(e.generalConfig.HeartbeatV2.HeartbeatExpiryTimespanInSec)
+	if err != nil {
+		return err
+	}
+
+	// TODO - create a dedicated request handler to be used when fetching required data with the correct shard coordinator
+	//  this one should only be used before determining the correct shard where the node should reside
+	log.Debug("epochStartBootstrap.createRequestHandler", "shard", e.shardCoordinator.SelfId())
+	resolversContainerArgs := resolverscontainer.FactoryArgs{
+		ShardCoordinator:                    e.shardCoordinator,
+		MainMessenger:                       e.mainMessenger,
+		FullArchiveMessenger:                e.fullArchiveMessenger,
+		Store:                               storageService,
+		Marshalizer:                         e.coreComponentsHolder.InternalMarshalizer(),
+		DataPools:                           e.dataPool,
+		Uint64ByteSliceConverter:            uint64ByteSlice.NewBigEndianConverter(),
+		NumConcurrentResolvingJobs:          10,
+		NumConcurrentResolvingTrieNodesJobs: 3,
+		DataPacker:                          dataPacker,
+		TriesContainer:                      e.trieContainer,
+		SizeCheckDelta:                      0,
+		InputAntifloodHandler:               disabled.NewAntiFloodHandler(),
+		OutputAntifloodHandler:              disabled.NewAntiFloodHandler(),
+		MainPreferredPeersHolder:            disabled.NewPreferredPeersHolder(),
+		FullArchivePreferredPeersHolder:     disabled.NewPreferredPeersHolder(),
+		PayloadValidator:                    payloadValidator,
+	}
+	resolverFactory, err := resolverscontainer.NewMetaResolversContainerFactory(resolversContainerArgs)
+	if err != nil {
+		return err
+	}
+
+	container, err := resolverFactory.Create()
+	if err != nil {
+		return err
+	}
+
+	return resolverFactory.AddShardTrieNodeResolvers(container)
+}
+
+func (e *epochStartBootstrap) createRequestHandler() error {
+	requestersContainerArgs := requesterscontainer.FactoryArgs{
+		RequesterConfig:                 e.generalConfig.Requesters,
+		ShardCoordinator:                e.shardCoordinator,
+		MainMessenger:                   e.mainMessenger,
+		FullArchiveMessenger:            e.fullArchiveMessenger,
+		Marshaller:                      e.coreComponentsHolder.InternalMarshalizer(),
+		Uint64ByteSliceConverter:        uint64ByteSlice.NewBigEndianConverter(),
+		OutputAntifloodHandler:          disabled.NewAntiFloodHandler(),
+		CurrentNetworkEpochProvider:     disabled.NewCurrentNetworkEpochProviderHandler(),
+		MainPreferredPeersHolder:        disabled.NewPreferredPeersHolder(),
+		FullArchivePreferredPeersHolder: disabled.NewPreferredPeersHolder(),
+		PeersRatingHandler:              disabled.NewDisabledPeersRatingHandler(),
+		SizeCheckDelta:                  0,
+		EnableEpochsHandler:             e.enableEpochsHandler,
+	}
+	requestersFactory, err := requesterscontainer.NewMetaRequestersContainerFactory(requestersContainerArgs)
+	if err != nil {
+		return err
+	}
+
+	container, err := requestersFactory.Create()
+	if err != nil {
+		return err
+	}
+
+	err = requestersFactory.AddShardTrieNodeRequesters(container)
+	if err != nil {
+		return err
+	}
+
+	finder, err := containers.NewRequestersFinder(container, e.shardCoordinator)
+	if err != nil {
+		return err
+	}
+
+	requestedItemsHandler := cache.NewTimeCache(timeBetweenRequests)
+	e.requestHandler, err = requestHandlers.NewResolverRequestHandler(
+		finder,
+		requestedItemsHandler,
+		e.whiteListHandler,
+		maxToRequest,
+		core.MetachainShardId,
+		timeBetweenRequests,
+	)
+	return err
+}
+ */
 
 func (e *epochStartBootstrap) setEpochStartMetrics() {
 	if !check.IfNil(e.epochStartMeta) {

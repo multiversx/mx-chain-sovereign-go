@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/factory"
+	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -115,6 +116,7 @@ func CreateNodesCoordinator(
 	enableEpochsHandler common.EnableEpochsHandler,
 	validatorInfoCacher epochStart.ValidatorInfoCacher,
 	nodesCoordinatorRegistryFactory nodesCoordinator.NodesCoordinatorRegistryFactory,
+	chainParametersHandler process.ChainParametersHandler,
 	nodesCoordinatorFactory nodesCoordinator.NodesCoordinatorWithRaterFactory,
 ) (nodesCoordinator.NodesCoordinator, error) {
 	if check.IfNil(nodeShufflerOut) {
@@ -154,8 +156,6 @@ func CreateNodesCoordinator(
 	}
 
 	nbShards := nodesConfig.NumberOfShards()
-	shardConsensusGroupSize := int(nodesConfig.GetShardConsensusGroupSize())
-	metaConsensusGroupSize := int(nodesConfig.GetMetaConsensusGroupSize())
 	eligibleNodesInfo, waitingNodesInfo := nodesConfig.InitialNodesInfo()
 
 	eligibleValidators, errEligibleValidators := nodesCoordinator.NodesInfoToValidators(eligibleNodesInfo)
@@ -204,8 +204,7 @@ func CreateNodesCoordinator(
 	}
 
 	argumentsNodesCoordinator := nodesCoordinator.ArgNodesCoordinator{
-		ShardConsensusGroupSize:         shardConsensusGroupSize,
-		MetaConsensusGroupSize:          metaConsensusGroupSize,
+		ChainParametersHandler:          chainParametersHandler,
 		Marshalizer:                     marshalizer,
 		Hasher:                          hasher,
 		Shuffler:                        nodeShuffler,

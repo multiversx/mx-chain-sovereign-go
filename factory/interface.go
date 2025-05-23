@@ -101,7 +101,7 @@ type P2PAntifloodHandler interface {
 	SetDebugger(debugger process.AntifloodDebugger) error
 	SetPeerValidatorMapper(validatorMapper process.PeerValidatorMapper) error
 	SetTopicsForAll(topics ...string)
-	ApplyConsensusSize(size int)
+	SetConsensusSizeNotifier(chainParametersNotifier process.ChainParametersSubscriber, shardID uint32)
 	BlacklistPeer(peer core.PeerID, reason string, duration time.Duration)
 	IsOriginatorEligibleForTopic(pid core.PeerID, topic string) error
 	Close() error
@@ -155,6 +155,7 @@ type CoreComponentsHolder interface {
 	GenesisNodesSetup() sharding.GenesisNodesSetupHandler
 	NodesShuffler() nodesCoordinator.NodesShuffler
 	EpochNotifier() process.EpochNotifier
+	ChainParametersSubscriber() process.ChainParametersSubscriber
 	EnableRoundsHandler() process.EnableRoundsHandler
 	RoundNotifier() process.RoundNotifier
 	EpochStartNotifierWithConfirm() EpochStartNotifierWithConfirm
@@ -169,6 +170,9 @@ type CoreComponentsHolder interface {
 	ProcessStatusHandler() common.ProcessStatusHandler
 	HardforkTriggerPubKey() []byte
 	EnableEpochsHandler() common.EnableEpochsHandler
+	ChainParametersHandler() process.ChainParametersHandler
+	FieldsSizeChecker() common.FieldsSizeChecker
+	EpochChangeGracePeriodHandler() common.EpochChangeGracePeriodHandler
 	IsInterfaceNil() bool
 }
 
@@ -420,10 +424,14 @@ type ConsensusWorker interface {
 	AddReceivedMessageCall(messageType consensus.MessageType, receivedMessageCall func(ctx context.Context, cnsDta *consensus.Message) bool)
 	// AddReceivedHeaderHandler adds a new handler function for a received header
 	AddReceivedHeaderHandler(handler func(data.HeaderHandler))
+	// RemoveAllReceivedHeaderHandlers removes all the functions handlers
+	RemoveAllReceivedHeaderHandlers()
+	// AddReceivedProofHandler adds a new handler function for a received proof
+	AddReceivedProofHandler(handler func(proofHandler consensus.ProofHandler))
 	// RemoveAllReceivedMessagesCalls removes all the functions handlers
 	RemoveAllReceivedMessagesCalls()
 	// ProcessReceivedMessage method redirects the received message to the channel which should handle it
-	ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedPeer core.PeerID, source p2p.MessageHandler) error
+	ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedPeer core.PeerID, source p2p.MessageHandler) ([]byte, error)
 	// Extend does an extension for the subround with subroundId
 	Extend(subroundId int)
 	// GetConsensusStateChangedChannel gets the channel for the consensusStateChanged
@@ -432,10 +440,16 @@ type ConsensusWorker interface {
 	ExecuteStoredMessages()
 	// DisplayStatistics method displays statistics of worker at the end of the round
 	DisplayStatistics()
-	// ResetConsensusMessages resets at the start of each round all the previous consensus messages received
+	// ResetConsensusMessages resets at the start of each round all the previous consensus messages received and equivalent messages, keeping the provided proofs
 	ResetConsensusMessages()
+	// ResetConsensusRoundState resets the state of the consensus round
+	ResetConsensusRoundState()
+	// ResetInvalidSignersCache resets the invalid signers cache
+	ResetInvalidSignersCache()
 	// ReceivedHeader method is a wired method through which worker will receive headers from network
 	ReceivedHeader(headerHandler data.HeaderHandler, headerHash []byte)
+	// ReceivedProof will handle a received proof in consensus worker
+	ReceivedProof(proofHandler consensus.ProofHandler)
 	// IsInterfaceNil returns true if there is no value under the interface
 	IsInterfaceNil() bool
 }
@@ -458,7 +472,6 @@ type ConsensusComponentsHolder interface {
 	Chronology() consensus.ChronologyHandler
 	ConsensusWorker() ConsensusWorker
 	BroadcastMessenger() consensus.BroadcastMessenger
-	ConsensusGroupSize() (int, error)
 	Bootstrapper() process.Bootstrapper
 	IsInterfaceNil() bool
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/transactionEvaluator"
 	"github.com/multiversx/mx-chain-go/process/txstatus"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/genesisMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
@@ -183,7 +184,7 @@ func createFacadeComponents(tpn *TestProcessorNode) nodeFacade.ApiResolver {
 		ShardCoordinator:          tpn.ShardCoordinator,
 		Marshalizer:               TestMarshalizer,
 		Hasher:                    TestHasher,
-		VMOutputCacher:            &testscommon.CacherMock{},
+		VMOutputCacher:            &cache.CacherMock{},
 		DataFieldParser:           dataFieldParser,
 		BlockChainHook:            tpn.BlockchainHook,
 	}
@@ -270,6 +271,8 @@ func createFacadeComponents(tpn *TestProcessorNode) nodeFacade.ApiResolver {
 		AccountsRepository:           &state.AccountsRepositoryStub{},
 		ScheduledTxsExecutionHandler: &testscommon.ScheduledTxsExecutionStub{},
 		EnableEpochsHandler:          &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		ProofsPool:                   tpn.ProofsPool,
+		BlockChain:                   tpn.BlockChain,
 	}
 	blockAPIHandler, err := blockAPI.CreateAPIBlockProcessor(argsBlockAPI)
 	log.LogIfError(err)

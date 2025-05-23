@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/graceperiod"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	disabledStatistics "github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
@@ -34,6 +35,7 @@ import (
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	processMocks "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
@@ -41,6 +43,8 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
+	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
@@ -78,6 +82,17 @@ func createPkBytes(numShards uint32) map[uint32][]byte {
 }
 
 func createComponentsForEpochStart() (*mock.CoreComponentsMock, *mock.CryptoComponentsMock) {
+	chainParams := &chainParameters.ChainParametersHandlerStub{
+		CurrentChainParametersCalled: func() config.ChainParametersByEpochConfig {
+			return config.ChainParametersByEpochConfig{
+				ShardConsensusGroupSize:     1,
+				MetachainConsensusGroupSize: 1,
+			}
+		},
+	}
+
+	gracePeriod, _ := graceperiod.NewEpochChangeGracePeriod([]config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}})
+
 	return &mock.CoreComponentsMock{
 			IntMarsh:                     &mock.MarshalizerMock{},
 			Marsh:                        &mock.MarshalizerMock{},
@@ -99,6 +114,8 @@ func createComponentsForEpochStart() (*mock.CoreComponentsMock, *mock.CryptoComp
 					return 0
 				},
 			},
+			EpochChangeGracePeriodHandlerField: gracePeriod,
+			ChainParametersHandlerField:        chainParams,
 		},
 		&mock.CryptoComponentsMock{
 			PubKey:          &cryptoMocks.PublicKeyStub{},
@@ -147,6 +164,7 @@ func createMockEpochStartBootstrapArgs(
 			PeerAccountsTrieStorage:         generalCfg.PeerAccountsTrieStorage,
 			HeartbeatV2:                     generalCfg.HeartbeatV2,
 			Hardfork:                        generalCfg.Hardfork,
+			ProofsStorage:                   generalCfg.ProofsStorage,
 			EvictionWaitingList: config.EvictionWaitingListConfig{
 				HashesSize:     100,
 				RootHashesSize: 100,
@@ -245,9 +263,11 @@ func createMockEpochStartBootstrapArgs(
 		FlagsConfig: config.ContextFlagsConfig{
 			ForceStartFromNetwork: false,
 		},
-		TrieSyncStatisticsProvider: &testscommon.SizeSyncStatisticsHandlerStub{},
-		StateStatsHandler:          disabledStatistics.NewStateStatistics(),
-		RunTypeComponents:          processMocks.NewRunTypeComponentsStub(),
+		TrieSyncStatisticsProvider:     &testscommon.SizeSyncStatisticsHandlerStub{},
+		StateStatsHandler:              disabledStatistics.NewStateStatistics(),
+		EnableEpochsHandler:            &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		InterceptedDataVerifierFactory: &processMock.InterceptedDataVerifierFactoryMock{},
+		RunTypeComponents:              processMocks.NewRunTypeComponentsStub(),
 	}
 }
 
@@ -1085,22 +1105,26 @@ func TestCreateSyncers(t *testing.T) {
 			return testscommon.NewShardedDataStub()
 		},
 		MiniBlocksCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		TrieNodesCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		PeerAuthenticationsCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		HeartbeatsCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
+		},
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
 	epochStartProvider.whiteListHandler = &testscommon.WhiteListHandlerStub{}
 	epochStartProvider.whiteListerVerifiedTxs = &testscommon.WhiteListHandlerStub{}
 	epochStartProvider.requestHandler = &testscommon.RequestHandlerStub{}
 	epochStartProvider.storageService = &storageMocks.ChainStorerStub{}
+	epochStartProvider.interceptedDataVerifierFactory = &processMock.InterceptedDataVerifierFactoryMock{}
 
 	err := epochStartProvider.createSyncers()
 	assert.Nil(t, err)
@@ -1151,7 +1175,7 @@ func TestSyncValidatorAccountsState_NilRequestHandlerErr(t *testing.T) {
 	epochStartProvider, _ := NewEpochStartBootstrap(args)
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		TrieNodesCalled: func() storage.Cacher {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				GetCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, true
 				},
@@ -1197,7 +1221,7 @@ func TestSyncUserAccountsState(t *testing.T) {
 	epochStartProvider.shardCoordinator = mock.NewMultipleShardsCoordinatorMock()
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		TrieNodesCalled: func() storage.Cacher {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				GetCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, true
 				},
@@ -1444,6 +1468,9 @@ func TestRequestAndProcessForShard_ShouldFail(t *testing.T) {
 			TrieNodesCalled: func() storage.Cacher {
 				return nil
 			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
+			},
 		}
 
 		epochStartProvider.miniBlocksSyncer = &epochStartMocks.PendingMiniBlockSyncHandlerStub{}
@@ -1513,11 +1540,14 @@ func TestRequestAndProcessForShard_ShouldFail(t *testing.T) {
 		}
 		epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 			TrieNodesCalled: func() storage.Cacher {
-				return &testscommon.CacherStub{
+				return &cache.CacherStub{
 					GetCalled: func(key []byte) (value interface{}, ok bool) {
 						return nil, true
 					},
 				}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 
@@ -1550,6 +1580,11 @@ func TestRequestAndProcessForMeta_ShouldFail(t *testing.T) {
 
 		epochStartProvider, _ := NewEpochStartBootstrap(args)
 		epochStartProvider.epochStartMeta = metaBlock
+		epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
+			},
+		}
 
 		epochStartProvider.shardCoordinator = nil
 
@@ -1627,11 +1662,14 @@ func TestRequestAndProcessForMeta_ShouldFail(t *testing.T) {
 		}
 		epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 			TrieNodesCalled: func() storage.Cacher {
-				return &testscommon.CacherStub{
+				return &cache.CacherStub{
 					GetCalled: func(key []byte) (value interface{}, ok bool) {
 						return nil, true
 					},
 				}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 
@@ -1733,11 +1771,14 @@ func TestRequestAndProcessing(t *testing.T) {
 
 		epochStartProvider, _ := NewEpochStartBootstrap(args)
 		epochStartProvider.epochStartMeta = epochStartMetaBlock
+		epochStartMetaHash, err := core.CalculateHash(epochStartProvider.coreComponentsHolder.InternalMarshalizer(), epochStartProvider.coreComponentsHolder.Hasher(), epochStartMetaBlock)
+		require.Nil(t, err)
+
 		expectedErr := errors.New("sync miniBlocksSyncer headers by hash error")
 		epochStartProvider.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
 			SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
-				assert.Equal(t, [][]byte{notarizedShardHeaderHash}, headersHashes)
-				assert.Equal(t, []uint32{shardId}, shardIDs)
+				assert.Equal(t, [][]byte{notarizedShardHeaderHash, epochStartMetaHash}, headersHashes)
+				assert.Equal(t, []uint32{shardId, core.MetachainShardId}, shardIDs)
 				return expectedErr
 			},
 		}
@@ -1997,10 +2038,10 @@ func TestRequestAndProcessing(t *testing.T) {
 		}
 		epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 			MiniBlocksCalled: func() storage.Cacher {
-				return testscommon.NewCacherStub()
+				return cache.NewCacherStub()
 			},
 			TrieNodesCalled: func() storage.Cacher {
-				return &testscommon.CacherStub{
+				return &cache.CacherStub{
 					GetCalled: func(key []byte) (value interface{}, ok bool) {
 						return nil, true
 					},
@@ -2011,6 +2052,9 @@ func TestRequestAndProcessing(t *testing.T) {
 			},
 			CurrEpochValidatorInfoCalled: func() dataRetriever.ValidatorInfoCacher {
 				return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 		epochStartProvider.requestHandler = &testscommon.RequestHandlerStub{}
@@ -2067,10 +2111,10 @@ func TestRequestAndProcessing(t *testing.T) {
 		}
 		epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 			MiniBlocksCalled: func() storage.Cacher {
-				return testscommon.NewCacherStub()
+				return cache.NewCacherStub()
 			},
 			TrieNodesCalled: func() storage.Cacher {
-				return &testscommon.CacherStub{
+				return &cache.CacherStub{
 					GetCalled: func(key []byte) (value interface{}, ok bool) {
 						return nil, true
 					},
@@ -2081,6 +2125,9 @@ func TestRequestAndProcessing(t *testing.T) {
 			},
 			CurrEpochValidatorInfoCalled: func() dataRetriever.ValidatorInfoCacher {
 				return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 		epochStartProvider.requestHandler = &testscommon.RequestHandlerStub{}
@@ -2237,10 +2284,10 @@ func TestEpochStartBootstrap_WithDisabledShardIDAsObserver(t *testing.T) {
 			return testscommon.NewShardedDataStub()
 		},
 		MiniBlocksCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		TrieNodesCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		CurrEpochValidatorInfoCalled: func() dataRetriever.ValidatorInfoCacher {
 			return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
@@ -2573,16 +2620,19 @@ func TestSyncSetGuardianTransaction(t *testing.T) {
 			return testscommon.NewShardedDataStub()
 		},
 		MiniBlocksCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		TrieNodesCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		PeerAuthenticationsCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
 		},
 		HeartbeatsCalled: func() storage.Cacher {
-			return testscommon.NewCacherStub()
+			return cache.NewCacherStub()
+		},
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
 	epochStartProvider.whiteListHandler = &testscommon.WhiteListHandlerStub{
@@ -2630,8 +2680,9 @@ func TestSyncSetGuardianTransaction(t *testing.T) {
 		TimestampField: 0,
 	}
 
-	err = interceptor.ProcessReceivedMessage(msg, "pid", nil)
+	msgID, err := interceptor.ProcessReceivedMessage(msg, "pid", nil)
 	assert.Nil(t, err)
+	assert.NotNil(t, msgID)
 
 	time.Sleep(time.Second)
 
