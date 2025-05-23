@@ -35,13 +35,13 @@ require (
 	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69-0.20250520080927-410c413d962f
 	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.70-0.20250520081414-edf8b75e054d
 	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.99-0.20250520081749-516b5ae0e49c
-	github.com/pelletier/go-toml v1.9.3
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
-	golang.org/x/crypto v0.32.0
+	golang.org/x/crypto v0.38.0
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
