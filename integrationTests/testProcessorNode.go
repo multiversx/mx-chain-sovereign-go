@@ -2294,8 +2294,8 @@ func (tpn *TestProcessorNode) initBlockProcessor() {
 		tpn.EpochStartNotifier = notifier.NewEpochStartSubscriptionHandler()
 	}
 
-	argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
 	if tpn.ShardCoordinator.SelfId() == core.MetachainShardId {
+		argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
 		tpn.BlockProcessor, err = block.NewMetaProcessor(argsMetaProcessor)
 	} else {
 		if check.IfNil(tpn.EpochStartTrigger) {
@@ -2333,6 +2333,8 @@ func (tpn *TestProcessorNode) initBlockProcessor() {
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
 
 		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
+			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
+
 			return &block.ExtraArgsMetaBlockProcessor{
 				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
 				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
@@ -2430,24 +2432,25 @@ func (tpn *TestProcessorNode) createMetaBlockProcessorArgs(argumentsBase block.A
 	miniBlockStorage, _ := tpn.Storage.GetStorer(dataRetriever.MiniBlockUnit)
 	argsEpochRewards := metachain.RewardsCreatorProxyArgs{
 		BaseRewardsCreatorArgs: metachain.BaseRewardsCreatorArgs{
-			ShardCoordinator:              tpn.ShardCoordinator,
-			PubkeyConverter:               TestAddressPubkeyConverter,
-			RewardsStorage:                rewardsStorage,
-			MiniBlockStorage:              miniBlockStorage,
-			Hasher:                        TestHasher,
-			Marshalizer:                   TestMarshalizer,
-			DataPool:                      tpn.DataPool,
+			ShardCoordinator: tpn.ShardCoordinator,
+			PubkeyConverter:  TestAddressPubkeyConverter,
+			RewardsStorage:   rewardsStorage,
+			MiniBlockStorage: miniBlockStorage,
+			Hasher:           TestHasher,
+			Marshalizer:      TestMarshalizer,
+			DataPool:         tpn.DataPool,
 
-			NodesConfigProvider:           tpn.NodesCoordinator,
-			UserAccountsDB:                tpn.AccntState,
-			EnableEpochsHandler:           tpn.EnableEpochsHandler,
-			ExecutionOrderHandler:         tpn.TxExecutionOrderHandler,
-		RewardsHandler:        tpn.EconomicsData,},
+			NodesConfigProvider:   tpn.NodesCoordinator,
+			UserAccountsDB:        tpn.AccntState,
+			EnableEpochsHandler:   tpn.EnableEpochsHandler,
+			ExecutionOrderHandler: tpn.TxExecutionOrderHandler,
+			RewardsHandler:        tpn.EconomicsData},
 		StakingDataProvider:   stakingDataProvider,
-
+		RewardsHandler:        tpn.EconomicsData,
 		EconomicsDataProvider: economicsDataProvider,
 	}
-	epochStartRewards, _ := metachain.NewRewardsCreatorProxy(argsEpochRewards)
+	epochStartRewards, err := metachain.NewRewardsCreatorProxy(argsEpochRewards)
+	log.LogIfError(err, "DDDDDDDDDDDDDDDDDDDDDDD")
 
 	validatorInfoStorage, _ := tpn.Storage.GetStorer(dataRetriever.UnsignedTransactionUnit)
 	argsEpochValidatorInfo := metachain.ArgsNewValidatorInfoCreator{
