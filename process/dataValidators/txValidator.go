@@ -6,12 +6,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 var _ process.TxValidator = (*txValidator)(nil)
@@ -169,12 +171,14 @@ func (txv *txValidator) checkNonce(interceptedTx process.InterceptedTransactionH
 
 	txNonce := interceptedTx.Nonce()
 	lowerNonceInTx := txNonce < accountNonce
-	veryHighNonceInTx := txNonce > accountNonce+uint64(txv.maxNonceDeltaAllowed)
+	isWhiteListed := runType.IsAddressWhiteListed(accountHandler.AddressBytes())
+	veryHighNonceInTx := !isWhiteListed && txNonce > accountNonce+uint64(txv.maxNonceDeltaAllowed)
 	if lowerNonceInTx || veryHighNonceInTx {
-		return fmt.Errorf("%w lowerNonceInTx: %v, veryHighNonceInTx: %v",
+		return fmt.Errorf("%w lowerNonceInTx: %v, veryHighNonceInTx: %v, isWhiteListed: %v",
 			process.ErrWrongTransaction,
 			lowerNonceInTx,
 			veryHighNonceInTx,
+			isWhiteListed,
 		)
 	}
 	return nil
