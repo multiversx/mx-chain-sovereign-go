@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-go/storage/txcache"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 )
 
 type TxCacherStub struct {
-	CacherStub
+	cache.CacherStub
 	SelectTransactionsCalled func(session txcache.SelectionSession, gasRequested uint64, maxNum int, selectionLoopMaximumDuration time.Duration) ([]*txcache.WrappedTransaction, uint64)
 }
 

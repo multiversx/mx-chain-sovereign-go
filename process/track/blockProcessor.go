@@ -497,7 +497,7 @@ func (bp *blockProcessor) baseRequestHeadersIfNothingNewIsReceived(
 		"highest round in received headers", highestRoundInReceivedHeaders)
 
 	fromNonce := latestValidHeader.GetNonce()
-	shardID := latestValidHeader.GetShardID()
+	shardID = latestValidHeader.GetShardID()
 	// force the trigger to be activated by removing the start of epoch block on Andromeda activation
 
 	// TODO: Marius C, most probably this won't work for sovereign
