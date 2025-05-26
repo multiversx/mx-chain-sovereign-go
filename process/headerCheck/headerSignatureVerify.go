@@ -28,17 +28,17 @@ var log = logger.GetOrCreate("process/headerCheck")
 
 // ArgsHeaderSigVerifier is used to store all components that are needed to create a new HeaderSigVerifier
 type ArgsHeaderSigVerifier struct {
-	Marshalizer             marshal.Marshalizer
-	Hasher                  hashing.Hasher
-	NodesCoordinator        nodesCoordinator.NodesCoordinator
-	MultiSigContainer       cryptoCommon.MultiSignerContainer
-	SingleSigVerifier       crypto.SingleSigner
-	KeyGen                  crypto.KeyGenerator
-	FallbackHeaderValidator process.FallbackHeaderValidator
-	EnableEpochsHandler     common.EnableEpochsHandler
-	HeadersPool             dataRetriever.HeadersPool
-	ProofsPool              dataRetriever.ProofsPool
-	StorageService          dataRetriever.StorageService
+	Marshalizer                  marshal.Marshalizer
+	Hasher                       hashing.Hasher
+	NodesCoordinator             nodesCoordinator.NodesCoordinator
+	MultiSigContainer            cryptoCommon.MultiSignerContainer
+	SingleSigVerifier            crypto.SingleSigner
+	KeyGen                       crypto.KeyGenerator
+	FallbackHeaderValidator      process.FallbackHeaderValidator
+	EnableEpochsHandler          common.EnableEpochsHandler
+	HeadersPool                  dataRetriever.HeadersPool
+	ProofsPool                   dataRetriever.ProofsPool
+	StorageService               dataRetriever.StorageService
 	ExtraHeaderSigVerifierHolder ExtraHeaderSigVerifierHolder
 }
 
@@ -299,7 +299,12 @@ func (hsv *HeaderSigVerifier) VerifySignatureForHash(header data.HeaderHandler, 
 		return err
 	}
 
-	return multiSigVerifier.VerifyAggregatedSig(pubKeysSigners, hash, signature)
+	err = multiSigVerifier.VerifyAggregatedSig(pubKeysSigners, hash, signature)
+	if err != nil {
+		return err
+	}
+
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
 }
 
 func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
@@ -349,12 +354,7 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
-	if err != nil {
-		return err
-	}
-
-	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
+	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
 }
 
 // VerifyHeaderProof checks if the proof is correct for the header

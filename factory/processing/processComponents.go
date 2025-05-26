@@ -238,7 +238,6 @@ func NewProcessComponentsFactory(args ProcessComponentsFactoryArgs) (*processCom
 		prefConfigs:                    args.PrefConfigs,
 		importDBConfig:                 args.ImportDBConfig,
 		economicsConfig:                args.EconomicsConfig,
-		accountsParser:                 args.AccountsParser,
 		smartContractParser:            args.SmartContractParser,
 		gasSchedule:                    args.GasSchedule,
 		nodesCoordinator:               args.NodesCoordinator,
@@ -1854,8 +1853,7 @@ func (pcf *processComponentsFactory) newForkDetector(
 			pcf.coreData.GenesisNodesSetup().GetStartTime(),
 			pcf.coreData.EnableEpochsHandler(),
 			pcf.data.Datapool().Proofs())
-		 */
-
+		*/
 
 		return pcf.createShardForkDetector(headerBlackList, blockTracker)
 	}
@@ -1874,10 +1872,12 @@ func (pcf *processComponentsFactory) newForkDetector(
 
 func (pcf *processComponentsFactory) createShardForkDetector(headerBlackList process.TimeCacher, blockTracker process.BlockTracker) (process.ForkDetector, error) {
 	args := sync.ForkDetectorFactoryArgs{
-		RoundHandler:    pcf.coreData.RoundHandler(),
-		HeaderBlackList: headerBlackList,
-		BlockTracker:    blockTracker,
-		GenesisTime:     pcf.coreData.GenesisNodesSetup().GetStartTime(),
+		RoundHandler:        pcf.coreData.RoundHandler(),
+		HeaderBlackList:     headerBlackList,
+		BlockTracker:        blockTracker,
+		GenesisTime:         pcf.coreData.GenesisNodesSetup().GetStartTime(),
+		EnableEpochsHandler: pcf.coreData.EnableEpochsHandler(),
+		ProofsPool:          pcf.data.Datapool().Proofs(),
 	}
 
 	return pcf.runTypeComponents.ForkDetectorCreator().CreateForkDetector(args)
@@ -1957,7 +1957,6 @@ func (pcf *processComponentsFactory) createExportFactoryHandler(
 		NumConcurrentTrieSyncers:         pcf.config.TrieSync.NumConcurrentTrieSyncers,
 		TrieSyncerVersion:                pcf.config.TrieSync.TrieSyncerVersion,
 		NodeOperationMode:                nodeOperationMode,
-		InterceptedDataVerifierFactory:   pcf.interceptedDataVerifierFactory,
 		ShardCoordinatorFactory:          pcf.runTypeComponents.ShardCoordinatorCreator(),
 	}
 	return pcf.runTypeComponents.ExportHandlerFactoryCreator().CreateExportFactoryHandler(argsExporter)

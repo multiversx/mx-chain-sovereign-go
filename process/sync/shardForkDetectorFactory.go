@@ -12,7 +12,14 @@ func NewShardForkDetectorFactory() *shardForkDetectorFactory {
 
 // CreateForkDetector creates a new fork detector
 func (s *shardForkDetectorFactory) CreateForkDetector(args ForkDetectorFactoryArgs) (process.ForkDetector, error) {
-	return NewShardForkDetector(args.RoundHandler, args.HeaderBlackList, args.BlockTracker, args.GenesisTime)
+	return NewShardForkDetector(
+		args.RoundHandler,
+		args.HeaderBlackList,
+		args.BlockTracker,
+		args.GenesisTime,
+		args.EnableEpochsHandler,
+		args.ProofsPool,
+	)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

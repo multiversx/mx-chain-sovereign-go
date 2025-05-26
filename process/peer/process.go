@@ -431,7 +431,7 @@ func (vs *validatorStatistics) UpdatePeerState(header data.CommonHeaderHandler, 
 	return rootHash, nil
 }
 
-func (vs *validatorStatistics) getBitmapForHeader(header data.HeaderHandler) []byte {
+func (vs *validatorStatistics) getBitmapForHeader(header data.CommonHeaderHandler) []byte {
 	bitmap := header.GetPubKeysBitmap()
 	if vs.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
 		bitmap = vs.getBitmapForFullConsensus(header.GetShardID(), header.GetEpoch())

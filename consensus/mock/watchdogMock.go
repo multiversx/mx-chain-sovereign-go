@@ -11,7 +11,7 @@ type WatchdogMock struct {
 }
 
 // Set -
-func (w *WatchdogMock) Set(_ func(alarmID string), _ time.Duration, _ string) {
+func (w *WatchdogMock) Set(callback func(alarmID string), duration time.Duration, alarmID string) {
 	if w.SetCalled != nil {
 		w.SetCalled(callback, duration, alarmID)
 	}
@@ -22,7 +22,7 @@ func (w *WatchdogMock) SetDefault(_ time.Duration, _ string) {
 }
 
 // Stop -
-func (w *WatchdogMock) Stop(_ string) {
+func (w *WatchdogMock) Stop(alarmID string) {
 	if w.StopCalled != nil {
 		w.StopCalled(alarmID)
 	}

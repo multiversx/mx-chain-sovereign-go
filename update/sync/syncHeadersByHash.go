@@ -37,12 +37,12 @@ type syncHeadersByHash struct {
 
 // ArgsNewMissingHeadersByHashSyncer defines the arguments needed for the sycner
 type ArgsNewMissingHeadersByHashSyncer struct {
-	Storage             storage.Storer
-	Cache               dataRetriever.HeadersPool
-	ProofsPool          dataRetriever.ProofsPool
-	Marshalizer         marshal.Marshalizer
-	RequestHandler      process.RequestHandler
-	EnableEpochsHandler common.EnableEpochsHandler
+	Storage              storage.Storer
+	Cache                dataRetriever.HeadersPool
+	ProofsPool           dataRetriever.ProofsPool
+	Marshalizer          marshal.Marshalizer
+	RequestHandler       process.RequestHandler
+	EnableEpochsHandler  common.EnableEpochsHandler
 	CrossHeaderRequester CrossHeaderRequester
 }
 
@@ -109,38 +109,9 @@ func (m *syncHeadersByHash) SyncMissingHeadersByHash(shardIDs []uint32, headersH
 		m.mutMissingHdrs.Lock()
 		m.stopSyncing = false
 		for hash, shardId := range mapHashesToRequest {
-			// TODO: MARIUS C
-
-			// SEEMS LIKE ALL CODE BELOW WITH MAPS IS NOW MOVED in  updateMapsAndRequestIfNeeded
-			/*
-					requestedHeader, requestedProof := m.updateMapsAndRequestIfNeeded(shardId, hash, mapHashesToRequest)
-					if requestedHeader {
-						requestedHdrs++
-					}
-					if requestedProof {
-						requestedProofs++
-					}
-				}
-			 */
-
-
-			if _, ok := m.mapHeaders[hash]; ok {
-				delete(mapHashesToRequest, hash)
-				continue
-			}
-
-			m.mapHashes[hash] = struct{}{}
-			header, ok := m.getHeaderFromPoolOrStorage([]byte(hash))
-			if ok {
-				m.mapHeaders[hash] = header
-				delete(mapHashesToRequest, hash)
-				continue
-			}
-
-			requestedHdrs++
-			if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
-				m.crossHeaderRequester.RequestHeader([]byte(hash))
-				continue
+			requestedHeader, requestedProof := m.updateMapsAndRequestIfNeeded(shardId, hash, mapHashesToRequest)
+			if requestedHeader {
+				requestedHdrs++
 			}
 			if requestedProof {
 				requestedProofs++
@@ -214,8 +185,8 @@ func (m *syncHeadersByHash) updateMapsAndRequestIfNeeded(
 		return false, hasRequestedProof
 	}
 
-	if shardId == core.MetachainShardId {
-		m.requestHandler.RequestMetaHeader([]byte(hash))
+	if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
+		m.crossHeaderRequester.RequestHeader([]byte(hash))
 		return true, hasRequestedProof
 	}
 

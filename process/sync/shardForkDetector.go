@@ -23,10 +23,12 @@ type shardForkDetector struct {
 
 // ForkDetectorFactoryArgs are the arguments needed to create a new fork detector
 type ForkDetectorFactoryArgs struct {
-	RoundHandler    consensus.RoundHandler
-	HeaderBlackList process.TimeCacher
-	BlockTracker    process.BlockTracker
-	GenesisTime     int64
+	RoundHandler        consensus.RoundHandler
+	HeaderBlackList     process.TimeCacher
+	BlockTracker        process.BlockTracker
+	GenesisTime         int64
+	EnableEpochsHandler common.EnableEpochsHandler
+	ProofsPool          process.ProofsPool
 }
 
 // NewShardForkDetector method creates a new shardForkDetector object

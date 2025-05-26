@@ -127,7 +127,7 @@ func TestTxsPreprocessor_CreateAndProcessMiniBlocksShouldWork(t *testing.T) {
 		args := createDefaultTransactionsProcessorArgs()
 		args.TxDataPool = &testscommon.ShardedDataStub{
 			ShardDataStoreCalled: func(id string) (c storage.Cacher) {
-				return &testscommon.CacherStub{}
+				return &testscommon.TxCacherStub{}
 			},
 		}
 
