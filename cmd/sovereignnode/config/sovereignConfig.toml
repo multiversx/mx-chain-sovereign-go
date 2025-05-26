@@ -86,3 +86,6 @@
 [GenesisConfig]
     # NativeESDT specifies the sovereign shard's native esdt currency
     NativeESDT = "WEGLD-a1b2c3"
+
+[WhiteListedAddress]
+    Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"]

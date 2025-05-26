@@ -133,6 +133,7 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 
 	cfgs.FlagsConfig.BaseVersion = baseVersion
 	cfgs.FlagsConfig.Version = version
+	cfgs.FlagsConfig.Version = version
 
 	nodeRunner, errSovereignNodeRunner := NewSovereignNodeRunner(cfgs)
 	if errSovereignNodeRunner != nil {
@@ -140,6 +141,10 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 	}
 
 	runType.ConfigureUnixTime(runType.Milliseconds)
+	err = runType.SetWhiteListedAddresses(cfgs.SovereignExtraConfig.WhiteListedAddress.Addresses, cfgs.GeneralConfig.AddressPubkeyConverter)
+	if err != nil {
+		return err
+	}
 
 	err = nodeRunner.Start()
 	if err != nil {
