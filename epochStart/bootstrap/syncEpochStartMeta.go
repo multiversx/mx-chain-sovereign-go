@@ -24,6 +24,11 @@ import (
 
 var _ epochStart.StartOfEpochMetaSyncer = (*epochStartMetaSyncer)(nil)
 
+type singleDataInterceptors struct {
+	singleDataInterceptor process.Interceptor
+	proofsInterceptor     process.Interceptor
+}
+
 type epochStartMetaSyncer struct {
 	requestHandler                 RequestHandler
 	messenger                      Messenger
@@ -61,11 +66,13 @@ func NewEpochStartMetaSyncer(args ArgsNewEpochStartMetaSyncer) (*epochStartMetaS
 		return nil, err
 	}
 
-	e.singleDataInterceptor, err = createMetaSingleDataInterceptor(args)
+	singleDtaInterceptors, err := createMetaSingleDataInterceptors(args)
 	if err != nil {
 		return nil, err
 	}
 
+	e.singleDataInterceptor = singleDtaInterceptors.singleDataInterceptor
+	e.proofsInterceptor = singleDtaInterceptors.proofsInterceptor
 	e.epochStartTopicProviderHandler = e
 	return e, nil
 }
@@ -102,23 +109,25 @@ func newEpochStartMetaSyncer(args ArgsNewEpochStartMetaSyncer) (*epochStartMetaS
 		interceptedDataVerifierFactory: args.InterceptedDataVerifierFactory,
 	}, nil
 }
+
+func createMetaSingleDataInterceptors(
+	args ArgsNewEpochStartMetaSyncer,
+) (*singleDataInterceptors, error) {
+	argsInterceptedDataFactory := createArgsInterceptedDataFactory(args)
 	argsInterceptedMetaHeaderFactory := interceptorsFactory.ArgInterceptedMetaHeaderFactory{
 		ArgInterceptedDataFactory: argsInterceptedDataFactory,
 	}
-
-func createMetaSingleDataInterceptor(args ArgsNewEpochStartMetaSyncer) (process.Interceptor, error) {
-	argsInterceptedDataFactory := createArgsInterceptedDataFactory(args)
 	interceptedMetaHdrDataFactory, err := interceptorsFactory.NewInterceptedMetaHeaderDataFactory(&argsInterceptedMetaHeaderFactory)
 	if err != nil {
 		return nil, err
 	}
 
-	interceptedDataVerifier, err := e.interceptedDataVerifierFactory.Create(factory.MetachainBlocksTopic)
+	interceptedDataVerifier, err := args.InterceptedDataVerifierFactory.Create(factory.MetachainBlocksTopic)
 	if err != nil {
 		return nil, err
 	}
 
-	return interceptors.NewSingleDataInterceptor(
+	singleDataInterceptor, err := interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
 			Topic:                   factory.MetachainBlocksTopic,
 			DataFactory:             interceptedMetaHdrDataFactory,
@@ -135,17 +144,31 @@ func createMetaSingleDataInterceptor(args ArgsNewEpochStartMetaSyncer) (process.
 		return nil, err
 	}
 
+	proofInterceptor, err := createProofInterceptor(args, argsInterceptedDataFactory, interceptedDataVerifier, core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &singleDataInterceptors{
+		singleDataInterceptor: singleDataInterceptor,
+		proofsInterceptor:     proofInterceptor,
+	}, nil
+}
+
+func createProofInterceptor(
+	args ArgsNewEpochStartMetaSyncer,
+	argsInterceptedDataFactory interceptorsFactory.ArgInterceptedDataFactory,
+	interceptedDataVerifier process.InterceptedDataVerifier,
+	shardID uint32,
+) (process.Interceptor, error) {
 	argsInterceptedEquivalentProofsFactory := interceptorsFactory.ArgInterceptedEquivalentProofsFactory{
 		ArgInterceptedDataFactory: argsInterceptedDataFactory,
 		ProofsPool:                args.ProofsPool,
 	}
 	interceptedEquivalentProofsFactory := interceptorsFactory.NewInterceptedEquivalentProofsFactory(argsInterceptedEquivalentProofsFactory)
-	if err != nil {
-		return nil, err
-	}
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
-	e.proofsInterceptor, err = interceptors.NewSingleDataInterceptor(
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardID, core.AllShardId)
+	return interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
 			Topic:                   proofsTopic,
 			DataFactory:             interceptedEquivalentProofsFactory,
