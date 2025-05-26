@@ -86,7 +86,7 @@ func (ns *SovereignNodesSetup) processSovereignConfig() error {
 	}
 
 	if ns.genesisChainParameters.MetachainMinNumNodes != 0 || ns.genesisChainParameters.MetachainConsensusGroupSize != 0 {
-		return fmt.Errorf("%w, min nodes and consensus size should be set to", errSovereignInvalidMetaConsensusSize)
+		return fmt.Errorf("%w, min nodes and consensus size should be set to zero", errSovereignInvalidMetaConsensusSize)
 	}
 
 	return nil
