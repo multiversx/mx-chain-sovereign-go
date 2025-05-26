@@ -132,3 +132,5 @@ var ErrInvalidSovereignChainShardId = errors.New("shard id does not match core.S
 
 // ErrMetachainShardIdNotFound signals that the MetachainShardId was not found
 var ErrMetachainShardIdNotFound = errors.New("core.MetachainShardId was not found")
+
+var errInvalidConsensusGroupSize = errors.New("invalid consensus group size")

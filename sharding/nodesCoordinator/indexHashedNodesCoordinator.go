@@ -412,7 +412,7 @@ func (ihnc *indexHashedNodesCoordinator) baseComputeConsensusGroup(
 	epoch uint32,
 	selector RandomSelector,
 	eligibleList []Validator,
-) (validatorsGroup []Validator, err error) {
+) (leader Validator, validatorsGroup []Validator, err error) {
 	key := []byte(fmt.Sprintf(keyFormat, string(randomness), round, shardID, epoch))
 	savedCG := ihnc.searchConsensusForKey(key)
 	if savedCG != nil {

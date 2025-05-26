@@ -27,8 +27,8 @@ import (
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
 	"github.com/multiversx/mx-chain-go/common/fieldsChecker"
 	"github.com/multiversx/mx-chain-go/common/forking"
-	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/graceperiod"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/round"
@@ -57,7 +57,7 @@ type CoreComponentsFactoryArgs struct {
 	RatingsConfig         config.RatingsConfig
 	EconomicsConfig       config.EconomicsConfig
 	ImportDbConfig        config.ImportDbConfig
-	NodesConfig         config.NodesConfig
+	NodesConfig           config.NodesConfig
 	WorkingDirectory      string
 	ChanStopNodeProcess   chan endProcess.ArgEndProcess
 	RunTypeCoreComponents factory.RunTypeCoreComponentsHolder
@@ -72,7 +72,7 @@ type coreComponentsFactory struct {
 	ratingsConfig         config.RatingsConfig
 	economicsConfig       config.EconomicsConfig
 	importDbConfig        config.ImportDbConfig
-	nodesSetupConfig    config.NodesConfig
+	nodesSetupConfig      config.NodesConfig
 	workingDir            string
 	chanStopNodeProcess   chan endProcess.ArgEndProcess
 	runTypeCoreComponents factory.RunTypeCoreComponentsHolder
@@ -145,7 +145,7 @@ func NewCoreComponentsFactory(args CoreComponentsFactoryArgs) (*coreComponentsFa
 		economicsConfig:       args.EconomicsConfig,
 		workingDir:            args.WorkingDirectory,
 		chanStopNodeProcess:   args.ChanStopNodeProcess,
-		nodesSetupConfig:         args.NodesConfig,
+		nodesSetupConfig:      args.NodesConfig,
 		runTypeCoreComponents: args.RunTypeCoreComponents,
 	}, nil
 }
@@ -224,7 +224,8 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 
 	genesisNodesConfig, err := ccf.runTypeCoreComponents.GenesisNodesSetupFactoryCreator().CreateNodesSetup(
 		&sharding.NodesSetupArgs{
-			NodesFilePath:            ccf.nodesFilename,
+			NodesConfig:              ccf.nodesSetupConfig,
+			ChainParametersProvider:  chainParametersHandler,
 			AddressPubKeyConverter:   addressPubkeyConverter,
 			ValidatorPubKeyConverter: validatorPubkeyConverter,
 			GenesisMaxNumShards:      ccf.config.GeneralSettings.GenesisMaxNumberOfShards,
@@ -331,7 +332,7 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		ShardMinNodes:            genesisNodesConfig.MinNumberOfShardNodes(),
 		MetaMinNodes:             genesisNodesConfig.MinNumberOfMetaNodes(),
 		RoundDurationMiliseconds: genesisNodesConfig.GetRoundDuration(),
-		EpochNotifier:             epochNotifier,
+		EpochNotifier:            epochNotifier,
 	}
 	ratingsData, err := ccf.runTypeCoreComponents.RatingsDataFactoryCreator().CreateRatingsData(ratingDataArgs)
 	if err != nil {

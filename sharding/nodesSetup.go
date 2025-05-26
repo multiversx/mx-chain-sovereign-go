@@ -106,6 +106,21 @@ func NewNodesSetup(
 		genesisChainParameters:   genesisParams,
 	}
 
+	initNodesSetup(nodes, nodesConfig)
+
+	err = nodes.processConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	nodes.processMetaChainAssigment()
+	nodes.processShardAssignment()
+	nodes.createInitialNodesInfo()
+
+	return nodes, nil
+}
+
+func initNodesSetup(nodes *NodesSetup, nodesConfig config.NodesConfig) {
 	initialNodes := make([]*InitialNode, 0, len(nodesConfig.InitialNodes))
 	for _, item := range nodesConfig.InitialNodes {
 		initialNodes = append(initialNodes, &InitialNode{
@@ -124,17 +139,6 @@ func NewNodesSetup(
 		Adaptivity:    genesisChainParameters.Adaptivity,
 		InitialNodes:  initialNodes,
 	}
-
-	err = nodes.processConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	nodes.processMetaChainAssigment()
-	nodes.processShardAssignment()
-	nodes.createInitialNodesInfo()
-
-	return nodes, nil
 }
 
 func (ns *NodesSetup) processConfig() error {
@@ -206,7 +210,6 @@ func (ns *NodesSetup) processInitialNodes() error {
 
 		ns.nrOfNodes++
 	}
-
 
 	return nil
 }
