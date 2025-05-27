@@ -60,8 +60,10 @@ type nonceAndHashInfo struct {
 }
 
 type hdrInfo struct {
-	usedInBlock       bool
-	hdr               data.HeaderHandler
+	usedInBlock bool
+	hdr         data.HeaderHandler
+
+	// TODO: MARIUS C. Check how to use these flags in sovereign code as well
 	hasProof          bool
 	hasProofRequested bool
 }
@@ -878,7 +880,10 @@ func (bp *baseProcessor) prepareBlockHeaderInternalMapForValidatorProcessor() {
 	}
 
 	bp.hdrsForCurrBlock.mutHdrsForBlock.Lock()
-	bp.hdrsForCurrBlock.hdrHashAndInfo[string(currentBlockHeaderHash)] = &hdrInfo{false, currentBlockHeader}
+	bp.hdrsForCurrBlock.hdrHashAndInfo[string(currentBlockHeaderHash)] = &hdrInfo{
+		usedInBlock: false,
+		hdr:         currentBlockHeader,
+	}
 	bp.hdrsForCurrBlock.mutHdrsForBlock.Unlock()
 }
 

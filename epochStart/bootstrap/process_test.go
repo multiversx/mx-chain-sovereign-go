@@ -1093,7 +1093,7 @@ func TestCreateSyncers(t *testing.T) {
 	epochStartProvider.shardCoordinator = mock.NewMultipleShardsCoordinatorMock()
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{}
+			return &processMocks.HeadersCacherStub{}
 		},
 		TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 			return testscommon.NewShardedDataStub()
@@ -2048,7 +2048,7 @@ func TestRequestAndProcessing(t *testing.T) {
 				}
 			},
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{}
+				return &processMocks.HeadersCacherStub{}
 			},
 			CurrEpochValidatorInfoCalled: func() dataRetriever.ValidatorInfoCacher {
 				return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
@@ -2121,7 +2121,7 @@ func TestRequestAndProcessing(t *testing.T) {
 				}
 			},
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{}
+				return &processMocks.HeadersCacherStub{}
 			},
 			CurrEpochValidatorInfoCalled: func() dataRetriever.ValidatorInfoCacher {
 				return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
@@ -2272,7 +2272,7 @@ func TestEpochStartBootstrap_WithDisabledShardIDAsObserver(t *testing.T) {
 
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{}
+			return &processMocks.HeadersCacherStub{}
 		},
 		TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 			return testscommon.NewShardedDataStub()
@@ -2608,7 +2608,7 @@ func TestSyncSetGuardianTransaction(t *testing.T) {
 	transactions := testscommon.NewShardedDataCacheNotifierMock()
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{}
+			return &processMocks.HeadersCacherStub{}
 		},
 		TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 			return transactions

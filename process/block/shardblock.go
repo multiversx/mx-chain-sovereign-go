@@ -281,7 +281,7 @@ func (sp *shardProcessor) ProcessBlock(
 			)
 		}
 
-		err = waitForHeaderHashes(haveTime(), sp.chRcvAllMetaHdrs)
+		err = waitForHeaderHashes(haveTime(), sp.chRcvAllHdrs)
 
 		sp.hdrsForCurrBlock.mutHdrsForBlock.RLock()
 		missingMetaHdrs := sp.hdrsForCurrBlock.missingHdrs
@@ -1560,32 +1560,32 @@ func (sp *shardProcessor) CreateNewHeader(round uint64, nonce uint64) (data.Head
 	// TODO: MARIUS C
 
 	/*
-	CHECK WHAT IS MISSING from setRoundNonceInitFees from here:
+		CHECK WHAT IS MISSING from setRoundNonceInitFees from here:
 
-		err := shardHeader.SetRound(round)
-		if err != nil {
-			return nil, err
-		}
+			err := shardHeader.SetRound(round)
+			if err != nil {
+				return nil, err
+			}
 
-		sp.roundNotifier.CheckRound(header)
-		sp.epochNotifier.CheckEpoch(header)
+			sp.roundNotifier.CheckRound(header)
+			sp.epochNotifier.CheckEpoch(header)
 
-		err = shardHeader.SetNonce(nonce)
-		if err != nil {
-			return nil, err
-		}
+			err = shardHeader.SetNonce(nonce)
+			if err != nil {
+				return nil, err
+			}
 
-		err = shardHeader.SetAccumulatedFees(big.NewInt(0))
-		if err != nil {
-			return nil, err
-		}
+			err = shardHeader.SetAccumulatedFees(big.NewInt(0))
+			if err != nil {
+				return nil, err
+			}
 
-		err = shardHeader.SetDeveloperFees(big.NewInt(0))
-		if err != nil {
-			return nil, err
-		}
+			err = shardHeader.SetDeveloperFees(big.NewInt(0))
+			if err != nil {
+				return nil, err
+			}
 
-	 */
+	*/
 
 	err := sp.setRoundNonceInitFees(round, nonce, shardHeader)
 	if err != nil {

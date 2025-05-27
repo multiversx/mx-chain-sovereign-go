@@ -219,7 +219,7 @@ func (e *epochStartMetaBlockProcessor) GetEpochStartMetaBlock(ctx context.Contex
 	return metaBlock, nil
 }
 
-func (e *epochStartMetaBlockProcessor) waitForMetaBlock(ctx context.Context) (data.MetaHeaderHandler, string, error) {
+func (e *epochStartMetaBlockProcessor) waitForMetaBlock(ctx context.Context) (dataCore.MetaHeaderHandler, string, error) {
 	err := e.requestMetaBlock()
 	if err != nil {
 		return nil, "", err
@@ -323,7 +323,7 @@ func (e *epochStartMetaBlockProcessor) requestProofForMetaBlock(metablockHash []
 	return nil
 }
 
-func (e *epochStartMetaBlockProcessor) receivedProof(proof data.HeaderProofHandler) {
+func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofHandler) {
 	startOfEpochMetaBlock, hash, err := e.getMostReceivedMetaBlock()
 	if err != nil {
 		return

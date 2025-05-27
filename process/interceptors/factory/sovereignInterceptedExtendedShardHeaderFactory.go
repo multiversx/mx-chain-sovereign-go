@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -35,7 +36,7 @@ func NewSovereignInterceptedShardHeaderDataFactory(args ArgsSovereignIntercepted
 }
 
 // Create creates instances of sovereign extended header by unmarshalling provided buffer
-func (ishdf *sovereignInterceptedShardHeaderDataFactory) Create(buff []byte) (process.InterceptedData, error) {
+func (ishdf *sovereignInterceptedShardHeaderDataFactory) Create(buff []byte, _ core.PeerID) (process.InterceptedData, error) {
 	arg := interceptedBlocks.ArgsSovereignInterceptedHeader{
 		Marshaller:  ishdf.marshaller,
 		Hasher:      ishdf.hasher,

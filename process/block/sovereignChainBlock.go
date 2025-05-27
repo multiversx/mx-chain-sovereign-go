@@ -1062,9 +1062,10 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
 	body.MiniBlocks = finalMiniBlocks
 
+	// TODO: MARIUS C. check if this call is still needed
 	scbp.nodesCoordinator.EpochStartPrepare(header, body)
 
-	pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
+	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
 	if err != nil {
 		return err
 	}

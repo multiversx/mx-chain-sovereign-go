@@ -237,5 +237,6 @@ func getDefaultArgs() ArgsEpochStartBootstrap {
 		RunTypeComponents:               processMocks.NewRunTypeComponentsStub(),
 		StateStatsHandler:               disabled.NewStateStatistics(),
 		NodesCoordinatorRegistryFactory: &shardingMocks.NodesCoordinatorRegistryFactoryMock{},
+		EnableEpochsHandler:             &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 }
