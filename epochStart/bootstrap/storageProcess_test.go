@@ -49,6 +49,21 @@ func createMockStorageEpochStartBootstrapArgs(
 	}
 }
 
+func createStorageEpochStartBootstrap() *storageEpochStartBootstrap {
+	coreComp, cryptoComp := createComponentsForEpochStart()
+	args := createMockEpochStartBootstrapArgs(coreComp, cryptoComp)
+	esbFactory := NewEpochStartBootstrapperFactory()
+
+	esb, _ := esbFactory.CreateEpochStartBootstrapper(args)
+	sesb, _ := esbFactory.CreateStorageEpochStartBootstrapper(ArgsStorageEpochStartBootstrap{
+		ArgsEpochStartBootstrap: args,
+		EpochStartBootStrap:     esb.(*epochStartBootstrap),
+		ChanGracefullyClose:     endProcess.GetDummyEndProcessChannel(),
+	})
+
+	return sesb.(*storageEpochStartBootstrap)
+}
+
 func TestNewStorageEpochStartBootstrap_InvalidArgumentsShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -170,26 +185,25 @@ func TestStorageEpochStartBootstrap_BootstrapFromGenesis(t *testing.T) {
 func TestStorageEpochStartBootstrap_BootstrapMetablockNotFound(t *testing.T) {
 	roundsPerEpoch := int64(100)
 	roundDuration := uint64(6000)
-	coreComp, cryptoComp := createComponentsForEpochStart()
-	args := createMockStorageEpochStartBootstrapArgs(coreComp, cryptoComp)
-	args.EconomicsData = &economicsmocks.EconomicsHandlerMock{
+
+	sesb := createStorageEpochStartBootstrap()
+
+	sesb.economicsData = &economicsmocks.EconomicsHandlerMock{
 		MinGasPriceCalled: func() uint64 {
 			return 1
 		},
 	}
-	args.GenesisNodesConfig = &genesisMocks.NodesSetupStub{
+	sesb.genesisNodesConfig = &genesisMocks.NodesSetupStub{
 		GetRoundDurationCalled: func() uint64 {
 			return roundDuration
 		},
 	}
-	args.RoundHandler = &mock.RoundHandlerStub{
+	sesb.roundHandler = &mock.RoundHandlerStub{
 		RoundIndex: 2*roundsPerEpoch + 1,
 	}
-	args.GeneralConfig = testscommon.GetGeneralConfig()
-	args.GeneralConfig.EpochStartConfig.RoundsPerEpoch = roundsPerEpoch
-	args.InterceptedDataVerifierFactory = &processMocks.InterceptedDataVerifierFactoryMock{}
-	sesb, _ := NewStorageEpochStartBootstrap(args)
-
+	sesb.generalConfig = testscommon.GetGeneralConfig()
+	sesb.generalConfig.EpochStartConfig.RoundsPerEpoch = roundsPerEpoch
+	sesb.interceptedDataVerifierFactory = &processMocks.InterceptedDataVerifierFactoryMock{}
 	params, err := sesb.Bootstrap()
 	assert.Equal(t, process.ErrNilMetaBlockHeader, err)
 	assert.Equal(t, uint32(0), params.Epoch)
