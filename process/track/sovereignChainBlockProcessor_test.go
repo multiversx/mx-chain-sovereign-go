@@ -28,8 +28,9 @@ func CreateSovereignChainBlockProcessorMockArguments() track.ArgBlockProcessor {
 	blockProcessorArguments.RequestHandler = &testscommon.ExtendedShardHeaderRequestHandlerStub{}
 
 	argsHeaderValidator := processBlock.ArgsHeaderValidator{
-		Hasher:      &hashingMocks.HasherMock{},
-		Marshalizer: &mock.MarshalizerMock{},
+		Hasher:              &hashingMocks.HasherMock{},
+		Marshalizer:         &mock.MarshalizerMock{},
+		EnableEpochsHandler: blockProcessorArguments.EnableEpochsHandler,
 	}
 	headerValidator, _ := processBlock.NewHeaderValidator(argsHeaderValidator)
 	sovereignChainHeaderValidator, _ := processBlock.NewSovereignChainHeaderValidator(headerValidator)

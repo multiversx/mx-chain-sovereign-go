@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
 	"github.com/stretchr/testify/require"
 
@@ -54,7 +55,7 @@ func getDefaultArgs() ArgBlockChainHook {
 		NFTStorageHandler:     &testscommon.SimpleNFTStorageHandlerStub{},
 		GlobalSettingsHandler: &testscommon.ESDTGlobalSettingsHandlerStub{},
 		DataPool:              &dataRetriever.PoolsHolderMock{},
-		CompiledSCPool:        &testscommon.CacherStub{},
+		CompiledSCPool:        &cache.CacherStub{},
 		EpochNotifier:         &epochNotifier.EpochNotifierStub{},
 		EnableEpochsHandler:   &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		NilCompiledSCStore:    true,

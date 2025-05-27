@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -74,6 +75,7 @@ func getDefaultArgs() sync.ArgShardBootstrapper {
 		ProcessWaitTime:              time.Second,
 		RepopulateTokensSupplies:     false,
 		ValidatorDBSyncer:            &mock.AccountsDBSyncerStub{},
+		EnableEpochsHandler:          &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 
 	return sync.ArgShardBootstrapper{

@@ -10,7 +10,7 @@ import (
 func TestBaseStorageBootstrapper_SovereignChainGetScheduledRootHash(t *testing.T) {
 	t.Parallel()
 
-	baseArgs := createMockShardStorageBoostrapperArgs()
+	baseArgs := createMockShardStorageBootstrapperArgs()
 	args := ArgsShardStorageBootstrapper{
 		ArgsBaseStorageBootstrapper: baseArgs,
 	}
