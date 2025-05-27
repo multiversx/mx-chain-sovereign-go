@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -42,7 +43,7 @@ func createMockShardEpochStartTriggerArguments() *ArgsShardEpochStartTrigger {
 		Uint64Converter: &mock.Uint64ByteSliceConverterMock{},
 		DataPool: &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{}
+				return &processMock.HeadersCacherStub{}
 			},
 			MiniBlocksCalled: func() storage.Cacher {
 				return cache.NewCacherStub()
@@ -367,7 +368,7 @@ func TestTrigger_ReceivedHeaderIsEpochStartTrueWithPeerMiniblocks(t *testing.T) 
 
 	args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{
+			return &processMock.HeadersCacherStub{
 				GetHeaderByHashCalled: func(hash []byte) (handler data.HeaderHandler, err error) {
 					header, ok := hashesToHeaders[string(hash)]
 					if !ok {
@@ -723,7 +724,7 @@ func TestTrigger_UpdateMissingValidatorsInfo(t *testing.T) {
 
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{}
+				return &processMock.HeadersCacherStub{}
 			},
 			MiniBlocksCalled: func() storage.Cacher {
 				return cache.NewCacherStub()
@@ -798,7 +799,7 @@ func TestTrigger_ReceivedProof(t *testing.T) {
 		args := createMockShardEpochStartTriggerArguments()
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &mock.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 						require.Fail(t, "should have not been called")
 						return nil, nil
@@ -822,7 +823,7 @@ func TestTrigger_ReceivedProof(t *testing.T) {
 		args := createMockShardEpochStartTriggerArguments()
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &mock.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 						return nil, expectedErr
 					},
@@ -855,7 +856,7 @@ func TestTrigger_ReceivedProof(t *testing.T) {
 		args := createMockShardEpochStartTriggerArguments()
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &mock.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 						return &block.Header{}, nil
 					},
@@ -888,7 +889,7 @@ func TestTrigger_ReceivedProof(t *testing.T) {
 		args := createMockShardEpochStartTriggerArguments()
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &mock.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 						return &block.MetaBlock{}, nil
 					},
@@ -922,7 +923,7 @@ func TestTrigger_ReceivedProof(t *testing.T) {
 		args.Validity = 2
 		args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &mock.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 						return &block.MetaBlock{
 							Epoch: 1,

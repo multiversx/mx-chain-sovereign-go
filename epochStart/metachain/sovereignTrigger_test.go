@@ -10,8 +10,8 @@ import (
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/mock"
 	"github.com/multiversx/mx-chain-go/process"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	vic "github.com/multiversx/mx-chain-go/testscommon/validatorInfoCacher"
 	"github.com/stretchr/testify/require"
@@ -64,7 +64,7 @@ func TestNewSovereignTrigger(t *testing.T) {
 				return &vic.ValidatorInfoCacherStub{}
 			},
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					RegisterHandlerCalled: func(handler func(header data.HeaderHandler, shardHeaderHash []byte)) {
 						wasRegisterCalled = true
 					},
@@ -172,7 +172,7 @@ func TestSovereignTrigger_receivedBlock(t *testing.T) {
 			return valInfoCacher
 		},
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{}
+			return &processMock.HeadersCacherStub{}
 		},
 	}
 
