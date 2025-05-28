@@ -206,7 +206,6 @@ func InitConsensusCoreWithMultiSigner(multiSigner crypto.MultiSigner) *spos.Cons
 	}
 	epochStartSubscriber := &epochstartmock.EpochStartNotifierStub{}
 	antifloodHandler := &mock.P2PAntifloodHandlerStub{}
-	headerPoolSubscriber := &HeadersCacherStub{}
 	peerHonestyHandler := &testscommon.PeerHonestyHandlerStub{}
 	headerSigVerifier := &HeaderSigVerifierMock{}
 	fallbackHeaderValidator := &testscommon.FallBackHeaderValidatorStub{}

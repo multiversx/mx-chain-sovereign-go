@@ -551,11 +551,11 @@ func TestFactory_NewFactoryNilSignaturesTrackerShouldFail(t *testing.T) {
 func TestFactory_NewFactoryNilEnableEpochHandlerShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initConsensusState()
-	container := mock.InitConsensusCore()
+	consensusState := initializers.InitConsensusState()
+	container := consensusMock.InitConsensusCore()
 	worker := initWorker()
 
-	fct, err := bls.NewSubroundsFactory(
+	fct, err := v1.NewSubroundsFactory(
 		container,
 		consensusState,
 		worker,
@@ -576,7 +576,7 @@ func TestFactory_NewFactoryNilEnableEpochHandlerShouldFail(t *testing.T) {
 func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initConsensusState()
+	consensusState := initializers.InitConsensusState()
 	container := mock.InitConsensusCore()
 	worker := initWorker()
 
@@ -601,7 +601,7 @@ func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
 func TestFactory_NewFactoryNilSubRoundEndV2CreatorShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initConsensusState()
+	consensusState := initializers.InitConsensusState()
 	container := mock.InitConsensusCore()
 	worker := initWorker()
 
@@ -884,7 +884,7 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 			},
 		})
 		worker := initWorker()
-		consensusState := initConsensusState()
+		consensusState := initializers.InitConsensusState()
 
 		fct, _ := bls.NewSubroundsFactory(
 			container,
@@ -940,7 +940,7 @@ func TestFactory_GenerateSubroundsInvalidConsensusModelShouldFail(t *testing.T) 
 	t.Parallel()
 
 	worker := initWorker()
-	consensusState := initConsensusState()
+	consensusState := initializers.InitConsensusState()
 
 	fct, _ := bls.NewSubroundsFactory(
 		mock.InitConsensusCore(),

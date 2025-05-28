@@ -188,11 +188,6 @@ func (sr *subroundBlock) DoBlockJob() bool {
 	return sr.doBlockJob(context.Background())
 }
 
-// DoBlockJob method does the job of the subround Block
-func (sr *subroundBlockV2) DoBlockJob() bool {
-	return sr.doBlockJob(context.Background())
-}
-
 // ProcessReceivedBlock method processes the received proposed block in the subround Block
 func (sr *subroundBlock) ProcessReceivedBlock(cnsDta *consensus.Message) bool {
 	return sr.processReceivedBlock(context.Background(), cnsDta)
@@ -278,11 +273,6 @@ func (sr *subroundSignature) GetProcessedHeaderHash() []byte {
 	return sr.getProcessedHeaderHash()
 }
 
-// GetMessageToSign gets the message that should be signed
-func (sr *subroundSignatureV2) GetMessageToSign() []byte {
-	return sr.getMessageToSign()
-}
-
 // subroundEndRound
 
 // SubroundEndRound defines an alias for the subroundEndRound structure
@@ -325,11 +315,6 @@ func (sr *subroundEndRound) CreateAndBroadcastHeaderFinalInfo() {
 
 // ReceivedBlockHeaderFinalInfo calls the unexported receivedBlockHeaderFinalInfo function
 func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(cnsDta *consensus.Message) bool {
-	return sr.receivedBlockHeaderFinalInfo(context.Background(), cnsDta)
-}
-
-// ReceivedBlockHeaderFinalInfo calls the unexported receivedBlockHeaderFinalInfo function
-func (sr *sovereignSubRoundEnd) ReceivedBlockHeaderFinalInfo(cnsDta *consensus.Message) bool {
 	return sr.receivedBlockHeaderFinalInfo(context.Background(), cnsDta)
 }
 
@@ -388,11 +373,6 @@ func (sr *subroundEndRound) GetSentSignatureTracker() spos.SentSignaturesTracker
 	return sr.sentSignatureTracker
 }
 
-// GetStringValue calls the unexported getStringValue function
-func GetStringValue(messageType consensus.MessageType) string {
-	return getStringValue(messageType)
-}
-
 // GetHeaderHashToVerifySig gets header hash on which the signature should be verified
 func (sr *subroundEndRound) GetHeaderHashToVerifySig(cnsMsg *consensus.Message) []byte {
 	return sr.getHeaderHashToVerifySig(cnsMsg)
@@ -408,6 +388,16 @@ func (sr *subroundEndRound) GetProcessedHeaderHash() []byte {
 	return sr.getProcessedHeaderHash()
 }
 
+// GetMessageToSign gets the message that should be signed
+func (sr *subroundSignatureV2) GetMessageToSign() []byte {
+	return sr.getMessageToSign()
+}
+
+// ReceivedBlockHeaderFinalInfo calls the unexported receivedBlockHeaderFinalInfo function
+func (sr *sovereignSubRoundEnd) ReceivedBlockHeaderFinalInfo(cnsDta *consensus.Message) bool {
+	return sr.receivedBlockHeaderFinalInfo(context.Background(), cnsDta)
+}
+
 // GetMessageToVerifySig gets the message on which the signature should be verified
 func (sr *subroundEndRoundV2) GetMessageToVerifySig() []byte {
 	return sr.getMessageToVerifySig()
@@ -421,4 +411,18 @@ func (sr *sovereignSubRoundEnd) DoSovereignEndRoundJob(ctx context.Context) bool
 // GetInternalHeader -
 func (sr *sovereignSubRoundEnd) GetInternalHeader() data.HeaderHandler {
 	return sr.Header
+}
+
+func InitSubroundEndRound(appStatusHandler core.AppStatusHandler) SubroundEndRound {
+	return initSubroundEndRound(appStatusHandler)
+}
+
+// DoBlockJob method does the job of the subround Block
+func (sr *subroundBlockV2) DoBlockJob() bool {
+	return sr.doBlockJob(context.Background())
+}
+
+// GetStringValue calls the unexported getStringValue function
+func GetStringValue(messageType consensus.MessageType) string {
+	return getStringValue(messageType)
 }

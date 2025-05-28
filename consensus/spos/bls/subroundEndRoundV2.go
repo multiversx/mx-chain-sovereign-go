@@ -6,11 +6,11 @@ import (
 )
 
 type subroundEndRoundV2 struct {
-	*subroundEndRound
+	SubRoundHandler
 }
 
 // NewSubroundEndRoundV2 creates a subroundEndRoundV2 object
-func NewSubroundEndRoundV2(subroundEndRound *subroundEndRound) (*subroundEndRoundV2, error) {
+func NewSubroundEndRoundV2(subroundEndRound SubRoundHandler) (*subroundEndRoundV2, error) {
 	if subroundEndRound == nil {
 		return nil, spos.ErrNilSubround
 	}
@@ -25,7 +25,7 @@ func NewSubroundEndRoundV2(subroundEndRound *subroundEndRound) (*subroundEndRoun
 }
 
 func (sr *subroundEndRoundV2) getMessageToVerifySig() []byte {
-	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.Header)
+	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
 	if err != nil {
 		log.Error("subroundEndRoundV2.getMessageToVerifySig", "error", err.Error())
 		return nil

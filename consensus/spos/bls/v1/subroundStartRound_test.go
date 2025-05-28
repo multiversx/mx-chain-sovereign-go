@@ -94,14 +94,14 @@ func initSubroundStartRoundWithContainer(container spos.ConsensusCoreHandler) v1
 	return srStartRound
 }
 
-func initSubroundStartRoundWithContainerAndSigners(container spos.ConsensusCoreHandler, extraSignersHolder bls.SubRoundStartExtraSignersHolder) bls.SubroundStartRound {
+func initSubroundStartRoundWithContainerAndSigners(container spos.ConsensusCoreHandler, extraSignersHolder bls.SubRoundStartExtraSignersHolder) v1.SubroundStartRound {
 	consensusState := initializers.InitConsensusState()
 	ch := make(chan bool, 1)
 	sr, _ := defaultSubround(consensusState, ch, container)
-	srStartRound, _ := bls.NewSubroundStartRound(
+	srStartRound, _ := v1.NewSubroundStartRound(
 		sr,
 		extend,
-		bls.ProcessingThresholdPercent,
+		v1.ProcessingThresholdPercent,
 		executeStoredMessages,
 		resetConsensusMessages,
 		&testscommon.SentSignatureTrackerStub{},
@@ -339,11 +339,11 @@ func TestSubroundStartRound_NewSubroundStartRoundNilValidatorGroupSelectorShould
 func TestSubroundStartRound_NewSubroundStartRoundNilExtraSignersHolderShouldFail(t *testing.T) {
 	t.Parallel()
 
-	sr, _ := defaultSubround(initConsensusState(), make(chan bool, 1), mock.InitConsensusCore())
-	srStartRound, err := bls.NewSubroundStartRound(
+	sr, _ := defaultSubround(initializers.InitConsensusState(), make(chan bool, 1), consensusMocks.InitConsensusCore())
+	srStartRound, err := v1.NewSubroundStartRound(
 		sr,
 		extend,
-		bls.ProcessingThresholdPercent,
+		v1.ProcessingThresholdPercent,
 		executeStoredMessages,
 		resetConsensusMessages,
 		&testscommon.SentSignatureTrackerStub{},
@@ -580,12 +580,12 @@ func TestSubroundStartRound_InitCurrentRoundShouldReturnTrue(t *testing.T) {
 func TestSubroundStartRound_InitCurrentRoundShouldInitExtraSigners(t *testing.T) {
 	t.Parallel()
 
-	bootstrapperMock := &mock.BootstrapperStub{}
+	bootstrapperMock := &bootstrapperStubs.BootstrapperStub{}
 	bootstrapperMock.GetNodeStateCalled = func() common.NodeState {
 		return common.NsSynchronized
 	}
 
-	container := mock.InitConsensusCore()
+	container := consensusMocks.InitConsensusCore()
 	container.SetBootStrapper(bootstrapperMock)
 
 	wasResetCalled := false

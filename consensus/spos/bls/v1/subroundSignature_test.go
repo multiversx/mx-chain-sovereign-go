@@ -7,7 +7,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
@@ -25,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExtraSignersHolder) bls.SubroundSignature {
+func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExtraSignersHolder) v1.SubroundSignature {
 	sr, _ := spos.NewSubround(
 		bls.SrBlock,
 		bls.SrSignature,
@@ -33,17 +32,17 @@ func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExt
 		int64(70*roundTimeDuration/100),
 		int64(85*roundTimeDuration/100),
 		"(SIGNATURE)",
-		initConsensusState(),
+		initializers.InitConsensusState(),
 		make(chan bool, 1),
 		executeStoredMessages,
-		mock.InitConsensusCore(),
+		consensusMocks.InitConsensusCore(),
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
 		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
-	srSignature, _ := bls.NewSubroundSignature(
+	srSignature, _ := v1.NewSubroundSignature(
 		sr,
 		extend,
 		&statusHandler.AppStatusHandlerStub{},
@@ -54,10 +53,7 @@ func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExt
 	return srSignature
 }
 
-func initSubroundSignatureWithContainer(container *mock.ConsensusCoreMock, enableEpochHandler common.EnableEpochsHandler) bls.SubroundSignature {
-	// TODO: MARIUS C:
-	// this is from BARNARD:
-	// consensusState := initializers.InitConsensusState()
+func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) v1.SubroundSignature {
 	consensusState := initializers.InitConsensusState()
 	ch := make(chan bool, 1)
 
@@ -361,8 +357,8 @@ func TestSubroundSignature_NewSubroundSignatureNilSyncTimerShouldFail(t *testing
 func TestSubroundSignature_NewSubroundSignatureNilExtraSignersHolderShouldFail(t *testing.T) {
 	t.Parallel()
 
-	sr, _ := defaultSubround(initConsensusState(), make(chan bool, 1), mock.InitConsensusCore())
-	srSignature, err := bls.NewSubroundSignature(sr, extend, &statusHandler.AppStatusHandlerStub{}, nil, &testscommon.SentSignatureTrackerStub{})
+	sr, _ := defaultSubround(initializers.InitConsensusState(), make(chan bool, 1), consensusMocks.InitConsensusCore())
+	srSignature, err := v1.NewSubroundSignature(sr, extend, &statusHandler.AppStatusHandlerStub{}, nil, &testscommon.SentSignatureTrackerStub{})
 	require.True(t, check.IfNil(srSignature))
 	require.Equal(t, errorsMx.ErrNilSignatureRoundExtraSignersHolder, err)
 }
@@ -468,13 +464,13 @@ func TestSubroundSignature_DoSignatureJobWithExtraSigners(t *testing.T) {
 	}
 	sr := *initSubroundSignatureWithExtraSigners(extraSigners)
 
-	sr.Header = &block.Header{}
-	sr.Data = []byte("data")
+	sr.SetHeader(&block.Header{})
+	sr.SetData([]byte("data"))
 
 	_ = sr.SetJobDone(sr.SelfPubKey(), bls.SrSignature, false)
 	jobDone := sr.DoSignatureJob()
 	require.True(t, jobDone)
-	require.False(t, sr.RoundCanceled)
+	require.False(t, sr.GetRoundCanceled())
 	require.True(t, wasExtraSigAdded)
 }
 
@@ -652,7 +648,7 @@ func TestSubroundSignature_ReceivedSignatureWithExtraSigners(t *testing.T) {
 	sr := *initSubroundSignatureWithExtraSigners(extraSigners)
 
 	cnsMsg = consensus.NewConsensusMessage(
-		sr.Data,
+		sr.GetData(),
 		[]byte("signature"),
 		nil,
 		nil,
@@ -669,8 +665,8 @@ func TestSubroundSignature_ReceivedSignatureWithExtraSigners(t *testing.T) {
 		nil,
 	)
 
-	sr.Header = &block.Header{}
-	sr.Data = []byte("X")
+	sr.SetHeader(&block.Header{})
+	sr.SetData([]byte("X"))
 
 	sr.SetSelfPubKey(sr.ConsensusGroup()[0])
 	cnsMsg.PubKey = []byte(sr.ConsensusGroup()[expectedIdx])
@@ -951,12 +947,12 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundSignatureShouldWork(t 
 	t.Run("get processed header hash in subround signature with consensus model V1 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub()
 		sr := *initSubroundSignatureWithContainer(container, enableEpochHandler)
 
-		sr.Data = []byte("X")
+		sr.SetData([]byte("X"))
 		hdrHash := sr.GetProcessedHeaderHash()
 		assert.Nil(t, hdrHash)
 	})
@@ -964,13 +960,13 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundSignatureShouldWork(t 
 	t.Run("get processed header hash in subround signature with consensus model V2 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
 		sr := *initSubroundSignatureWithContainer(container, enableEpochHandler)
 
-		sr.Data = []byte("X")
+		sr.SetData([]byte("X"))
 		hdrHash := sr.GetProcessedHeaderHash()
-		assert.Equal(t, sr.Data, hdrHash)
+		assert.Equal(t, sr.GetData(), hdrHash)
 	})
 }

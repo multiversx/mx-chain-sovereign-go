@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -15,6 +16,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
+
+var log = logger.GetOrCreate("bls-sovereign")
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2

@@ -71,3 +71,9 @@ type OutGoingOperationsPool interface {
 	ResetTimer(hashes [][]byte)
 	IsInterfaceNil() bool
 }
+
+// SubRoundHandler defines a sub round handler (e.g.: v1,v2)
+type SubRoundHandler interface {
+	spos.ConsensusCoreHandler
+	spos.ConsensusStateHandler
+}
