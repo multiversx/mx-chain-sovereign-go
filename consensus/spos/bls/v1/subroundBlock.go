@@ -26,12 +26,6 @@ type subroundBlock struct {
 	processingThresholdPercentage int
 }
 
-type subRoundBlockProcessArgs struct {
-	header data.HeaderHandler
-	body   data.BodyHandler
-	leader string
-}
-
 // NewSubroundBlock creates a subroundBlock object
 func NewSubroundBlock(
 	baseSubround *spos.Subround,
@@ -73,14 +67,14 @@ func checkNewSubroundBlockParams(
 
 // doBlockJob method does the job of the subround Block
 func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
-	args, deferFunc := sr.doBlockComputation()
+	args, deferFunc := sr.DoBlockComputation()
 	defer deferFunc()
 
 	if args == nil {
 		return false
 	}
 
-	err := sr.SetJobDone(args.leader, sr.Current(), true)
+	err := sr.SetJobDone(args.Leader, sr.Current(), true)
 	if err != nil {
 		log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
 		return false
@@ -88,12 +82,12 @@ func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
 
 	// placeholder for subroundBlock.doBlockJob script
 
-	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(args.header, args.body, sr.GetRoundTimeStamp())
+	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(args.Header, args.Body, sr.GetRoundTimeStamp())
 
 	return true
 }
 
-func (sr *subroundBlock) doBlockComputation() (*subRoundBlockProcessArgs, func()) {
+func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessArgs, func()) {
 	shouldProcess := sr.shouldProcess()
 	if !shouldProcess {
 		return nil, func() {}
@@ -115,10 +109,10 @@ func (sr *subroundBlock) doBlockComputation() (*subRoundBlockProcessArgs, func()
 		return nil, deferFunc
 	}
 
-	return &subRoundBlockProcessArgs{
-		header: header,
-		body:   body,
-		leader: leader,
+	return &bls.SubRoundBlockProcessArgs{
+		Header: header,
+		Body:   body,
+		Leader: leader,
 	}, deferFunc
 }
 
@@ -621,6 +615,11 @@ func (sr *subroundBlock) isFlagActiveForHeader(headerHandler data.HeaderHandler)
 	return sr.EnableEpochsHandler().IsFlagEnabledInEpoch(common.AndromedaFlag, headerHandler.GetEpoch())
 }
 
+// ProcessReceivedBlock processes received block
+func (sr *subroundBlock) ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool {
+	return sr.processReceivedBlock(ctx, cnsDta)
+}
+
 func (sr *subroundBlock) processReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool {
 	if check.IfNil(sr.GetBody()) {
 		return false
@@ -768,6 +767,11 @@ func (sr *subroundBlock) getRoundInLastCommittedBlock() int64 {
 	}
 
 	return roundInLastCommittedBlock
+}
+
+// SetBlockJob sets the block job
+func (sr *subroundBlock) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
+	sr.Job = doBlockJob
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

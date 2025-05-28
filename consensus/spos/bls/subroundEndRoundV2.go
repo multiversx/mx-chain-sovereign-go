@@ -5,12 +5,18 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 )
 
-type subroundEndRoundV2 struct {
+// SubRoundEndHandler defines a sub round end handler
+type SubRoundEndHandler interface {
 	SubRoundHandler
+	SetMessageToVerifySigFunc(verifyMsgFunc func() []byte)
+}
+
+type subroundEndRoundV2 struct {
+	SubRoundEndHandler
 }
 
 // NewSubroundEndRoundV2 creates a subroundEndRoundV2 object
-func NewSubroundEndRoundV2(subroundEndRound SubRoundHandler) (*subroundEndRoundV2, error) {
+func NewSubroundEndRoundV2(subroundEndRound SubRoundEndHandler) (*subroundEndRoundV2, error) {
 	if subroundEndRound == nil {
 		return nil, spos.ErrNilSubround
 	}
@@ -19,7 +25,7 @@ func NewSubroundEndRoundV2(subroundEndRound SubRoundHandler) (*subroundEndRoundV
 		subroundEndRound,
 	}
 
-	sr.getMessageToVerifySigFunc = sr.getMessageToVerifySig
+	sr.SetMessageToVerifySigFunc(sr.getMessageToVerifySig)
 
 	return sr, nil
 }

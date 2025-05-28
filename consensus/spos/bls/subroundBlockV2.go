@@ -7,12 +7,19 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 )
 
+type SubRoundBlockHandler interface {
+	SubRoundHandler
+	SetBlockJob(doBlockJob func(ctx context.Context) bool)
+	DoBlockComputation() (*SubRoundBlockProcessArgs, func())
+	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
+}
+
 type subroundBlockV2 struct {
-	*subroundBlock
+	SubRoundBlockHandler
 }
 
 // NewSubroundBlockV2 creates a subroundBlockV2 object
-func NewSubroundBlockV2(subroundBlock *subroundBlock) (*subroundBlockV2, error) {
+func NewSubroundBlockV2(subroundBlock SubRoundBlockHandler) (*subroundBlockV2, error) {
 	if subroundBlock == nil {
 		return nil, spos.ErrNilSubround
 	}
@@ -21,14 +28,14 @@ func NewSubroundBlockV2(subroundBlock *subroundBlock) (*subroundBlockV2, error) 
 		subroundBlock,
 	}
 
-	sr.Job = sr.doBlockJob
+	sr.SetBlockJob(sr.doBlockJob)
 
 	return sr, nil
 }
 
 // doBlockJob method does the job of the subround Block
 func (sr *subroundBlockV2) doBlockJob(ctx context.Context) bool {
-	args, deferFunc := sr.doBlockComputation()
+	args, deferFunc := sr.DoBlockComputation()
 	defer deferFunc()
 
 	if args == nil {
@@ -36,9 +43,9 @@ func (sr *subroundBlockV2) doBlockJob(ctx context.Context) bool {
 	}
 
 	cnsDta := &consensus.Message{
-		PubKey:     []byte(args.leader),
+		PubKey:     []byte(args.Leader),
 		RoundIndex: sr.RoundHandler().Index(),
 	}
 
-	return sr.processReceivedBlock(ctx, cnsDta)
+	return sr.ProcessReceivedBlock(ctx, cnsDta)
 }

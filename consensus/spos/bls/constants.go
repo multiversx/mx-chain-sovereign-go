@@ -1,6 +1,7 @@
 package bls
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-go/consensus"
 )
 
@@ -90,4 +91,13 @@ func GetSubroundName(subroundId int) string {
 	default:
 		return "Undefined subround"
 	}
+}
+
+// TODO: Marius C, move this in a dto folder
+
+// SubRoundBlockProcessArgs defines args for sub round block processing
+type SubRoundBlockProcessArgs struct {
+	Header data.HeaderHandler
+	Body   data.BodyHandler
+	Leader string
 }

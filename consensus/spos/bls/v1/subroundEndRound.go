@@ -1066,3 +1066,8 @@ func (sr *subroundEndRound) IsInterfaceNil() bool {
 func (sr *subroundEndRound) getMessageToVerifySig() []byte {
 	return sr.GetData()
 }
+
+// SetMessageToVerifySigFunc sets the verify message func
+func (sr *subroundEndRound) SetMessageToVerifySigFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToVerifySigFunc = verifyMsgFunc
+}
