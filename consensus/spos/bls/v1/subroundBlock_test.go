@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -613,7 +614,7 @@ func TestSubroundBlock_ReceivedBlock(t *testing.T) {
 	hdr.Nonce = 1
 	hdrStr, _ = marshallerMock.MarshalizerMock{}.Marshal(hdr)
 	hdrHash = (&hashingMocks.HasherMock{}).Compute(string(hdrStr))
-	cnsMsg.HeaderHash = hdrHash
+	cnsMsg.BlockHeaderHash = hdrHash
 	cnsMsg.Header = hdrStr
 	r = sr.ReceivedBlockHeader(cnsMsg)
 	assert.True(t, r)

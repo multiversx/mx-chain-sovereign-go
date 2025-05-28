@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/runType"
@@ -30,7 +31,7 @@ type subroundStartRound struct {
 
 	outportHandler       outport.OutportHandler
 	sentSignatureTracker spos.SentSignaturesTracker
-	extraSignersHolder   SubRoundStartExtraSignersHolder
+	extraSignersHolder   bls.SubRoundStartExtraSignersHolder
 }
 
 // NewSubroundStartRound creates a subroundStartRound object
@@ -41,7 +42,7 @@ func NewSubroundStartRound(
 	executeStoredMessages func(),
 	resetConsensusMessages func(),
 	sentSignatureTracker spos.SentSignaturesTracker,
-	extraSignersHolder SubRoundStartExtraSignersHolder,
+	extraSignersHolder bls.SubRoundStartExtraSignersHolder,
 ) (*subroundStartRound, error) {
 	err := checkNewSubroundStartRoundParams(
 		baseSubround,
@@ -225,7 +226,7 @@ func (sr *subroundStartRound) initCurrentRound() bool {
 	err = sr.extraSignersHolder.Reset(pubKeys)
 	if err != nil {
 		log.Debug("initCurrentRound.extraSignersHolder.reset", "error", err.Error())
-		sr.RoundCanceled = true
+		sr.SetRoundCanceled(true)
 		return false
 	}
 
@@ -313,7 +314,7 @@ func (sr *subroundStartRound) indexRoundIfNeeded(pubKeys []string) {
 		BlockWasProposed: false,
 		ShardId:          shardId,
 		Epoch:            epoch,
-		Timestamp:        uint64(runType.TimeToUnix(sr.RoundTimeStamp)),
+		Timestamp:        uint64(runType.TimeToUnix(sr.GetRoundTimeStamp())),
 	}
 	roundsInfo := &outportcore.RoundsInfo{
 		ShardID:    shardId,

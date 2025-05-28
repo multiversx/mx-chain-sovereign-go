@@ -27,7 +27,7 @@ func NewConsensusMessage(
 	processedHeaderHash []byte,
 ) *Message {
 	return &Message{
-		HeaderHash:          headerHash,
+		BlockHeaderHash:     headerHash,
 		SignatureShare:      signatureShare,
 		Body:                body,
 		Header:              header,

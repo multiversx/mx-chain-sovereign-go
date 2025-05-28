@@ -12,6 +12,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
+	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -932,8 +935,8 @@ func TestSubroundEndRound_ReceivedBlockHeaderFinalInfoShouldWork(t *testing.T) {
 
 	cnsData := consensus.Message{
 		// apply the data which is mocked in consensus state so the checks will pass
-		HeaderHash: []byte("X"),
-		PubKey:     []byte("A"),
+		BlockHeaderHash: []byte("X"),
+		PubKey:          []byte("A"),
 	}
 
 	res := sr.ReceivedBlockHeaderFinalInfo(&cnsData)
@@ -957,8 +960,8 @@ func TestSubroundEndRound_ReceivedBlockHeaderFinalInfoShouldReturnFalseWhenFinal
 	container.SetHeaderSigVerifier(headerSigVerifier)
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 	cnsData := consensus.Message{
-		HeaderHash: []byte("X"),
-		PubKey:     []byte("A"),
+		BlockHeaderHash: []byte("X"),
+		PubKey:          []byte("A"),
 	}
 	sr.SetHeader(&block.Header{})
 	res := sr.ReceivedBlockHeaderFinalInfo(&cnsData)
@@ -1324,8 +1327,8 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr.ConsensusStateHandler.SetData(nil)
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("X"),
-			PubKey:     []byte("A"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1340,8 +1343,8 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("X"),
-			PubKey:     []byte("other node"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("other node"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1358,8 +1361,8 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr.SetLeader("A")
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("X"),
-			PubKey:     []byte("A"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1407,8 +1410,8 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		srEndRound.SetSelfPubKey("A")
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("X"),
-			PubKey:     []byte("A"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
 		}
 
 		res := srEndRound.ReceivedInvalidSignersInfo(&cnsData)
@@ -1423,8 +1426,8 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("Y"),
-			PubKey:     []byte("A"),
+			BlockHeaderHash: []byte("Y"),
+			PubKey:          []byte("A"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1439,9 +1442,9 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 		cnsData := consensus.Message{
-			HeaderHash: []byte("X"),
-			PubKey:     []byte("A"),
-			RoundIndex: 1,
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
+			RoundIndex:      1,
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1455,9 +1458,9 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		cnsData := consensus.Message{
-			HeaderHash:     []byte("X"),
-			PubKey:         []byte("A"),
-			InvalidSigners: []byte{},
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
+			InvalidSigners:  []byte{},
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1479,9 +1482,9 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		cnsData := consensus.Message{
-			HeaderHash:     []byte("X"),
-			PubKey:         []byte("A"),
-			InvalidSigners: []byte("invalid data"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
+			InvalidSigners:  []byte("invalid data"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1496,9 +1499,9 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 		sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 		cnsData := consensus.Message{
-			HeaderHash:     []byte("X"),
-			PubKey:         []byte("A"),
-			InvalidSigners: []byte("invalidSignersData"),
+			BlockHeaderHash: []byte("X"),
+			PubKey:          []byte("A"),
+			InvalidSigners:  []byte("invalidSignersData"),
 		}
 
 		res := sr.ReceivedInvalidSignersInfo(&cnsData)
@@ -1814,30 +1817,30 @@ func TestSubroundEndRound_GetHeaderHashToVerifySigShouldWork(t *testing.T) {
 	t.Run("get header hash to verify signature with consensus model V1 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub()
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
 		cnsData := consensus.Message{
-			HeaderHash:          []byte("A"),
+			BlockHeaderHash:     []byte("A"),
 			ProcessedHeaderHash: []byte("B"),
 		}
 
 		hdrHash := sr.GetHeaderHashToVerifySig(&cnsData)
-		assert.Equal(t, cnsData.HeaderHash, hdrHash)
+		assert.Equal(t, cnsData.BlockHeaderHash, hdrHash)
 	})
 
 	t.Run("get header hash to verify signature with consensus model V2 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
 		cnsData := consensus.Message{
-			HeaderHash:          []byte("A"),
+			BlockHeaderHash:     []byte("A"),
 			ProcessedHeaderHash: []byte("B"),
 		}
 
@@ -1852,7 +1855,7 @@ func TestSubroundEndRound_GenerateBitmapShouldWork(t *testing.T) {
 	t.Run("generate bitmap with consensus model V1 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub()
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
@@ -1871,7 +1874,7 @@ func TestSubroundEndRound_GenerateBitmapShouldWork(t *testing.T) {
 	t.Run("generate bitmap with consensus model V2 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
@@ -1883,10 +1886,10 @@ func TestSubroundEndRound_GenerateBitmapShouldWork(t *testing.T) {
 		expectedBitmap[0] |= 1 << 0
 		expectedBitmap[0] |= 1 << 1
 
-		sr.Data = []byte("X")
-		sr.AddProcessedHeadersHashes(sr.Data, 0)
-		sr.AddProcessedHeadersHashes(sr.Data, 1)
-		sr.AddProcessedHeadersHashes(sr.Data, 100)
+		sr.SetData([]byte("X"))
+		sr.AddProcessedHeadersHashes(sr.GetData(), 0)
+		sr.AddProcessedHeadersHashes(sr.GetData(), 1)
+		sr.AddProcessedHeadersHashes(sr.GetData(), 100)
 
 		bitmap := sr.GenerateConsensusBitmap()
 		assert.Equal(t, expectedBitmap, bitmap)
@@ -1899,12 +1902,12 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundEndRoundShouldWork(t *
 	t.Run("get processed header hash in subround EndRound with consensus model V1 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub()
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
-		sr.Data = []byte("X")
+		sr.SetData([]byte("X"))
 		hdrHash := sr.GetProcessedHeaderHash()
 		assert.Nil(t, hdrHash)
 	})
@@ -1912,13 +1915,13 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundEndRoundShouldWork(t *
 	t.Run("get processed header hash in subround EndRound with consensus model V2 should work", func(t *testing.T) {
 		t.Parallel()
 
-		container := mock.InitConsensusCore()
+		container := consensusMocks.InitConsensusCore()
 
 		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
-		sr.Data = []byte("X")
+		sr.SetData([]byte("X"))
 		hdrHash := sr.GetProcessedHeaderHash()
-		assert.Equal(t, sr.Data, hdrHash)
+		assert.Equal(t, sr.GetData(), hdrHash)
 	})
 }

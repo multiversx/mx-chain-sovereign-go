@@ -21,7 +21,7 @@ type subroundSignature struct {
 	appStatusHandler     core.AppStatusHandler
 	sentSignatureTracker spos.SentSignaturesTracker
 
-	extraSignersHolder   SubRoundSignatureExtraSignersHolder
+	extraSignersHolder   bls.SubRoundSignatureExtraSignersHolder
 	getMessageToSignFunc func() []byte
 }
 
@@ -30,7 +30,7 @@ func NewSubroundSignature(
 	baseSubround *spos.Subround,
 	extend func(subroundId int),
 	appStatusHandler core.AppStatusHandler,
-	extraSignersHolder SubRoundSignatureExtraSignersHolder,
+	extraSignersHolder bls.SubRoundSignatureExtraSignersHolder,
 	sentSignatureTracker spos.SentSignaturesTracker,
 ) (*subroundSignature, error) {
 	err := checkNewSubroundSignatureParams(
@@ -113,7 +113,7 @@ func (sr *subroundSignature) doSignatureJob(_ context.Context) bool {
 			log.Debug("doSignatureJob.CreateSignatureShareForPublicKey", "error", err.Error())
 			return false
 		}
-		extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.Header, uint16(selfIndex), selfPubKey)
+		extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(selfIndex), selfPubKey)
 		if err != nil {
 			log.Debug("doSignatureJob.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
 			return false
@@ -238,7 +238,7 @@ func (sr *subroundSignature) receivedSignature(_ context.Context, cnsDta *consen
 		return false
 	}
 
-	if !sr.IsConsensusDataEqual(cnsDta.HeaderHash) {
+	if !sr.IsConsensusDataEqual(cnsDta.BlockHeaderHash) {
 		return false
 	}
 
@@ -440,7 +440,7 @@ func (sr *subroundSignature) doSignatureJobForManagedKeys() bool {
 			return false
 		}
 
-		extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.Header, uint16(selfIndex), pkBytes)
+		extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(selfIndex), pkBytes)
 		if err != nil {
 			log.Debug("doSignatureJobForManagedKeys.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
 			return false

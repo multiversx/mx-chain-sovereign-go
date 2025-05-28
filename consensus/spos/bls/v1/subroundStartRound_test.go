@@ -22,7 +22,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,7 +95,7 @@ func initSubroundStartRoundWithContainer(container spos.ConsensusCoreHandler) v1
 }
 
 func initSubroundStartRoundWithContainerAndSigners(container spos.ConsensusCoreHandler, extraSignersHolder bls.SubRoundStartExtraSignersHolder) bls.SubroundStartRound {
-	consensusState := initConsensusState()
+	consensusState := initializers.InitConsensusState()
 	ch := make(chan bool, 1)
 	sr, _ := defaultSubround(consensusState, ch, container)
 	srStartRound, _ := bls.NewSubroundStartRound(

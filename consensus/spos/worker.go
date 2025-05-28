@@ -90,7 +90,7 @@ type Worker struct {
 	closer                    core.SafeCloser
 
 	invalidSignersCache InvalidSignersCache
-	enableEpochHandler        common.EnableEpochsHandler
+	enableEpochHandler  common.EnableEpochsHandler
 }
 
 // WorkerArgs holds the consensus worker arguments
@@ -521,26 +521,7 @@ func (wrk *Worker) ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedP
 		)
 	}
 
-	// TODO: Marius C
-	// THis is used in barnard code:
-	/*
-		err = wrk.checkValidityAndProcessFinalInfo(cnsMsg, message)
-		if err != nil {
-			return nil, err
-		}
-	 */
-
-	msgType := consensus.MessageType(cnsMsg.MsgType)
-
-	log.Trace("received message from consensus topic",
-		"msg type", wrk.consensusService.GetStringValue(msgType),
-		"from", cnsMsg.PubKey,
-		"header hash", cnsMsg.HeaderHash,
-		"round", cnsMsg.RoundIndex,
-		"size", len(message.Data()),
-	)
-
-	err = wrk.consensusMessageValidator.checkConsensusMessageValidity(cnsMsg, message.Peer())
+	err = wrk.checkValidityAndProcessFinalInfo(cnsMsg, message)
 	if err != nil {
 		return nil, err
 	}
@@ -610,7 +591,7 @@ func (wrk *Worker) doJobOnMessageWithBlockBody(cnsMsg *consensus.Message) {
 }
 
 func (wrk *Worker) doJobOnMessageWithHeader(cnsMsg *consensus.Message) error {
-	headerHash := cnsMsg.HeaderHash
+	headerHash := cnsMsg.BlockHeaderHash
 	header := wrk.blockProcessor.DecodeBlockHeader(cnsMsg.Header)
 	isHeaderInvalid := headerHash == nil || check.IfNil(header)
 	if isHeaderInvalid {
@@ -631,7 +612,7 @@ func (wrk *Worker) doJobOnMessageWithHeader(cnsMsg *consensus.Message) error {
 
 	log.Debug("received proposed block",
 		"from", core.GetTrimmedPk(hex.EncodeToString(cnsMsg.PubKey)),
-		"header hash", cnsMsg.HeaderHash,
+		"header hash", cnsMsg.BlockHeaderHash,
 		"epoch", header.GetEpoch(),
 		"round", header.GetRound(),
 		"nonce", header.GetNonce(),
@@ -687,7 +668,7 @@ func (wrk *Worker) doJobOnMessageWithSignature(cnsMsg *consensus.Message, p2pMsg
 	wrk.mutDisplayHashConsensusMessage.Lock()
 	defer wrk.mutDisplayHashConsensusMessage.Unlock()
 
-	hash := string(cnsMsg.HeaderHash)
+	hash := string(cnsMsg.BlockHeaderHash)
 	wrk.mapDisplayHashConsensusMessage[hash] = append(wrk.mapDisplayHashConsensusMessage[hash], cnsMsg)
 
 	wrk.consensusState.AddMessageWithSignature(string(cnsMsg.PubKey), p2pMsg)

@@ -174,6 +174,7 @@ type ConsensusStateHandler interface {
 	GetReceivedHeaders() []data.HeaderHandler
 	AddMessageWithSignature(key string, message p2p.MessageP2P)
 	GetMessageWithSignature(key string) (p2p.MessageP2P, bool)
+	AddProcessedHeadersHashes(hash []byte, index int)
 	IsNodeLeaderInCurrentRound(node string) bool
 	GetLeader() (string, error)
 	GetNextConsensusGroup(
@@ -193,6 +194,7 @@ type ConsensusStateHandler interface {
 	CanDoSubroundJob(currentSubroundId int) bool
 	CanProcessReceivedMessage(cnsDta *consensus.Message, currentRoundIndex int64, currentSubroundId int) bool
 	GenerateBitmap(subroundId int) []byte
+	GenerateBitmapForHash(subroundId int, hash []byte) []byte
 	ProcessingBlock() bool
 	SetProcessingBlock(processingBlock bool)
 	GetData() []byte

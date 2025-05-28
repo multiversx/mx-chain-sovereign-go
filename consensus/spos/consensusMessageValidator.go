@@ -141,7 +141,7 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 	if !cmv.isHeaderHashSizeValid(cnsMsg) {
 		return fmt.Errorf("%w : received header hash from consensus topic has an invalid size: %d",
 			ErrInvalidHeaderHashSize,
-			len(cnsMsg.HeaderHash))
+			len(cnsMsg.BlockHeaderHash))
 	}
 
 	if !cmv.isProcessedHeaderHashSizeValid(cnsMsg) {
@@ -175,7 +175,7 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 		log.Trace("received message from consensus topic has a future round",
 			"msg type", cmv.consensusService.GetStringValue(msgType),
 			"from", cnsMsg.PubKey,
-			"header hash", cnsMsg.HeaderHash,
+			"header hash", cnsMsg.BlockHeaderHash,
 			"msg round", cnsMsg.RoundIndex,
 			"round", cmv.consensusState.GetRoundIndex(),
 		)
@@ -189,7 +189,7 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 		log.Trace("received message from consensus topic has a past round",
 			"msg type", cmv.consensusService.GetStringValue(msgType),
 			"from", cnsMsg.PubKey,
-			"header hash", cnsMsg.HeaderHash,
+			"header hash", cnsMsg.BlockHeaderHash,
 			"msg round", cnsMsg.RoundIndex,
 			"round", cmv.consensusState.GetRoundIndex(),
 		)
@@ -234,10 +234,10 @@ func (cmv *consensusMessageValidator) isHeaderHashSizeValid(cnsMsg *consensus.Me
 	isMessageWithBlockBody := cmv.consensusService.IsMessageWithBlockBody(msgType)
 
 	if isMessageWithBlockBody {
-		return cnsMsg.HeaderHash == nil
+		return cnsMsg.BlockHeaderHash == nil
 	}
 
-	return len(cnsMsg.HeaderHash) == cmv.headerHashSize
+	return len(cnsMsg.BlockHeaderHash) == cmv.headerHashSize
 }
 
 func (cmv *consensusMessageValidator) isProcessedHeaderHashSizeValid(cnsMsg *consensus.Message) bool {

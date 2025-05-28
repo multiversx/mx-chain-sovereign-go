@@ -88,7 +88,7 @@ func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
 
 	// placeholder for subroundBlock.doBlockJob script
 
-	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(args.header, args.body, sr.RoundTimeStamp)
+	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(args.header, args.body, sr.GetRoundTimeStamp())
 
 	return true
 }
@@ -468,11 +468,6 @@ func (sr *subroundBlock) receivedBlockBodyAndHeader(ctx context.Context, cnsDta 
 		return false
 	}
 
-	header := sr.BlockProcessor().DecodeBlockHeader(cnsDta.Header)
-	if sr.isFlagActiveForHeader(header) {
-		return false
-	}
-
 	sr.SetData(cnsDta.BlockHeaderHash)
 	sr.SetBody(sr.BlockProcessor().DecodeBlockBody(cnsDta.Body))
 	sr.SetHeader(header)
@@ -484,7 +479,7 @@ func (sr *subroundBlock) receivedBlockBodyAndHeader(ctx context.Context, cnsDta 
 
 	log.Debug("step 1: block body and header have been received",
 		"nonce", sr.GetHeader().GetNonce(),
-		"hash", cnsDta.HeaderHash)
+		"hash", cnsDta.BlockHeaderHash)
 
 	sw.Start("processReceivedBlock")
 	blockProcessedWithSuccess := sr.processReceivedBlock(ctx, cnsDta)
@@ -607,7 +602,7 @@ func (sr *subroundBlock) receivedBlockHeader(ctx context.Context, cnsDta *consen
 
 	log.Debug("step 1: block header has been received",
 		"nonce", sr.GetHeader().GetNonce(),
-		"hash", cnsDta.HeaderHash)
+		"hash", cnsDta.BlockHeaderHash)
 	blockProcessedWithSuccess := sr.processReceivedBlock(ctx, cnsDta)
 
 	sr.PeerHonestyHandler().ChangeScore(
@@ -662,12 +657,14 @@ func (sr *subroundBlock) processReceivedBlock(ctx context.Context, cnsDta *conse
 	metricStatTime := time.Now()
 	defer sr.computeSubroundProcessingMetric(metricStatTime, common.MetricProcessedProposedBlock)
 
-	var err error
-	sr.Header, sr.Body, err = sr.BlockProcessor().ProcessBlock(
+	header, body, err := sr.BlockProcessor().ProcessBlock(
 		sr.GetHeader(),
 		sr.GetBody(),
 		remainingTimeInCurrentRound,
 	)
+
+	sr.SetHeader(header)
+	sr.SetBody(body)
 
 	if cnsDta.RoundIndex < sr.RoundHandler().Index() {
 		log.Debug("canceled round, round index has been changed",

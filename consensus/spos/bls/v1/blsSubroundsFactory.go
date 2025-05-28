@@ -9,8 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 )
 
@@ -28,8 +28,8 @@ type factory struct {
 	currentPid            core.PeerID
 	consensusModel        consensus.ConsensusModel
 	enableEpochHandler    common.EnableEpochsHandler
-	extraSignersHolder    ExtraSignersHolder
-	subRoundEndV2Creator  SubRoundEndV2Creator
+	extraSignersHolder    bls.ExtraSignersHolder
+	subRoundEndV2Creator  bls.SubRoundEndV2Creator
 }
 
 // NewSubroundsFactory creates a new factory object
@@ -44,8 +44,8 @@ func NewSubroundsFactory(
 	outportHandler outport.OutportHandler,
 	consensusModel consensus.ConsensusModel,
 	enableEpochHandler common.EnableEpochsHandler,
-	extraSignersHolder ExtraSignersHolder,
-	subRoundEndV2Creator SubRoundEndV2Creator,
+	extraSignersHolder bls.ExtraSignersHolder,
+	subRoundEndV2Creator bls.SubRoundEndV2Creator,
 ) (*factory, error) {
 	// no need to check the outportHandler, it can be nil
 	err := checkNewFactoryParams(
@@ -89,8 +89,8 @@ func checkNewFactoryParams(
 	appStatusHandler core.AppStatusHandler,
 	sentSignaturesTracker spos.SentSignaturesTracker,
 	enableEpochHandler common.EnableEpochsHandler,
-	extraSignersHolder ExtraSignersHolder,
-	subRoundEndV2Creator SubRoundEndV2Creator,
+	extraSignersHolder bls.ExtraSignersHolder,
+	subRoundEndV2Creator bls.SubRoundEndV2Creator,
 ) error {
 	err := spos.ValidateConsensusCore(container)
 	if err != nil {
@@ -185,7 +185,7 @@ func (fct *factory) getTimeDuration() time.Duration {
 	return fct.consensusCore.RoundHandler().TimeDuration()
 }
 
-func (fct *factory) generateStartRoundSubround(extraSignersHolder SubRoundStartExtraSignersHolder) error {
+func (fct *factory) generateStartRoundSubround(extraSignersHolder bls.SubRoundStartExtraSignersHolder) error {
 	subround, err := spos.NewSubround(
 		-1,
 		bls.SrStartRound,
@@ -235,9 +235,9 @@ func (fct *factory) generateBlockSubroundV1() error {
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
-	fct.worker.AddReceivedMessageCall(MtBlockBody, subroundBlockInstance.receivedBlockBody)
-	fct.worker.AddReceivedMessageCall(MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockInstance.receivedBlockBody)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundBlockInstance)
 
 	return nil
@@ -254,9 +254,9 @@ func (fct *factory) generateBlockSubroundV2() error {
 		return errV2
 	}
 
-	fct.worker.AddReceivedMessageCall(MtBlockBodyAndHeader, subroundBlockV2Instance.receivedBlockBodyAndHeader)
-	fct.worker.AddReceivedMessageCall(MtBlockBody, subroundBlockV2Instance.receivedBlockBody)
-	fct.worker.AddReceivedMessageCall(MtBlockHeader, subroundBlockV2Instance.receivedBlockHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockV2Instance.receivedBlockBodyAndHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockV2Instance.receivedBlockBody)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockV2Instance.receivedBlockHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundBlockV2Instance)
 
 	return nil
@@ -295,22 +295,22 @@ func (fct *factory) generateBlockSubround() (*subroundBlock, error) {
 	return subroundBlockInstance, nil
 }
 
-func (fct *factory) generateSignatureSubroundV1(extraSignersHolder SubRoundSignatureExtraSignersHolder) error {
+func (fct *factory) generateSignatureSubroundV1(extraSignersHolder bls.SubRoundSignatureExtraSignersHolder) error {
 	subroundSignatureInstance, err := fct.generateSignatureSubround(extraSignersHolder)
 	if err != nil {
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
-	fct.worker.AddReceivedMessageCall(MtBlockBody, subroundBlockInstance.receivedBlockBody)
-	fct.worker.AddReceivedMessageCall(MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockInstance.receivedBlockBody)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
 	fct.worker.AddReceivedHeaderHandler(subroundBlockInstance.receivedFullHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundBlockInstance)
 
 	return nil
 }
 
-func (fct *factory) generateSignatureSubroundV2(extraSignersHolder SubRoundSignatureExtraSignersHolder) error {
+func (fct *factory) generateSignatureSubroundV2(extraSignersHolder bls.SubRoundSignatureExtraSignersHolder) error {
 	subroundSignatureInstance, err := fct.generateSignatureSubround(extraSignersHolder)
 	if err != nil {
 		return err
@@ -321,13 +321,13 @@ func (fct *factory) generateSignatureSubroundV2(extraSignersHolder SubRoundSigna
 		return errV2
 	}
 
-	fct.worker.AddReceivedMessageCall(MtSignature, subroundSignatureV2Instance.receivedSignature)
+	fct.worker.AddReceivedMessageCall(bls.MtSignature, subroundSignatureV2Instance.receivedSignature)
 	fct.consensusCore.Chronology().AddSubround(subroundSignatureV2Instance)
 
 	return nil
 }
 
-func (fct *factory) generateSignatureSubround(extraSignersHolder SubRoundSignatureExtraSignersHolder) (*subroundSignature, error) {
+func (fct *factory) generateSignatureSubround(extraSignersHolder bls.SubRoundSignatureExtraSignersHolder) (*subroundSignature, error) {
 	subround, err := spos.NewSubround(
 		bls.SrBlock,
 		bls.SrSignature,
@@ -362,21 +362,21 @@ func (fct *factory) generateSignatureSubround(extraSignersHolder SubRoundSignatu
 	return subroundSignatureInstance, nil
 }
 
-func (fct *factory) generateEndRoundSubroundV1(extraSignersHolder SubRoundEndExtraSignersHolder) error {
+func (fct *factory) generateEndRoundSubroundV1(extraSignersHolder bls.SubRoundEndExtraSignersHolder) error {
 	subroundEndRoundInstance, err := fct.generateEndRoundSubround(extraSignersHolder)
 	if err != nil {
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(MtBlockHeaderFinalInfo, subroundEndRoundInstance.receivedBlockHeaderFinalInfo)
-	fct.worker.AddReceivedMessageCall(MtInvalidSigners, subroundEndRoundInstance.receivedInvalidSignersInfo)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, subroundEndRoundInstance.receivedBlockHeaderFinalInfo)
+	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, subroundEndRoundInstance.receivedInvalidSignersInfo)
 	fct.worker.AddReceivedHeaderHandler(subroundEndRoundInstance.receivedHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundEndRoundInstance)
 
 	return nil
 }
 
-func (fct *factory) generateEndRoundSubroundV2(extraSignersHolder SubRoundEndExtraSignersHolder) error {
+func (fct *factory) generateEndRoundSubroundV2(extraSignersHolder bls.SubRoundEndExtraSignersHolder) error {
 	subroundEndRoundInstance, err := fct.generateEndRoundSubround(extraSignersHolder)
 	if err != nil {
 		return err
@@ -385,7 +385,7 @@ func (fct *factory) generateEndRoundSubroundV2(extraSignersHolder SubRoundEndExt
 	return fct.subRoundEndV2Creator.CreateAndAddSubRoundEnd(subroundEndRoundInstance, fct.worker, fct.consensusCore)
 }
 
-func (fct *factory) generateEndRoundSubround(extraSignersHolder SubRoundEndExtraSignersHolder) (*subroundEndRound, error) {
+func (fct *factory) generateEndRoundSubround(extraSignersHolder bls.SubRoundEndExtraSignersHolder) (*subroundEndRound, error) {
 	subround, err := spos.NewSubround(
 		bls.SrSignature,
 		bls.SrEndRound,

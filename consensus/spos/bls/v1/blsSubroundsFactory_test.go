@@ -23,7 +23,6 @@ import (
 	testscommonOutport "github.com/multiversx/mx-chain-go/testscommon/outport"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	"github.com/stretchr/testify/assert"
 )
 
 var chainID = []byte("chain ID")
