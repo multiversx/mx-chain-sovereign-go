@@ -1,4 +1,4 @@
-package bls_test
+package sovereign_test
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
@@ -46,7 +47,7 @@ func initSubroundEndRoundWithContainer(
 	container *spos.ConsensusCore,
 	appStatusHandler core.AppStatusHandler,
 	enableEpochHandler common.EnableEpochsHandler,
-) bls.SubRoundEndHandler {
+) sovereign.SubRoundEndHandler {
 	ch := make(chan bool, 1)
 	consensusState := initializers.InitConsensusState()
 	sr, _ := spos.NewSubround(
@@ -79,7 +80,7 @@ func initSubroundEndRoundWithContainer(
 	return srEndRound
 }
 
-func initSubroundEndRound(appStatusHandler core.AppStatusHandler) bls.SubRoundEndHandler {
+func initSubroundEndRound(appStatusHandler core.AppStatusHandler) sovereign.SubRoundEndHandler {
 	container := consensusMocks.InitConsensusCore()
 	return initSubroundEndRoundWithContainer(container, appStatusHandler, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 }
@@ -87,7 +88,7 @@ func initSubroundEndRound(appStatusHandler core.AppStatusHandler) bls.SubRoundEn
 func TestNewSubroundEndRoundV2_ShouldErrNilSubround(t *testing.T) {
 	t.Parallel()
 
-	srV2, err := bls.NewSubroundEndRoundV2(nil)
+	srV2, err := sovereign.NewSubroundEndRoundV2(nil)
 
 	assert.Nil(t, srV2)
 	assert.Equal(t, spos.ErrNilSubround, err)
@@ -97,7 +98,7 @@ func TestNewSubroundEndRoundV2_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	sr := initSubroundEndRound(&statusHandler.AppStatusHandlerStub{})
-	srV2, err := bls.NewSubroundEndRoundV2(sr)
+	srV2, err := sovereign.NewSubroundEndRoundV2(sr)
 
 	assert.NotNil(t, srV2)
 	assert.Nil(t, err)
@@ -110,7 +111,7 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 		t.Parallel()
 
 		sr := initSubroundEndRound(&statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundEndRoundV2(sr)
+		srV2, _ := sovereign.NewSubroundEndRoundV2(sr)
 
 		srV2.SetHeader(nil)
 		msg := srV2.GetMessageToVerifySig()
@@ -122,7 +123,7 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 		t.Parallel()
 
 		sr := initSubroundEndRound(&statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundEndRoundV2(sr)
+		srV2, _ := sovereign.NewSubroundEndRoundV2(sr)
 
 		srV2.SetHeader(&block.Header{Nonce: 1})
 		expectedMsg, _ := core.CalculateHash(srV2.Marshalizer(), srV2.Hasher(), srV2.GetHeader())

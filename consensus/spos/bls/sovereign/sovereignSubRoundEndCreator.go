@@ -1,21 +1,24 @@
-package bls
+package sovereign
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/errors"
 )
 
+// TODO: MARIUS C: Delete this
+
 type sovereignSubRoundEndCreator struct {
-	outGoingOperationsPool OutGoingOperationsPool
-	bridgeOpHandler        BridgeOperationsHandler
+	outGoingOperationsPool bls.OutGoingOperationsPool
+	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndCreator creates a new sovereign subround end factory
 func NewSovereignSubRoundEndCreator(
-	outGoingOperationsPool OutGoingOperationsPool,
-	bridgeOpHandler BridgeOperationsHandler,
+	outGoingOperationsPool bls.OutGoingOperationsPool,
+	bridgeOpHandler bls.BridgeOperationsHandler,
 ) (*sovereignSubRoundEndCreator, error) {
 	if check.IfNil(outGoingOperationsPool) {
 		return nil, errors.ErrNilOutGoingOperationsPool
@@ -32,7 +35,7 @@ func NewSovereignSubRoundEndCreator(
 
 // CreateAndAddSubRoundEnd creates a new sovereign subround end and adds it to the consensus
 func (c *sovereignSubRoundEndCreator) CreateAndAddSubRoundEnd(
-	subroundEndRoundInstance *subroundEndRound,
+	subroundEndRoundInstance SubRoundEndHandler,
 	worker spos.WorkerHandler,
 	consensusCore spos.ConsensusCoreHandler,
 ) error {
@@ -50,8 +53,8 @@ func (c *sovereignSubRoundEndCreator) CreateAndAddSubRoundEnd(
 		return err
 	}
 
-	worker.AddReceivedMessageCall(MtBlockHeaderFinalInfo, sovEndRound.receivedBlockHeaderFinalInfo)
-	worker.AddReceivedMessageCall(MtInvalidSigners, sovEndRound.receivedInvalidSignersInfo)
+	worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, sovEndRound.receivedBlockHeaderFinalInfo)
+	worker.AddReceivedMessageCall(bls.MtInvalidSigners, sovEndRound.receivedInvalidSignersInfo)
 	worker.AddReceivedHeaderHandler(sovEndRound.receivedHeader)
 	consensusCore.Chronology().AddSubround(sovEndRound)
 

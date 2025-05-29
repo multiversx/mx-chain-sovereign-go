@@ -1,12 +1,13 @@
-package bls
+package sovereign
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 type SubRoundSignatureHandler interface {
-	SubRoundHandler
+	bls.SubRoundHandler
 	SetMessageToSignFunc(verifyMsgFunc func() []byte)
 }
 

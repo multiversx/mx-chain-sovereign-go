@@ -1,4 +1,4 @@
-package bls_test
+package sovereign_test
 
 import (
 	"errors"
@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -41,7 +42,7 @@ func defaultSubroundForSRBlock(consensusState *spos.ConsensusState, ch chan bool
 	)
 }
 
-func defaultSubroundBlockFromSubround(sr *spos.Subround) (bls.SubRoundBlockHandler, error) {
+func defaultSubroundBlockFromSubround(sr *spos.Subround) (sovereign.SubRoundBlockHandler, error) {
 	srBlock, err := v1.NewSubroundBlock(
 		sr,
 		extend,
@@ -51,7 +52,7 @@ func defaultSubroundBlockFromSubround(sr *spos.Subround) (bls.SubRoundBlockHandl
 	return srBlock, err
 }
 
-func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) bls.SubRoundBlockHandler {
+func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) sovereign.SubRoundBlockHandler {
 	srBlock, _ := v1.NewSubroundBlock(
 		sr,
 		extend,
@@ -65,7 +66,7 @@ func initSubroundBlock(
 	blockChain data.ChainHandler,
 	container *spos.ConsensusCore,
 	appStatusHandler core.AppStatusHandler,
-) bls.SubRoundBlockHandler {
+) sovereign.SubRoundBlockHandler {
 	if blockChain == nil {
 		blockChain = &testscommon.ChainHandlerStub{
 			GetCurrentBlockHeaderCalled: func() data.HeaderHandler {
@@ -97,7 +98,7 @@ func initSubroundBlock(
 func TestNewSubroundBlockV2_ShouldErrNilSubround(t *testing.T) {
 	t.Parallel()
 
-	srV2, err := bls.NewSubroundBlockV2(nil)
+	srV2, err := sovereign.NewSubroundBlockV2(nil)
 	assert.Nil(t, srV2)
 	assert.Equal(t, spos.ErrNilSubround, err)
 }
@@ -108,7 +109,7 @@ func TestNewSubroundBlockV2_ShouldWork(t *testing.T) {
 	container := consensusMock.InitConsensusCore()
 	sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
 
-	srV2, err := bls.NewSubroundBlockV2(sr)
+	srV2, err := sovereign.NewSubroundBlockV2(sr)
 	assert.NotNil(t, srV2)
 	assert.Nil(t, err)
 }
@@ -121,7 +122,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 
 		r := srV2.DoBlockJob()
 		assert.False(t, r)
@@ -132,7 +133,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		_ = srV2.SetJobDone(srV2.SelfPubKey(), bls.SrBlock, true)
 
@@ -145,7 +146,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		_ = srV2.SetJobDone(srV2.SelfPubKey(), bls.SrBlock, true)
 		container.SetRoundHandler(&mock.RoundHandlerMock{
@@ -162,7 +163,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,
@@ -184,7 +185,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,
@@ -205,7 +206,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,
@@ -226,7 +227,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,
@@ -250,7 +251,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,
@@ -271,7 +272,7 @@ func TestSubroundBlockV2_DoBlockJob(t *testing.T) {
 
 		container := consensusMock.InitConsensusCore()
 		sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
-		srV2, _ := bls.NewSubroundBlockV2(sr)
+		srV2, _ := sovereign.NewSubroundBlockV2(sr)
 		srV2.SetSelfPubKey(srV2.ConsensusGroup()[0])
 		container.SetRoundHandler(&mock.RoundHandlerMock{
 			RoundIndex: 1,

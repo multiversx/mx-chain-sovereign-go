@@ -1,4 +1,4 @@
-package bls
+package sovereign
 
 import (
 	"context"
@@ -6,11 +6,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 // SubRoundEndHandler defines a sub round end handler
 type SubRoundEndHandler interface {
-	SubRoundHandler
+	bls.SubRoundHandler
 	SetMessageToVerifySigFunc(verifyMsgFunc func() []byte)
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
 	ReceivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool

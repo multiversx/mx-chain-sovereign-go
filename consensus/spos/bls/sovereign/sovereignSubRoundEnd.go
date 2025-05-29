@@ -1,4 +1,4 @@
-package bls
+package sovereign
 
 import (
 	"context"
@@ -6,10 +6,9 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	logger "github.com/multiversx/mx-chain-logger-go"
-
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -19,19 +18,17 @@ import (
 
 // TODO: Marius C, this should be merged with subroundEndV2 in a sovereign specific file
 
-var log = logger.GetOrCreate("bls-sovereign")
-
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2
-	outGoingOperationsPool OutGoingOperationsPool
-	bridgeOpHandler        BridgeOperationsHandler
+	outGoingOperationsPool bls.OutGoingOperationsPool
+	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndRound creates a new sovereign end subround
 func NewSovereignSubRoundEndRound(
 	subRoundEnd *subroundEndRoundV2,
-	outGoingOperationsPool OutGoingOperationsPool,
-	bridgeOpHandler BridgeOperationsHandler,
+	outGoingOperationsPool bls.OutGoingOperationsPool,
+	bridgeOpHandler bls.BridgeOperationsHandler,
 ) (*sovereignSubRoundEnd, error) {
 	if check.IfNil(subRoundEnd) {
 		return nil, spos.ErrNilSubround
@@ -88,7 +85,7 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 	mbType := block.OutGoingMBType(outGoingMBHeader.GetOutGoingMBTypeInt32()).String()
 	extraSigData, found := cnsDta.ExtraSignatures[mbType]
 	if !found {
-		return fmt.Errorf("%w for type %s", ErrExtraSigShareDataNotFound, mbType)
+		return fmt.Errorf("%w for type %s", bls.ErrExtraSigShareDataNotFound, mbType)
 	}
 
 	err := outGoingMBHeader.SetAggregatedSignatureOutGoingOperations(extraSigData.AggregatedSignatureOutGoingTxData)

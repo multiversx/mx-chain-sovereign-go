@@ -707,9 +707,6 @@ var ErrNilConsensusMessage = errors.New("nil consensus message has been provided
 // ErrNilExtraSignersHolder signals that a nil extra signers holder has been provided
 var ErrNilExtraSignersHolder = errors.New("nil extra signer holder has been provided")
 
-// ErrNilSubRoundEndV2Creator signals that a nil sub round end v2 creator has been provided
-var ErrNilSubRoundEndV2Creator = errors.New("nil sub round end v2 creator has been provided")
-
 // ErrNilBridgeOpHandler signals that a nil bridge operation handler has been provided
 var ErrNilBridgeOpHandler = errors.New("nil bridge operation handler has been provided")
 

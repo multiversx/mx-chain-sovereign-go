@@ -1,4 +1,4 @@
-package bls_test
+package sovereign_test
 
 import (
 	"testing"
@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
@@ -18,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) bls.SubRoundSignatureHandler {
+func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) sovereign.SubRoundSignatureHandler {
 	consensusState := initializers.InitConsensusState()
 	ch := make(chan bool, 1)
 
@@ -50,7 +51,7 @@ func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, ena
 	return srSignature
 }
 
-func initSubroundSignature() bls.SubRoundSignatureHandler {
+func initSubroundSignature() sovereign.SubRoundSignatureHandler {
 	container := consensusMocks.InitConsensusCore()
 	return initSubroundSignatureWithContainer(container, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 }
@@ -58,7 +59,7 @@ func initSubroundSignature() bls.SubRoundSignatureHandler {
 func TestNewSubroundSignatureV2_ShouldErrNilSubround(t *testing.T) {
 	t.Parallel()
 
-	srV2, err := bls.NewSubroundSignatureV2(nil)
+	srV2, err := sovereign.NewSubroundSignatureV2(nil)
 
 	assert.Nil(t, srV2)
 	assert.Equal(t, spos.ErrNilSubround, err)
@@ -68,7 +69,7 @@ func TestNewSubroundSignatureV2_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	sr := initSubroundSignature()
-	srV2, err := bls.NewSubroundSignatureV2(sr)
+	srV2, err := sovereign.NewSubroundSignatureV2(sr)
 
 	assert.NotNil(t, srV2)
 	assert.Nil(t, err)
@@ -81,7 +82,7 @@ func TestSubroundSignatureV2_GetMessageToSign(t *testing.T) {
 		t.Parallel()
 
 		sr := initSubroundSignature()
-		srV2, _ := bls.NewSubroundSignatureV2(sr)
+		srV2, _ := sovereign.NewSubroundSignatureV2(sr)
 
 		srV2.SetHeader(nil)
 		msg := srV2.GetMessageToSign()
@@ -93,7 +94,7 @@ func TestSubroundSignatureV2_GetMessageToSign(t *testing.T) {
 		t.Parallel()
 
 		sr := initSubroundSignature()
-		srV2, _ := bls.NewSubroundSignatureV2(sr)
+		srV2, _ := sovereign.NewSubroundSignatureV2(sr)
 
 		srV2.SetHeader(&block.Header{Nonce: 1})
 		expectedMsg, _ := core.CalculateHash(srV2.Marshalizer(), srV2.Hasher(), srV2.GetHeader())

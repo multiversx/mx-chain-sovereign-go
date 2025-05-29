@@ -1,16 +1,17 @@
-package bls
+package sovereign
 
 import (
 	"context"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 type SubRoundBlockHandler interface {
-	SubRoundHandler
+	bls.SubRoundHandler
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
-	DoBlockComputation() (*SubRoundBlockProcessArgs, func())
+	DoBlockComputation() (*bls.SubRoundBlockProcessArgs, func())
 	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
 }
 

@@ -46,16 +46,6 @@ type ExtraSignersHolder interface {
 	IsInterfaceNil() bool
 }
 
-// SubRoundEndV2Creator should create an end subround v2 and add it to the consensus core chronology
-type SubRoundEndV2Creator interface {
-	CreateAndAddSubRoundEnd(
-		subroundEndRoundInstance *subroundEndRound,
-		worker spos.WorkerHandler,
-		consensusCore spos.ConsensusCoreHandler,
-	) error
-	IsInterfaceNil() bool
-}
-
 // BridgeOperationsHandler handles sending outgoing txs from sovereign to main chain
 type BridgeOperationsHandler interface {
 	Send(ctx context.Context, data *sovereign.BridgeOperations) (*sovereign.BridgeOperationsResponse, error)
@@ -76,4 +66,5 @@ type OutGoingOperationsPool interface {
 type SubRoundHandler interface {
 	spos.ConsensusCoreHandler
 	spos.ConsensusStateHandler
+	consensus.SubroundHandler
 }
