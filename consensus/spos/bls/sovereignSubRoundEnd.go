@@ -17,6 +17,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
+// TODO: Marius C, this should be merged with subroundEndV2 in a sovereign specific file
+
 var log = logger.GetOrCreate("bls-sovereign")
 
 type sovereignSubRoundEnd struct {
@@ -47,12 +49,12 @@ func NewSovereignSubRoundEndRound(
 		bridgeOpHandler:        bridgeOpHandler,
 	}
 
-	sr.Job = sr.doSovereignEndRoundJob
+	sr.SetBlockJob(sr.doSovereignEndRoundJob)
 	return sr, nil
 }
 
 func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
-	success := sr.subroundEndRoundV2.receivedBlockHeaderFinalInfo(ctx, cnsDta)
+	success := sr.subroundEndRoundV2.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
 	if !success {
 		return false
 	}
@@ -63,7 +65,7 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 }
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {
-	sovHeader, castOk := sr.Header.(data.SovereignChainHeaderHandler)
+	sovHeader, castOk := sr.GetHeader().(data.SovereignChainHeaderHandler)
 	if !castOk {
 		log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded", "error", errors.ErrWrongTypeAssertion)
 		return errors.ErrWrongTypeAssertion
@@ -117,12 +119,12 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 }
 
 func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool {
-	success := sr.subroundEndRoundV2.doEndRoundJob(ctx)
+	success := sr.subroundEndRoundV2.DoEndRoundJob(ctx)
 	if !success {
 		return false
 	}
 
-	sovHeader, castOk := sr.Header.(data.SovereignChainHeaderHandler)
+	sovHeader, castOk := sr.GetHeader().(data.SovereignChainHeaderHandler)
 	if !castOk {
 		log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob", "error", errors.ErrWrongTypeAssertion)
 		return false

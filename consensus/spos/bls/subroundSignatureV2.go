@@ -5,12 +5,17 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 )
 
+type SubRoundSignatureHandler interface {
+	SubRoundHandler
+	SetMessageToSignFunc(verifyMsgFunc func() []byte)
+}
+
 type subroundSignatureV2 struct {
-	*subroundSignature
+	SubRoundSignatureHandler
 }
 
 // NewSubroundSignatureV2 creates a subroundSignatureV2 object
-func NewSubroundSignatureV2(subroundSignature *subroundSignature) (*subroundSignatureV2, error) {
+func NewSubroundSignatureV2(subroundSignature SubRoundSignatureHandler) (*subroundSignatureV2, error) {
 	if subroundSignature == nil {
 		return nil, spos.ErrNilSubround
 	}
@@ -19,13 +24,13 @@ func NewSubroundSignatureV2(subroundSignature *subroundSignature) (*subroundSign
 		subroundSignature,
 	}
 
-	sr.getMessageToSignFunc = sr.getMessageToSign
+	sr.SetMessageToSignFunc(sr.getMessageToSign)
 
 	return sr, nil
 }
 
 func (sr *subroundSignatureV2) getMessageToSign() []byte {
-	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.Header)
+	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
 	if err != nil {
 		log.Error("subroundSignatureV2.getMessageToSign", "error", err.Error())
 		return nil

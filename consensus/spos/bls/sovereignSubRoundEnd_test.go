@@ -9,10 +9,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -23,10 +23,9 @@ import (
 )
 
 type sovEndRoundHandler interface {
-	consensus.SubroundHandler
+	bls.SubRoundHandler
 	DoSovereignEndRoundJob(ctx context.Context) bool
 	ReceivedBlockHeaderFinalInfo(cnsDta *consensus.Message) bool
-	GetInternalHeader() data.HeaderHandler
 }
 
 func createSovSubRoundEndWithSelfLeader(
@@ -34,16 +33,15 @@ func createSovSubRoundEndWithSelfLeader(
 	bridgeHandler bls.BridgeOperationsHandler,
 	header data.HeaderHandler,
 ) sovEndRoundHandler {
-	container := mock.InitConsensusCore()
-	sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := bls.NewSubroundEndRoundV2(&sr)
+	container := consensusMocks.InitConsensusCore()
+	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	srV2, _ := bls.NewSubroundEndRoundV2(sr)
 	sovEndRound, _ := bls.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
 
 	sovEndRound.SetSelfPubKey("A")
 	sovEndRound.SetThreshold(bls.SrEndRound, 1)
 	_ = sovEndRound.SetJobDone(sovEndRound.ConsensusGroup()[0], bls.SrSignature, true)
-	sovEndRound.Header = header
-
+	sovEndRound.SetHeader(header)
 	return sovEndRound
 }
 
@@ -52,9 +50,9 @@ func createSovSubRoundEndWithParticipant(
 	bridgeHandler bls.BridgeOperationsHandler,
 	header data.HeaderHandler,
 ) sovEndRoundHandler {
-	container := mock.InitConsensusCore()
-	sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := bls.NewSubroundEndRoundV2(&sr)
+	container := consensusMocks.InitConsensusCore()
+	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	srV2, _ := bls.NewSubroundEndRoundV2(sr)
 	sovEndRound, _ := bls.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
 
 	sovEndRound.SetSelfPubKey("*")
@@ -63,7 +61,7 @@ func createSovSubRoundEndWithParticipant(
 	sr.SetStatus(2, spos.SsFinished)
 	// set current as not finished
 	sr.SetStatus(3, spos.SsNotFinished)
-	sovEndRound.Header = header
+	sovEndRound.SetHeader(header)
 	sr.AddReceivedHeader(header)
 
 	return sovEndRound
@@ -72,9 +70,9 @@ func createSovSubRoundEndWithParticipant(
 func TestNewSovereignSubRoundEndRound(t *testing.T) {
 	t.Parallel()
 
-	container := mock.InitConsensusCore()
-	sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := bls.NewSubroundEndRoundV2(&sr)
+	container := consensusMocks.InitConsensusCore()
+	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	srV2, _ := bls.NewSubroundEndRoundV2(sr)
 
 	t.Run("nil subround end, should return error", func(t *testing.T) {
 		sovEndRound, err := bls.NewSovereignSubRoundEndRound(
@@ -891,9 +889,9 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	aggregatedSig := []byte("aggregatedSigOutGoing")
 	leaderSig := []byte("leaderSigOutGoing")
 	cnsData := consensus.Message{
-		HeaderHash:     []byte("X"),
-		PubKey:         []byte("A"),
-		InvalidSigners: []byte("invalidSignersData"),
+		BlockHeaderHash: []byte("X"),
+		PubKey:          []byte("A"),
+		InvalidSigners:  []byte("invalidSignersData"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
 			block.OutGoingMbTx.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
@@ -908,7 +906,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	require.False(t, wasDataSent)
 
 	// Header's outgoing mb is updated with signatures from consensus message
-	outGoingMb := sovEndRound.GetInternalHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbTx))
+	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbTx))
 	require.Equal(t, leaderSig, outGoingMb.GetLeaderSignatureOutGoingOperations())
 	require.Equal(t, aggregatedSig, outGoingMb.GetAggregatedSignatureOutGoingOperations())
 

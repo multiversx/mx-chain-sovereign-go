@@ -101,6 +101,11 @@ func checkNewSubroundEndRoundParams(
 	return err
 }
 
+// ReceivedBlockHeaderFinalInfo method is called when a block header final info is received
+func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
+	return sr.receivedBlockHeaderFinalInfo(ctx, cnsDta)
+}
+
 // receivedBlockHeaderFinalInfo method is called when a block header final info is received
 func (sr *subroundEndRound) receivedBlockHeaderFinalInfo(_ context.Context, cnsDta *consensus.Message) bool {
 	node := string(cnsDta.PubKey)
@@ -307,6 +312,11 @@ func (sr *subroundEndRound) receivedHeader(headerHandler data.HeaderHandler) {
 	sr.AddReceivedHeader(headerHandler)
 
 	sr.doEndRoundJobByParticipant(nil)
+}
+
+// DoEndRoundJob method does the job of the subround EndRound
+func (sr *subroundEndRound) DoEndRoundJob(ctx context.Context) bool {
+	return sr.doEndRoundJob(ctx)
 }
 
 // doEndRoundJob method does the job of the subround EndRound
@@ -1070,4 +1080,9 @@ func (sr *subroundEndRound) getMessageToVerifySig() []byte {
 // SetMessageToVerifySigFunc sets the verify message func
 func (sr *subroundEndRound) SetMessageToVerifySigFunc(verifyMsgFunc func() []byte) {
 	sr.getMessageToVerifySigFunc = verifyMsgFunc
+}
+
+// SetBlockJob sets the block job
+func (sr *subroundEndRound) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
+	sr.Job = doBlockJob
 }

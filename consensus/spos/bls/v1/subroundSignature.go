@@ -483,3 +483,8 @@ func (sr *subroundSignature) IsInterfaceNil() bool {
 func (sr *subroundSignature) getMessageToSign() []byte {
 	return sr.GetData()
 }
+
+// SetMessageToSignFunc sets the message to sign func
+func (sr *subroundSignature) SetMessageToSignFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToSignFunc = verifyMsgFunc
+}
