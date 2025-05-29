@@ -2,6 +2,7 @@ package v1_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -449,7 +450,7 @@ func TestSubroundEndRound_DoEndRoundJobErrAggregatingSigShouldFail(t *testing.T)
 	sr.SetLeader("A")
 
 	assert.True(t, sr.IsSelfLeaderInCurrentRound())
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -472,7 +473,7 @@ func TestSubroundEndRound_DoEndRoundJobErrCommitBlockShouldFail(t *testing.T) {
 	container.SetBlockProcessor(blProcMock)
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -494,12 +495,12 @@ func TestSubroundEndRound_DoEndRoundJobErrTimeIsOutShouldFail(t *testing.T) {
 	container.SetRoundHandler(roundHandlerMock)
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 
 	remainingTime = -time.Millisecond
 
-	r = sr.DoEndRoundJob()
+	r = sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -519,7 +520,7 @@ func TestSubroundEndRound_DoEndRoundJobErrBroadcastBlockOK(t *testing.T) {
 
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 }
 
@@ -554,7 +555,7 @@ func TestSubroundEndRound_DoEndRoundJobErrMarshalizedDataToBroadcastOK(t *testin
 
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 	assert.Equal(t, errors.New("error marshalized data to broadcast"), err)
 }
@@ -590,7 +591,7 @@ func TestSubroundEndRound_DoEndRoundJobErrBroadcastMiniBlocksOK(t *testing.T) {
 
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 	// no error as broadcast is delayed
 	assert.Equal(t, errors.New("error broadcast miniblocks"), err)
@@ -627,7 +628,7 @@ func TestSubroundEndRound_DoEndRoundJobErrBroadcastTransactionsOK(t *testing.T) 
 
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 	// no error as broadcast is delayed
 	assert.Equal(t, errors.New("error broadcast transactions"), err)
@@ -649,7 +650,7 @@ func TestSubroundEndRound_DoEndRoundJobAllOK(t *testing.T) {
 
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 }
 
@@ -678,7 +679,7 @@ func TestSubroundEndRound_CheckIfSignatureIsFilled(t *testing.T) {
 
 	sr.SetHeader(&block.Header{Nonce: 5})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 	assert.Equal(t, expectedSignature, sr.GetHeader().GetLeaderSignature())
 }
@@ -939,7 +940,7 @@ func TestSubroundEndRound_ReceivedBlockHeaderFinalInfoShouldWork(t *testing.T) {
 		PubKey:          []byte("A"),
 	}
 
-	res := sr.ReceivedBlockHeaderFinalInfo(&cnsData)
+	res := sr.ReceivedBlockHeaderFinalInfo(context.Background(), &cnsData)
 	assert.True(t, res)
 }
 
@@ -964,7 +965,7 @@ func TestSubroundEndRound_ReceivedBlockHeaderFinalInfoShouldReturnFalseWhenFinal
 		PubKey:          []byte("A"),
 	}
 	sr.SetHeader(&block.Header{})
-	res := sr.ReceivedBlockHeaderFinalInfo(&cnsData)
+	res := sr.ReceivedBlockHeaderFinalInfo(context.Background(), &cnsData)
 	assert.False(t, res)
 }
 

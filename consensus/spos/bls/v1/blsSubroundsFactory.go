@@ -31,6 +31,8 @@ type factory struct {
 	extraSignersHolder    bls.ExtraSignersHolder
 }
 
+// TODO: MARIUS C: REMOVE consensusModel consensus.ConsensusModel from args
+
 // NewSubroundsFactory creates a new factory object
 func NewSubroundsFactory(
 	consensusDataContainer spos.ConsensusCoreHandler,
@@ -345,11 +347,6 @@ func (fct *factory) generateEndRoundSubround(extraSignersHolder bls.SubRoundEndE
 	if err != nil {
 		return nil, err
 	}
-
-	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, subroundEndRoundInstance.receivedBlockHeaderFinalInfo)
-	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, subroundEndRoundInstance.receivedInvalidSignersInfo)
-	fct.worker.AddReceivedHeaderHandler(subroundEndRoundInstance.receivedHeader)
-	fct.consensusCore.Chronology().AddSubround(subroundEndRoundInstance)
 
 	return subroundEndRoundInstance, nil
 }

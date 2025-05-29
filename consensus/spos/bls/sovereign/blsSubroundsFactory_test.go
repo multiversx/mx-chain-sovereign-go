@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -912,7 +913,9 @@ func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	subroundHandlers := 0
 
 	chrm := &consensusMock.ChronologyHandlerMock{}
+	subRoundsMap := make(map[string]struct{})
 	chrm.AddSubroundCalled = func(subroundHandler consensus.SubroundHandler) {
+		subRoundsMap[fmt.Sprintf("%T", subroundHandler)] = struct{}{}
 		subroundHandlers++
 	}
 	container := consensusMock.InitConsensusCore()
@@ -921,9 +924,10 @@ func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	fct.SetOutportHandler(&testscommonOutport.OutportStub{})
 
 	err := fct.GenerateSubrounds(0)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Equal(t, 4, subroundHandlers)
+	require.Equal(t, 4, subroundHandlers)
+	require.Len(t, subRoundsMap, 4)
 }
 
 func TestFactory_GenerateSubroundsNilOutportShouldFail(t *testing.T) {

@@ -108,29 +108,14 @@ func (fct *factory) GenerateBlockSubroundV1() error {
 	return fct.generateBlockSubroundV1()
 }
 
-// GenerateBlockSubroundV2 generates the instance of subround Block V2 and added it to the chronology subrounds list
-func (fct *factory) GenerateBlockSubroundV2() error {
-	return fct.generateBlockSubroundV2()
-}
-
 // GenerateSignatureSubroundV1 generates the instance of subround Signature V1 and added it to the chronology subrounds list
 func (fct *factory) GenerateSignatureSubroundV1() error {
 	return fct.generateSignatureSubroundV1(&subRounds.SubRoundSignatureExtraSignersHolderMock{})
 }
 
-// GenerateSignatureSubroundV2 generates the instance of subround Signature V2 and added it to the chronology subrounds list
-func (fct *factory) GenerateSignatureSubroundV2() error {
-	return fct.generateSignatureSubroundV2(&subRounds.SubRoundSignatureExtraSignersHolderMock{})
-}
-
 // GenerateEndRoundSubroundV1 generates the instance of subround EndRound V1 and added it to the chronology subrounds list
 func (fct *factory) GenerateEndRoundSubroundV1() error {
 	return fct.generateEndRoundSubroundV1(&subRounds.SubRoundEndExtraSignersHolderMock{})
-}
-
-// GenerateEndRoundSubroundV2 generates the instance of subround EndRound V2 and added it to the chronology subrounds list
-func (fct *factory) GenerateEndRoundSubroundV2() error {
-	return fct.generateEndRoundSubroundV2(&subRounds.SubRoundEndExtraSignersHolderMock{})
 }
 
 // AppStatusHandler gets the app status handler object
@@ -186,11 +171,6 @@ func (sr *subroundBlock) BlockChain() data.ChainHandler {
 // DoBlockJob method does the job of the subround Block
 func (sr *subroundBlock) DoBlockJob() bool {
 	return sr.doBlockJob(context.Background())
-}
-
-// ProcessReceivedBlock method processes the received proposed block in the subround Block
-func (sr *subroundBlock) ProcessReceivedBlock(cnsDta *consensus.Message) bool {
-	return sr.processReceivedBlock(context.Background(), cnsDta)
 }
 
 // DoBlockConsensusCheck method checks if the consensus in the subround Block is achieved
@@ -278,11 +258,6 @@ func (sr *subroundSignature) GetProcessedHeaderHash() []byte {
 // SubroundEndRound defines an alias for the subroundEndRound structure
 type SubroundEndRound = *subroundEndRound
 
-// DoEndRoundJob method does the job of the subround EndRound
-func (sr *subroundEndRound) DoEndRoundJob() bool {
-	return sr.doEndRoundJob(context.Background())
-}
-
 // DoEndRoundConsensusCheck method checks if the consensus is achieved
 func (sr *subroundEndRound) DoEndRoundConsensusCheck() bool {
 	return sr.doEndRoundConsensusCheck()
@@ -311,11 +286,6 @@ func (sr *subroundEndRound) HaveConsensusHeaderWithFullInfo(cnsDta *consensus.Me
 // CreateAndBroadcastHeaderFinalInfo calls the unexported createAndBroadcastHeaderFinalInfo function
 func (sr *subroundEndRound) CreateAndBroadcastHeaderFinalInfo() {
 	sr.createAndBroadcastHeaderFinalInfo()
-}
-
-// ReceivedBlockHeaderFinalInfo calls the unexported receivedBlockHeaderFinalInfo function
-func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(cnsDta *consensus.Message) bool {
-	return sr.receivedBlockHeaderFinalInfo(context.Background(), cnsDta)
 }
 
 // IsBlockHeaderFinalInfoValid calls the unexported isBlockHeaderFinalInfoValid function
