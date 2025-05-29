@@ -2,7 +2,6 @@ package sovereign
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -10,16 +9,9 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 )
-
-type SubRoundsFactoryHandler interface {
-	GenerateBlockSubround() (SubRoundBlockHandler, error)
-	GenerateSignatureSubround() (SubRoundSignatureHandler, error)
-	GenerateEndRoundSubround() (SubRoundEndHandler, error)
-}
 
 // factory defines the data needed by this factory to create all the subrounds and give them their specific
 // functionality
@@ -28,15 +20,10 @@ type factory struct {
 	consensusState spos.ConsensusStateHandler
 	worker         spos.WorkerHandler
 
-	appStatusHandler      core.AppStatusHandler
-	outportHandler        outport.OutportHandler
-	sentSignaturesTracker spos.SentSignaturesTracker
-	chainID               []byte
-	currentPid            core.PeerID
-	consensusModel        consensus.ConsensusModel
-	enableEpochHandler    common.EnableEpochsHandler
-	extraSignersHolder    bls.ExtraSignersHolder
-	baseSubRoundsFactory  SubRoundsFactoryHandler
+	outportHandler       outport.OutportHandler
+	consensusModel       consensus.ConsensusModel
+	enableEpochHandler   common.EnableEpochsHandler
+	baseSubRoundsFactory SubRoundsFactoryHandler
 
 	outGoingOperationsPool bls.OutGoingOperationsPool
 	bridgeOpHandler        bls.BridgeOperationsHandler
@@ -47,14 +34,9 @@ func NewSubroundsFactory(
 	consensusDataContainer spos.ConsensusCoreHandler,
 	consensusState spos.ConsensusStateHandler,
 	worker spos.WorkerHandler,
-	chainID []byte,
-	currentPid core.PeerID,
-	appStatusHandler core.AppStatusHandler,
-	sentSignaturesTracker spos.SentSignaturesTracker,
 	outportHandler outport.OutportHandler,
 	consensusModel consensus.ConsensusModel,
 	enableEpochHandler common.EnableEpochsHandler,
-	extraSignersHolder bls.ExtraSignersHolder,
 	baseSubRoundsFactory SubRoundsFactoryHandler,
 	outGoingOperationsPool bls.OutGoingOperationsPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
@@ -64,11 +46,7 @@ func NewSubroundsFactory(
 		consensusDataContainer,
 		consensusState,
 		worker,
-		chainID,
-		appStatusHandler,
-		sentSignaturesTracker,
 		enableEpochHandler,
-		extraSignersHolder,
 		baseSubRoundsFactory,
 		outGoingOperationsPool,
 		bridgeOpHandler,
@@ -81,14 +59,9 @@ func NewSubroundsFactory(
 		consensusCore:          consensusDataContainer,
 		consensusState:         consensusState,
 		worker:                 worker,
-		appStatusHandler:       appStatusHandler,
 		outportHandler:         outportHandler,
-		sentSignaturesTracker:  sentSignaturesTracker,
-		chainID:                chainID,
-		currentPid:             currentPid,
 		consensusModel:         consensusModel,
 		enableEpochHandler:     enableEpochHandler,
-		extraSignersHolder:     extraSignersHolder,
 		baseSubRoundsFactory:   baseSubRoundsFactory,
 		outGoingOperationsPool: outGoingOperationsPool,
 		bridgeOpHandler:        bridgeOpHandler,
@@ -101,11 +74,7 @@ func checkNewFactoryParams(
 	container spos.ConsensusCoreHandler,
 	state spos.ConsensusStateHandler,
 	worker spos.WorkerHandler,
-	chainID []byte,
-	appStatusHandler core.AppStatusHandler,
-	sentSignaturesTracker spos.SentSignaturesTracker,
 	enableEpochHandler common.EnableEpochsHandler,
-	extraSignersHolder bls.ExtraSignersHolder,
 	baseSubRoundsFactory SubRoundsFactoryHandler,
 	outGoingOperationsPool bls.OutGoingOperationsPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
@@ -120,20 +89,8 @@ func checkNewFactoryParams(
 	if check.IfNil(worker) {
 		return spos.ErrNilWorker
 	}
-	if check.IfNil(appStatusHandler) {
-		return spos.ErrNilAppStatusHandler
-	}
-	if check.IfNil(sentSignaturesTracker) {
-		return bls.ErrNilSentSignatureTracker
-	}
-	if len(chainID) == 0 {
-		return spos.ErrInvalidChainID
-	}
 	if check.IfNil(enableEpochHandler) {
 		return spos.ErrNilEnableEpochHandler
-	}
-	if check.IfNil(extraSignersHolder) {
-		return errors.ErrNilExtraSignersHolder
 	}
 	if baseSubRoundsFactory == nil {
 		return errNilSubRoundsFactoryInSovereign
@@ -160,7 +117,7 @@ func (fct *factory) GenerateSubrounds(_ uint32) error {
 	fct.worker.RemoveAllReceivedMessagesCalls()
 	fct.worker.RemoveAllReceivedHeaderHandlers()
 
-	err := fct.generateStartRoundSubround(fct.extraSignersHolder.GetSubRoundStartExtraSignersHolder())
+	err := fct.generateStartRoundSubround()
 	if err != nil {
 		return err
 	}
@@ -188,48 +145,17 @@ func (fct *factory) GenerateSubrounds(_ uint32) error {
 	}
 }
 
-func (fct *factory) getTimeDuration() time.Duration {
-	return fct.consensusCore.RoundHandler().TimeDuration()
-}
-
-func (fct *factory) generateStartRoundSubround(extraSignersHolder bls.SubRoundStartExtraSignersHolder) error {
-	subround, err := spos.NewSubround(
-		-1,
-		bls.SrStartRound,
-		bls.SrBlock,
-		int64(float64(fct.getTimeDuration())*srStartStartTime),
-		int64(float64(fct.getTimeDuration())*srStartEndTime),
-		bls.GetSubroundName(bls.SrStartRound),
-		fct.consensusState,
-		fct.worker.GetConsensusStateChangedChannel(),
-		fct.worker.ExecuteStoredMessages,
-		fct.consensusCore,
-		fct.chainID,
-		fct.currentPid,
-		fct.appStatusHandler,
-		fct.enableEpochHandler,
-	)
+func (fct *factory) generateStartRoundSubround() error {
+	subroundStartRoundInstance, err := fct.baseSubRoundsFactory.GenerateStartRoundSubround()
 	if err != nil {
 		return err
 	}
 
-	subroundStartRoundInstance, err := v1.NewSubroundStartRound(
-		subround,
-		fct.worker.Extend,
-		processingThresholdPercent,
-		fct.worker.ExecuteStoredMessages,
-		fct.worker.ResetConsensusMessages,
-		fct.sentSignaturesTracker,
-		extraSignersHolder,
-	)
-	if err != nil {
-		return err
-	}
-
-	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
-	if err != nil {
-		return err
-	}
+	// TODO: MARIUS C Decide here if we have this here or in baseSubRoundsFactory
+	//	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
+	//	if err != nil {
+	//		return err
+	//	}
 
 	fct.consensusCore.Chronology().AddSubround(subroundStartRoundInstance)
 
@@ -247,9 +173,6 @@ func (fct *factory) generateBlockSubroundV2() error {
 		return errV2
 	}
 
-	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockV2Instance.receivedBlockBodyAndHeader)
-	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockV2Instance.receivedBlockBody)
-	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockV2Instance.receivedBlockHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundBlockV2Instance)
 
 	return nil
@@ -266,7 +189,6 @@ func (fct *factory) generateSignatureSubroundV2() error {
 		return errV2
 	}
 
-	fct.worker.AddReceivedMessageCall(bls.MtSignature, subroundSignatureV2Instance.receivedSignature)
 	fct.consensusCore.Chronology().AddSubround(subroundSignatureV2Instance)
 
 	return nil
@@ -292,9 +214,8 @@ func (fct *factory) generateEndRoundSubroundV2() error {
 		return err
 	}
 
+	fct.worker.ResetHandlers(bls.MtBlockHeaderFinalInfo)
 	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, sovEndRound.receivedBlockHeaderFinalInfo)
-	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, sovEndRound.receivedInvalidSignersInfo)
-	fct.worker.AddReceivedHeaderHandler(sovEndRound.receivedHeader)
 	fct.consensusCore.Chronology().AddSubround(sovEndRound)
 
 	return nil

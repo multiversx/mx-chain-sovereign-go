@@ -1,9 +1,7 @@
 package sovereign_test
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -20,28 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 	"github.com/stretchr/testify/assert"
 )
-
-var chainID = []byte("chain ID")
-
-const currentPid = core.PeerID("pid")
-const processingThresholdPercent = 85
-
-const roundTimeDuration = 100 * time.Millisecond
-
-func displayStatistics() {
-}
-
-func extend(subroundId int) {
-	fmt.Println(subroundId)
-}
-
-// executeStoredMessages tries to execute all the messages received which are valid for execution
-func executeStoredMessages() {
-}
-
-// resetConsensusMessages resets at the start of each round, all the previous consensus messages received
-func resetConsensusMessages() {
-}
 
 func initSubroundEndRoundWithContainer(
 	container *spos.ConsensusCore,

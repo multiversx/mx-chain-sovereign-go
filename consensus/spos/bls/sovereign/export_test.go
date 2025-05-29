@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 )
+
+// Factory defines a type for the factory structure
+type Factory *factory
 
 // GetMessageToSign gets the message that should be signed
 func (sr *subroundSignatureV2) GetMessageToSign() []byte {
@@ -39,10 +41,10 @@ func (fct *factory) GenerateBlockSubroundV2() error {
 
 // GenerateSignatureSubroundV2 generates the instance of subround Signature V2 and added it to the chronology subrounds list
 func (fct *factory) GenerateSignatureSubroundV2() error {
-	return fct.generateSignatureSubroundV2(&subRounds.SubRoundSignatureExtraSignersHolderMock{})
+	return fct.generateSignatureSubroundV2()
 }
 
 // GenerateEndRoundSubroundV2 generates the instance of subround EndRound V2 and added it to the chronology subrounds list
 func (fct *factory) GenerateEndRoundSubroundV2() error {
-	return fct.generateEndRoundSubroundV2(&subRounds.SubRoundEndExtraSignersHolderMock{})
+	return fct.generateEndRoundSubroundV2()
 }

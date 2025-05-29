@@ -443,6 +443,13 @@ func (wrk *Worker) AddReceivedMessageCall(messageType consensus.MessageType, rec
 	wrk.mutReceivedMessagesCalls.Unlock()
 }
 
+// ResetHandlers will reset all handlers for a message type
+func (wrk *Worker) ResetHandlers(messageType consensus.MessageType) {
+	wrk.mutReceivedMessagesCalls.Lock()
+	wrk.receivedMessagesCalls[messageType] = make([]func(ctx context.Context, msg *consensus.Message) bool, 0)
+	wrk.mutReceivedMessagesCalls.Unlock()
+}
+
 // RemoveAllReceivedMessagesCalls removes all the functions handlers
 func (wrk *Worker) RemoveAllReceivedMessagesCalls() {
 	wrk.mutReceivedMessagesCalls.Lock()

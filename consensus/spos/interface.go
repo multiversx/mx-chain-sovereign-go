@@ -99,6 +99,8 @@ type WorkerHandler interface {
 	StartWorking()
 	// AddReceivedMessageCall adds a new handler function for a received message type
 	AddReceivedMessageCall(messageType consensus.MessageType, receivedMessageCall func(ctx context.Context, cnsDta *consensus.Message) bool)
+	// ResetHandlers will reset all handlers for a message type
+	ResetHandlers(messageType consensus.MessageType)
 	// AddReceivedHeaderHandler adds a new handler function for a received header
 	AddReceivedHeaderHandler(handler func(data.HeaderHandler))
 	// RemoveAllReceivedHeaderHandlers removes all the functions handlers

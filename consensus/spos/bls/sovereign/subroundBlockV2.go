@@ -5,15 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
-
-type SubRoundBlockHandler interface {
-	bls.SubRoundHandler
-	SetBlockJob(doBlockJob func(ctx context.Context) bool)
-	DoBlockComputation() (*bls.SubRoundBlockProcessArgs, func())
-	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
-}
 
 type subroundBlockV2 struct {
 	SubRoundBlockHandler

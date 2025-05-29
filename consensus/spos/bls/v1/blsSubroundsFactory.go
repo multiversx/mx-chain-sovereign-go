@@ -212,9 +212,6 @@ func (fct *factory) generateBlockSubroundV1() error {
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
-	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockInstance.receivedBlockBody)
-	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundBlockInstance)
 
 	return nil
@@ -250,6 +247,10 @@ func (fct *factory) generateBlockSubround() (*subroundBlock, error) {
 		return nil, err
 	}
 
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBodyAndHeader, subroundBlockInstance.receivedBlockBodyAndHeader)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockInstance.receivedBlockBody)
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeader, subroundBlockInstance.receivedBlockHeader)
+
 	return subroundBlockInstance, nil
 }
 
@@ -259,7 +260,6 @@ func (fct *factory) generateSignatureSubroundV1(extraSignersHolder bls.SubRoundS
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(bls.MtSignature, subroundSignatureInstance.receivedSignature)
 	fct.consensusCore.Chronology().AddSubround(subroundSignatureInstance)
 
 	return nil
@@ -297,6 +297,8 @@ func (fct *factory) generateSignatureSubround(extraSignersHolder bls.SubRoundSig
 		return nil, err
 	}
 
+	fct.worker.AddReceivedMessageCall(bls.MtSignature, subroundSignatureInstance.receivedSignature)
+
 	return subroundSignatureInstance, nil
 }
 
@@ -306,9 +308,6 @@ func (fct *factory) generateEndRoundSubroundV1(extraSignersHolder bls.SubRoundEn
 		return err
 	}
 
-	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, subroundEndRoundInstance.receivedBlockHeaderFinalInfo)
-	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, subroundEndRoundInstance.receivedInvalidSignersInfo)
-	fct.worker.AddReceivedHeaderHandler(subroundEndRoundInstance.receivedHeader)
 	fct.consensusCore.Chronology().AddSubround(subroundEndRoundInstance)
 
 	return nil
@@ -347,6 +346,10 @@ func (fct *factory) generateEndRoundSubround(extraSignersHolder bls.SubRoundEndE
 	if err != nil {
 		return nil, err
 	}
+
+	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, subroundEndRoundInstance.receivedBlockHeaderFinalInfo)
+	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, subroundEndRoundInstance.receivedInvalidSignersInfo)
+	fct.worker.AddReceivedHeaderHandler(subroundEndRoundInstance.receivedHeader)
 
 	return subroundEndRoundInstance, nil
 }
