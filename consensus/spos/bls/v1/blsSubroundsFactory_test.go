@@ -622,7 +622,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundFail(t *test
 		return nil
 	}
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV1()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -634,7 +634,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundStartRoundFa
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV1()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }

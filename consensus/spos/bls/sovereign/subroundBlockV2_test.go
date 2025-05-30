@@ -42,7 +42,7 @@ func defaultSubroundForSRBlock(consensusState *spos.ConsensusState, ch chan bool
 	)
 }
 
-func defaultSubroundBlockFromSubround(sr *spos.Subround) (sovereign.SubRoundBlockHandler, error) {
+func defaultSubroundBlockFromSubround(sr *spos.Subround) (bls.SubRoundBlockHandler, error) {
 	srBlock, err := v1.NewSubroundBlock(
 		sr,
 		extend,
@@ -52,7 +52,7 @@ func defaultSubroundBlockFromSubround(sr *spos.Subround) (sovereign.SubRoundBloc
 	return srBlock, err
 }
 
-func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) sovereign.SubRoundBlockHandler {
+func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) bls.SubRoundBlockHandler {
 	srBlock, _ := v1.NewSubroundBlock(
 		sr,
 		extend,
@@ -66,7 +66,7 @@ func initSubroundBlock(
 	blockChain data.ChainHandler,
 	container *spos.ConsensusCore,
 	appStatusHandler core.AppStatusHandler,
-) sovereign.SubRoundBlockHandler {
+) bls.SubRoundBlockHandler {
 	if blockChain == nil {
 		blockChain = &testscommon.ChainHandlerStub{
 			GetCurrentBlockHeaderCalled: func() data.HeaderHandler {

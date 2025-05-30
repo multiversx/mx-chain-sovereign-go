@@ -17,7 +17,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
-	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 )
 
 // ProcessingThresholdPercent exports the internal processingThresholdPercent
@@ -99,8 +98,8 @@ func (fct *factory) SetWorker(worker spos.WorkerHandler) {
 }
 
 // GenerateStartRoundSubround generates the instance of subround StartRound and added it to the chronology subrounds list
-func (fct *factory) GenerateStartRoundSubround() error {
-	return fct.generateStartRoundSubround(&subRounds.SubRoundStartExtraSignersHolderMock{})
+func (fct *factory) GenerateStartRoundSubroundV1() error {
+	return fct.generateStartRoundSubroundV1()
 }
 
 // GenerateBlockSubroundV1 generates the instance of subround Block V1 and added it to the chronology subrounds list
@@ -110,12 +109,12 @@ func (fct *factory) GenerateBlockSubroundV1() error {
 
 // GenerateSignatureSubroundV1 generates the instance of subround Signature V1 and added it to the chronology subrounds list
 func (fct *factory) GenerateSignatureSubroundV1() error {
-	return fct.generateSignatureSubroundV1(&subRounds.SubRoundSignatureExtraSignersHolderMock{})
+	return fct.generateSignatureSubroundV1()
 }
 
 // GenerateEndRoundSubroundV1 generates the instance of subround EndRound V1 and added it to the chronology subrounds list
 func (fct *factory) GenerateEndRoundSubroundV1() error {
-	return fct.generateEndRoundSubroundV1(&subRounds.SubRoundEndExtraSignersHolderMock{})
+	return fct.generateEndRoundSubroundV1()
 }
 
 // AppStatusHandler gets the app status handler object

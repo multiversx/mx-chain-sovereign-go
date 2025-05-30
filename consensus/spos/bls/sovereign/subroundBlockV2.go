@@ -5,14 +5,15 @@ import (
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 type subroundBlockV2 struct {
-	SubRoundBlockHandler
+	bls.SubRoundBlockHandler
 }
 
 // NewSubroundBlockV2 creates a subroundBlockV2 object
-func NewSubroundBlockV2(subroundBlock SubRoundBlockHandler) (*subroundBlockV2, error) {
+func NewSubroundBlockV2(subroundBlock bls.SubRoundBlockHandler) (*subroundBlockV2, error) {
 	if subroundBlock == nil {
 		return nil, spos.ErrNilSubround
 	}

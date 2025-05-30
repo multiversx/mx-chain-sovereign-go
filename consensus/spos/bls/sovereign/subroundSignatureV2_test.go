@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) sovereign.SubRoundSignatureHandler {
+func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) bls.SubRoundSignatureHandler {
 	consensusState := initializers.InitConsensusState()
 	ch := make(chan bool, 1)
 
@@ -51,7 +51,7 @@ func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, ena
 	return srSignature
 }
 
-func initSubroundSignature() sovereign.SubRoundSignatureHandler {
+func initSubroundSignature() bls.SubRoundSignatureHandler {
 	container := consensusMocks.InitConsensusCore()
 	return initSubroundSignatureWithContainer(container, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 }

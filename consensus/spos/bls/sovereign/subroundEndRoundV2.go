@@ -3,14 +3,15 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 type subroundEndRoundV2 struct {
-	SubRoundEndHandler
+	bls.SubRoundEndHandler
 }
 
 // NewSubroundEndRoundV2 creates a subroundEndRoundV2 object
-func NewSubroundEndRoundV2(subroundEndRound SubRoundEndHandler) (*subroundEndRoundV2, error) {
+func NewSubroundEndRoundV2(subroundEndRound bls.SubRoundEndHandler) (*subroundEndRoundV2, error) {
 	if subroundEndRound == nil {
 		return nil, spos.ErrNilSubround
 	}

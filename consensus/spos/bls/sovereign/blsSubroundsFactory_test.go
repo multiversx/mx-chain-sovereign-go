@@ -9,17 +9,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
+	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMock "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	sovereign2 "github.com/multiversx/mx-chain-go/testscommon/sovereign"
+	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const processingThresholdPercent = 85
@@ -71,21 +71,52 @@ func initWorker() spos.WorkerHandler {
 	return sposWorker
 }
 
-func initFactoryWithContainer(container *spos.ConsensusCore) sovereign.Factory {
-	worker := initWorker()
+func createArgsSovSubRoundsFactory() sovereign.ArgsSovereignSubRoundsFactory {
+	container := consensusMock.InitConsensusCore()
 	consensusState := initializers.InitConsensusState()
+	worker := initWorker()
 
-	fct, _ := sovereign.NewSubroundsFactory(
+	baseFactory := initFactoryV1(container, consensusState, worker)
+
+	return sovereign.ArgsSovereignSubRoundsFactory{
+		ConsensusDataContainer: container,
+		ConsensusState:         consensusState,
+		Worker:                 worker,
+		OutportHandler:         nil,
+		ConsensusModel:         consensus.ConsensusModelV2,
+		EnableEpochHandler:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		BaseSubRoundsFactory:   baseFactory,
+		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
+		BridgeOpHandler:        &sovTests.BridgeOperationsHandlerMock{},
+	}
+}
+
+func initFactoryV1(
+	container spos.ConsensusCoreHandler,
+	consensusState spos.ConsensusStateHandler,
+	worker spos.WorkerHandler,
+) sovereign.SubRoundsFactoryHandler {
+	fct, _ := v1.NewSubroundsFactory(
 		container,
 		consensusState,
 		worker,
+		chainID,
+		currentPid,
+		&statusHandler.AppStatusHandlerStub{},
+		&testscommon.SentSignatureTrackerStub{},
 		nil,
 		consensus.ConsensusModelV1,
 		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		nil,
-		&sovereign2.OutGoingOperationsPoolMock{},
-		&sovereign2.BridgeOperationsHandlerMock{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
+
+	return fct
+}
+
+func initFactoryWithContainer(container *spos.ConsensusCore) sovereign.Factory {
+	args := createArgsSovSubRoundsFactory()
+	args.ConsensusDataContainer = container
+	fct, _ := sovereign.NewSubroundsFactory(args)
 
 	return fct
 }
@@ -95,514 +126,98 @@ func initFactory() sovereign.Factory {
 	return initFactoryWithContainer(container)
 }
 
-func TestFactory_GetMessageTypeName(t *testing.T) {
-	t.Parallel()
-
-	r := bls.GetStringValue(bls.MtBlockBodyAndHeader)
-	assert.Equal(t, "(BLOCK_BODY_AND_HEADER)", r)
-
-	r = bls.GetStringValue(bls.MtBlockBody)
-	assert.Equal(t, "(BLOCK_BODY)", r)
-
-	r = bls.GetStringValue(bls.MtBlockHeader)
-	assert.Equal(t, "(BLOCK_HEADER)", r)
-
-	r = bls.GetStringValue(bls.MtSignature)
-	assert.Equal(t, "(SIGNATURE)", r)
-
-	r = bls.GetStringValue(bls.MtBlockHeaderFinalInfo)
-	assert.Equal(t, "(FINAL_INFO)", r)
-
-	r = bls.GetStringValue(bls.MtUnknown)
-	assert.Equal(t, "(UNKNOWN)", r)
-
-	r = bls.GetStringValue(consensus.MessageType(-1))
-	assert.Equal(t, "Undefined message type", r)
-}
-
 func TestFactory_NewFactoryNilContainerShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initializers.InitConsensusState()
-	worker := initWorker()
+	args := createArgsSovSubRoundsFactory()
+	args.ConsensusDataContainer = nil
 
-	fct, err := v1.NewSubroundsFactory(
-		nil,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilConsensusCore, err)
+	require.Nil(t, fct)
+	require.Equal(t, spos.ErrNilConsensusCore, err)
 }
 
 func TestFactory_NewFactoryNilConsensusStateShouldFail(t *testing.T) {
 	t.Parallel()
 
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
+	args := createArgsSovSubRoundsFactory()
+	args.ConsensusState = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		nil,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilConsensusState, err)
+	require.Nil(t, fct)
+	require.Equal(t, spos.ErrNilConsensusState, err)
 }
 
 func TestFactory_NewFactoryNilBlockchainShouldFail(t *testing.T) {
 	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
 	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
 	container.SetBlockchain(nil)
 
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
+	args := createArgsSovSubRoundsFactory()
+	args.ConsensusDataContainer = container
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilBlockChain, err)
-}
-
-func TestFactory_NewFactoryNilBlockProcessorShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetBlockProcessor(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilBlockProcessor, err)
-}
-
-func TestFactory_NewFactoryNilBootstrapperShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetBootStrapper(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilBootstrapper, err)
-}
-
-func TestFactory_NewFactoryNilChronologyHandlerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetChronology(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilChronologyHandler, err)
-}
-
-func TestFactory_NewFactoryNilHasherShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetHasher(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilHasher, err)
-}
-
-func TestFactory_NewFactoryNilMarshalizerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetMarshalizer(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilMarshalizer, err)
-}
-
-func TestFactory_NewFactoryNilMultiSignerContainerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetMultiSignerContainer(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilMultiSignerContainer, err)
-}
-
-func TestFactory_NewFactoryNilRoundHandlerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetRoundHandler(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilRoundHandler, err)
-}
-
-func TestFactory_NewFactoryNilShardCoordinatorShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetShardCoordinator(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilShardCoordinator, err)
-}
-
-func TestFactory_NewFactoryNilSyncTimerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetSyncTimer(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilSyncTimer, err)
-}
-
-func TestFactory_NewFactoryNilValidatorGroupSelectorShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-	container.SetNodesCoordinator(nil)
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilNodesCoordinator, err)
+	require.Nil(t, fct)
+	require.Equal(t, spos.ErrNilBlockChain, err)
 }
 
 func TestFactory_NewFactoryNilWorkerShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
+	args := createArgsSovSubRoundsFactory()
+	args.Worker = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		nil,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilWorker, err)
+	require.Nil(t, fct)
+	require.Equal(t, spos.ErrNilWorker, err)
 }
-
-func TestFactory_NewFactoryNilAppStatusHandlerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		nil,
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilAppStatusHandler, err)
-}
-
-func TestFactory_NewFactoryNilSignaturesTrackerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
-
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		nil,
-		nil,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, v1.ErrNilSentSignatureTracker, err)
-}
-
-/*
 
 func TestFactory_NewFactoryNilEnableEpochHandlerShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initializers.InitConsensusState()
-	container := consensusMock.InitConsensusCore()
-	worker := initWorker()
+	args := createArgsSovSubRoundsFactory()
+	args.EnableEpochHandler = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	fct, err := v1.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		consensus.ConsensusModelV1,
-		nil,
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, spos.ErrNilEnableEpochHandler, err)
+	require.Nil(t, fct)
+	require.Equal(t, spos.ErrNilEnableEpochHandler, err)
 }
 
-func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
+func TestFactory_NewFactoryNilBaseFactoryShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initializers.InitConsensusState()
-	container := mock.InitConsensusCore()
-	worker := initWorker()
+	args := createArgsSovSubRoundsFactory()
+	args.BaseSubRoundsFactory = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	fct, err := bls.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		nil,
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, errors.ErrNilExtraSignersHolder, err)
+	require.Nil(t, fct)
+	require.Equal(t, sovereign.ErrNilSubRoundsFactoryInSovereign, err)
 }
 
-func TestFactory_NewFactoryNilSubRoundEndV2CreatorShouldFail(t *testing.T) {
+func TestFactory_NewFactoryNilOutGoingOperationsPoolShouldFail(t *testing.T) {
 	t.Parallel()
 
-	consensusState := initializers.InitConsensusState()
-	container := mock.InitConsensusCore()
-	worker := initWorker()
+	args := createArgsSovSubRoundsFactory()
+	args.OutGoingOperationsPool = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
 
-	fct, err := bls.NewSubroundsFactory(
-		container,
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-		nil,
-	)
-
-	assert.Nil(t, fct)
-	assert.Equal(t, errors.ErrNilSubRoundEndV2Creator, err)
+	require.Nil(t, fct)
+	require.Equal(t, errors.ErrNilOutGoingOperationsPool, err)
 }
 
+func TestFactory_NewFactoryNilBridgeOpHandlerShouldFail(t *testing.T) {
+	t.Parallel()
+
+	args := createArgsSovSubRoundsFactory()
+	args.BridgeOpHandler = nil
+	fct, err := sovereign.NewSubroundsFactory(args)
+
+	require.Nil(t, fct)
+	require.Equal(t, errors.ErrNilBridgeOpHandler, err)
+}
+
+/*
 func TestFactory_NewFactoryShouldWork(t *testing.T) {
 	t.Parallel()
 
@@ -610,6 +225,8 @@ func TestFactory_NewFactoryShouldWork(t *testing.T) {
 
 	assert.False(t, check.IfNil(&fct))
 }
+
+
 
 func TestFactory_NewFactoryEmptyChainIDShouldFail(t *testing.T) {
 	t.Parallel()
@@ -959,29 +576,7 @@ func TestFactory_SetIndexerShouldWork(t *testing.T) {
 
 /*
 
-func TestNewSovereignSubRoundEndV2Creator(t *testing.T) {
-	t.Parallel()
 
-	t.Run("nil outgoing operations pool, should return error", func(t *testing.T) {
-		creator, err := sovereign2.NewSovereignSubRoundEndCreator(nil, &sovereign.BridgeOperationsHandlerMock{})
-		require.Nil(t, creator)
-		require.Equal(t, errors.ErrNilOutGoingOperationsPool, err)
-	})
-	t.Run("nil bridge op handler, should return error", func(t *testing.T) {
-		creator, err := sovereign2.NewSovereignSubRoundEndCreator(&sovereign.OutGoingOperationsPoolMock{}, nil)
-		require.Nil(t, creator)
-		require.Equal(t, errors.ErrNilBridgeOpHandler, err)
-	})
-	t.Run("should work", func(t *testing.T) {
-		creator, err := sovereign2.NewSovereignSubRoundEndCreator(&sovereign.OutGoingOperationsPoolMock{}, &sovereign.BridgeOperationsHandlerMock{})
-		require.Nil(t, err)
-		require.NotNil(t, creator)
-		require.False(t, creator.IsInterfaceNil())
-		require.Implements(t, new(bls.SubRoundEndV2Creator), creator)
-		require.Equal(t, "*bls.sovereignSubRoundEndCreator", fmt.Sprintf("%T", creator))
-	})
-
-}
 
 func TestSovereignSubRoundEndV2Creator_CreateAndAddSubRoundEnd(t *testing.T) {
 	t.Parallel()

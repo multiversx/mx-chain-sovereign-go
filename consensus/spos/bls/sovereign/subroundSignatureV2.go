@@ -3,14 +3,15 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 )
 
 type subroundSignatureV2 struct {
-	SubRoundSignatureHandler
+	bls.SubRoundSignatureHandler
 }
 
 // NewSubroundSignatureV2 creates a subroundSignatureV2 object
-func NewSubroundSignatureV2(subroundSignature SubRoundSignatureHandler) (*subroundSignatureV2, error) {
+func NewSubroundSignatureV2(subroundSignature bls.SubRoundSignatureHandler) (*subroundSignatureV2, error) {
 	if subroundSignature == nil {
 		return nil, spos.ErrNilSubround
 	}

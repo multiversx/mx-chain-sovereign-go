@@ -13,6 +13,19 @@ import (
 	"github.com/multiversx/mx-chain-go/outport"
 )
 
+// ArgsSovereignSubRoundsFactory defines a struct placeholder for args needed to create a new sovereign sub rounds factory
+type ArgsSovereignSubRoundsFactory struct {
+	ConsensusDataContainer spos.ConsensusCoreHandler
+	ConsensusState         spos.ConsensusStateHandler
+	Worker                 spos.WorkerHandler
+	OutportHandler         outport.OutportHandler
+	ConsensusModel         consensus.ConsensusModel
+	EnableEpochHandler     common.EnableEpochsHandler
+	BaseSubRoundsFactory   SubRoundsFactoryHandler
+	OutGoingOperationsPool bls.OutGoingOperationsPool
+	BridgeOpHandler        bls.BridgeOperationsHandler
+}
+
 // factory defines the data needed by this factory to create all the subrounds and give them their specific
 // functionality
 type factory struct {
@@ -30,41 +43,31 @@ type factory struct {
 }
 
 // NewSubroundsFactory creates a new factory object
-func NewSubroundsFactory(
-	consensusDataContainer spos.ConsensusCoreHandler,
-	consensusState spos.ConsensusStateHandler,
-	worker spos.WorkerHandler,
-	outportHandler outport.OutportHandler,
-	consensusModel consensus.ConsensusModel,
-	enableEpochHandler common.EnableEpochsHandler,
-	baseSubRoundsFactory SubRoundsFactoryHandler,
-	outGoingOperationsPool bls.OutGoingOperationsPool,
-	bridgeOpHandler bls.BridgeOperationsHandler,
-) (*factory, error) {
+func NewSubroundsFactory(args ArgsSovereignSubRoundsFactory) (*factory, error) {
 	// no need to check the outportHandler, it can be nil
 	err := checkNewFactoryParams(
-		consensusDataContainer,
-		consensusState,
-		worker,
-		enableEpochHandler,
-		baseSubRoundsFactory,
-		outGoingOperationsPool,
-		bridgeOpHandler,
+		args.ConsensusDataContainer,
+		args.ConsensusState,
+		args.Worker,
+		args.EnableEpochHandler,
+		args.BaseSubRoundsFactory,
+		args.OutGoingOperationsPool,
+		args.BridgeOpHandler,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	fct := factory{
-		consensusCore:          consensusDataContainer,
-		consensusState:         consensusState,
-		worker:                 worker,
-		outportHandler:         outportHandler,
-		consensusModel:         consensusModel,
-		enableEpochHandler:     enableEpochHandler,
-		baseSubRoundsFactory:   baseSubRoundsFactory,
-		outGoingOperationsPool: outGoingOperationsPool,
-		bridgeOpHandler:        bridgeOpHandler,
+		consensusCore:          args.ConsensusDataContainer,
+		consensusState:         args.ConsensusState,
+		worker:                 args.Worker,
+		outportHandler:         args.OutportHandler,
+		consensusModel:         args.ConsensusModel,
+		enableEpochHandler:     args.EnableEpochHandler,
+		baseSubRoundsFactory:   args.BaseSubRoundsFactory,
+		outGoingOperationsPool: args.OutGoingOperationsPool,
+		bridgeOpHandler:        args.BridgeOpHandler,
 	}
 
 	return &fct, nil
@@ -93,7 +96,7 @@ func checkNewFactoryParams(
 		return spos.ErrNilEnableEpochHandler
 	}
 	if baseSubRoundsFactory == nil {
-		return errNilSubRoundsFactoryInSovereign
+		return ErrNilSubRoundsFactoryInSovereign
 	}
 	if check.IfNil(outGoingOperationsPool) {
 		return errors.ErrNilOutGoingOperationsPool

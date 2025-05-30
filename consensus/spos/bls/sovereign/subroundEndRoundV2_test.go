@@ -23,7 +23,7 @@ func initSubroundEndRoundWithContainer(
 	container *spos.ConsensusCore,
 	appStatusHandler core.AppStatusHandler,
 	enableEpochHandler common.EnableEpochsHandler,
-) sovereign.SubRoundEndHandler {
+) bls.SubRoundEndHandler {
 	ch := make(chan bool, 1)
 	consensusState := initializers.InitConsensusState()
 	sr, _ := spos.NewSubround(
@@ -56,7 +56,7 @@ func initSubroundEndRoundWithContainer(
 	return srEndRound
 }
 
-func initSubroundEndRound(appStatusHandler core.AppStatusHandler) sovereign.SubRoundEndHandler {
+func initSubroundEndRound(appStatusHandler core.AppStatusHandler) bls.SubRoundEndHandler {
 	container := consensusMocks.InitConsensusCore()
 	return initSubroundEndRoundWithContainer(container, appStatusHandler, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 }

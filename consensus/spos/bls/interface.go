@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/outport"
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
@@ -67,4 +68,31 @@ type SubRoundHandler interface {
 	spos.ConsensusCoreHandler
 	spos.ConsensusStateHandler
 	consensus.SubroundHandler
+}
+
+type SubRoundStartHandler interface {
+	SubRoundHandler
+	SetOutportHandler(outportHandler outport.OutportHandler) error
+}
+
+type SubRoundBlockHandler interface {
+	SubRoundHandler
+	SetBlockJob(doBlockJob func(ctx context.Context) bool)
+	DoBlockComputation() (*SubRoundBlockProcessArgs, func())
+	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
+}
+
+// SubRoundEndHandler defines a sub round end handler
+type SubRoundEndHandler interface {
+	SubRoundHandler
+	SetMessageToVerifySigFunc(verifyMsgFunc func() []byte)
+	SetBlockJob(doBlockJob func(ctx context.Context) bool)
+	ReceivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool
+	DoEndRoundJob(ctx context.Context) bool
+	IsSelfLeaderInCurrentRound() bool
+}
+
+type SubRoundSignatureHandler interface {
+	SubRoundHandler
+	SetMessageToSignFunc(verifyMsgFunc func() []byte)
 }
