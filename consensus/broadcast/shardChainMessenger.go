@@ -19,9 +19,15 @@ const validatorDelayPerOrder = time.Second
 
 var _ consensus.BroadcastMessenger = (*shardChainMessenger)(nil)
 
-type dataToBroadcast struct {
+type marshalledDataToBroadcast struct {
 	marshalledHeader []byte
 	marshalledBody   []byte
+}
+
+type dataToBroadcast struct {
+	delayedBroadcastData *shared.DelayedBroadcastData
+	metaMiniBlocks       map[uint32][]byte
+	metaTransactions     map[string][][]byte
 }
 
 type shardChainMessenger struct {
@@ -44,25 +50,16 @@ func NewShardChainMessenger(
 	}
 
 	cm := &commonMessenger{
-		marshalizer:          args.Marshalizer,
-		hasher:               args.Hasher,
-		messenger:            args.Messenger,
-		shardCoordinator:     args.ShardCoordinator,
-		peerSignatureHandler: args.PeerSignatureHandler,
-		keysHandler:          args.KeysHandler,
+		marshalizer:             args.Marshalizer,
+		hasher:                  args.Hasher,
+		messenger:               args.Messenger,
+		shardCoordinator:        args.ShardCoordinator,
+		peerSignatureHandler:    args.PeerSignatureHandler,
+		keysHandler:             args.KeysHandler,
 		delayedBlockBroadcaster: args.DelayedBroadcaster,
 	}
 
 	cm.broadcasterFilterHandler = cm
-
-	dbbArgs := &ArgsDelayedBlockBroadcaster{
-		InterceptorsContainer: args.InterceptorsContainer,
-		HeadersSubscriber:     args.HeadersSubscriber,
-		LeaderCacheSize:       args.MaxDelayCacheSize,
-		ValidatorCacheSize:    args.MaxValidatorDelayCacheSize,
-		ShardCoordinator:      args.ShardCoordinator,
-		AlarmScheduler:        args.AlarmScheduler,
-	}
 
 	scm := &shardChainMessenger{
 		commonMessenger: cm,
@@ -107,7 +104,7 @@ func (scm *shardChainMessenger) BroadcastBlock(blockBody data.BodyHandler, heade
 	return nil
 }
 
-func (scm *shardChainMessenger) getBroadCastBlockData(blockBody data.BodyHandler, header data.HeaderHandler) (*dataToBroadcast, error) {
+func (scm *shardChainMessenger) getBroadCastBlockData(blockBody data.BodyHandler, header data.HeaderHandler) (*marshalledDataToBroadcast, error) {
 	if check.IfNil(blockBody) {
 		return nil, spos.ErrNilBody
 	}
@@ -132,7 +129,7 @@ func (scm *shardChainMessenger) getBroadCastBlockData(blockBody data.BodyHandler
 		return nil, err
 	}
 
-	return &dataToBroadcast{
+	return &marshalledDataToBroadcast{
 		marshalledHeader: msgHeader,
 		marshalledBody:   msgBlockBody,
 	}, nil
@@ -188,12 +185,6 @@ func (scm *shardChainMessenger) BroadcastBlockDataLeader(
 	// TODO: analyze if we can treat it similar to equivalent proofs broadcast (on interceptors)
 	go scm.BroadcastBlockData(dtb.metaMiniBlocks, dtb.metaTransactions, pkBytes, common.ExtraDelayForBroadcastBlockInfo)
 	return nil
-}
-
-type dataToBroadcast struct {
-	delayedBroadcastData *shared.DelayedBroadcastData
-	metaMiniBlocks       map[uint32][]byte
-	metaTransactions     map[string][][]byte
 }
 
 func (scm *shardChainMessenger) prepareDataToBroadcast(

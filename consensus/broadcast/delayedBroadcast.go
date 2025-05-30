@@ -208,7 +208,7 @@ func (dbb *delayedBlockBroadcaster) SetValidatorData(broadcastData *shared.Delay
 	return dbb.setValidatorData(broadcastData, dbb.extractMiniBlockHashesCrossFromMe)
 }
 
-func (dbb *delayedBlockBroadcaster) setValidatorData(broadcastData *delayedBroadcastData, extractMiniBlockHashesCrossFromMe extractMiniBlockHashesCrossFromMeFunc) error {
+func (dbb *delayedBlockBroadcaster) setValidatorData(broadcastData *shared.DelayedBroadcastData, extractMiniBlockHashesCrossFromMe extractMiniBlockHashesCrossFromMeFunc) error {
 	if broadcastData == nil {
 		return spos.ErrNilParameter
 	}

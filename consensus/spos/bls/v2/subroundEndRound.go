@@ -686,6 +686,7 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(
 		nil,
 		sr.GetAssociatedPid([]byte(sender)),
 		invalidSigners,
+		sr.getProcessedHeaderHash(),
 	)
 
 	sr.InvalidSignersCache().AddInvalidSigners(sr.GetData(), invalidSigners, invalidSignersPubKeys)
@@ -697,6 +698,15 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(
 	}
 
 	log.Debug("step 3: invalid signers info has been sent", "sender", hex.EncodeToString([]byte(sender)))
+}
+
+func (sr *subroundEndRound) getProcessedHeaderHash() []byte {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+		// TODO: Marius C : integrate these in another PR
+		return nil //sr.getMessageToVerifySigFunc()
+	}
+
+	return nil
 }
 
 func (sr *subroundEndRound) updateMetricsForLeader() {

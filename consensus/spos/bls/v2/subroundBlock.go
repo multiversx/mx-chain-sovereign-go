@@ -245,6 +245,7 @@ func (sr *subroundBlock) sendBlockBody(
 		nil,
 		sr.GetAssociatedPid([]byte(leader)),
 		nil,
+		nil,
 	)
 
 	err := sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
@@ -611,11 +612,14 @@ func (sr *subroundBlock) processBlock(
 	metricStatTime := time.Now()
 	defer sr.computeSubroundProcessingMetric(metricStatTime, common.MetricProcessedProposedBlock)
 
-	err := sr.BlockProcessor().ProcessBlock(
+	header, body, err := sr.BlockProcessor().ProcessBlock(
 		sr.GetHeader(),
 		sr.GetBody(),
 		remainingTimeInCurrentRound,
 	)
+
+	sr.SetHeader(header)
+	sr.SetBody(body)
 
 	if roundIndex < sr.RoundHandler().Index() {
 		log.Debug("canceled round, round index has been changed",

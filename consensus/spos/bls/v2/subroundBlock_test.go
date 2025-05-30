@@ -47,6 +47,7 @@ func defaultSubroundForSRBlock(consensusState *spos.ConsensusState, ch chan bool
 		chainID,
 		currentPid,
 		appStatusHandler,
+		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 }
 
@@ -654,6 +655,7 @@ func TestSubroundBlock_ReceivedBlock(t *testing.T) {
 		nil,
 		currentPid,
 		nil,
+		nil,
 	)
 	sr.SetBody(&block.Body{})
 	r := sr.ReceivedBlockBody(cnsMsg)
@@ -694,6 +696,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenBodyAndHeaderAre
 		nil,
 		currentPid,
 		nil,
+		nil,
 	)
 	assert.False(t, sr.ProcessReceivedBlock(cnsMsg))
 }
@@ -704,8 +707,8 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockFail
 	sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{})
 	blProcMock := consensusMocks.InitBlockProcessorMock(container.Marshalizer())
 	err := errors.New("error process block")
-	blProcMock.ProcessBlockCalled = func(data.HeaderHandler, data.BodyHandler, func() time.Duration) error {
-		return err
+	blProcMock.ProcessBlockCalled = func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) (data.HeaderHandler, data.BodyHandler, error) {
+		return nil, nil, err
 	}
 	container.SetBlockProcessor(blProcMock)
 	hdr := &block.Header{}
@@ -726,6 +729,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockFail
 		nil,
 		nil,
 		currentPid,
+		nil,
 		nil,
 	)
 	sr.SetHeader(hdr)
@@ -756,12 +760,13 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockRetu
 		nil,
 		currentPid,
 		nil,
+		nil,
 	)
 	sr.SetHeader(hdr)
 	sr.SetBody(blkBody)
 	blockProcessorMock := consensusMocks.InitBlockProcessorMock(container.Marshalizer())
-	blockProcessorMock.ProcessBlockCalled = func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error {
-		return expectedErr
+	blockProcessorMock.ProcessBlockCalled = func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) (data.HeaderHandler, data.BodyHandler, error) {
+		return nil, nil, expectedErr
 	}
 	container.SetBlockProcessor(blockProcessorMock)
 	container.SetRoundHandler(&consensusMocks.RoundHandlerMock{RoundIndex: 1})
@@ -793,6 +798,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnTrue(t *testing.T) {
 			nil,
 			nil,
 			currentPid,
+			nil,
 			nil,
 		)
 		sr.SetHeader(hdr)
@@ -1139,9 +1145,9 @@ func TestSubroundBlock_ReceivedBlockComputeProcessDuration(t *testing.T) {
 	container := consensusMocks.InitConsensusCore()
 	receivedValue := uint64(0)
 	container.SetBlockProcessor(&testscommon.BlockProcessorStub{
-		ProcessBlockCalled: func(_ data.HeaderHandler, _ data.BodyHandler, _ func() time.Duration) error {
+		ProcessBlockCalled: func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) (data.HeaderHandler, data.BodyHandler, error) {
 			time.Sleep(time.Duration(delay))
-			return nil
+			return nil, nil, nil
 		},
 	})
 	sr := initSubroundBlock(nil, container, &statusHandler.AppStatusHandlerStub{
@@ -1168,6 +1174,7 @@ func TestSubroundBlock_ReceivedBlockComputeProcessDuration(t *testing.T) {
 		nil,
 		nil,
 		currentPid,
+		nil,
 		nil,
 	)
 	sr.SetHeader(hdr)

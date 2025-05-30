@@ -7,8 +7,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/alarm"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/consensus/broadcast/shared"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/consensus/mock"
@@ -19,7 +21,7 @@ func createDefaultDelayedBroadcasterArgs() *ArgsDelayedBlockBroadcaster {
 	return &ArgsDelayedBlockBroadcaster{
 		ShardCoordinator:      &mock.ShardCoordinatorMock{},
 		InterceptorsContainer: &testscommon.InterceptorsContainerStub{},
-		HeadersSubscriber:     &testscommon.HeadersCacherStub{},
+		HeadersSubscriber:     &processMock.HeadersCacherStub{},
 		LeaderCacheSize:       2,
 		ValidatorCacheSize:    2,
 		AlarmScheduler:        alarm.NewAlarmScheduler(),
@@ -79,9 +81,9 @@ func TestSovereignDelayedBroadcastData_SetValidatorData(t *testing.T) {
 	args := createDefaultDelayedBroadcasterArgs()
 	sovBroadcaster, _ := NewSovereignDelayedBlockBroadcaster(args)
 
-	err := sovBroadcaster.SetValidatorData(&delayedBroadcastData{
-		header: &block.SovereignChainHeader{},
+	err := sovBroadcaster.SetValidatorData(&shared.DelayedBroadcastData{
+		Header: &block.SovereignChainHeader{},
 	})
 	require.Nil(t, err)
-	require.Empty(t, sovBroadcaster.valBroadcastData[0].miniBlockHashes)
+	require.Empty(t, sovBroadcaster.valBroadcastData[0].MiniBlockHashes)
 }

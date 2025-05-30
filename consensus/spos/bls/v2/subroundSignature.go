@@ -134,6 +134,7 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 		nil,
 		sr.GetAssociatedPid(pkBytes),
 		nil,
+		sr.getProcessedHeaderHash(),
 	)
 
 	err := sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
@@ -146,6 +147,15 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 	log.Debug("step 2: signature has been sent", "pk", pkBytes)
 
 	return true
+}
+
+func (sr *subroundSignature) getProcessedHeaderHash() []byte {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+		// TODO: Marius C: Fix this in another PR
+		return nil //sr.getMessageToSignFunc()
+	}
+
+	return nil
 }
 
 func (sr *subroundSignature) completeSignatureSubRound(pk string) bool {

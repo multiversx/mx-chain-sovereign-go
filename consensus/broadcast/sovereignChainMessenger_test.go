@@ -10,54 +10,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/consensus"
 	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	cnsTest "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/require"
 )
-
-type delayedBlockBroadcasterMock struct {
-	SetBroadcastHandlersCalled func(
-		mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
-		txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
-		headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
-	) error
-}
-
-// SetLeaderData -
-func (mock *delayedBlockBroadcasterMock) SetLeaderData(_ *delayedBroadcastData) error {
-	return nil
-}
-
-// SetHeaderForValidator -
-func (mock *delayedBlockBroadcasterMock) SetHeaderForValidator(_ *validatorHeaderBroadcastData) error {
-	return nil
-}
-
-// SetValidatorData -
-func (mock *delayedBlockBroadcasterMock) SetValidatorData(_ *delayedBroadcastData) error {
-	return nil
-}
-
-// SetBroadcastHandlers -
-func (mock *delayedBlockBroadcasterMock) SetBroadcastHandlers(
-	mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
-	txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
-	headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
-) error {
-	if mock.SetBroadcastHandlersCalled != nil {
-		return mock.SetBroadcastHandlersCalled(mbBroadcast, txBroadcast, headerBroadcast)
-	}
-
-	return nil
-}
-
-// Close -
-func (mock *delayedBlockBroadcasterMock) Close() {
-}
 
 func createSovShardMsgArgs() ArgsSovereignShardChainMessenger {
 	return ArgsSovereignShardChainMessenger{
@@ -69,7 +31,7 @@ func createSovShardMsgArgs() ArgsSovereignShardChainMessenger {
 			Signer: &consensusMock.SingleSignerMock{},
 		},
 		KeysHandler:        &testscommon.KeysHandlerStub{},
-		DelayedBroadcaster: &delayedBlockBroadcasterMock{},
+		DelayedBroadcaster: &cnsTest.DelayedBroadcasterMock{},
 	}
 
 }
@@ -136,11 +98,17 @@ func TestNewSovereignShardChainMessenger(t *testing.T) {
 	t.Parallel()
 
 	wasHandlerSet := false
-	mockBroadcaster := &delayedBlockBroadcasterMock{
-		SetBroadcastHandlersCalled: func(mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error, txBroadcast func(txData map[string][][]byte, pkBytes []byte) error, headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error) error {
+	mockBroadcaster := &cnsTest.DelayedBroadcasterMock{
+		SetBroadcastHandlersCalled: func(
+			mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
+			txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
+			headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
+			consensusMessageBroadcast func(message *consensus.Message) error) error {
+
 			require.Contains(t, getFunctionName(mbBroadcast), "(*commonMessenger).BroadcastMiniBlocks")
 			require.Contains(t, getFunctionName(txBroadcast), "(*commonMessenger).BroadcastTransactions")
 			require.Contains(t, getFunctionName(headerBroadcast), "(*sovereignChainMessenger).BroadcastHeader")
+			require.Contains(t, getFunctionName(consensusMessageBroadcast), "(*commonMessenger).BroadcastConsensusMessage")
 
 			wasHandlerSet = true
 			return nil
