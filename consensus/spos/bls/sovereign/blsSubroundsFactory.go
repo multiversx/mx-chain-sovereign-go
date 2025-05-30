@@ -154,11 +154,10 @@ func (fct *factory) generateStartRoundSubround() error {
 		return err
 	}
 
-	// TODO: MARIUS C Decide here if we have this here or in baseSubRoundsFactory
-	//	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
-	//	if err != nil {
-	//		return err
-	//	}
+	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
+	if err != nil {
+		return err
+	}
 
 	fct.consensusCore.Chronology().AddSubround(subroundStartRoundInstance)
 

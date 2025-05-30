@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/outport"
 )
 
 // Factory defines a type for the factory structure
@@ -47,4 +48,9 @@ func (fct *factory) GenerateSignatureSubroundV2() error {
 // GenerateEndRoundSubroundV2 generates the instance of subround EndRound V2 and added it to the chronology subrounds list
 func (fct *factory) GenerateEndRoundSubroundV2() error {
 	return fct.generateEndRoundSubroundV2()
+}
+
+// Outport gets the outport object
+func (fct *factory) Outport() outport.OutportHandler {
+	return fct.outportHandler
 }

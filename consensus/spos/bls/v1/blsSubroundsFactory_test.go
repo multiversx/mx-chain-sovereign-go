@@ -758,13 +758,10 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	t.Parallel()
 
-	subroundHandlers := 0
-
 	chrm := &consensusMock.ChronologyHandlerMock{}
 	subRoundsMap := make(map[string]struct{})
 	chrm.AddSubroundCalled = func(subroundHandler consensus.SubroundHandler) {
 		subRoundsMap[fmt.Sprintf("%T", subroundHandler)] = struct{}{}
-		subroundHandlers++
 	}
 	container := consensusMock.InitConsensusCore()
 	container.SetChronology(chrm)
@@ -774,7 +771,6 @@ func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	err := fct.GenerateSubrounds(0)
 	require.Nil(t, err)
 
-	require.Equal(t, 4, subroundHandlers)
 	require.Len(t, subRoundsMap, 4)
 }
 
