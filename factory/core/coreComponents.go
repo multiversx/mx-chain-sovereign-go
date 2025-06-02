@@ -204,10 +204,6 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		return nil, err
 	}
 
-	syncer := ntp.NewSyncTime(ccf.config.NTPConfig, nil)
-	syncer.StartSyncingTime()
-	log.Debug("NTP average clock offset", "value", syncer.ClockOffset())
-
 	epochNotifier := forking.NewGenericEpochNotifier()
 	epochStartHandlerWithConfirm := notifier.NewEpochStartSubscriptionHandler()
 
@@ -326,13 +322,10 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 
 	log.Trace("creating ratings data")
 	ratingDataArgs := rating.RatingsDataArg{
-		Config:                   ccf.ratingsConfig,
-		ShardConsensusSize:       genesisNodesConfig.GetShardConsensusGroupSize(),
-		MetaConsensusSize:        genesisNodesConfig.GetMetaConsensusGroupSize(),
-		ShardMinNodes:            genesisNodesConfig.MinNumberOfShardNodes(),
-		MetaMinNodes:             genesisNodesConfig.MinNumberOfMetaNodes(),
-		RoundDurationMiliseconds: genesisNodesConfig.GetRoundDuration(),
-		EpochNotifier:            epochNotifier,
+		Config:                    ccf.ratingsConfig,
+		EpochNotifier:             epochNotifier,
+		ChainParametersHolder:     chainParametersHandler,
+		RoundDurationMilliseconds: genesisNodesConfig.GetRoundDuration(),
 	}
 	ratingsData, err := ccf.runTypeCoreComponents.RatingsDataFactoryCreator().CreateRatingsData(ratingDataArgs)
 	if err != nil {

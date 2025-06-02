@@ -43,7 +43,7 @@ func TestInterceptedSovereignShardHeaderDataFactory_Create(t *testing.T) {
 	buff, err := coreComp.IntMarsh.Marshal(sovHdr)
 	require.Nil(t, err)
 
-	interceptedData, err := hdrDataFactory.Create(buff)
+	interceptedData, err := hdrDataFactory.Create(buff, "")
 	require.Nil(t, err)
 	require.Equal(t, "*interceptedBlocks.interceptedSovereignBlockHeader", fmt.Sprintf("%T", interceptedData))
 }

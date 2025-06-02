@@ -18,7 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	mockConsensus "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/factory"
@@ -236,7 +235,6 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 		ScheduledProcessor:   scheduledProcessor,
 		RunTypeComponents:    GetRunTypeComponents(),
 		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
-		SubRoundEndV2Creator: bls.NewSubRoundEndV2Creator(),
 	}
 }
 
@@ -285,7 +283,6 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 		ScheduledProcessor:   scheduledProcessor,
 		RunTypeComponents:    GetSovereignRunTypeComponents(),
 		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
-		SubRoundEndV2Creator: bls.NewSubRoundEndV2Creator(),
 	}
 }
 
@@ -357,7 +354,8 @@ func GetCoreComponents() factory.CoreComponentsHolder {
 func GetSovereignCoreComponents() factory.CoreComponentsHolder {
 	sovRunTypeCoreComponents := GetSovereignRunTypeCoreComponents()
 	coreArgs := GetCoreArgs()
-	coreArgs.NodesFilename = "../mock/testdata/sovereignNodesSetupMock.json"
+	// TODO: MARIUS C: CHECK IF WE NEED THIS
+	//coreArgs.NodesFilename = "../mock/testdata/sovereignNodesSetupMock.json"
 	coreArgs.RunTypeCoreComponents = sovRunTypeCoreComponents
 	return createCoreComponents(coreArgs)
 }

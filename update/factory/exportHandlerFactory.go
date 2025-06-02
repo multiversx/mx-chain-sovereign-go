@@ -275,7 +275,6 @@ func NewExportHandlerFactory(args mxFactory.ArgsExporter) (*exportHandlerFactory
 		checkNodesOnDisk:                 args.CheckNodesOnDisk,
 		statusCoreComponents:             args.StatusCoreComponents,
 		nodeOperationMode:                args.NodeOperationMode,
-		interceptedDataVerifierFactory:   args.InterceptedDataVerifierFactory,
 		shardCoordinatorFactory:          args.ShardCoordinatorFactory,
 	}
 

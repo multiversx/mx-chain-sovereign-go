@@ -13,6 +13,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/common/graceperiod"
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -40,24 +43,29 @@ import (
 
 func createSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 	argsHeaderValidator := blproc.ArgsHeaderValidator{
-		Hasher:      &hashingMocks.HasherMock{},
-		Marshalizer: &marshallerMock.MarshalizerMock{},
+		Hasher:              &hashingMocks.HasherMock{},
+		Marshalizer:         &marshallerMock.MarshalizerMock{},
+		EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 	headerValidator, _ := blproc.NewHeaderValidator(argsHeaderValidator)
+	gracePeriod, _ := graceperiod.NewEpochChangeGracePeriod([]config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}})
 
 	arguments := track.ArgShardTracker{
 		ArgBaseTracker: track.ArgBaseTracker{
-			Hasher:           &hashingMocks.HasherMock{},
-			HeaderValidator:  headerValidator,
-			Marshalizer:      &marshallerMock.MarshalizerStub{},
-			RequestHandler:   &testscommon.ExtendedShardHeaderRequestHandlerStub{},
-			RoundHandler:     &testscommon.RoundHandlerMock{},
-			ShardCoordinator: &testscommon.ShardsCoordinatorMock{},
-			Store:            &storageStub.ChainStorerStub{},
-			StartHeaders:     createGenesisBlocks(&testscommon.ShardsCoordinatorMock{NoShards: 1}),
-			PoolsHolder:      dataRetrieverMock.NewPoolsHolderMock(),
-			WhitelistHandler: &testscommon.WhiteListHandlerStub{},
-			FeeHandler:       &economicsmocks.EconomicsHandlerMock{},
+			Hasher:                        &hashingMocks.HasherMock{},
+			HeaderValidator:               headerValidator,
+			Marshalizer:                   &marshallerMock.MarshalizerStub{},
+			RequestHandler:                &testscommon.ExtendedShardHeaderRequestHandlerStub{},
+			RoundHandler:                  &testscommon.RoundHandlerMock{},
+			ShardCoordinator:              &testscommon.ShardsCoordinatorMock{},
+			Store:                         &storageStub.ChainStorerStub{},
+			StartHeaders:                  createGenesisBlocks(&testscommon.ShardsCoordinatorMock{NoShards: 1}),
+			PoolsHolder:                   dataRetrieverMock.NewPoolsHolderMock(),
+			WhitelistHandler:              &testscommon.WhiteListHandlerStub{},
+			FeeHandler:                    &economicsmocks.EconomicsHandlerMock{},
+			EnableEpochsHandler:           &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			ProofsPool:                    &dataRetrieverMock.ProofsPoolMock{},
+			EpochChangeGracePeriodHandler: gracePeriod,
 		},
 	}
 

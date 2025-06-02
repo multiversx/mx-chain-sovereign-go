@@ -235,7 +235,6 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 		PeerBlacklistHandler:     cc.peerBlacklistHandler,
 		EnableEpochsHandler:      ccf.coreComponents.EnableEpochsHandler(),
 		InvalidSignersCache:      invalidSignersCache,
-		EnableEpochHandler:       ccf.coreComponents.EnableEpochsHandler(),
 	}
 
 	cc.worker, err = spos.NewWorker(workerArgs)
