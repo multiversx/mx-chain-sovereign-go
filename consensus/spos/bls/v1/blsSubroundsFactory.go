@@ -187,7 +187,6 @@ func (fct *factory) GenerateStartRoundSubround() (bls.SubRoundStartHandler, erro
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		fct.enableEpochHandler,
 	)
 	if err != nil {
 		return nil, err
@@ -235,7 +234,6 @@ func (fct *factory) GenerateBlockSubround() (bls.SubRoundBlockHandler, error) {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		fct.enableEpochHandler,
 	)
 	if err != nil {
 		return nil, err
@@ -283,7 +281,6 @@ func (fct *factory) GenerateSignatureSubround() (bls.SubRoundSignatureHandler, e
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		fct.enableEpochHandler,
 	)
 	if err != nil {
 		return nil, err
@@ -331,7 +328,6 @@ func (fct *factory) GenerateEndRoundSubround() (bls.SubRoundEndHandler, error) {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		fct.enableEpochHandler,
 	)
 	if err != nil {
 		return nil, err

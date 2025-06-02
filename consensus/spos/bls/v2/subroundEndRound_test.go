@@ -61,7 +61,6 @@ func initSubroundEndRoundWithContainer(
 		chainID,
 		currentPid,
 		appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	sr.SetHeader(&block.HeaderV2{
 		Header: createDefaultHeader(),
@@ -100,7 +99,6 @@ func initSubroundEndRoundWithContainerAndConsensusState(
 		chainID,
 		currentPid,
 		appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	sr.SetHeader(&block.HeaderV2{
 		Header: createDefaultHeader(),
@@ -147,7 +145,6 @@ func TestNewSubroundEndRound(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	t.Run("nil subround should error", func(t *testing.T) {
@@ -233,7 +230,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilBlockChainShouldFail(t *testing.
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetBlockchain(nil)
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -270,7 +266,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilBlockProcessorShouldFail(t *test
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetBlockProcessor(nil)
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -307,7 +302,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilConsensusStateShouldFail(t *test
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	sr.ConsensusStateHandler = nil
@@ -345,7 +339,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilMultiSignerContainerShouldFail(t
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetMultiSignerContainer(nil)
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -382,7 +375,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilRoundHandlerShouldFail(t *testin
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetRoundHandler(nil)
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -419,7 +411,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilSyncTimerShouldFail(t *testing.T
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetSyncTimer(nil)
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -456,7 +447,6 @@ func TestSubroundEndRound_NewSubroundEndRoundNilThrottlerShouldFail(t *testing.T
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -493,7 +483,6 @@ func TestSubroundEndRound_NewSubroundEndRoundShouldWork(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	srEndRound, err := v2.NewSubroundEndRound(
@@ -910,7 +899,6 @@ func TestSubroundEndRound_ReceivedProof(t *testing.T) {
 			chainID,
 			currentPid,
 			&statusHandler.AppStatusHandlerStub{},
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 		sr.SetHeader(&block.HeaderV2{
 			Header: createDefaultHeader(),
@@ -1200,7 +1188,6 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			chainID,
 			currentPid,
 			&statusHandler.AppStatusHandlerStub{},
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 		sr.SetHeader(&block.HeaderV2{
 			Header: createDefaultHeader(),
@@ -1337,7 +1324,6 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			chainID,
 			currentPid,
 			sh,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srEndRound, _ := v2.NewSubroundEndRound(
@@ -1431,7 +1417,6 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			chainID,
 			currentPid,
 			&statusHandler.AppStatusHandlerStub{},
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srEndRound, _ := v2.NewSubroundEndRound(
@@ -1573,7 +1558,6 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 			chainID,
 			currentPid,
 			&statusHandler.AppStatusHandlerStub{},
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srEndRound, _ := v2.NewSubroundEndRound(
@@ -1978,7 +1962,6 @@ func TestSubroundEndRound_getMinConsensusGroupIndexOfManagedKeys(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	srEndRound, _ := v2.NewSubroundEndRound(

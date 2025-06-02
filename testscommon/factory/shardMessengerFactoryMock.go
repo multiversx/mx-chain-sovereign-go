@@ -3,7 +3,7 @@ package factory
 import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/broadcast"
-	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
+	cnsMock "github.com/multiversx/mx-chain-go/testscommon/consensus"
 )
 
 // ShardChainMessengerFactoryMock -
@@ -17,7 +17,7 @@ func (mock *ShardChainMessengerFactoryMock) CreateShardChainMessenger(args broad
 		return mock.CreateShardChainMessengerCalled(args)
 	}
 
-	return &consensusMock.BroadcastMessengerMock{}, nil
+	return &cnsMock.BroadcastMessengerMock{}, nil
 }
 
 // IsInterfaceNil -

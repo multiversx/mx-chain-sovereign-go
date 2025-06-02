@@ -37,7 +37,6 @@ func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, ena
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		enableEpochHandler,
 	)
 
 	srSignature, _ := v1.NewSubroundSignature(

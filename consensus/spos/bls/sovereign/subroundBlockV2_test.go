@@ -17,7 +17,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMock "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +37,6 @@ func defaultSubroundForSRBlock(consensusState *spos.ConsensusState, ch chan bool
 		chainID,
 		currentPid,
 		appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 }
 

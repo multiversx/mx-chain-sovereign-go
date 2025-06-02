@@ -33,7 +33,6 @@ type consensusMessageValidator struct {
 
 	mutPkConsensusMessages sync.RWMutex
 	mapPkConsensusMessages map[string]map[consensus.MessageType]uint32
-	enableEpochHandler     common.EnableEpochsHandler
 }
 
 // ArgsConsensusMessageValidator holds the consensus message validator arguments
@@ -48,7 +47,6 @@ type ArgsConsensusMessageValidator struct {
 	PublicKeySize        int
 	HeaderHashSize       int
 	ChainID              []byte
-	EnableEpochHandler   common.EnableEpochsHandler
 }
 
 // NewConsensusMessageValidator creates a new consensusMessageValidator object
@@ -69,7 +67,6 @@ func NewConsensusMessageValidator(args ArgsConsensusMessageValidator) (*consensu
 		publicKeySize:        args.PublicKeySize,
 		chainID:              args.ChainID,
 		headerHashSize:       args.HeaderHashSize,
-		enableEpochHandler:   args.EnableEpochHandler,
 	}
 
 	cmv.publicKeyBitmapSize = cmv.getPublicKeyBitmapSize()
@@ -108,9 +105,6 @@ func checkArgsConsensusMessageValidator(args ArgsConsensusMessageValidator) erro
 	}
 	if args.SignatureSize == 0 {
 		return ErrInvalidSignatureSize
-	}
-	if check.IfNil(args.EnableEpochHandler) {
-		return ErrNilEnableEpochHandler
 	}
 
 	return nil
@@ -241,7 +235,7 @@ func (cmv *consensusMessageValidator) isHeaderHashSizeValid(cnsMsg *consensus.Me
 }
 
 func (cmv *consensusMessageValidator) isProcessedHeaderHashSizeValid(cnsMsg *consensus.Message) bool {
-	if !cmv.enableEpochHandler.IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if !cmv.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelV2Flag) {
 		return true
 	}
 

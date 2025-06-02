@@ -90,7 +90,6 @@ type Worker struct {
 	closer                    core.SafeCloser
 
 	invalidSignersCache InvalidSignersCache
-	enableEpochHandler  common.EnableEpochsHandler
 }
 
 // WorkerArgs holds the consensus worker arguments
@@ -122,7 +121,6 @@ type WorkerArgs struct {
 	PeerBlacklistHandler     consensus.PeerBlacklistHandler
 	EnableEpochsHandler      common.EnableEpochsHandler
 	InvalidSignersCache      InvalidSignersCache
-	EnableEpochHandler       common.EnableEpochsHandler
 }
 
 // NewWorker creates a new Worker object
@@ -143,7 +141,6 @@ func NewWorker(args *WorkerArgs) (*Worker, error) {
 		PublicKeySize:        args.PublicKeySize,
 		HeaderHashSize:       args.Hasher.Size(),
 		ChainID:              args.ChainID,
-		EnableEpochHandler:   args.EnableEpochHandler,
 	}
 
 	consensusMessageValidatorObj, err := NewConsensusMessageValidator(argsConsensusMessageValidator)
@@ -177,7 +174,6 @@ func NewWorker(args *WorkerArgs) (*Worker, error) {
 		closer:                   closing.NewSafeChanCloser(),
 		enableEpochsHandler:      args.EnableEpochsHandler,
 		invalidSignersCache:      args.InvalidSignersCache,
-		enableEpochHandler:       args.EnableEpochHandler,
 	}
 
 	wrk.consensusMessageValidator = consensusMessageValidatorObj
@@ -283,9 +279,6 @@ func checkNewWorkerParams(args *WorkerArgs) error {
 	}
 	if check.IfNil(args.InvalidSignersCache) {
 		return ErrNilInvalidSignersCache
-	}
-	if check.IfNil(args.EnableEpochHandler) {
-		return ErrNilEnableEpochHandler
 	}
 
 	return nil

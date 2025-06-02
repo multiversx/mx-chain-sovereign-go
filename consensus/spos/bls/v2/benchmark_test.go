@@ -104,7 +104,6 @@ func benchmarkSubroundSignatureDoSignatureJobForManagedKeys(b *testing.B, number
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	signatureSentForPks := make(map[string]struct{})

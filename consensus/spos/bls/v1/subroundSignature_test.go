@@ -39,7 +39,6 @@ func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExt
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	srSignature, _ := v1.NewSubroundSignature(
@@ -53,8 +52,9 @@ func initSubroundSignatureWithExtraSigners(extraSigners bls.SubRoundSignatureExt
 	return srSignature
 }
 
-func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, enableEpochHandler common.EnableEpochsHandler) v1.SubroundSignature {
+func initSubroundSignatureWithContainer(container *spos.ConsensusCore, enableEpochHandler common.EnableEpochsHandler) v1.SubroundSignature {
 	consensusState := initializers.InitConsensusState()
+	container.SetEnableEpochsHandler(enableEpochHandler)
 	ch := make(chan bool, 1)
 
 	sr, _ := spos.NewSubround(
@@ -71,7 +71,6 @@ func initSubroundSignatureWithContainer(container spos.ConsensusCoreHandler, ena
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		enableEpochHandler,
 	)
 
 	srSignature, _ := v1.NewSubroundSignature(
@@ -111,7 +110,6 @@ func TestNewSubroundSignature(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
 	)
 
 	t.Run("nil subround should error", func(t *testing.T) {
@@ -193,7 +191,6 @@ func TestSubroundSignature_NewSubroundSignatureNilConsensusStateShouldFail(t *te
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	sr.ConsensusStateHandler = nil
@@ -230,7 +227,6 @@ func TestSubroundSignature_NewSubroundSignatureNilHasherShouldFail(t *testing.T)
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetHasher(nil)
 	srSignature, err := v1.NewSubroundSignature(
@@ -266,7 +262,6 @@ func TestSubroundSignature_NewSubroundSignatureNilMultiSignerContainerShouldFail
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetMultiSignerContainer(nil)
 	srSignature, err := v1.NewSubroundSignature(
@@ -302,7 +297,6 @@ func TestSubroundSignature_NewSubroundSignatureNilRoundHandlerShouldFail(t *test
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetRoundHandler(nil)
 
@@ -339,7 +333,6 @@ func TestSubroundSignature_NewSubroundSignatureNilSyncTimerShouldFail(t *testing
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	container.SetSyncTimer(nil)
 	srSignature, err := v1.NewSubroundSignature(
@@ -384,7 +377,6 @@ func TestSubroundSignature_NewSubroundSignatureShouldWork(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	srSignature, err := v1.NewSubroundSignature(
@@ -501,7 +493,6 @@ func TestSubroundSignature_DoSignatureJobWithMultikey(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
 	)
 
 	signatureSentForPks := make(map[string]struct{})

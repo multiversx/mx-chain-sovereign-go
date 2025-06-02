@@ -388,7 +388,7 @@ func (stub *CoreComponentsHolderMock) RoundNotifier() process.RoundNotifier {
 }
 
 // ChainParametersSubscriber -
-func (stub *CoreComponentsHolderStub) ChainParametersSubscriber() process.ChainParametersSubscriber {
+func (stub *CoreComponentsHolderMock) ChainParametersSubscriber() process.ChainParametersSubscriber {
 	if stub.ChainParametersSubscriberCalled != nil {
 		return stub.ChainParametersSubscriberCalled()
 	}
@@ -396,7 +396,7 @@ func (stub *CoreComponentsHolderStub) ChainParametersSubscriber() process.ChainP
 }
 
 // ChainParametersHandler -
-func (stub *CoreComponentsHolderStub) ChainParametersHandler() process.ChainParametersHandler {
+func (stub *CoreComponentsHolderMock) ChainParametersHandler() process.ChainParametersHandler {
 	if stub.ChainParametersHandlerCalled != nil {
 		return stub.ChainParametersHandlerCalled()
 	}
@@ -404,7 +404,7 @@ func (stub *CoreComponentsHolderStub) ChainParametersHandler() process.ChainPara
 }
 
 // FieldsSizeChecker -
-func (stub *CoreComponentsHolderStub) FieldsSizeChecker() common.FieldsSizeChecker {
+func (stub *CoreComponentsHolderMock) FieldsSizeChecker() common.FieldsSizeChecker {
 	if stub.FieldsSizeCheckerCalled != nil {
 		return stub.FieldsSizeCheckerCalled()
 	}
@@ -412,7 +412,7 @@ func (stub *CoreComponentsHolderStub) FieldsSizeChecker() common.FieldsSizeCheck
 }
 
 // EpochChangeGracePeriodHandler -
-func (stub *CoreComponentsHolderStub) EpochChangeGracePeriodHandler() common.EpochChangeGracePeriodHandler {
+func (stub *CoreComponentsHolderMock) EpochChangeGracePeriodHandler() common.EpochChangeGracePeriodHandler {
 	if stub.EpochChangeGracePeriodHandlerCalled != nil {
 		return stub.EpochChangeGracePeriodHandlerCalled()
 	}

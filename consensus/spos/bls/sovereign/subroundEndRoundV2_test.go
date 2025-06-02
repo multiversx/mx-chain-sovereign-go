@@ -40,7 +40,6 @@ func initSubroundEndRoundWithContainer(
 		chainID,
 		currentPid,
 		appStatusHandler,
-		enableEpochHandler,
 	)
 
 	srEndRound, _ := v1.NewSubroundEndRound(

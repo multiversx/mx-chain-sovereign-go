@@ -5,8 +5,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/outport"
@@ -157,7 +155,6 @@ func (fct *factory) generateStartRoundSubround() error {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	if err != nil {
 		return err
@@ -198,7 +195,6 @@ func (fct *factory) generateBlockSubround() error {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	if err != nil {
 		return err
@@ -235,7 +231,6 @@ func (fct *factory) generateSignatureSubround() error {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	if err != nil {
 		return err
@@ -272,7 +267,6 @@ func (fct *factory) generateEndRoundSubround() error {
 		fct.chainID,
 		fct.currentPid,
 		fct.appStatusHandler,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 	if err != nil {
 		return err

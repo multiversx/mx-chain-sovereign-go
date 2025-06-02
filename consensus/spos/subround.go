@@ -60,7 +60,6 @@ func NewSubround(
 	chainID []byte,
 	currentPid core.PeerID,
 	appStatusHandler core.AppStatusHandler,
-	enableEpochHandler common.EnableEpochsHandler,
 ) (*Subround, error) {
 	err := checkNewSubroundParams(
 		consensusState,
@@ -69,7 +68,6 @@ func NewSubround(
 		container,
 		chainID,
 		appStatusHandler,
-		enableEpochHandler,
 	)
 	if err != nil {
 		return nil, err
@@ -92,7 +90,7 @@ func NewSubround(
 		Extend:                       nil,
 		appStatusHandler:             appStatusHandler,
 		currentPid:                   currentPid,
-		enableEpochHandler:           enableEpochHandler,
+		enableEpochHandler:           container.EnableEpochsHandler(),
 	}
 
 	return &sr, nil
@@ -105,7 +103,6 @@ func checkNewSubroundParams(
 	container ConsensusCoreHandler,
 	chainID []byte,
 	appStatusHandler core.AppStatusHandler,
-	enableEpochHandler common.EnableEpochsHandler,
 ) error {
 	err := ValidateConsensusCore(container)
 	if err != nil {
@@ -125,9 +122,6 @@ func checkNewSubroundParams(
 	}
 	if check.IfNil(appStatusHandler) {
 		return ErrNilAppStatusHandler
-	}
-	if check.IfNil(enableEpochHandler) {
-		return ErrNilEnableEpochHandler
 	}
 
 	return nil

@@ -18,7 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapperStubs"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
@@ -73,7 +72,6 @@ func defaultSubround(
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 }
 
@@ -136,7 +134,6 @@ func TestNewSubroundStartRound(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
 	)
 
 	t.Run("nil subround should error", func(t *testing.T) {
@@ -636,7 +633,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v1.NewSubroundStartRound(
@@ -692,7 +688,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
 		)
 
 		srStartRound, _ := v1.NewSubroundStartRound(
@@ -748,7 +743,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v1.NewSubroundStartRound(
@@ -815,7 +809,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v1.NewSubroundStartRound(
@@ -885,7 +878,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v1.NewSubroundStartRound(

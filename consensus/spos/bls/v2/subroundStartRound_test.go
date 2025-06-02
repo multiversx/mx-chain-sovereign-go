@@ -7,7 +7,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/require"
 
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
@@ -73,7 +72,6 @@ func defaultSubround(
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 }
 
@@ -116,7 +114,6 @@ func TestNewSubroundStartRound(t *testing.T) {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	t.Run("nil subround should error", func(t *testing.T) {
@@ -531,7 +528,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v2.NewSubroundStartRound(
@@ -584,7 +580,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v2.NewSubroundStartRound(
@@ -636,7 +631,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v2.NewSubroundStartRound(
@@ -699,7 +693,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v2.NewSubroundStartRound(
@@ -766,7 +759,6 @@ func TestSubroundStartRound_InitCurrentRoundShouldMetrics(t *testing.T) {
 			chainID,
 			currentPid,
 			appStatusHandler,
-			&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		)
 
 		srStartRound, _ := v2.NewSubroundStartRound(
@@ -799,7 +791,6 @@ func buildDefaultSubround(container spos.ConsensusCoreHandler) *spos.Subround {
 		chainID,
 		currentPid,
 		&statusHandler.AppStatusHandlerStub{},
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	)
 
 	return sr

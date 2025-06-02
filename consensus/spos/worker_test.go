@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -30,8 +31,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapperStubs"
 	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/processMocks"
@@ -429,11 +428,11 @@ func TestNewWorker_NilEnableEpochHandlerShouldFail(t *testing.T) {
 	t.Parallel()
 
 	workerArgs := createDefaultWorkerArgs(statusHandlerMock.NewAppStatusHandlerMock())
-	workerArgs.EnableEpochHandler = nil
+	workerArgs.EnableEpochsHandler = nil
 	wrk, err := spos.NewWorker(workerArgs)
 
 	assert.Nil(t, wrk)
-	assert.Equal(t, spos.ErrNilEnableEpochHandler, err)
+	assert.Equal(t, spos.ErrNilEnableEpochsHandler, err)
 }
 
 func TestNewWorker_ShouldWork(t *testing.T) {
@@ -2288,6 +2287,9 @@ func TestWorker_ProcessReceivedMessageWithInvalidSigners(t *testing.T) {
 	}
 	workerArgs.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 		IsFlagEnabledCalled: func(flag core.EnableEpochFlag) bool {
+			if flag == common.ConsensusModelV2Flag {
+				return false
+			}
 			return true
 		},
 	}
@@ -2317,6 +2319,7 @@ func TestWorker_ProcessReceivedMessageWithInvalidSigners(t *testing.T) {
 		nil,
 		currentPid,
 		invalidSigners,
+		nil,
 	)
 	buff, err := wrk.Marshalizer().Marshal(cnsMsg)
 	require.Nil(t, err)
