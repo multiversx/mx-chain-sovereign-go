@@ -6,6 +6,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	cns "github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 	"github.com/stretchr/testify/require"
 
 	mock2 "github.com/multiversx/mx-chain-go/consensus/mock"
@@ -49,6 +51,8 @@ func getDefaultArgumentsSubroundHandler() (*SubroundsHandlerArgs, *spos.Consensu
 		EnableEpochsHandler:  epochsEnable,
 		ChainID:              []byte("chainID"),
 		CurrentPid:           "peerID",
+		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
+		ConsensusModel:       cns.ConsensusModelV1,
 	}
 
 	consensusCore := &spos.ConsensusCore{}

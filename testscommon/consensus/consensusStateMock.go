@@ -86,6 +86,23 @@ type ConsensusStateMock struct {
 	FallbackThresholdCalled                      func(subroundId int) int
 	SetFallbackThresholdCalled                   func(subroundId int, threshold int)
 	ResetConsensusRoundStateCalled               func()
+	AddProcessedHeadersHashesCalled              func(hash []byte, index int)
+	GenerateBitmapForHashCalled                  func(subroundId int, hash []byte) []byte
+}
+
+// AddProcessedHeadersHashes -
+func (cnsm *ConsensusStateMock) AddProcessedHeadersHashes(hash []byte, index int) {
+	if cnsm.AddProcessedHeadersHashesCalled != nil {
+		cnsm.AddProcessedHeadersHashesCalled(hash, index)
+	}
+}
+
+// GenerateBitmapForHash -
+func (cnsm *ConsensusStateMock) GenerateBitmapForHash(subroundId int, hash []byte) []byte {
+	if cnsm.GenerateBitmapCalled != nil {
+		return cnsm.GenerateBitmapForHashCalled(subroundId, hash)
+	}
+	return nil
 }
 
 // AddReceivedHeader -

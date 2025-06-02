@@ -44,7 +44,6 @@ func NewSubroundsFactory(
 	sentSignaturesTracker spos.SentSignaturesTracker,
 	outportHandler outport.OutportHandler,
 	consensusModel consensus.ConsensusModel,
-	enableEpochHandler common.EnableEpochsHandler,
 	extraSignersHolder bls.ExtraSignersHolder,
 ) (*factory, error) {
 	// no need to check the outportHandler, it can be nil
@@ -55,7 +54,6 @@ func NewSubroundsFactory(
 		chainID,
 		appStatusHandler,
 		sentSignaturesTracker,
-		enableEpochHandler,
 		extraSignersHolder,
 	)
 	if err != nil {
@@ -72,7 +70,7 @@ func NewSubroundsFactory(
 		sentSignaturesTracker: sentSignaturesTracker,
 		outportHandler:        outportHandler,
 		consensusModel:        consensusModel,
-		enableEpochHandler:    enableEpochHandler,
+		enableEpochHandler:    consensusDataContainer.EnableEpochsHandler(),
 		extraSignersHolder:    extraSignersHolder,
 	}
 
@@ -86,7 +84,6 @@ func checkNewFactoryParams(
 	chainID []byte,
 	appStatusHandler core.AppStatusHandler,
 	sentSignaturesTracker spos.SentSignaturesTracker,
-	enableEpochHandler common.EnableEpochsHandler,
 	extraSignersHolder bls.ExtraSignersHolder,
 ) error {
 	err := spos.ValidateConsensusCore(container)
@@ -107,9 +104,6 @@ func checkNewFactoryParams(
 	}
 	if len(chainID) == 0 {
 		return spos.ErrInvalidChainID
-	}
-	if check.IfNil(enableEpochHandler) {
-		return spos.ErrNilEnableEpochHandler
 	}
 	if check.IfNil(extraSignersHolder) {
 		return errors.ErrNilExtraSignersHolder

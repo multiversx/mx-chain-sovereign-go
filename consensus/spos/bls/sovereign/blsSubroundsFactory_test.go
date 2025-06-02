@@ -102,7 +102,6 @@ func initFactoryV1(
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
 		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 

@@ -3,6 +3,7 @@ package proxy
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -29,6 +30,8 @@ type SubroundsHandlerArgs struct {
 	EnableEpochsHandler  core.EnableEpochsHandler
 	ChainID              []byte
 	CurrentPid           core.PeerID
+	ConsensusModel       consensus.ConsensusModel
+	ExtraSignersHolder   bls.ExtraSignersHolder
 }
 
 // subroundsFactory defines the methods needed to generate the subrounds
@@ -54,6 +57,9 @@ type SubroundsHandler struct {
 	chainID              []byte
 	currentPid           core.PeerID
 	currentConsensusType consensusStateMachineType
+	consensusModel       consensus.ConsensusModel
+	enableEpochHandler   common.EnableEpochsHandler
+	extraSignersHolder   bls.ExtraSignersHolder
 }
 
 // EpochConfirmed is called when the epoch is confirmed (this is registered as callback)
@@ -65,6 +71,7 @@ func (s *SubroundsHandler) EpochConfirmed(epoch uint32, _ uint64) {
 }
 
 const (
+	// TODO: MARIUS C: Add sovereign consensus here instead of adding it to SubRoundsHandlerArgs
 	consensusNone consensusStateMachineType = iota
 	consensusV1
 	consensusV2
@@ -90,6 +97,8 @@ func NewSubroundsHandler(args *SubroundsHandlerArgs) (*SubroundsHandler, error) 
 		chainID:              args.ChainID,
 		currentPid:           args.CurrentPid,
 		currentConsensusType: consensusNone,
+		consensusModel:       args.ConsensusModel,
+		extraSignersHolder:   args.ExtraSignersHolder,
 	}
 
 	subroundHandler.consensusCoreHandler.EpochNotifier().RegisterNotifyHandler(subroundHandler)
@@ -132,6 +141,8 @@ func checkArgs(args *SubroundsHandlerArgs) error {
 		return ErrNilCurrentPid
 	}
 	// outport handler can be nil if not configured so no need to check it
+	// TODO: MARIUS C: When we integrate consensus v2 into sovereign consensus, also have nil checks
+	// here for extra signers and enable epoch handler
 
 	return nil
 }
@@ -176,6 +187,8 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			s.appStatusHandler,
 			s.sentSignatureTracker,
 			s.outportHandler,
+			s.consensusModel,
+			s.extraSignersHolder,
 		)
 	}
 	if err != nil {

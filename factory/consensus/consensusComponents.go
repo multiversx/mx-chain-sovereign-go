@@ -61,7 +61,6 @@ type ConsensusComponentsFactoryArgs struct {
 	ShouldDisableWatchdog bool
 	ConsensusModel        consensus.ConsensusModel
 	ExtraSignersHolder    bls.ExtraSignersHolder
-	SubRoundEndV2Creator  bls.SubRoundEndV2Creator
 }
 
 type consensusComponentsFactory struct {
@@ -82,7 +81,6 @@ type consensusComponentsFactory struct {
 	shouldDisableWatchdog bool
 
 	extraSignersHolder    bls.ExtraSignersHolder
-	subRoundEndV2Creator  bls.SubRoundEndV2Creator
 	shardMessengerFactory sposFactory.BroadCastShardMessengerFactoryHandler
 }
 
@@ -119,7 +117,6 @@ func NewConsensusComponentsFactory(args ConsensusComponentsFactoryArgs) (*consen
 		shouldDisableWatchdog: args.ShouldDisableWatchdog,
 		runTypeComponents:     args.RunTypeComponents,
 		extraSignersHolder:    args.ExtraSignersHolder,
-		subRoundEndV2Creator:  args.SubRoundEndV2Creator,
 		shardMessengerFactory: args.RunTypeComponents.BroadCastShardMessengerFactoryHandler(),
 	}, nil
 }
@@ -298,9 +295,6 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 		return nil, err
 	}
 
-	// TODO: Marius C Here
-
-	////// THIS CODE IS FROM ANDROMEDA
 	subroundsHandlerArgs := &proxy.SubroundsHandlerArgs{
 		Chronology:           cc.chronology,
 		ConsensusCoreHandler: consensusDataContainer,
@@ -313,30 +307,11 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 		EnableEpochsHandler:  ccf.coreComponents.EnableEpochsHandler(),
 		ChainID:              []byte(ccf.coreComponents.ChainID()),
 		CurrentPid:           ccf.networkComponents.NetworkMessenger().ID(),
+		ConsensusModel:       ccf.runTypeComponents.ConsensusModel(),
+		ExtraSignersHolder:   ccf.extraSignersHolder,
 	}
 
 	subroundsHandler, err := proxy.NewSubroundsHandler(subroundsHandlerArgs)
-	////// THIS CODE IS FROM ANDROMEDA
-
-
-	//// THIS CODE IS FROM SOVEREIGN
-	fct, err := sposFactory.GetSubroundsFactory(
-		consensusDataContainer,
-		consensusState,
-		cc.worker,
-		ccf.config.Consensus.Type,
-		ccf.statusCoreComponents.AppStatusHandler(),
-		ccf.statusComponents.OutportHandler(),
-		ccf.processComponents.SentSignaturesTracker(),
-		[]byte(ccf.coreComponents.ChainID()),
-		ccf.networkComponents.NetworkMessenger().ID(),
-		ccf.runTypeComponents.ConsensusModel(),
-		ccf.coreComponents.EnableEpochsHandler(),
-		ccf.extraSignersHolder,
-		ccf.subRoundEndV2Creator,
-	)
-
-	//// THIS CODE IS FROM SOVEREIGN
 	if err != nil {
 		return nil, err
 	}
@@ -826,10 +801,6 @@ func checkArgs(args ConsensusComponentsFactoryArgs) error {
 	if check.IfNil(args.ExtraSignersHolder) {
 		return errors.ErrNilExtraSignersHolder
 	}
-	if check.IfNil(args.SubRoundEndV2Creator) {
-		return errors.ErrNilSubRoundEndV2Creator
-	}
-
 	if check.IfNil(args.RunTypeComponents) {
 		return errors.ErrNilRunTypeComponents
 	}
