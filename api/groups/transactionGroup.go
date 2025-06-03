@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+
 	"github.com/multiversx/mx-chain-go/api/errors"
 	"github.com/multiversx/mx-chain-go/api/middleware"
 	"github.com/multiversx/mx-chain-go/api/shared"
@@ -348,11 +349,13 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 	for idx, receivedTx := range ftxs {
 		tx, txHash, err = tg.createTransaction(&receivedTx)
 		if err != nil {
+			logging.LogCreateTransactionError(receivedTx, err)
 			continue
 		}
 
 		err = tg.getFacade().ValidateTransaction(tx)
 		if err != nil {
+			logging.LogValidateTransactionError(*tx, err)
 			continue
 		}
 

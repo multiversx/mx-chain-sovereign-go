@@ -1064,25 +1064,25 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 
 	scbp.nodesCoordinator.EpochStartPrepare(header, body)
 
-	pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	err = scbp.createAndSetOutGoingMiniBlock(
-		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
-		body,
-		block.OutGoingMbChangeValidatorSet,
-	)
-	if err != nil {
-		return err
-	}
+	//pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = scbp.createAndSetOutGoingMiniBlock(
+	//	header,
+	//	[][]byte{outGoingOperationChangeValidatorSet},
+	//	body,
+	//	block.OutGoingMbChangeValidatorSet,
+	//)
+	//if err != nil {
+	//	return err
+	//}
 
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
