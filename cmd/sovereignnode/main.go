@@ -236,6 +236,14 @@ func readConfigs(ctx *cli.Context, log logger.Logger) (*sovereignConfig.Sovereig
 	}
 	log.Debug("config", "file", configurationPaths.RoundActivation)
 
+	var nodesSetup config.NodesConfig
+	configurationPaths.Nodes = ctx.GlobalString(nodesFile.Name)
+	err = core.LoadJsonFile(&nodesSetup, configurationPaths.Nodes)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("config", "file", configurationPaths.Nodes)
+
 	sovereignExtraConfigPath := ctx.GlobalString(sovereignConfigFile.Name)
 	sovereignExtraConfig, err := sovereignConfig.LoadSovereignGeneralConfig(sovereignExtraConfigPath)
 	if err != nil {
@@ -286,6 +294,7 @@ func readConfigs(ctx *cli.Context, log logger.Logger) (*sovereignConfig.Sovereig
 			ConfigurationPathsHolder: configurationPaths,
 			EpochConfig:              epochConfig,
 			RoundConfig:              roundConfig,
+			NodesConfig:              &nodesSetup,
 		},
 		SovereignExtraConfig: sovereignExtraConfig,
 		SovereignEpochConfig: sovereignEpochConfig,

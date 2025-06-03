@@ -24,7 +24,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-sovereign-bridge-go/cert"
 	factoryBridge "github.com/multiversx/mx-chain-sovereign-bridge-go/client"
@@ -403,6 +402,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedCoreComponents.EnableEpochsHandler(),
 		managedDataComponents.Datapool().CurrentEpochValidatorInfo(),
 		managedBootstrapComponents.NodesCoordinatorRegistryFactory(),
+		managedCoreComponents.ChainParametersHandler(),
 		managedRunTypeComponents.NodesCoordinatorWithRaterCreator(),
 	)
 	if err != nil {
@@ -983,11 +983,6 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 
-	sovSubRoundEndCreator, err := sovereign.NewSovereignSubRoundEndCreator(runTypeComponents.OutGoingOperationsPoolHandler(), outGoingBridgeOpHandler)
-	if err != nil {
-		return nil, err
-	}
-
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
 		Config:                *snr.configs.GeneralConfig,
 		BootstrapRoundIndex:   snr.configs.FlagsConfig.BootstrapRoundIndex,
@@ -1004,7 +999,6 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		ShouldDisableWatchdog: snr.configs.FlagsConfig.DisableConsensusWatchdog,
 		RunTypeComponents:     runTypeComponents,
 		ExtraSignersHolder:    extraSignersHolder,
-		SubRoundEndV2Creator:  sovSubRoundEndCreator,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -1606,7 +1600,7 @@ func (snr *sovereignNodeRunner) CreateManagedCoreComponents(
 		ImportDbConfig:        *snr.configs.ImportDbConfig,
 		RatingsConfig:         *snr.configs.RatingsConfig,
 		EconomicsConfig:       *snr.configs.EconomicsConfig,
-		NodesFilename:         snr.configs.ConfigurationPathsHolder.Nodes,
+		NodesConfig:           *snr.configs.NodesConfig,
 		WorkingDirectory:      snr.configs.FlagsConfig.DbDir,
 		ChanStopNodeProcess:   chanStopNodeProcess,
 		RunTypeCoreComponents: runTypeCoreComponents,

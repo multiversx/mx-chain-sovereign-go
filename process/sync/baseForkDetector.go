@@ -771,6 +771,9 @@ func (bfd *baseForkDetector) processReceivedBlock(
 	if common.IsProofsFlagEnabledForHeader(bfd.enableEpochsHandler, header) {
 		hasProof = bfd.proofsPool.HasProof(header.GetShardID(), headerHash)
 	}
+
+	// MARIUS C: ???
+
 	bfd.setHighestNonceReceived(header.GetNonce())
 
 	if state == process.BHProposed || !hasProof {

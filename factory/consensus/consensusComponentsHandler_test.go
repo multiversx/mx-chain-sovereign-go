@@ -137,15 +137,8 @@ func TestManagedConsensusComponents_ConsensusGroupSize(t *testing.T) {
 	managedConsensusComponents, _ := consensusComp.NewManagedConsensusComponents(consensusComponentsFactory)
 	require.NotNil(t, managedConsensusComponents)
 
-	size, err := managedConsensusComponents.ConsensusGroupSize()
-	require.Equal(t, errorsMx.ErrNilConsensusComponentsHolder, err)
-	require.Zero(t, size)
-
-	err = managedConsensusComponents.Create()
+	err := managedConsensusComponents.Create()
 	require.NoError(t, err)
-	size, err = managedConsensusComponents.ConsensusGroupSize()
-	require.NoError(t, err)
-	require.Equal(t, 2, size)
 	assert.Equal(t, "*sync.ShardBootstrap", fmt.Sprintf("%T", managedConsensusComponents.Bootstrapper()))
 }
 

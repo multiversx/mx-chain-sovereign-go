@@ -14,7 +14,6 @@ import (
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
@@ -30,8 +29,8 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/multiversx/mx-chain-go/testscommon/cache"
+	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
@@ -53,7 +52,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 	"github.com/multiversx/mx-chain-go/update"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponentsFactoryArgs {
@@ -112,7 +110,7 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 					return &cache.CacherStub{}
 				},
 				HeadersCalled: func() retriever.HeadersPool {
-					return &testscommon.HeadersCacherStub{}
+					return &processMock.HeadersCacherStub{}
 				},
 				ProofsCalled: func() retriever.ProofsPool {
 					return &dataRetrieverMocks.ProofsPoolMock{}
@@ -185,7 +183,6 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 		ShouldDisableWatchdog: false,
 		ConsensusModel:        consensus.ConsensusModelV1,
 		ExtraSignersHolder:    &subRoundsHolder.ExtraSignersHolderMock{},
-		SubRoundEndV2Creator:  bls.NewSubRoundEndV2Creator(),
 		RunTypeComponents: &mainFactoryMocks.RunTypeComponentsStub{
 			BootstrapperFromStorageFactory: &factoryMocks.BootstrapperFromStorageFactoryMock{
 				CreateBootstrapperFromStorageCalled: func(args storageBootstrap.ArgsShardStorageBootstrapper) (process.BootstrapperFromStorage, error) {
@@ -454,16 +451,6 @@ func TestNewConsensusComponentsFactory(t *testing.T) {
 
 		require.Nil(t, ccf)
 		require.Equal(t, errorsMx.ErrNilExtraSignersHolder, err)
-	})
-	t.Run("nil SubRoundEndV2Creator, should error", func(t *testing.T) {
-		t.Parallel()
-
-		args := createMockConsensusComponentsFactoryArgs()
-		args.SubRoundEndV2Creator = nil
-		ccf, err := consensusComp.NewConsensusComponentsFactory(args)
-
-		require.Nil(t, ccf)
-		require.Equal(t, errorsMx.ErrNilSubRoundEndV2Creator, err)
 	})
 	t.Run("nil RunTypeComponents should error", func(t *testing.T) {
 		t.Parallel()

@@ -91,12 +91,14 @@ func validateChainParameters(chainParametersConfig []config.ChainParametersByEpo
 		if chainParameters.ShardMinNumNodes < chainParameters.ShardConsensusGroupSize {
 			return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
 		}
-		if chainParameters.MetachainConsensusGroupSize < 1 {
-			return fmt.Errorf("%w for chain parameters with index %d", ErrNegativeOrZeroConsensusGroupSize, idx)
-		}
-		if chainParameters.MetachainMinNumNodes < chainParameters.MetachainConsensusGroupSize {
-			return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
-		}
+
+		// TODO: MARIUS C: Have separate component here
+		//if chainParameters.MetachainConsensusGroupSize < 1 {
+		//	return fmt.Errorf("%w for chain parameters with index %d", ErrNegativeOrZeroConsensusGroupSize, idx)
+		//}
+		//if chainParameters.MetachainMinNumNodes < chainParameters.MetachainConsensusGroupSize {
+		//	return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
+		//}
 	}
 
 	return nil

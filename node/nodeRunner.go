@@ -32,7 +32,6 @@ import (
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
@@ -938,7 +937,6 @@ func (nr *nodeRunner) CreateManagedConsensusComponents(
 		ShouldDisableWatchdog: nr.configs.FlagsConfig.DisableConsensusWatchdog,
 		RunTypeComponents:     runTypeComponents,
 		ExtraSignersHolder:    holders.NewEmptyExtraSignersHolder(),
-		SubRoundEndV2Creator:  bls.NewSubRoundEndV2Creator(),
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -1493,7 +1491,7 @@ func (nr *nodeRunner) CreateManagedCoreComponents(
 		ImportDbConfig:        *nr.configs.ImportDbConfig,
 		RatingsConfig:         *nr.configs.RatingsConfig,
 		EconomicsConfig:       *nr.configs.EconomicsConfig,
-		NodesConfig:         *nr.configs.NodesConfig,
+		NodesConfig:           *nr.configs.NodesConfig,
 		WorkingDirectory:      nr.configs.FlagsConfig.DbDir,
 		ChanStopNodeProcess:   chanStopNodeProcess,
 		RunTypeCoreComponents: runTypeCoreComponents,

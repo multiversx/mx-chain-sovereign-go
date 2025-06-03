@@ -908,27 +908,48 @@ func (rrh *resolverRequestHandler) RequestEquivalentProofByNonce(headerShard uin
 }
 
 func (rrh *resolverRequestHandler) getEquivalentProofsRequester(headerShard uint32) (dataRetriever.Requester, error) {
-	// there are multiple scenarios for equivalent proofs:
-	// 1. self meta  requesting meta proof  -> should request on equivalentProofs_ALL
-	// 2. self meta  requesting shard proof -> should request on equivalentProofs_shard_META
-	// 3. self shard requesting intra proof -> should request on equivalentProofs_self_META
-	// 4. self shard requesting meta proof  -> should request on equivalentProofs_ALL
-	// 4. self shard requesting cross proof -> should never happen!
+	// TODO: Marius C: Have separate sovereign requester
+	/*
+		// there are multiple scenarios for equivalent proofs:
+		// 1. self meta  requesting meta proof  -> should request on equivalentProofs_ALL
+		// 2. self meta  requesting shard proof -> should request on equivalentProofs_shard_META
+		// 3. self shard requesting intra proof -> should request on equivalentProofs_self_META
+		// 4. self shard requesting meta proof  -> should request on equivalentProofs_ALL
+		// 4. self shard requesting cross proof -> should never happen!
 
-	isSelfMeta := rrh.shardID == core.MetachainShardId
-	isRequestForMeta := headerShard == core.MetachainShardId
-	shardIdMissmatch := rrh.shardID != headerShard && !isRequestForMeta && !isSelfMeta
-	isRequestInvalid := !isSelfMeta && shardIdMissmatch
-	if isRequestInvalid {
-		return nil, dataRetriever.ErrBadRequest
-	}
+		isSelfMeta := rrh.shardID == core.MetachainShardId
+		isRequestForMeta := headerShard == core.MetachainShardId
+		shardIdMissmatch := rrh.shardID != headerShard && !isRequestForMeta && !isSelfMeta
+		isRequestInvalid := !isSelfMeta && shardIdMissmatch
+		if isRequestInvalid {
+			return nil, dataRetriever.ErrBadRequest
+		}
 
-	if isRequestForMeta {
-		topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
-		requester, err := rrh.requestersFinder.MetaChainRequester(topic)
+		if isRequestForMeta {
+			topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+			requester, err := rrh.requestersFinder.MetaChainRequester(topic)
+			if err != nil {
+				err = fmt.Errorf("%w, topic: %s, current shard ID: %d, requested header shard ID: %d",
+					err, topic, rrh.shardID, headerShard)
+
+				log.Warn("available requesters in container",
+					"requesters", rrh.requestersFinder.RequesterKeys(),
+				)
+				return nil, err
+			}
+
+			return requester, nil
+		}
+
+		crossShardID := core.MetachainShardId
+		if isSelfMeta {
+			crossShardID = headerShard
+		}
+
+		requester, err := rrh.requestersFinder.CrossShardRequester(common.EquivalentProofsTopic, crossShardID)
 		if err != nil {
-			err = fmt.Errorf("%w, topic: %s, current shard ID: %d, requested header shard ID: %d",
-				err, topic, rrh.shardID, headerShard)
+			err = fmt.Errorf("%w, base topic: %s, current shard ID: %d, cross shard ID: %d",
+				err, common.EquivalentProofsTopic, rrh.shardID, crossShardID)
 
 			log.Warn("available requesters in container",
 				"requesters", rrh.requestersFinder.RequesterKeys(),
@@ -937,17 +958,12 @@ func (rrh *resolverRequestHandler) getEquivalentProofsRequester(headerShard uint
 		}
 
 		return requester, nil
-	}
+	*/
 
-	crossShardID := core.MetachainShardId
-	if isSelfMeta {
-		crossShardID = headerShard
-	}
-
-	requester, err := rrh.requestersFinder.CrossShardRequester(common.EquivalentProofsTopic, crossShardID)
+	requester, err := rrh.requestersFinder.IntraShardRequester(common.EquivalentProofsTopic)
 	if err != nil {
 		err = fmt.Errorf("%w, base topic: %s, current shard ID: %d, cross shard ID: %d",
-			err, common.EquivalentProofsTopic, rrh.shardID, crossShardID)
+			err, common.EquivalentProofsTopic, rrh.shardID, 3)
 
 		log.Warn("available requesters in container",
 			"requesters", rrh.requestersFinder.RequesterKeys(),

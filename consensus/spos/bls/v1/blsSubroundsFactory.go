@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -129,27 +128,22 @@ func (fct *factory) GenerateSubrounds(_ uint32) error {
 		return err
 	}
 
-	switch fct.consensusModel {
-	case consensus.ConsensusModelV1:
-		err = fct.generateBlockSubroundV1()
-		if err != nil {
-			return err
-		}
-
-		err = fct.generateSignatureSubroundV1()
-		if err != nil {
-			return err
-		}
-
-		err = fct.generateEndRoundSubroundV1()
-		if err != nil {
-			return err
-		}
-
-		return nil
-	default:
-		return fmt.Errorf("%w model %v", errors.ErrUnimplementedConsensusModel, fct.consensusModel)
+	err = fct.generateBlockSubroundV1()
+	if err != nil {
+		return err
 	}
+
+	err = fct.generateSignatureSubroundV1()
+	if err != nil {
+		return err
+	}
+
+	err = fct.generateEndRoundSubroundV1()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (fct *factory) getTimeDuration() time.Duration {
