@@ -268,6 +268,13 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) EpochStartPrepare(hdr data.Hea
 	unStakeLeavingList := ihnc.createSortedListFromMap(newNodesConfig.leavingMap)
 	additionalLeavingList := ihnc.createSortedListFromMap(additionalLeavingMap)
 
+	chainParamsForEpoch, err := ihnc.chainParametersHandler.ChainParametersForEpoch(newEpoch)
+	if err != nil {
+		log.Warn("indexHashedNodesCoordinator.EpochStartPrepare: could not compute chain params for epoch. "+
+			"Will use the current chain parameters", "epoch", newEpoch, "error", err)
+		chainParamsForEpoch = ihnc.chainParametersHandler.CurrentChainParameters()
+	}
+
 	shufflerArgs := ArgsUpdateNodes{
 		Eligible:          newNodesConfig.eligibleMap,
 		Waiting:           newNodesConfig.waitingMap,
@@ -278,6 +285,7 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) EpochStartPrepare(hdr data.Hea
 		Rand:              randomness,
 		NbShards:          newNodesConfig.nbShards,
 		Epoch:             newEpoch,
+		ChainParameters:   chainParamsForEpoch,
 	}
 
 	resUpdateNodes, err := ihnc.shuffler.UpdateNodeLists(shufflerArgs)

@@ -311,7 +311,7 @@ func getCurrentValidatorIDs(
 	nodeHandler process.NodeHandler,
 	currentHeader data.HeaderHandler,
 ) [][]byte {
-	valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
+	_, valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
 		currentHeader.GetRandSeed(),
 		currentHeader.GetRound(),
 		core.SovereignChainShardId,
@@ -347,9 +347,9 @@ func getConsensusOwnersBalances(t *testing.T, nodeHandler process.NodeHandler) m
 	currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
 	nodesCoordinator := nodeHandler.GetProcessComponents().NodesCoordinator()
 
-	validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
+	_, validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
 	require.Nil(t, err)
-	require.Len(t, validators, nodesCoordinator.ConsensusGroupSize(core.SovereignChainShardId))
+	require.Len(t, validators, nodesCoordinator.ConsensusGroupSizeForShardAndEpoch(core.SovereignChainShardId, currentHeader.GetEpoch()))
 
 	allOwnersBalance := make(map[string]*big.Int)
 	for _, validator := range validators {

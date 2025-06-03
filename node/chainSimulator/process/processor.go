@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/heartbeat"
 	heartbeatData "github.com/multiversx/mx-chain-go/heartbeat/data"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
@@ -87,7 +86,7 @@ func (creator *blocksCreator) CreateNewBlock() error {
 		return err
 	}
 
-	pubKeysBitMap := creator.createPubKeysBitMap(epoch)
+	pubKeysBitMap := creator.createPubKeysBitMap(newHeader)
 	err = newHeader.SetPubKeysBitmap(pubKeysBitMap)
 	if err != nil {
 		return err
@@ -144,7 +143,7 @@ func (creator *blocksCreator) CreateNewBlock() error {
 	if err != nil {
 		return err
 	}
-enableEpochHandler := coreComponents.EnableEpochsHandler()
+	enableEpochHandler := coreComponents.EnableEpochsHandler()
 
 	header, block, err := creator.blocksProcessor.ProcessBlock(bp, newHeader)
 	if err != nil {
@@ -332,36 +331,15 @@ func (creator *blocksCreator) setHeartBeat(header data.HeaderHandler) error {
 	return nil
 }
 
-func (creator *blocksCreator) getPreviousHeaderData() (nonce, round uint64, prevHash, prevRandSeed []byte, epoch uint32) {
-	currentHeader := creator.nodeHandler.GetChainHandler().GetCurrentBlockHeader()
-
-	if currentHeader != nil {
-		nonce, round = currentHeader.GetNonce(), currentHeader.GetRound()
-		prevHash = creator.nodeHandler.GetChainHandler().GetCurrentBlockHeaderHash()
-		prevRandSeed = currentHeader.GetRandSeed()
-		epoch = currentHeader.GetEpoch()
-		return
-	}
-
-	prevHash = creator.nodeHandler.GetChainHandler().GetGenesisHeaderHash()
-	prevRandSeed = creator.nodeHandler.GetChainHandler().GetGenesisHeader().GetRandSeed()
-	round = uint64(creator.nodeHandler.GetCoreComponents().RoundHandler().Index()) - 1
-	epoch = creator.nodeHandler.GetChainHandler().GetGenesisHeader().GetEpoch()
-	nonce = creator.nodeHandler.GetChainHandler().GetGenesisHeader().GetNonce()
-
-	return
-}
-
-func (creator *blocksCreator) createPubKeysBitMap(epoch uint32) []byte {
-	cnsGroupSize := creator.nodeHandler.GetProcessComponents().NodesCoordinator().ConsensusGroupSize(epoch)
+func (creator *blocksCreator) createPubKeysBitMap(newHeader data.HeaderHandler) []byte {
+	cnsGroupSize := creator.nodeHandler.GetProcessComponents().NodesCoordinator().ConsensusGroupSizeForShardAndEpoch(newHeader.GetShardID(), newHeader.GetEpoch())
 	pkMap := make([]byte, cnsGroupSize/8+1)
 	pkMap[0] = 1
 
 	return pkMap
 }
 
-func (creator *blocksCreator) setHeaderSignatures(header data.HeaderHandler, blsKeyBytes []byte, 	validators []nodesCoordinator.Validator,) error {
-	signingHandler := creator.nodeHandler.GetCryptoComponents().ConsensusSigningHandler()
+func (creator *blocksCreator) setHeaderSignatures(header data.HeaderHandler, blsKeyBytes []byte, validators []nodesCoordinator.Validator) error {
 	headerClone := header.ShallowClone()
 	_ = headerClone.SetPubKeysBitmap(nil)
 

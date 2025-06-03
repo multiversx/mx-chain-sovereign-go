@@ -179,14 +179,18 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 		return nil, err
 	}
 	instance.genesisNodesSetup, err = args.RunTypeCoreComponents.GenesisNodesSetupFactoryCreator().CreateNodesSetup(&sharding.NodesSetupArgs{
-		NodesFilePath:            args.NodesSetupPath,
+		NodesConfig:              nodesSetup,
 		AddressPubKeyConverter:   instance.addressPubKeyConverter,
 		ValidatorPubKeyConverter: instance.validatorPubKeyConverter,
 		GenesisMaxNumShards:      args.NumShards,
+		ChainParametersProvider:  instance.chainParametersHandler,
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	roundDuration := time.Millisecond * time.Duration(instance.genesisNodesSetup.GetRoundDuration())
-	instance.roundHandler = NewManualRoundHandler(instance.genesisNodesSetup.GetStartTime(), roundDuration, args.InitialRound)
+	roundDuration := time.Millisecond * time.Duration(instance.chainParametersHandler.CurrentChainParameters().RoundDuration)
+	instance.roundHandler = NewManualRoundHandler(nodesSetup.StartTime, roundDuration, args.InitialRound)
 
 	instance.wasmVMChangeLocker = &sync.RWMutex{}
 	instance.txVersionChecker = versioning.NewTxVersionChecker(args.Config.GeneralSettings.MinTransactionVersion)

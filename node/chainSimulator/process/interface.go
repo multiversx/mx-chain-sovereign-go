@@ -10,8 +10,6 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
-
-	chainData "github.com/multiversx/mx-chain-core-go/data"
 )
 
 // NodeHandler defines what a node handler should be able to do

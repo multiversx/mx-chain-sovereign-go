@@ -17,6 +17,7 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclmultisig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
@@ -474,7 +475,7 @@ func CreateNodesWithNodesCoordinatorAndHeaderSigVerifier(
 			KeyGen:                       keyGen,
 			FallbackHeaderValidator:      &testscommon.FallBackHeaderValidatorStub{},
 			EnableEpochsHandler:          enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
-			HeadersPool:                  &mock.HeadersCacherStub{},
+			HeadersPool:                  &processMock.HeadersCacherStub{},
 			ProofsPool:                   &dataRetriever.ProofsPoolMock{},
 			StorageService:               &genericMocks.ChainStorerMock{},
 			ExtraHeaderSigVerifierHolder: &headerSigVerifier.ExtraHeaderSigVerifierHolderMock{},
@@ -621,7 +622,7 @@ func CreateNodesWithNodesCoordinatorKeygenAndSingleSigner(
 				KeyGen:                       keyGenForBlocks,
 				FallbackHeaderValidator:      &testscommon.FallBackHeaderValidatorStub{},
 				EnableEpochsHandler:          enableEpochsHandlerMock.NewEnableEpochsHandlerStub(),
-				HeadersPool:                  &mock.HeadersCacherStub{},
+				HeadersPool:                  &processMock.HeadersCacherStub{},
 				ProofsPool:                   &dataRetriever.ProofsPoolMock{},
 				StorageService:               &genericMocks.ChainStorerMock{},
 				ExtraHeaderSigVerifierHolder: &headerSigVerifier.ExtraHeaderSigVerifierHolderMock{},

@@ -32,19 +32,10 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
-	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/factory/runType"
 	"github.com/multiversx/mx-chain-go/node"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/heartbeat"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
-	chainSimulatorErrors "github.com/multiversx/mx-chain-go/node/chainSimulator/errors"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	processing "github.com/multiversx/mx-chain-go/process"
-	mxChainSharding "github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 )
 
@@ -66,7 +57,7 @@ type ArgsChainSimulator struct {
 	NumOfShards                    uint32
 	MinNodesPerShard               uint32
 	MetaChainMinNodes              uint32
-	Hysteresis                 float32
+	Hysteresis                     float32
 	NumNodesWaitingListShard       uint32
 	NumNodesWaitingListMeta        uint32
 	GenesisTimestamp               int64
@@ -333,13 +324,15 @@ func (s *simulator) addProofs() {
 		})
 	}
 
-	metachainProofsPool := s.GetNodeHandler(core.MetachainShardId).GetDataComponents().Datapool().Proofs()
+	// TODO: MARIUS C: Here rewrite this for sovereign/meta
+	metachainProofsPool := s.GetNodeHandler(core.SovereignChainShardId).GetDataComponents().Datapool().Proofs()
 	for _, proof := range proofs {
 		_ = metachainProofsPool.AddProof(proof)
 
-		if proof.HeaderShardId != core.MetachainShardId {
-			_ = s.GetNodeHandler(proof.HeaderShardId).GetDataComponents().Datapool().Proofs().AddProof(proof)
-		}
+		// TODO: MARIUS C: Here rewrite this for sovereign/meta
+		//if proof.HeaderShardId != core.SovereignChainShardId {
+		//	_ = s.GetNodeHandler(proof.HeaderShardId).GetDataComponents().Datapool().Proofs().AddProof(proof)
+		//}
 	}
 }
 

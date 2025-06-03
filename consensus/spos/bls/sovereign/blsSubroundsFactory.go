@@ -5,7 +5,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -20,7 +19,6 @@ type ArgsSovereignSubRoundsFactory struct {
 	Worker                 spos.WorkerHandler
 	OutportHandler         outport.OutportHandler
 	ConsensusModel         consensus.ConsensusModel
-	EnableEpochHandler     common.EnableEpochsHandler
 	BaseSubRoundsFactory   SubRoundsFactoryHandler
 	OutGoingOperationsPool bls.OutGoingOperationsPool
 	BridgeOpHandler        bls.BridgeOperationsHandler
@@ -35,7 +33,6 @@ type factory struct {
 
 	outportHandler       outport.OutportHandler
 	consensusModel       consensus.ConsensusModel
-	enableEpochHandler   common.EnableEpochsHandler
 	baseSubRoundsFactory SubRoundsFactoryHandler
 
 	outGoingOperationsPool bls.OutGoingOperationsPool
@@ -49,7 +46,6 @@ func NewSubroundsFactory(args ArgsSovereignSubRoundsFactory) (*factory, error) {
 		args.ConsensusDataContainer,
 		args.ConsensusState,
 		args.Worker,
-		args.EnableEpochHandler,
 		args.BaseSubRoundsFactory,
 		args.OutGoingOperationsPool,
 		args.BridgeOpHandler,
@@ -64,7 +60,6 @@ func NewSubroundsFactory(args ArgsSovereignSubRoundsFactory) (*factory, error) {
 		worker:                 args.Worker,
 		outportHandler:         args.OutportHandler,
 		consensusModel:         args.ConsensusModel,
-		enableEpochHandler:     args.EnableEpochHandler,
 		baseSubRoundsFactory:   args.BaseSubRoundsFactory,
 		outGoingOperationsPool: args.OutGoingOperationsPool,
 		bridgeOpHandler:        args.BridgeOpHandler,
@@ -77,7 +72,6 @@ func checkNewFactoryParams(
 	container spos.ConsensusCoreHandler,
 	state spos.ConsensusStateHandler,
 	worker spos.WorkerHandler,
-	enableEpochHandler common.EnableEpochsHandler,
 	baseSubRoundsFactory SubRoundsFactoryHandler,
 	outGoingOperationsPool bls.OutGoingOperationsPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
@@ -91,9 +85,6 @@ func checkNewFactoryParams(
 	}
 	if check.IfNil(worker) {
 		return spos.ErrNilWorker
-	}
-	if check.IfNil(enableEpochHandler) {
-		return spos.ErrNilEnableEpochHandler
 	}
 	if baseSubRoundsFactory == nil {
 		return ErrNilSubRoundsFactoryInSovereign

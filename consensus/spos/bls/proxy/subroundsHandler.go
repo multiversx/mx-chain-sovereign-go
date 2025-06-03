@@ -4,6 +4,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
+	sovereign2 "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -178,7 +180,7 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 		}
 
 		s.currentConsensusType = consensusV1
-		fct, err = v1.NewSubroundsFactory(
+		fct1, errV1 := v1.NewSubroundsFactory(
 			s.consensusCoreHandler,
 			s.consensusState,
 			s.worker,
@@ -190,6 +192,22 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			s.consensusModel,
 			s.extraSignersHolder,
 		)
+		if errV1 != nil {
+			return errV1
+		}
+
+		// TODO: MARIUS C Inject run type comps here
+
+		fct, err = sovereign.NewSubroundsFactory(sovereign.ArgsSovereignSubRoundsFactory{
+			ConsensusDataContainer: s.consensusCoreHandler,
+			ConsensusState:         s.consensusState,
+			Worker:                 s.worker,
+			OutportHandler:         s.outportHandler,
+			ConsensusModel:         consensus.ConsensusModelV2,
+			BaseSubRoundsFactory:   fct1,
+			OutGoingOperationsPool: &sovereign2.OutGoingOperationsPoolMock{},  // TODO: MARIUS C: Inject real component here
+			BridgeOpHandler:        &sovereign2.BridgeOperationsHandlerMock{}, // TODO: MARIUS C: Inject real component here
+		})
 	}
 	if err != nil {
 		return err

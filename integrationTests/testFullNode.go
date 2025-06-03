@@ -14,6 +14,8 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
+	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
+	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -239,7 +241,8 @@ func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArg
 	tpn.initHeaderValidator()
 	tpn.initRoundHandler()
 
-	syncer := ntp.NewSyncTime(ntp.NewNTPGoogleConfig(), nil)
+	roundDuration := time.Millisecond * time.Duration(args.NodesSetup.GetRoundDuration())
+	syncer := ntp.NewSyncTime(ntp.NewNTPGoogleConfig(), nil, roundDuration)
 	syncer.StartSyncingTime()
 	tpn.GenesisTimeField = time.Unix(fullArgs.StartTime, 0)
 
@@ -342,6 +345,7 @@ func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArg
 			tpn.NodeKeys.MainKey.Sk,
 			tpn.MainMessenger.ID(),
 		),
+		broadcastFactory.NewShardChainMessengerFactory(),
 	)
 
 	if args.WithSync {
@@ -702,7 +706,15 @@ func (tcn *TestFullNode) initInterceptors(
 		CacheExpiry: time.Second * 10,
 	}
 
-	accountsAdapter := epochStartDisabled.NewAccountsAdapter()
+	argsAccFactory := stateFactory.ArgsAccountCreator{
+		Hasher:              coreComponents.Hasher(),
+		Marshaller:          coreComponents.InternalMarshalizer(),
+		EnableEpochsHandler: coreComponents.EnableEpochsHandler(),
+	}
+	accFactory, err := stateFactory.NewAccountCreator(argsAccFactory)
+	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountCreator")
+	accountsAdapter, err := epochStartDisabled.NewAccountsAdapter(accFactory)
+	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountsAdapter")
 
 	blockBlackListHandler := cache.NewTimeCache(TimeSpanForBadHeaders)
 
@@ -895,7 +907,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 			Marshalizer:           TestMarshalizer,
 			Hasher:                TestHasher,
 			Store:                 tpn.Storage,
-			ShardCoordinator:      tpn.ShardCoordinator,
+			ShardCoordinator:      tpn.ShardCoordinator.(metachain.ExtendedShardCoordinatorHandler),
 			RewardsHandler:        tpn.EconomicsData,
 			RoundTime:             roundHandler,
 			GenesisTotalSupply:    tpn.EconomicsData.GenesisTotalSupply(),
@@ -971,7 +983,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 		})
 
 		argsAuctionListSelector := metachain.AuctionListSelectorArgs{
-			ShardCoordinator:             tpn.ShardCoordinator,
+			ShardCoordinator:             tpn.ShardCoordinator.(metachain.ExtendedShardCoordinatorHandler),
 			StakingDataProvider:          stakingDataProvider,
 			MaxNodesChangeConfigProvider: maxNodesChangeConfigProvider,
 			AuctionListDisplayHandler:    ald,
@@ -1108,7 +1120,7 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 			EpochRewardsCreator:       &testscommon.RewardsCreatorStub{},
 			EpochValidatorInfoCreator: &testscommon.EpochValidatorInfoCreatorStub{},
 			ValidatorStatisticsProcessor: &testscommon.ValidatorStatisticsProcessorStub{
-				UpdatePeerStateCalled: func(header data.MetaHeaderHandler) ([]byte, error) {
+				UpdatePeerStateCalled: func(header data.CommonHeaderHandler) ([]byte, error) {
 					return []byte("validator stats root hash"), nil
 				},
 			},

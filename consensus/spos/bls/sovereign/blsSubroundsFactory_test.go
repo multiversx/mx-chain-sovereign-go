@@ -21,7 +21,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMock "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	testscommonOutport "github.com/multiversx/mx-chain-go/testscommon/outport"
 	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
@@ -80,7 +79,6 @@ func createArgsSovSubRoundsFactory() sovereign.ArgsSovereignSubRoundsFactory {
 		Worker:                 worker,
 		OutportHandler:         nil,
 		ConsensusModel:         consensus.ConsensusModelV2,
-		EnableEpochHandler:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		BaseSubRoundsFactory:   baseFactory,
 		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
 		BridgeOpHandler:        &sovTests.BridgeOperationsHandlerMock{},
@@ -166,17 +164,6 @@ func TestFactory_NewFactoryNilWorkerShouldFail(t *testing.T) {
 
 	require.Nil(t, fct)
 	require.Equal(t, spos.ErrNilWorker, err)
-}
-
-func TestFactory_NewFactoryNilEnableEpochHandlerShouldFail(t *testing.T) {
-	t.Parallel()
-
-	args := createArgsSovSubRoundsFactory()
-	args.EnableEpochHandler = nil
-	fct, err := sovereign.NewSubroundsFactory(args)
-
-	require.Nil(t, fct)
-	require.Equal(t, spos.ErrNilEnableEpochHandler, err)
 }
 
 func TestFactory_NewFactoryNilBaseFactoryShouldFail(t *testing.T) {

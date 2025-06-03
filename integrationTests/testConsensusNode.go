@@ -16,6 +16,7 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
+	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/enablers"
@@ -54,8 +55,8 @@ import (
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
-	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/components"
+	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
@@ -93,7 +94,7 @@ type ArgsTestConsensusNode struct {
 	MultiSigner        *cryptoMocks.MultisignerMock
 	StartTime          int64
 	EnableEpochsConfig config.EnableEpochs
-	ConsensusModel consensus.ConsensusModel
+	ConsensusModel     consensus.ConsensusModel
 }
 
 // TestConsensusNode represents a structure used in integration tests used for consensus tests
@@ -170,7 +171,7 @@ func CreateNodesWithTestConsensusNode(
 				MultiSigner:        multiSignerMock,
 				StartTime:          startTime,
 				EnableEpochsConfig: enableEpochsConfig,
-				ConsensusModel: consensusModel,
+				ConsensusModel:     consensusModel,
 			}
 
 			tcn := NewTestConsensusNode(args)
@@ -456,7 +457,15 @@ func (tcn *TestConsensusNode) initInterceptors(
 		CacheExpiry: time.Second * 10,
 	}
 
-	accountsAdapter := epochStartDisabled.NewAccountsAdapter()
+	argsAccFactory := stateFactory.ArgsAccountCreator{
+		Hasher:              coreComponents.Hasher(),
+		Marshaller:          coreComponents.InternalMarshalizer(),
+		EnableEpochsHandler: coreComponents.EnableEpochsHandler(),
+	}
+	accFactory, err := stateFactory.NewAccountCreator(argsAccFactory)
+	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountCreator")
+	accountsAdapter, err := epochStartDisabled.NewAccountsAdapter(accFactory)
+	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountsAdapter")
 
 	blockBlackListHandler := cache.NewTimeCache(TimeSpanForBadHeaders)
 
