@@ -984,21 +984,22 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 	}
 
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                *snr.configs.GeneralConfig,
-		BootstrapRoundIndex:   snr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:        coreComponents,
-		NetworkComponents:     networkComponents,
-		CryptoComponents:      cryptoComponents,
-		DataComponents:        dataComponents,
-		ProcessComponents:     processComponents,
-		StateComponents:       stateComponents,
-		StatusComponents:      statusComponents,
-		StatusCoreComponents:  statusCoreComponents,
-		ScheduledProcessor:    scheduledProcessor,
-		IsInImportMode:        snr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog: snr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    extraSignersHolder,
+		Config:                  *snr.configs.GeneralConfig,
+		BootstrapRoundIndex:     snr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    statusCoreComponents,
+		ScheduledProcessor:      scheduledProcessor,
+		IsInImportMode:          snr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog:   snr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:       runTypeComponents,
+		ExtraSignersHolder:      extraSignersHolder,
+		OutGoingBridgeOpHandler: outGoingBridgeOpHandler,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)

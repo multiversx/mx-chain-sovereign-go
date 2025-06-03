@@ -375,7 +375,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 		return false
 	}
 
-	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(sr.GetHeader(), aggSigsRes.extraAggregatedSigs)
+	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(header, aggSigsRes.extraAggregatedSigs)
 	if err != nil {
 		return false
 	}
@@ -393,7 +393,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 		return false
 	}
 
-	err = sr.extraSignersHolder.SignAndSetLeaderSignature(sr.GetHeader(), leaderPubKey)
+	err = sr.extraSignersHolder.SignAndSetLeaderSignature(header, leaderPubKey)
 	if err != nil {
 		log.Debug("doEndRoundJobByLeader.extraSignatureAggregator.SignAndSetLeaderSignature", "error", err.Error())
 		return false
@@ -472,7 +472,7 @@ func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte) 
 		return sr.handleInvalidSignersOnAggSigFail()
 	}
 
-	extraSigs, err := sr.extraSignersHolder.AggregateSignatures(bitmap, sr.GetHeader())
+	extraSigs, err := sr.extraSignersHolder.AggregateSignatures(bitmap, header)
 	if err != nil {
 		log.Debug("doEndRoundJobByLeader.extraAggregatedSig.AggregateAndSetSignatures", "error", err.Error())
 		// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
@@ -493,7 +493,7 @@ func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte) 
 		return sr.handleInvalidSignersOnAggSigFail()
 	}
 
-	err = sr.extraSignersHolder.VerifyAggregatedSignatures(sr.GetHeader(), bitmap)
+	err = sr.extraSignersHolder.VerifyAggregatedSignatures(header, bitmap)
 	if err != nil {
 		log.Debug("doEndRoundJobByLeader.extraSignersHolder.verifyAggregatedSignatures", "error", err.Error())
 		// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
@@ -678,7 +678,7 @@ func (sr *subroundEndRound) createAndBroadcastHeaderFinalInfo() {
 		sr.getProcessedHeaderHash(),
 	)
 
-	err := sr.extraSignersHolder.AddLeaderAndAggregatedSignatures(sr.GetHeader(), cnsMsg)
+	err := sr.extraSignersHolder.AddLeaderAndAggregatedSignatures(header, cnsMsg)
 	if err != nil {
 		log.Debug("doEndRoundJob.extraSignatureAggregator.AddLeaderAndAggregatedSignatures", "error", err.Error())
 		return

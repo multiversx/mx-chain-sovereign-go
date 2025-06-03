@@ -44,23 +44,24 @@ const numSignatureGoRoutinesThrottler = 30
 
 // ConsensusComponentsFactoryArgs holds the arguments needed to create a consensus components factory
 type ConsensusComponentsFactoryArgs struct {
-	Config                config.Config
-	FlagsConfig           config.ContextFlagsConfig
-	BootstrapRoundIndex   uint64
-	CoreComponents        factory.CoreComponentsHolder
-	NetworkComponents     factory.NetworkComponentsHolder
-	CryptoComponents      factory.CryptoComponentsHolder
-	DataComponents        factory.DataComponentsHolder
-	ProcessComponents     factory.ProcessComponentsHolder
-	StateComponents       factory.StateComponentsHolder
-	StatusComponents      factory.StatusComponentsHolder
-	StatusCoreComponents  factory.StatusCoreComponentsHolder
-	RunTypeComponents     factory.RunTypeComponentsHolder
-	ScheduledProcessor    consensus.ScheduledProcessor
-	IsInImportMode        bool
-	ShouldDisableWatchdog bool
-	ConsensusModel        consensus.ConsensusModel
-	ExtraSignersHolder    bls.ExtraSignersHolder
+	Config                  config.Config
+	FlagsConfig             config.ContextFlagsConfig
+	BootstrapRoundIndex     uint64
+	CoreComponents          factory.CoreComponentsHolder
+	NetworkComponents       factory.NetworkComponentsHolder
+	CryptoComponents        factory.CryptoComponentsHolder
+	DataComponents          factory.DataComponentsHolder
+	ProcessComponents       factory.ProcessComponentsHolder
+	StateComponents         factory.StateComponentsHolder
+	StatusComponents        factory.StatusComponentsHolder
+	StatusCoreComponents    factory.StatusCoreComponentsHolder
+	RunTypeComponents       factory.RunTypeComponentsHolder
+	ScheduledProcessor      consensus.ScheduledProcessor
+	IsInImportMode          bool
+	ShouldDisableWatchdog   bool
+	ConsensusModel          consensus.ConsensusModel
+	ExtraSignersHolder      bls.ExtraSignersHolder
+	OutGoingBridgeOpHandler bls.BridgeOperationsHandler
 }
 
 type consensusComponentsFactory struct {
@@ -80,8 +81,9 @@ type consensusComponentsFactory struct {
 	isInImportMode        bool
 	shouldDisableWatchdog bool
 
-	extraSignersHolder    bls.ExtraSignersHolder
-	shardMessengerFactory sposFactory.BroadCastShardMessengerFactoryHandler
+	extraSignersHolder      bls.ExtraSignersHolder
+	shardMessengerFactory   sposFactory.BroadCastShardMessengerFactoryHandler
+	outGoingBridgeOpHandler bls.BridgeOperationsHandler
 }
 
 type consensusComponents struct {
@@ -95,29 +97,32 @@ type consensusComponents struct {
 
 // NewConsensusComponentsFactory creates an instance of consensusComponentsFactory
 func NewConsensusComponentsFactory(args ConsensusComponentsFactoryArgs) (*consensusComponentsFactory, error) {
+	// TODO: MARIUS C:
+	// nil checks outGoingBridgeOpHandler bls.BridgeOperationsHandler
 	err := checkArgs(args)
 	if err != nil {
 		return nil, err
 	}
 
 	return &consensusComponentsFactory{
-		config:                args.Config,
-		flagsConfig:           args.FlagsConfig,
-		bootstrapRoundIndex:   args.BootstrapRoundIndex,
-		coreComponents:        args.CoreComponents,
-		networkComponents:     args.NetworkComponents,
-		cryptoComponents:      args.CryptoComponents,
-		dataComponents:        args.DataComponents,
-		processComponents:     args.ProcessComponents,
-		stateComponents:       args.StateComponents,
-		statusComponents:      args.StatusComponents,
-		statusCoreComponents:  args.StatusCoreComponents,
-		scheduledProcessor:    args.ScheduledProcessor,
-		isInImportMode:        args.IsInImportMode,
-		shouldDisableWatchdog: args.ShouldDisableWatchdog,
-		runTypeComponents:     args.RunTypeComponents,
-		extraSignersHolder:    args.ExtraSignersHolder,
-		shardMessengerFactory: args.RunTypeComponents.BroadCastShardMessengerFactoryHandler(),
+		config:                  args.Config,
+		flagsConfig:             args.FlagsConfig,
+		bootstrapRoundIndex:     args.BootstrapRoundIndex,
+		coreComponents:          args.CoreComponents,
+		networkComponents:       args.NetworkComponents,
+		cryptoComponents:        args.CryptoComponents,
+		dataComponents:          args.DataComponents,
+		processComponents:       args.ProcessComponents,
+		stateComponents:         args.StateComponents,
+		statusComponents:        args.StatusComponents,
+		statusCoreComponents:    args.StatusCoreComponents,
+		scheduledProcessor:      args.ScheduledProcessor,
+		isInImportMode:          args.IsInImportMode,
+		shouldDisableWatchdog:   args.ShouldDisableWatchdog,
+		runTypeComponents:       args.RunTypeComponents,
+		extraSignersHolder:      args.ExtraSignersHolder,
+		shardMessengerFactory:   args.RunTypeComponents.BroadCastShardMessengerFactoryHandler(),
+		outGoingBridgeOpHandler: args.OutGoingBridgeOpHandler,
 	}, nil
 }
 
@@ -295,19 +300,21 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 	}
 
 	subroundsHandlerArgs := &proxy.SubroundsHandlerArgs{
-		Chronology:           cc.chronology,
-		ConsensusCoreHandler: consensusDataContainer,
-		ConsensusState:       consensusState,
-		Worker:               cc.worker,
-		SignatureThrottler:   signatureThrottler,
-		AppStatusHandler:     ccf.statusCoreComponents.AppStatusHandler(),
-		OutportHandler:       ccf.statusComponents.OutportHandler(),
-		SentSignatureTracker: ccf.processComponents.SentSignaturesTracker(),
-		EnableEpochsHandler:  ccf.coreComponents.EnableEpochsHandler(),
-		ChainID:              []byte(ccf.coreComponents.ChainID()),
-		CurrentPid:           ccf.networkComponents.NetworkMessenger().ID(),
-		ConsensusModel:       ccf.runTypeComponents.ConsensusModel(),
-		ExtraSignersHolder:   ccf.extraSignersHolder,
+		Chronology:              cc.chronology,
+		ConsensusCoreHandler:    consensusDataContainer,
+		ConsensusState:          consensusState,
+		Worker:                  cc.worker,
+		SignatureThrottler:      signatureThrottler,
+		AppStatusHandler:        ccf.statusCoreComponents.AppStatusHandler(),
+		OutportHandler:          ccf.statusComponents.OutportHandler(),
+		SentSignatureTracker:    ccf.processComponents.SentSignaturesTracker(),
+		EnableEpochsHandler:     ccf.coreComponents.EnableEpochsHandler(),
+		ChainID:                 []byte(ccf.coreComponents.ChainID()),
+		CurrentPid:              ccf.networkComponents.NetworkMessenger().ID(),
+		ConsensusModel:          ccf.runTypeComponents.ConsensusModel(),
+		ExtraSignersHolder:      ccf.extraSignersHolder,
+		OutGoingBridgeOpHandler: ccf.outGoingBridgeOpHandler,
+		OutGoingOperationsPool:  ccf.runTypeComponents.OutGoingOperationsPoolHandler(),
 	}
 
 	subroundsHandler, err := proxy.NewSubroundsHandler(subroundsHandlerArgs)

@@ -5,7 +5,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
-	sovereign2 "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -21,19 +20,21 @@ var log = logger.GetOrCreate("consensus/spos/bls/proxy")
 
 // SubroundsHandlerArgs struct contains the needed data for the SubroundsHandler
 type SubroundsHandlerArgs struct {
-	Chronology           consensus.ChronologyHandler
-	ConsensusCoreHandler spos.ConsensusCoreHandler
-	ConsensusState       spos.ConsensusStateHandler
-	Worker               factory.ConsensusWorker
-	SignatureThrottler   core.Throttler
-	AppStatusHandler     core.AppStatusHandler
-	OutportHandler       outport.OutportHandler
-	SentSignatureTracker spos.SentSignaturesTracker
-	EnableEpochsHandler  core.EnableEpochsHandler
-	ChainID              []byte
-	CurrentPid           core.PeerID
-	ConsensusModel       consensus.ConsensusModel
-	ExtraSignersHolder   bls.ExtraSignersHolder
+	Chronology              consensus.ChronologyHandler
+	ConsensusCoreHandler    spos.ConsensusCoreHandler
+	ConsensusState          spos.ConsensusStateHandler
+	Worker                  factory.ConsensusWorker
+	SignatureThrottler      core.Throttler
+	AppStatusHandler        core.AppStatusHandler
+	OutportHandler          outport.OutportHandler
+	SentSignatureTracker    spos.SentSignaturesTracker
+	EnableEpochsHandler     core.EnableEpochsHandler
+	ChainID                 []byte
+	CurrentPid              core.PeerID
+	ConsensusModel          consensus.ConsensusModel
+	ExtraSignersHolder      bls.ExtraSignersHolder
+	OutGoingBridgeOpHandler bls.BridgeOperationsHandler
+	OutGoingOperationsPool  bls.OutGoingOperationsPool
 }
 
 // subroundsFactory defines the methods needed to generate the subrounds
@@ -62,6 +63,9 @@ type SubroundsHandler struct {
 	consensusModel       consensus.ConsensusModel
 	enableEpochHandler   common.EnableEpochsHandler
 	extraSignersHolder   bls.ExtraSignersHolder
+
+	outGoingBridgeOpHandler bls.BridgeOperationsHandler
+	outGoingOperationsPool  bls.OutGoingOperationsPool
 }
 
 // EpochConfirmed is called when the epoch is confirmed (this is registered as callback)
@@ -87,20 +91,22 @@ func NewSubroundsHandler(args *SubroundsHandlerArgs) (*SubroundsHandler, error) 
 	}
 
 	subroundHandler := &SubroundsHandler{
-		chronology:           args.Chronology,
-		consensusCoreHandler: args.ConsensusCoreHandler,
-		consensusState:       args.ConsensusState,
-		worker:               args.Worker,
-		signatureThrottler:   args.SignatureThrottler,
-		appStatusHandler:     args.AppStatusHandler,
-		outportHandler:       args.OutportHandler,
-		sentSignatureTracker: args.SentSignatureTracker,
-		enableEpochsHandler:  args.EnableEpochsHandler,
-		chainID:              args.ChainID,
-		currentPid:           args.CurrentPid,
-		currentConsensusType: consensusNone,
-		consensusModel:       args.ConsensusModel,
-		extraSignersHolder:   args.ExtraSignersHolder,
+		chronology:              args.Chronology,
+		consensusCoreHandler:    args.ConsensusCoreHandler,
+		consensusState:          args.ConsensusState,
+		worker:                  args.Worker,
+		signatureThrottler:      args.SignatureThrottler,
+		appStatusHandler:        args.AppStatusHandler,
+		outportHandler:          args.OutportHandler,
+		sentSignatureTracker:    args.SentSignatureTracker,
+		enableEpochsHandler:     args.EnableEpochsHandler,
+		chainID:                 args.ChainID,
+		currentPid:              args.CurrentPid,
+		currentConsensusType:    consensusNone,
+		consensusModel:          args.ConsensusModel,
+		extraSignersHolder:      args.ExtraSignersHolder,
+		outGoingBridgeOpHandler: args.OutGoingBridgeOpHandler,
+		outGoingOperationsPool:  args.OutGoingOperationsPool,
 	}
 
 	subroundHandler.consensusCoreHandler.EpochNotifier().RegisterNotifyHandler(subroundHandler)
@@ -205,8 +211,8 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			OutportHandler:         s.outportHandler,
 			ConsensusModel:         consensus.ConsensusModelV2,
 			BaseSubRoundsFactory:   fct1,
-			OutGoingOperationsPool: &sovereign2.OutGoingOperationsPoolMock{},  // TODO: MARIUS C: Inject real component here
-			BridgeOpHandler:        &sovereign2.BridgeOperationsHandlerMock{}, // TODO: MARIUS C: Inject real component here
+			OutGoingOperationsPool: s.outGoingOperationsPool,  // TODO: MARIUS C: Inject real component here
+			BridgeOpHandler:        s.outGoingBridgeOpHandler, // TODO: MARIUS C: Inject real component here
 		})
 	}
 	if err != nil {
