@@ -1275,12 +1275,12 @@ const (
 	RelayedTransactionsV3FixESDTTransferFlag            core.EnableEpochFlag = "RelayedTransactionsV3FixESDTTransferFlag"
 	AndromedaFlag                                       core.EnableEpochFlag = "AndromedaFlag"
 	CheckBuiltInCallOnTransferValueAndFailExecutionFlag core.EnableEpochFlag = "CheckBuiltInCallOnTransferValueAndFailExecutionFlag"
-	MaskInternalDependenciesErrorsFlag                 core.EnableEpochFlag = "MaskInternalDependenciesErrorsFlag"
-	FixBackTransferOPCODEFlag                          core.EnableEpochFlag = "FixBackTransferOPCODEFlag"
-	ValidationOnGobDecodeFlag                          core.EnableEpochFlag = "ValidationOnGobDecodeFlag"
-	BarnardOpcodesFlag                                 core.EnableEpochFlag = "BarnardOpcodesFlag"
-	AutomaticActivationOfNodesDisableFlag              core.EnableEpochFlag = "AutomaticActivationOfNodesDisableFlag"
-	ConsensusModelV2Flag                               core.EnableEpochFlag = "ConsensusModelV2Flag"
+	MaskInternalDependenciesErrorsFlag                  core.EnableEpochFlag = "MaskInternalDependenciesErrorsFlag"
+	FixBackTransferOPCODEFlag                           core.EnableEpochFlag = "FixBackTransferOPCODEFlag"
+	ValidationOnGobDecodeFlag                           core.EnableEpochFlag = "ValidationOnGobDecodeFlag"
+	BarnardOpcodesFlag                                  core.EnableEpochFlag = "BarnardOpcodesFlag"
+	AutomaticActivationOfNodesDisableFlag               core.EnableEpochFlag = "AutomaticActivationOfNodesDisableFlag"
+	ConsensusModelSovereignFlag                         core.EnableEpochFlag = "ConsensusModelSovereignFlag"
 	// all new flags must be added to createAllFlagsMap method, as part of enableEpochsHandler allFlagsDefined
 )
 

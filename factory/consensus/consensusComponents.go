@@ -311,10 +311,9 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 		EnableEpochsHandler:     ccf.coreComponents.EnableEpochsHandler(),
 		ChainID:                 []byte(ccf.coreComponents.ChainID()),
 		CurrentPid:              ccf.networkComponents.NetworkMessenger().ID(),
-		ConsensusModel:          ccf.runTypeComponents.ConsensusModel(),
 		ExtraSignersHolder:      ccf.extraSignersHolder,
 		OutGoingBridgeOpHandler: ccf.outGoingBridgeOpHandler,
-		OutGoingOperationsPool:  ccf.runTypeComponents.OutGoingOperationsPoolHandler(),
+		RunTypeComponents:       ccf.runTypeComponents,
 	}
 
 	subroundsHandler, err := proxy.NewSubroundsHandler(subroundsHandlerArgs)

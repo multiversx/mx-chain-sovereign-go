@@ -953,7 +953,7 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundSignatureShouldWork(t 
 
 		container := consensusMocks.InitConsensusCore()
 
-		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 		sr := *initSubroundSignatureWithContainer(container, enableEpochHandler)
 
 		sr.SetData([]byte("X"))

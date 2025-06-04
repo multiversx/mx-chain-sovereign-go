@@ -99,7 +99,6 @@ func initFactoryV1(
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -112,11 +111,6 @@ func initFactoryWithContainer(container *spos.ConsensusCore) sovereign.Factory {
 	fct, _ := sovereign.NewSubroundsFactory(args)
 
 	return fct
-}
-
-func initFactory() sovereign.Factory {
-	container := consensusMock.InitConsensusCore()
-	return initFactoryWithContainer(container)
 }
 
 func TestFactory_NewFactoryNilContainerShouldFail(t *testing.T) {

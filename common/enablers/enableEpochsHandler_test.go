@@ -337,7 +337,7 @@ func TestEnableEpochsHandler_IsFlagEnabled(t *testing.T) {
 	require.True(t, handler.IsFlagEnabled(common.FixRelayedMoveBalanceToNonPayableSCFlag))
 	require.True(t, handler.IsFlagEnabled(common.AndromedaFlag))
 	require.True(t, handler.IsFlagEnabled(common.DynamicESDTFlag))
-	require.True(t, handler.IsFlagEnabled(common.ConsensusModelV2Flag))
+	require.True(t, handler.IsFlagEnabled(common.ConsensusModelSovereignFlag))
 }
 
 func TestEnableEpochsHandler_GetActivationEpoch(t *testing.T) {
@@ -470,7 +470,7 @@ func TestEnableEpochsHandler_GetActivationEpoch(t *testing.T) {
 	require.Equal(t, cfg.ValidationOnGobDecodeEnableEpoch, handler.GetActivationEpoch(common.ValidationOnGobDecodeFlag))
 	require.Equal(t, cfg.BarnardOpcodesEnableEpoch, handler.GetActivationEpoch(common.BarnardOpcodesFlag))
 	require.Equal(t, cfg.AutomaticActivationOfNodesDisableEpoch, handler.GetActivationEpoch(common.AutomaticActivationOfNodesDisableFlag))
-	require.Equal(t, cfg.ConsensusModelV2EnableEpoch, handler.GetActivationEpoch(common.ConsensusModelV2Flag))
+	require.Equal(t, cfg.ConsensusModelV2EnableEpoch, handler.GetActivationEpoch(common.ConsensusModelSovereignFlag))
 }
 
 func TestEnableEpochsHandler_IsInterfaceNil(t *testing.T) {

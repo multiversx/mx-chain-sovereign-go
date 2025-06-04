@@ -2287,7 +2287,7 @@ func TestWorker_ProcessReceivedMessageWithInvalidSigners(t *testing.T) {
 	}
 	workerArgs.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 		IsFlagEnabledCalled: func(flag core.EnableEpochFlag) bool {
-			if flag == common.ConsensusModelV2Flag {
+			if flag == common.ConsensusModelSovereignFlag {
 				return false
 			}
 			return true

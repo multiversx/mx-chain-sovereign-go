@@ -1827,7 +1827,7 @@ func TestSubroundEndRound_GetHeaderHashToVerifySigShouldWork(t *testing.T) {
 
 		container := consensusMocks.InitConsensusCore()
 
-		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
 		cnsData := consensus.Message{
@@ -1867,7 +1867,7 @@ func TestSubroundEndRound_GenerateBitmapShouldWork(t *testing.T) {
 
 		container := consensusMocks.InitConsensusCore()
 
-		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
 		_ = sr.SetJobDone("A", bls.SrSignature, true)
@@ -1908,7 +1908,7 @@ func TestSubroundEndRound_GetProcessedHeaderHashInSubroundEndRoundShouldWork(t *
 
 		container := consensusMocks.InitConsensusCore()
 
-		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+		enableEpochHandler := enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 		sr := *initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, enableEpochHandler)
 
 		sr.SetData([]byte("X"))

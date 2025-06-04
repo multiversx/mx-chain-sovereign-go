@@ -701,7 +701,7 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(
 }
 
 func (sr *subroundEndRound) getProcessedHeaderHash() []byte {
-	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		// TODO: Marius C : integrate these in another PR
 		return nil //sr.getMessageToVerifySigFunc()
 	}

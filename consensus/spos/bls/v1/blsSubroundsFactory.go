@@ -6,7 +6,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -25,7 +24,6 @@ type factory struct {
 	sentSignaturesTracker spos.SentSignaturesTracker
 	chainID               []byte
 	currentPid            core.PeerID
-	consensusModel        consensus.ConsensusModel
 	enableEpochHandler    common.EnableEpochsHandler
 	extraSignersHolder    bls.ExtraSignersHolder
 }
@@ -42,7 +40,6 @@ func NewSubroundsFactory(
 	appStatusHandler core.AppStatusHandler,
 	sentSignaturesTracker spos.SentSignaturesTracker,
 	outportHandler outport.OutportHandler,
-	consensusModel consensus.ConsensusModel,
 	extraSignersHolder bls.ExtraSignersHolder,
 ) (*factory, error) {
 	// no need to check the outportHandler, it can be nil
@@ -68,7 +65,6 @@ func NewSubroundsFactory(
 		currentPid:            currentPid,
 		sentSignaturesTracker: sentSignaturesTracker,
 		outportHandler:        outportHandler,
-		consensusModel:        consensusModel,
 		enableEpochHandler:    consensusDataContainer.EnableEpochsHandler(),
 		extraSignersHolder:    extraSignersHolder,
 	}

@@ -839,7 +839,7 @@ func (handler *enableEpochsHandler) createAllFlagsMap() {
 			},
 			activationEpoch: handler.enableEpochsConfig.BarnardOpcodesEnableEpoch,
 		},
-		common.ConsensusModelV2Flag: {
+		common.ConsensusModelSovereignFlag: {
 			isActiveInEpoch: func(epoch uint32) bool {
 				return epoch >= handler.enableEpochsConfig.ConsensusModelV2EnableEpoch
 			},

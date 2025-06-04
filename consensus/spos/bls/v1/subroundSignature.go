@@ -194,7 +194,7 @@ func (sr *subroundSignature) completeSignatureSubRound(
 		return false
 	}
 
-	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		sr.AddProcessedHeadersHashes(processedHeaderHash, index)
 	}
 
@@ -206,7 +206,7 @@ func (sr *subroundSignature) completeSignatureSubRound(
 }
 
 func (sr *subroundSignature) getProcessedHeaderHash() []byte {
-	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return sr.getMessageToSignFunc()
 	}
 
@@ -287,7 +287,7 @@ func (sr *subroundSignature) receivedSignature(_ context.Context, cnsDta *consen
 		spos.ValidatorPeerHonestyIncreaseFactor,
 	)
 
-	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		sr.AddProcessedHeadersHashes(cnsDta.ProcessedHeaderHash, index)
 	}
 

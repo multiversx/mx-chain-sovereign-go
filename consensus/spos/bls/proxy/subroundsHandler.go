@@ -1,10 +1,13 @@
 package proxy
 
 import (
+	"fmt"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -31,10 +34,10 @@ type SubroundsHandlerArgs struct {
 	EnableEpochsHandler     core.EnableEpochsHandler
 	ChainID                 []byte
 	CurrentPid              core.PeerID
-	ConsensusModel          consensus.ConsensusModel
 	ExtraSignersHolder      bls.ExtraSignersHolder
 	OutGoingBridgeOpHandler bls.BridgeOperationsHandler
-	OutGoingOperationsPool  bls.OutGoingOperationsPool
+
+	RunTypeComponents factory.RunTypeComponentsHolder
 }
 
 // subroundsFactory defines the methods needed to generate the subrounds
@@ -48,24 +51,22 @@ type consensusStateMachineType int
 
 // SubroundsHandler struct contains the needed data for the SubroundsHandler
 type SubroundsHandler struct {
-	chronology           consensus.ChronologyHandler
-	consensusCoreHandler spos.ConsensusCoreHandler
-	consensusState       spos.ConsensusStateHandler
-	worker               factory.ConsensusWorker
-	signatureThrottler   core.Throttler
-	appStatusHandler     core.AppStatusHandler
-	outportHandler       outport.OutportHandler
-	sentSignatureTracker spos.SentSignaturesTracker
-	enableEpochsHandler  core.EnableEpochsHandler
-	chainID              []byte
-	currentPid           core.PeerID
-	currentConsensusType consensusStateMachineType
-	consensusModel       consensus.ConsensusModel
-	enableEpochHandler   common.EnableEpochsHandler
-	extraSignersHolder   bls.ExtraSignersHolder
-
+	chronology              consensus.ChronologyHandler
+	consensusCoreHandler    spos.ConsensusCoreHandler
+	consensusState          spos.ConsensusStateHandler
+	worker                  factory.ConsensusWorker
+	signatureThrottler      core.Throttler
+	appStatusHandler        core.AppStatusHandler
+	outportHandler          outport.OutportHandler
+	sentSignatureTracker    spos.SentSignaturesTracker
+	enableEpochsHandler     core.EnableEpochsHandler
+	chainID                 []byte
+	currentPid              core.PeerID
+	currentConsensusType    consensusStateMachineType
+	extraSignersHolder      bls.ExtraSignersHolder
 	outGoingBridgeOpHandler bls.BridgeOperationsHandler
-	outGoingOperationsPool  bls.OutGoingOperationsPool
+
+	runTypeComponents factory.RunTypeComponentsHolder
 }
 
 // EpochConfirmed is called when the epoch is confirmed (this is registered as callback)
@@ -81,6 +82,7 @@ const (
 	consensusNone consensusStateMachineType = iota
 	consensusV1
 	consensusV2
+	consensusSovereign
 )
 
 // NewSubroundsHandler creates a new SubroundsHandler object
@@ -103,10 +105,9 @@ func NewSubroundsHandler(args *SubroundsHandlerArgs) (*SubroundsHandler, error) 
 		chainID:                 args.ChainID,
 		currentPid:              args.CurrentPid,
 		currentConsensusType:    consensusNone,
-		consensusModel:          args.ConsensusModel,
 		extraSignersHolder:      args.ExtraSignersHolder,
 		outGoingBridgeOpHandler: args.OutGoingBridgeOpHandler,
-		outGoingOperationsPool:  args.OutGoingOperationsPool,
+		runTypeComponents:       args.RunTypeComponents,
 	}
 
 	subroundHandler.consensusCoreHandler.EpochNotifier().RegisterNotifyHandler(subroundHandler)
@@ -148,10 +149,14 @@ func checkArgs(args *SubroundsHandlerArgs) error {
 	if len(args.CurrentPid) == 0 {
 		return ErrNilCurrentPid
 	}
-	// outport handler can be nil if not configured so no need to check it
-	// TODO: MARIUS C: When we integrate consensus v2 into sovereign consensus, also have nil checks
-	// here for extra signers and enable epoch handler
+	if check.IfNil(args.RunTypeComponents) {
+		return errMx.ErrNilRunTypeComponents
+	}
+	if check.IfNil(args.RunTypeComponents.OutGoingOperationsPoolHandler()) {
+		return errMx.ErrNilOutGoingOperationsPool
+	}
 
+	// outport handler can be nil if not configured so no need to check it
 	return nil
 }
 
@@ -186,7 +191,7 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 		}
 
 		s.currentConsensusType = consensusV1
-		fct1, errV1 := v1.NewSubroundsFactory(
+		fct, err = v1.NewSubroundsFactory(
 			s.consensusCoreHandler,
 			s.consensusState,
 			s.worker,
@@ -195,14 +200,21 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			s.appStatusHandler,
 			s.sentSignatureTracker,
 			s.outportHandler,
-			s.consensusModel,
 			s.extraSignersHolder,
 		)
-		if errV1 != nil {
-			return errV1
+	}
+
+	if s.enableEpochsHandler.IsFlagEnabledInEpoch(common.ConsensusModelSovereignFlag, epoch) {
+		if s.currentConsensusType == consensusSovereign {
+			return nil
 		}
 
-		// TODO: MARIUS C Inject run type comps here
+		s.currentConsensusType = consensusSovereign
+
+		baseFactory, castOK := fct.(sovereign.SubRoundsFactoryHandler)
+		if !castOK {
+			return fmt.Errorf("%w when trying to create sovereign sub rounds factory", errMx.ErrWrongTypeAssertion)
+		}
 
 		fct, err = sovereign.NewSubroundsFactory(sovereign.ArgsSovereignSubRoundsFactory{
 			ConsensusDataContainer: s.consensusCoreHandler,
@@ -210,11 +222,12 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			Worker:                 s.worker,
 			OutportHandler:         s.outportHandler,
 			ConsensusModel:         consensus.ConsensusModelV2,
-			BaseSubRoundsFactory:   fct1,
-			OutGoingOperationsPool: s.outGoingOperationsPool,  // TODO: MARIUS C: Inject real component here
-			BridgeOpHandler:        s.outGoingBridgeOpHandler, // TODO: MARIUS C: Inject real component here
+			BaseSubRoundsFactory:   baseFactory,
+			OutGoingOperationsPool: s.runTypeComponents.OutGoingOperationsPoolHandler(),
+			BridgeOpHandler:        s.outGoingBridgeOpHandler,
 		})
 	}
+
 	if err != nil {
 		return err
 	}

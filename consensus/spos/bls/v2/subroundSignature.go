@@ -150,7 +150,7 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 }
 
 func (sr *subroundSignature) getProcessedHeaderHash() []byte {
-	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		// TODO: Marius C: Fix this in another PR
 		return nil //sr.getMessageToSignFunc()
 	}

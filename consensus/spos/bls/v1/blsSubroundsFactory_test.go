@@ -84,7 +84,6 @@ func initFactoryWithContainer(container *spos.ConsensusCore) v1.Factory {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -136,7 +135,6 @@ func TestFactory_NewFactoryNilContainerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -159,7 +157,6 @@ func TestFactory_NewFactoryNilConsensusStateShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -184,7 +181,6 @@ func TestFactory_NewFactoryNilBlockchainShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -209,7 +205,6 @@ func TestFactory_NewFactoryNilBlockProcessorShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -234,7 +229,6 @@ func TestFactory_NewFactoryNilBootstrapperShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -259,7 +253,6 @@ func TestFactory_NewFactoryNilChronologyHandlerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -284,7 +277,6 @@ func TestFactory_NewFactoryNilHasherShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -309,7 +301,6 @@ func TestFactory_NewFactoryNilMarshalizerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -334,7 +325,6 @@ func TestFactory_NewFactoryNilMultiSignerContainerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -359,7 +349,6 @@ func TestFactory_NewFactoryNilRoundHandlerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -384,7 +373,6 @@ func TestFactory_NewFactoryNilShardCoordinatorShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -409,7 +397,6 @@ func TestFactory_NewFactoryNilSyncTimerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -434,7 +421,6 @@ func TestFactory_NewFactoryNilValidatorGroupSelectorShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -457,7 +443,6 @@ func TestFactory_NewFactoryNilWorkerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -481,7 +466,6 @@ func TestFactory_NewFactoryNilAppStatusHandlerShouldFail(t *testing.T) {
 		nil,
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -505,7 +489,6 @@ func TestFactory_NewFactoryNilSignaturesTrackerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		nil,
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -530,7 +513,6 @@ func TestFactory_NewFactoryNilEnableEpochHandlerShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -554,7 +536,6 @@ func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		nil,
 	)
 
@@ -586,7 +567,6 @@ func TestFactory_NewFactoryEmptyChainIDShouldFail(t *testing.T) {
 		&statusHandler.AppStatusHandlerStub{},
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
-		consensus.ConsensusModelV1,
 		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
@@ -762,30 +742,6 @@ func TestFactory_GenerateSubroundsNilOutportShouldFail(t *testing.T) {
 
 	err := fct.GenerateSubrounds(0)
 	assert.Equal(t, outport.ErrNilDriver, err)
-}
-
-func TestFactory_GenerateSubroundsInvalidConsensusModelShouldFail(t *testing.T) {
-	t.Parallel()
-
-	worker := initWorker()
-	consensusState := initializers.InitConsensusState()
-
-	fct, _ := v1.NewSubroundsFactory(
-		consensusMock.InitConsensusCore(),
-		consensusState,
-		worker,
-		chainID,
-		currentPid,
-		&statusHandler.AppStatusHandlerStub{},
-		&testscommon.SentSignatureTrackerStub{},
-		nil,
-		"invalid",
-		&subRoundsHolder.ExtraSignersHolderMock{},
-	)
-	fct.SetOutportHandler(&testscommonOutport.OutportStub{})
-
-	err := fct.GenerateSubrounds(0)
-	assert.ErrorIs(t, err, errors.ErrUnimplementedConsensusModel)
 }
 
 func TestFactory_SetIndexerShouldWork(t *testing.T) {

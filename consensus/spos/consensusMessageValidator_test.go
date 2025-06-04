@@ -720,7 +720,7 @@ func TestIsProcessedHeaderHashSizeValid_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	consensusMessageValidatorArgs := createDefaultConsensusMessageValidatorArgs()
-	consensusMessageValidatorArgs.EnableEpochsHandler = enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+	consensusMessageValidatorArgs.EnableEpochsHandler = enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 	cmv, _ := spos.NewConsensusMessageValidator(consensusMessageValidatorArgs)
 
 	cnsMsg := &consensus.Message{
@@ -777,7 +777,7 @@ func TestIsProcessedHeaderHashSizeValid_ShouldNotFailWhenConsensusModelV2IsEnabl
 	t.Parallel()
 
 	consensusMessageValidatorArgs := createDefaultConsensusMessageValidatorArgs()
-	consensusMessageValidatorArgs.EnableEpochsHandler = enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelV2Flag)
+	consensusMessageValidatorArgs.EnableEpochsHandler = enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.ConsensusModelSovereignFlag)
 	cmv, _ := spos.NewConsensusMessageValidator(consensusMessageValidatorArgs)
 
 	cnsMsg := &consensus.Message{

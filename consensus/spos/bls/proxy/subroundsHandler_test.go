@@ -6,11 +6,14 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	cns "github.com/multiversx/mx-chain-go/consensus"
+	cmn "github.com/multiversx/mx-chain-go/common"
+	errMx "github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/testscommon/mainFactoryMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
+	"github.com/multiversx/mx-chain-sovereign-bridge-go/client/disabled"
 	"github.com/stretchr/testify/require"
 
-	mock2 "github.com/multiversx/mx-chain-go/consensus/mock"
+	cnsMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapperStubs"
@@ -39,20 +42,21 @@ func getDefaultArgumentsSubroundHandler() (*SubroundsHandlerArgs, *spos.Consensu
 			return x
 		},
 	}
-	antiFloodHandler := &mock2.P2PAntifloodHandlerStub{}
+	antiFloodHandler := &cnsMock.P2PAntifloodHandlerStub{}
 	handlerArgs := &SubroundsHandlerArgs{
-		Chronology:           chronology,
-		ConsensusState:       consensusState,
-		Worker:               worker,
-		SignatureThrottler:   &common.ThrottlerStub{},
-		AppStatusHandler:     &statusHandler.AppStatusHandlerStub{},
-		OutportHandler:       &outportStub.OutportStub{},
-		SentSignatureTracker: &testscommon.SentSignatureTrackerStub{},
-		EnableEpochsHandler:  epochsEnable,
-		ChainID:              []byte("chainID"),
-		CurrentPid:           "peerID",
-		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
-		ConsensusModel:       cns.ConsensusModelV1,
+		Chronology:              chronology,
+		ConsensusState:          consensusState,
+		Worker:                  worker,
+		SignatureThrottler:      &common.ThrottlerStub{},
+		AppStatusHandler:        &statusHandler.AppStatusHandlerStub{},
+		OutportHandler:          &outportStub.OutportStub{},
+		SentSignatureTracker:    &testscommon.SentSignatureTrackerStub{},
+		EnableEpochsHandler:     epochsEnable,
+		ChainID:                 []byte("chainID"),
+		CurrentPid:              "peerID",
+		ExtraSignersHolder:      &subRoundsHolder.ExtraSignersHolderMock{},
+		RunTypeComponents:       mainFactoryMocks.NewRunTypeComponentsStub(),
+		OutGoingBridgeOpHandler: disabled.NewDisabledClient(),
 	}
 
 	consensusCore := &spos.ConsensusCore{}
@@ -77,10 +81,10 @@ func getDefaultArgumentsSubroundHandler() (*SubroundsHandlerArgs, *spos.Consensu
 	consensusCore.SetPeerHonestyHandler(&testscommon.PeerHonestyHandlerStub{})
 	consensusCore.SetHeaderSigVerifier(&consensus.HeaderSigVerifierMock{})
 	consensusCore.SetFallbackHeaderValidator(&testscommon.FallBackHeaderValidatorStub{})
-	consensusCore.SetNodeRedundancyHandler(&mock2.NodeRedundancyHandlerStub{})
+	consensusCore.SetNodeRedundancyHandler(&cnsMock.NodeRedundancyHandlerStub{})
 	consensusCore.SetScheduledProcessor(&consensus.ScheduledProcessorStub{})
-	consensusCore.SetMessageSigningHandler(&mock2.MessageSigningHandlerStub{})
-	consensusCore.SetPeerBlacklistHandler(&mock2.PeerBlacklistHandlerStub{})
+	consensusCore.SetMessageSigningHandler(&cnsMock.MessageSigningHandlerStub{})
+	consensusCore.SetPeerBlacklistHandler(&cnsMock.PeerBlacklistHandlerStub{})
 	consensusCore.SetSigningHandler(&consensus.SigningHandlerStub{})
 	consensusCore.SetEnableEpochsHandler(epochsEnable)
 	consensusCore.SetEquivalentProofsPool(&dataRetriever.ProofsPoolMock{})
@@ -193,6 +197,26 @@ func TestNewSubroundsHandler(t *testing.T) {
 		require.Equal(t, ErrNilCurrentPid, err)
 		require.Nil(t, sh)
 	})
+	t.Run("nil run type comps, should error", func(t *testing.T) {
+		t.Parallel()
+
+		handlerArgs, _ := getDefaultArgumentsSubroundHandler()
+		handlerArgs.RunTypeComponents = nil
+		sh, err := NewSubroundsHandler(handlerArgs)
+		require.Equal(t, errMx.ErrNilRunTypeComponents, err)
+		require.Nil(t, sh)
+	})
+	t.Run("nil outgoing op pool, should error", func(t *testing.T) {
+		t.Parallel()
+
+		handlerArgs, _ := getDefaultArgumentsSubroundHandler()
+		runTypeComps := mainFactoryMocks.NewRunTypeComponentsStub()
+		runTypeComps.OutGoingOperationsPool = nil
+		handlerArgs.RunTypeComponents = runTypeComps
+		sh, err := NewSubroundsHandler(handlerArgs)
+		require.Equal(t, errMx.ErrNilOutGoingOperationsPool, err)
+		require.Nil(t, sh)
+	})
 	t.Run("OK", func(t *testing.T) {
 		t.Parallel()
 
@@ -282,6 +306,9 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+				if flag == cmn.ConsensusModelSovereignFlag {
+					return false
+				}
 				return true
 			},
 		}
@@ -313,6 +340,9 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+				if flag == cmn.ConsensusModelSovereignFlag {
+					return false
+				}
 				return true
 			},
 		}
@@ -345,6 +375,9 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+				if flag == cmn.ConsensusModelSovereignFlag {
+					return false
+				}
 				return true
 			},
 		}
@@ -364,6 +397,43 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, consensusV2, sh.currentConsensusType)
 		require.Equal(t, int32(1), startCalled.Load())
+	})
+	t.Run("sovereign consensus enabled, with previous consensus type consensusV1", func(t *testing.T) {
+		t.Parallel()
+		startCalled := atomic.Int32{}
+		handlerArgs, consensusCore := getDefaultArgumentsSubroundHandler()
+		chronology := &consensus.ChronologyHandlerMock{
+			StartRoundCalled: func() {
+				startCalled.Add(1)
+			},
+		}
+		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
+			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+				if flag == cmn.ConsensusModelSovereignFlag {
+					return true
+				}
+				if flag == cmn.AndromedaFlag {
+					return false
+				}
+
+				return true
+			},
+		}
+		handlerArgs.Chronology = chronology
+		handlerArgs.EnableEpochsHandler = enableEpoch
+		consensusCore.SetEnableEpochsHandler(enableEpoch)
+		consensusCore.SetChronology(chronology)
+
+		sh, err := NewSubroundsHandler(handlerArgs)
+		require.Nil(t, err)
+		require.NotNil(t, sh)
+		// first call on register to EpochNotifier
+		require.Equal(t, int32(1), startCalled.Load())
+
+		err = sh.initSubroundsForEpoch(0)
+		require.Nil(t, err)
+		require.Equal(t, consensusSovereign, sh.currentConsensusType)
+		require.Equal(t, int32(2), startCalled.Load())
 	})
 }
 

@@ -235,7 +235,7 @@ func (cmv *consensusMessageValidator) isHeaderHashSizeValid(cnsMsg *consensus.Me
 }
 
 func (cmv *consensusMessageValidator) isProcessedHeaderHashSizeValid(cnsMsg *consensus.Message) bool {
-	if !cmv.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if !cmv.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return true
 	}
 
