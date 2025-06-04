@@ -18,14 +18,11 @@ import (
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -44,7 +41,7 @@ func TestConsensusBLSFullTestSingleKeys(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	runFullConsensusTest(t, blsConsensusType, 1)
+	runFullConsensusTest(t, blsConsensusType, 1, consensus.ConsensusModelV1)
 }
 
 func TestConsensusBLSFullTestMultiKeys(t *testing.T) {
@@ -52,7 +49,7 @@ func TestConsensusBLSFullTestMultiKeys(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	runFullConsensusTest(t, blsConsensusType, 5)
+	runFullConsensusTest(t, blsConsensusType, 5, consensus.ConsensusModelV1)
 }
 
 func TestConsensusBLSNotEnoughValidators(t *testing.T) {
@@ -60,7 +57,7 @@ func TestConsensusBLSNotEnoughValidators(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	runConsensusWithNotEnoughValidators(t, blsConsensusType)
+	runConsensusWithNotEnoughValidators(t, blsConsensusType, consensus.ConsensusModelV1)
 }
 
 func TestConsensusBLSWithFullProcessing_BeforeEquivalentProofs(t *testing.T) {
@@ -350,7 +347,6 @@ func startNodesWithCommitBlock(
 			ScheduledProcessor:   &consensusMocks.ScheduledProcessorStub{},
 			IsInImportMode:       n.Node.IsInImportMode(),
 			RunTypeComponents:    n.Node.GetRunTypeComponents(),
-			SubRoundEndV2Creator: bls.NewSubRoundEndV2Creator(),
 			ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
 		}
 
@@ -414,7 +410,7 @@ func runFullConsensusTest(
 	t *testing.T,
 	consensusType string,
 	numKeysOnEachNode int,
- consensusModel consensus.ConsensusModel,
+	consensusModel consensus.ConsensusModel,
 ) {
 	numMetaNodes := uint32(4)
 	numNodes := uint32(4)
@@ -502,23 +498,6 @@ func TestConsensusBLSFullTestSingleKeysConsensusModelV2(t *testing.T) {
 	runFullConsensusTest(t, blsConsensusType, 1, consensus.ConsensusModelV2)
 }
 
-
-func TestConsensusBLSFullTestSingleKeysConsensusModelV1(t *testing.T) {
-	if testing.Short() {
-		t.Skip("this is not a short test")
-	}
-
-	runFullConsensusTest(t, blsConsensusType, 1, consensus.ConsensusModelV1)
-}
-
-func TestConsensusBLSFullTestSingleKeysConsensusModelV2(t *testing.T) {
-	if testing.Short() {
-		t.Skip("this is not a short test")
-	}
-
-	runFullConsensusTest(t, blsConsensusType, 1, consensus.ConsensusModelV2)
-}
-
 func TestConsensusBLSFullTestMultiKeysConsensusModelV1(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -535,7 +514,7 @@ func runConsensusWithNotEnoughValidators(t *testing.T, consensusType string, con
 	roundTime := uint64(1000)
 	enableEpochsConfig := integrationTests.CreateEnableEpochsConfig()
 	enableEpochsConfig.AndromedaEnableEpoch = integrationTests.UnreachableEpoch
-	nodes := initNodesAndTest(numMetaNodes, numNodes, consensusSize, numInvalid, roundTime, consensusType, 1, enableEpochsConfig,consensusType)
+	nodes := initNodesAndTest(numMetaNodes, numNodes, consensusSize, numInvalid, roundTime, consensusType, 1, enableEpochsConfig, consensusModel)
 
 	defer func() {
 		for shardID := range nodes {

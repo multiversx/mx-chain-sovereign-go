@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	hrtBeat "github.com/multiversx/mx-chain-go/heartbeat"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -27,7 +28,6 @@ import (
 	testsFactory "github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	"github.com/stretchr/testify/require"
 )
 
 var expectedErr = errors.New("expected error")
@@ -35,24 +35,27 @@ var expectedErr = errors.New("expected error")
 func TestNewBlocksCreator(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil node handler should error", func(t *testing.T) {
+	t.Run("nil node handler, should error", func(t *testing.T) {
 		t.Parallel()
 
 		creator, err := chainSimulatorProcess.NewBlocksCreator(nil, &chainSimulator.BlockProcessorMock{}, heartbeat.NewHeartbeatMonitor())
 		require.Equal(t, chainSimulatorProcess.ErrNilNodeHandler, err)
 		require.Nil(t, creator)
 	})
-	t.Run("nil block processor should error", func(t *testing.T) {
+	t.Run("nil block processor, should error", func(t *testing.T) {
 		t.Parallel()
 
 		creator, err := chainSimulatorProcess.NewBlocksCreator(&chainSimulator.NodeHandlerMock{}, nil, heartbeat.NewHeartbeatMonitor())
 		require.Equal(t, chainSimulatorProcess.ErrNilBlockProcessor, err)
 		require.Nil(t, creator)
 	})
+	t.Run("nil heart beat monitor, should error", func(t *testing.T) {
+		t.Parallel()
 
-	// TODO: Marius C
-	// check here to have tests for all
-
+		creator, err := chainSimulatorProcess.NewBlocksCreator(&chainSimulator.NodeHandlerMock{}, &chainSimulator.BlockProcessorMock{}, nil)
+		require.Equal(t, hrtBeat.ErrNilHeartbeatMonitor, err)
+		require.Nil(t, creator)
+	})
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 

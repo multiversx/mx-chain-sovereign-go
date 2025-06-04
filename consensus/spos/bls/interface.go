@@ -70,15 +70,17 @@ type SubRoundHandler interface {
 	consensus.SubroundHandler
 }
 
+// SubRoundStartHandler defines a sub round start handler
 type SubRoundStartHandler interface {
 	SubRoundHandler
 	SetOutportHandler(outportHandler outport.OutportHandler) error
 }
 
+// SubRoundBlockHandler defines a sub round block handler
 type SubRoundBlockHandler interface {
 	SubRoundHandler
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
-	DoBlockComputation() (*SubRoundBlockProcessArgs, func())
+	DoBlockComputation() (*SubRoundBlockProcessRes, func())
 	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
 }
 
@@ -92,6 +94,7 @@ type SubRoundEndHandler interface {
 	IsSelfLeaderInCurrentRound() bool
 }
 
+// SubRoundSignatureHandler defines a sub round signature handler
 type SubRoundSignatureHandler interface {
 	SubRoundHandler
 	SetMessageToSignFunc(verifyMsgFunc func() []byte)

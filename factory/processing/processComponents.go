@@ -868,81 +868,6 @@ func (pcf *processComponentsFactory) newValidatorStatisticsProcessor() (process.
 	return pcf.runTypeComponents.ValidatorStatisticsProcessorCreator().CreateValidatorStatisticsProcessor(arguments)
 }
 
-// TODO: MARIUS C CHECK THIS PARAMETERS FOR newEpochStartTrigger (i think only enable epochs handler)
-
-/*
-
-func (pcf *processComponentsFactory) newEpochStartTrigger(requestHandler epochStart.RequestHandler) (epochStart.TriggerHandler, error) {
-	shardCoordinator := pcf.bootstrapComponents.ShardCoordinator()
-	if shardCoordinator.SelfId() < shardCoordinator.NumberOfShards() {
-		argsHeaderValidator := block.ArgsHeaderValidator{
-			Hasher:              pcf.coreData.Hasher(),
-			Marshalizer:         pcf.coreData.InternalMarshalizer(),
-			EnableEpochsHandler: pcf.coreData.EnableEpochsHandler(),
-		}
-		headerValidator, err := block.NewHeaderValidator(argsHeaderValidator)
-		if err != nil {
-			return nil, err
-		}
-
-		argsPeerMiniBlockSyncer := shardchain.ArgPeerMiniBlockSyncer{
-			MiniBlocksPool:     pcf.data.Datapool().MiniBlocks(),
-			ValidatorsInfoPool: pcf.data.Datapool().ValidatorsInfo(),
-			RequestHandler:     requestHandler,
-		}
-
-		peerMiniBlockSyncer, err := shardchain.NewPeerMiniBlockSyncer(argsPeerMiniBlockSyncer)
-		if err != nil {
-			return nil, err
-		}
-
-		argEpochStart := &shardchain.ArgsShardEpochStartTrigger{
-			Marshalizer:                   pcf.coreData.InternalMarshalizer(),
-			Hasher:                        pcf.coreData.Hasher(),
-			HeaderValidator:               headerValidator,
-			Uint64Converter:               pcf.coreData.Uint64ByteSliceConverter(),
-			DataPool:                      pcf.data.Datapool(),
-			Storage:                       pcf.data.StorageService(),
-			RequestHandler:                requestHandler,
-			Epoch:                         pcf.bootstrapComponents.EpochBootstrapParams().Epoch(),
-			EpochStartNotifier:            pcf.coreData.EpochStartNotifierWithConfirm(),
-			Validity:                      process.MetaBlockValidity,
-			Finality:                      process.BlockFinality,
-			PeerMiniBlocksSyncer:          peerMiniBlockSyncer,
-			RoundHandler:                  pcf.coreData.RoundHandler(),
-			AppStatusHandler:              pcf.statusCoreComponents.AppStatusHandler(),
-			EnableEpochsHandler:           pcf.coreData.EnableEpochsHandler(),
-			ExtraDelayForRequestBlockInfo: time.Duration(pcf.config.EpochStartConfig.ExtraDelayForRequestBlockInfoInMilliseconds) * time.Millisecond,
-		}
-		return shardchain.NewEpochStartTrigger(argEpochStart)
-	}
-
-	if shardCoordinator.SelfId() == core.MetachainShardId {
-		genesisHeader := pcf.data.Blockchain().GetGenesisHeader()
-		if check.IfNil(genesisHeader) {
-			return nil, errorsMx.ErrGenesisBlockNotInitialized
-		}
-
-		argEpochStart := &metachain.ArgsNewMetaEpochStartTrigger{
-			GenesisTime:        time.Unix(pcf.coreData.GenesisNodesSetup().GetStartTime(), 0),
-			Settings:           &pcf.config.EpochStartConfig,
-			Epoch:              pcf.bootstrapComponents.EpochBootstrapParams().Epoch(),
-			EpochStartRound:    genesisHeader.GetRound(),
-			EpochStartNotifier: pcf.coreData.EpochStartNotifierWithConfirm(),
-			Storage:            pcf.data.StorageService(),
-			Marshalizer:        pcf.coreData.InternalMarshalizer(),
-			Hasher:             pcf.coreData.Hasher(),
-			AppStatusHandler:   pcf.statusCoreComponents.AppStatusHandler(),
-			DataPool:           pcf.data.Datapool(),
-		}
-
-		return metachain.NewEpochStartTrigger(argEpochStart)
-	}
-
-	return nil, errors.New("error creating new start of epoch trigger because of invalid shard id")
-}
-*/
-
 func (pcf *processComponentsFactory) generateGenesisHeadersAndApplyInitialBalances() (map[uint32]data.HeaderHandler, map[uint32]*genesis.IndexingData, error) {
 	genesisVmConfig := pcf.config.VirtualMachine.Execution
 	conversionBase := 10
@@ -1843,18 +1768,6 @@ func (pcf *processComponentsFactory) newForkDetector(
 ) (process.ForkDetector, error) {
 	shardCoordinator := pcf.bootstrapComponents.ShardCoordinator()
 	if shardCoordinator.SelfId() < shardCoordinator.NumberOfShards() {
-		// TODO: MARIUS C, here needing 2 or more comps for shard tracker
-
-		/*
-				return sync.NewShardForkDetector(
-			pcf.coreData.RoundHandler(),
-			headerBlackList,
-			blockTracker,
-			pcf.coreData.GenesisNodesSetup().GetStartTime(),
-			pcf.coreData.EnableEpochsHandler(),
-			pcf.data.Datapool().Proofs())
-		*/
-
 		return pcf.createShardForkDetector(headerBlackList, blockTracker)
 	}
 	if shardCoordinator.SelfId() == core.MetachainShardId {

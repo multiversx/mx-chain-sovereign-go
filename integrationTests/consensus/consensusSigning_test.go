@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/integrationTests"
 )
 
 func initNodesWithTestSigner(
@@ -23,6 +22,7 @@ func initNodesWithTestSigner(
 	numInvalid uint32,
 	roundTime uint64,
 	consensusType string,
+	// TODO: Marius C: Inject run type comps here
 	consensusModel consensus.ConsensusModel,
 ) (map[uint32][]*integrationTests.TestFullNode, map[string]struct{}) {
 
@@ -42,7 +42,6 @@ func initNodesWithTestSigner(
 		1,
 		enableEpochsConfig,
 		false,
-		consensusModel,
 	)
 
 	time.Sleep(p2pBootstrapDelay)

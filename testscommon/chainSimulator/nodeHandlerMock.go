@@ -9,8 +9,6 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
-
-	chainData "github.com/multiversx/mx-chain-core-go/data"
 )
 
 // NodeHandlerMock -
@@ -25,12 +23,12 @@ type NodeHandlerMock struct {
 	GetStateComponentsCalled       func() factory.StateComponentsHolder
 	GetFacadeHandlerCalled         func() shared.FacadeHandler
 	GetStatusCoreComponentsCalled  func() factory.StatusCoreComponentsHolder
-	GetNetworkComponentsCalled    func() factory.NetworkComponentsHolder
+	GetNetworkComponentsCalled     func() factory.NetworkComponentsHolder
 	SetKeyValueForAddressCalled    func(addressBytes []byte, state map[string]string) error
 	SetStateForAddressCalled       func(address []byte, state *dtos.AddressState) error
 	RemoveAccountCalled            func(address []byte) error
-	GetBasePeersCalled            func() map[uint32]core.PeerID
-	SetBasePeersCalled            func(basePeers map[uint32]core.PeerID)
+	GetBasePeersCalled             func() map[uint32]core.PeerID
+	SetBasePeersCalled             func(basePeers map[uint32]core.PeerID)
 	GetRunTypeComponentsCalled     func() factory.RunTypeComponentsHolder
 	GetIncomingHeaderHandlerCalled func() process.IncomingHeaderSubscriber
 	CloseCalled                    func() error

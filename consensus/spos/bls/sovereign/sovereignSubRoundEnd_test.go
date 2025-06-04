@@ -9,7 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
-	sovereign2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
+	blsSov "github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/stretchr/testify/require"
 
@@ -22,8 +22,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 )
-
-// TODO: MARIUS C: REFACTOR sovereign2 package name
 
 type sovEndRoundHandler interface {
 	bls.SubRoundHandler
@@ -38,8 +36,8 @@ func createSovSubRoundEndWithSelfLeader(
 ) sovEndRoundHandler {
 	container := consensusMocks.InitConsensusCore()
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := sovereign2.NewSubroundEndRoundV2(sr)
-	sovEndRound, _ := sovereign2.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
+	srV2, _ := blsSov.NewSubroundEndRoundV2(sr)
+	sovEndRound, _ := blsSov.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
 
 	sovEndRound.SetSelfPubKey("A")
 	sovEndRound.SetThreshold(bls.SrEndRound, 1)
@@ -55,8 +53,8 @@ func createSovSubRoundEndWithParticipant(
 ) sovEndRoundHandler {
 	container := consensusMocks.InitConsensusCore()
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := sovereign2.NewSubroundEndRoundV2(sr)
-	sovEndRound, _ := sovereign2.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
+	srV2, _ := blsSov.NewSubroundEndRoundV2(sr)
+	sovEndRound, _ := blsSov.NewSovereignSubRoundEndRound(srV2, pool, bridgeHandler)
 
 	sovEndRound.SetSelfPubKey("*")
 	sovEndRound.SetThreshold(bls.SrEndRound, 1)
@@ -75,10 +73,10 @@ func TestNewSovereignSubRoundEndRound(t *testing.T) {
 
 	container := consensusMocks.InitConsensusCore()
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{}, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	srV2, _ := sovereign2.NewSubroundEndRoundV2(sr)
+	srV2, _ := blsSov.NewSubroundEndRoundV2(sr)
 
 	t.Run("nil subround end, should return error", func(t *testing.T) {
-		sovEndRound, err := sovereign2.NewSovereignSubRoundEndRound(
+		sovEndRound, err := blsSov.NewSovereignSubRoundEndRound(
 			nil,
 			&sovereign.OutGoingOperationsPoolMock{},
 			&sovereign.BridgeOperationsHandlerMock{},
@@ -87,7 +85,7 @@ func TestNewSovereignSubRoundEndRound(t *testing.T) {
 		require.Nil(t, sovEndRound)
 	})
 	t.Run("nil outgoing op pool, should return error", func(t *testing.T) {
-		sovEndRound, err := sovereign2.NewSovereignSubRoundEndRound(
+		sovEndRound, err := blsSov.NewSovereignSubRoundEndRound(
 			srV2,
 			nil,
 			&sovereign.BridgeOperationsHandlerMock{},
@@ -96,7 +94,7 @@ func TestNewSovereignSubRoundEndRound(t *testing.T) {
 		require.Nil(t, sovEndRound)
 	})
 	t.Run("nil bridge op handler, should return error", func(t *testing.T) {
-		sovEndRound, err := sovereign2.NewSovereignSubRoundEndRound(
+		sovEndRound, err := blsSov.NewSovereignSubRoundEndRound(
 			srV2,
 			&sovereign.OutGoingOperationsPoolMock{},
 			nil,
@@ -105,7 +103,7 @@ func TestNewSovereignSubRoundEndRound(t *testing.T) {
 		require.Nil(t, sovEndRound)
 	})
 	t.Run("should work", func(t *testing.T) {
-		sovEndRound, err := sovereign2.NewSovereignSubRoundEndRound(
+		sovEndRound, err := blsSov.NewSovereignSubRoundEndRound(
 			srV2,
 			&sovereign.OutGoingOperationsPoolMock{},
 			&sovereign.BridgeOperationsHandlerMock{},

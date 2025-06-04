@@ -93,10 +93,8 @@ func GetSubroundName(subroundId int) string {
 	}
 }
 
-// TODO: Marius C, move this in a dto folder
-
-// SubRoundBlockProcessArgs defines args for sub round block processing
-type SubRoundBlockProcessArgs struct {
+// SubRoundBlockProcessRes defines res for sub round block processing
+type SubRoundBlockProcessRes struct {
 	Header data.HeaderHandler
 	Body   data.BodyHandler
 	Leader string

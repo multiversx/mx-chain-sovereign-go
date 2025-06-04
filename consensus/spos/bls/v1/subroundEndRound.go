@@ -337,11 +337,6 @@ func (sr *subroundEndRound) doEndRoundJob(_ context.Context) bool {
 }
 
 func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
-	// TODO: MARIUS C
-
-	// THIS IS FROM BARNARD CODE
-	// 	bitmap := sr.GenerateBitmap(bls.SrSignature)
-
 	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
@@ -620,9 +615,6 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 		return nil, nil, fmt.Errorf("%w: number of valid sig shares lower than threshold, numSigShares: %d, threshold: %d",
 			spos.ErrInvalidNumSigShares, numValidSigShares, threshold)
 	}
-
-	// TODO: MARIUS C: From original code
-	// 	bitmap := sr.GenerateBitmap(bls.SrSignature)
 
 	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)

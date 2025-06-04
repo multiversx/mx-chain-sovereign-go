@@ -87,7 +87,7 @@ func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
 	return true
 }
 
-func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessArgs, func()) {
+func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessRes, func()) {
 	shouldProcess := sr.shouldProcess()
 	if !shouldProcess {
 		return nil, func() {}
@@ -109,7 +109,7 @@ func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessArgs, fu
 		return nil, deferFunc
 	}
 
-	return &bls.SubRoundBlockProcessArgs{
+	return &bls.SubRoundBlockProcessRes{
 		Header: header,
 		Body:   body,
 		Leader: leader,
