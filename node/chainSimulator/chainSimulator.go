@@ -75,6 +75,7 @@ type ArgsChainSimulator struct {
 	NodeFactory                    node.NodeFactory
 	ChainProcessorFactory          ChainHandlerFactory
 	GenerateGenesisFile            func(args configs.ArgsChainSimulatorConfigs, configs *config.Configs) (*dtos.InitialWalletKeys, error)
+	AddProofsFunc                  func(nodes map[uint32]process.NodeHandler)
 }
 
 // ArgsBaseChainSimulator holds the arguments needed to create a new instance of simulator
@@ -153,6 +154,9 @@ func setSimulatorRunTypeArguments(args *ArgsChainSimulator) {
 		args.GenerateGenesisFile = func(args configs.ArgsChainSimulatorConfigs, config *config.Configs) (*dtos.InitialWalletKeys, error) {
 			return configs.GenerateGenesisFile(args, config)
 		}
+	}
+	if args.AddProofsFunc == nil {
+		args.AddProofsFunc = addProofs
 	}
 }
 
@@ -287,7 +291,7 @@ func (s *simulator) createChainHandlers(args ArgsBaseChainSimulator) error {
 	s.initialWalletKeys = outputConfigs.InitialWallets
 	s.validatorsPrivateKeys = outputConfigs.ValidatorsPrivateKeys
 
-	s.addProofs()
+	args.AddProofsFunc(s.nodes)
 	s.setBasePeerIds()
 
 	log.Info("running the chain simulator with the following parameters",
@@ -313,10 +317,10 @@ func (s *simulator) setBasePeerIds() {
 	}
 }
 
-func (s *simulator) addProofs() {
-	proofs := make([]*block.HeaderProof, 0, len(s.nodes))
+func addProofs(nodes map[uint32]process.NodeHandler) {
+	proofs := make([]*block.HeaderProof, 0, len(nodes))
 
-	for shardID, nodeHandler := range s.nodes {
+	for shardID, nodeHandler := range nodes {
 		hash := nodeHandler.GetChainHandler().GetGenesisHeaderHash()
 		proofs = append(proofs, &block.HeaderProof{
 			HeaderShardId: shardID,
@@ -324,15 +328,13 @@ func (s *simulator) addProofs() {
 		})
 	}
 
-	// TODO: MARIUS C: Here rewrite this for sovereign/meta
-	metachainProofsPool := s.GetNodeHandler(core.SovereignChainShardId).GetDataComponents().Datapool().Proofs()
+	metachainProofsPool := nodes[core.MetachainShardId].GetDataComponents().Datapool().Proofs()
 	for _, proof := range proofs {
 		_ = metachainProofsPool.AddProof(proof)
 
-		// TODO: MARIUS C: Here rewrite this for sovereign/meta
-		//if proof.HeaderShardId != core.SovereignChainShardId {
-		//	_ = s.GetNodeHandler(proof.HeaderShardId).GetDataComponents().Datapool().Proofs().AddProof(proof)
-		//}
+		if proof.HeaderShardId != core.MetachainShardId {
+			_ = nodes[proof.HeaderShardId].GetDataComponents().Datapool().Proofs().AddProof(proof)
+		}
 	}
 }
 
