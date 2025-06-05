@@ -1,11 +1,9 @@
 package logging
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
