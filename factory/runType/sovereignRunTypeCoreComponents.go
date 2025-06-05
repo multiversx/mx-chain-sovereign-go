@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 )
 
 type sovereignRunTypeCoreComponentsFactory struct {
@@ -24,6 +25,7 @@ func (srccf *sovereignRunTypeCoreComponentsFactory) Create() *runTypeCoreCompone
 		genesisNodesSetupFactory: sharding.NewSovereignGenesisNodesSetupFactory(),
 		ratingsDataFactory:       rating.NewSovereignRatingsDataFactory(),
 		enableEpochsFactory:      enablers.NewSovereignEnableEpochsFactory(srccf.sovereignEpochConfig),
+		chainParametersFactory:   chainParamFactory.NewSovereignChainParametersHolderFactory(),
 	}
 }
 

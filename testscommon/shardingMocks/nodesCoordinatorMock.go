@@ -239,7 +239,14 @@ func (ncm *NodesCoordinatorMock) ComputeConsensusGroup(
 		validatorsGroup = append(validatorsGroup, ncm.Validators[shardId][i])
 	}
 
-	return validatorsGroup[0], validatorsGroup, nil
+	var leader nodesCoordinator.Validator
+	if len(validatorsGroup) != 0 {
+		leader = validatorsGroup[0]
+	} else {
+		leader = &ValidatorMock{}
+	}
+
+	return leader, validatorsGroup, nil
 }
 
 // ConsensusGroupSizeForShardAndEpoch -

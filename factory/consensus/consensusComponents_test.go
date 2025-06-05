@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -195,6 +196,7 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 			},
 			ShardMessengerFactoryField:                 &factoryMocks.ShardChainMessengerFactoryMock{},
 			ValidatorAccountsSyncerFactoryHandlerField: &factoryMocks.ValidatorAccountsSyncerFactoryMock{},
+			OutGoingOperationsPool:                     &sovereign.OutGoingOperationsPoolMock{},
 			ConsensusModelType:                         consensus.ConsensusModelV1,
 		},
 	}
@@ -1010,7 +1012,7 @@ func TestConsensusComponentsFactory_CreateShardStorageAndSyncBootstrapperShouldW
 	t.Run("should create a shard storage and sync bootstrapper sovereign chain instance", func(t *testing.T) {
 		t.Parallel()
 
-		shardCoordinator := mock.NewMultiShardsCoordinatorMock(2)
+		shardCoordinator := sharding.NewSovereignShardCoordinator()
 		args := componentsMock.GetConsensusArgs(shardCoordinator)
 		args.RunTypeComponents = componentsMock.GetSovereignRunTypeComponents()
 

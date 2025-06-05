@@ -34,6 +34,10 @@ func NewChainParametersHolder(args ArgsChainParametersHolder) (*chainParametersH
 		return nil, err
 	}
 
+	return baseCreateChainParametersHolder(args)
+}
+
+func baseCreateChainParametersHolder(args ArgsChainParametersHolder) (*chainParametersHolder, error) {
 	chainParameters := args.ChainParameters
 	// sort the config values in descending order
 	sort.SliceStable(chainParameters, func(i, j int) bool {
@@ -71,6 +75,14 @@ func logInitialConfiguration(chainParameters []config.ChainParametersByEpochConf
 }
 
 func validateArgs(args ArgsChainParametersHolder) error {
+	err := checkNilArgs(args)
+	if err != nil {
+		return err
+	}
+	return validateChainParameters(args.ChainParameters)
+}
+
+func checkNilArgs(args ArgsChainParametersHolder) error {
 	if check.IfNil(args.EpochStartEventNotifier) {
 		return ErrNilEpochStartEventNotifier
 	}
@@ -80,7 +92,8 @@ func validateArgs(args ArgsChainParametersHolder) error {
 	if check.IfNil(args.ChainParametersNotifier) {
 		return ErrNilChainParametersNotifier
 	}
-	return validateChainParameters(args.ChainParameters)
+
+	return nil
 }
 
 func validateChainParameters(chainParametersConfig []config.ChainParametersByEpochConfig) error {
@@ -92,13 +105,12 @@ func validateChainParameters(chainParametersConfig []config.ChainParametersByEpo
 			return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
 		}
 
-		// TODO: MARIUS C: Have separate component here
-		//if chainParameters.MetachainConsensusGroupSize < 1 {
-		//	return fmt.Errorf("%w for chain parameters with index %d", ErrNegativeOrZeroConsensusGroupSize, idx)
-		//}
-		//if chainParameters.MetachainMinNumNodes < chainParameters.MetachainConsensusGroupSize {
-		//	return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
-		//}
+		if chainParameters.MetachainConsensusGroupSize < 1 {
+			return fmt.Errorf("%w for chain parameters with index %d", ErrNegativeOrZeroConsensusGroupSize, idx)
+		}
+		if chainParameters.MetachainMinNumNodes < chainParameters.MetachainConsensusGroupSize {
+			return fmt.Errorf("%w for chain parameters with index %d", ErrMinNodesPerShardSmallerThanConsensusSize, idx)
+		}
 	}
 
 	return nil

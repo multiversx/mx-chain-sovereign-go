@@ -689,6 +689,7 @@ type RunTypeCoreComponentsHolder interface {
 	GenesisNodesSetupFactoryCreator() sharding.GenesisNodesSetupFactory
 	RatingsDataFactoryCreator() rating.RatingsDataFactory
 	EnableEpochsFactoryCreator() enablers.EnableEpochsFactory
+	ChainParametersHolderFactory() ChainParametersHolderFactory
 	Create() error
 	Close() error
 	CheckSubcomponents() error
@@ -745,5 +746,11 @@ type ExportHandlerFactoryCreator interface {
 // OutportDataProviderFactoryHandler defines an outport data provider factory handler
 type OutportDataProviderFactoryHandler interface {
 	CreateOutportDataProvider(arg outportFactory.ArgOutportDataProviderFactory) (outport.DataProviderOutport, error)
+	IsInterfaceNil() bool
+}
+
+// ChainParametersHolderFactory defines a chain paramters holder factory
+type ChainParametersHolderFactory interface {
+	CreateChainParametersHolder(args sharding.ArgsChainParametersHolder) (process.ChainParametersHandler, error)
 	IsInterfaceNil() bool
 }

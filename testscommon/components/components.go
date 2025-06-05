@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -368,8 +369,11 @@ func GetSovereignCoreComponents() factory.CoreComponentsHolder {
 			Adaptivity:                  false,
 		},
 	}
-	// TODO: MARIUS C: CHECK IF WE NEED THIS
-	//coreArgs.NodesFilename = "../mock/testdata/sovereignNodesSetupMock.json"
+
+	var nodesSetup config.NodesConfig
+	_ = core.LoadJsonFile(&nodesSetup, "../mock/testdata/sovereignNodesSetupMock.json")
+	coreArgs.NodesConfig = nodesSetup
+
 	coreArgs.RunTypeCoreComponents = sovRunTypeCoreComponents
 	return createCoreComponents(coreArgs)
 }

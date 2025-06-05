@@ -163,7 +163,7 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 		ChainParameters:         args.Config.GeneralSettings.ChainParametersByEpoch,
 		ChainParametersNotifier: chainParametersNotifier,
 	}
-	instance.chainParametersHandler, err = sharding.NewChainParametersHolder(argsChainParametersHandler)
+	instance.chainParametersHandler, err = args.RunTypeCoreComponents.ChainParametersHolderFactory().CreateChainParametersHolder(argsChainParametersHandler)
 	if err != nil {
 		return nil, err
 	}

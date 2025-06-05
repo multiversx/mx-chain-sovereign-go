@@ -886,3 +886,6 @@ var ErrNilCrawlerAddressGetter = errors.New("nil crawler address getter has been
 
 // ErrReceivedSovereignEpochStartBlockWithExtendedHeaders signals that an invalid epoch start sovereign block has been received
 var ErrReceivedSovereignEpochStartBlockWithExtendedHeaders = errors.New("received invalid epoch start sovereign block, should not contain any extended headers")
+
+// ErrNilChainParametersHolderFactory signals that a nil chain parameters holder factory has been provided
+var ErrNilChainParametersHolderFactory = errors.New("nil chain parameters holder factory has been provided")

@@ -80,6 +80,10 @@ func (mrcc *managedRunTypeCoreComponents) CheckSubcomponents() error {
 	if check.IfNil(mrcc.enableEpochsFactory) {
 		return enablers.ErrNilEnableEpochsFactory
 	}
+	if check.IfNil(mrcc.chainParametersFactory) {
+		return errors.ErrNilChainParametersHolderFactory
+	}
+
 	return nil
 }
 
@@ -117,6 +121,18 @@ func (mrcc *managedRunTypeCoreComponents) EnableEpochsFactoryCreator() enablers.
 	}
 
 	return mrcc.runTypeCoreComponents.enableEpochsFactory
+}
+
+// ChainParametersHolderFactory returns the chain parameters holder factory
+func (mrcc *managedRunTypeCoreComponents) ChainParametersHolderFactory() factory.ChainParametersHolderFactory {
+	mrcc.mutRunTypeCoreComponents.RLock()
+	defer mrcc.mutRunTypeCoreComponents.RUnlock()
+
+	if check.IfNil(mrcc.runTypeCoreComponents) {
+		return nil
+	}
+
+	return mrcc.runTypeCoreComponents.chainParametersFactory
 }
 
 // IsInterfaceNil returns true if the interface is nil

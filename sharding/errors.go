@@ -61,7 +61,9 @@ var ErrNilChainParametersNotifier = errors.New("nil chain parameters notifier")
 // ErrInvalidChainParametersForEpoch signals that an invalid chain parameters for epoch has been provided
 var ErrInvalidChainParametersForEpoch = errors.New("invalid chain parameters for epoch")
 
-var errSovereignInvalidMetaConsensusSize = errors.New("invalid metachain config for sovereign")
+var errSovereignInvalidMetaConsensusSize = errors.New("invalid metachain consensus size config for sovereign, should be zero")
+
+var errSovereignInvalidMetaNumNodes = errors.New("invalid metachain num nodes config for sovereign, should be zero")
 
 // ErrNilGenesisNodesSetupFactory signals that a nil genesis nodes setup factory has been provided
 var ErrNilGenesisNodesSetupFactory = errors.New("nil genesis nodes setup factory")

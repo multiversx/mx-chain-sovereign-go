@@ -134,6 +134,9 @@ func NewCoreComponentsFactory(args CoreComponentsFactoryArgs) (*coreComponentsFa
 	if check.IfNil(args.RunTypeCoreComponents.EnableEpochsFactoryCreator()) {
 		return nil, enablers.ErrNilEnableEpochsFactory
 	}
+	if check.IfNil(args.RunTypeCoreComponents.ChainParametersHolderFactory()) {
+		return nil, errors.ErrNilChainParametersHolderFactory
+	}
 
 	return &coreComponentsFactory{
 		config:                args.Config,
@@ -213,7 +216,7 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		ChainParameters:         ccf.config.GeneralSettings.ChainParametersByEpoch,
 		ChainParametersNotifier: chainParametersNotifier,
 	}
-	chainParametersHandler, err := sharding.NewChainParametersHolder(argsChainParametersHandler)
+	chainParametersHandler, err := ccf.runTypeCoreComponents.ChainParametersHolderFactory().CreateChainParametersHolder(argsChainParametersHandler)
 	if err != nil {
 		return nil, err
 	}
