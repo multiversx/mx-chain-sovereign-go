@@ -27,19 +27,3 @@ func LogAPIActionDurationIfNeeded(startTime time.Time, action string) {
 	}
 	log.Debug(fmt.Sprintf("%s took %s", action, duration))
 }
-
-// LogCreateTransactionError will log the error
-func LogCreateTransactionError(tx transaction.FrontendTransaction, err error) {
-	txBytes, _ := json.Marshal(tx)
-	log.Debug("API createTransaction error", "tx", string(txBytes), "error", err.Error())
-}
-
-// LogValidateTransactionError will log the error
-func LogValidateTransactionError(tx *transaction.Transaction, err error) {
-	if tx == nil {
-		return
-	}
-
-	txBytes, _ := json.Marshal(tx)
-	log.Debug("API ValidateTransaction error", "tx", string(txBytes), "error", err.Error())
-}

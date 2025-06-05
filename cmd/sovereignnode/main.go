@@ -133,7 +133,6 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 
 	cfgs.FlagsConfig.BaseVersion = baseVersion
 	cfgs.FlagsConfig.Version = version
-	cfgs.FlagsConfig.Version = version
 
 	nodeRunner, errSovereignNodeRunner := NewSovereignNodeRunner(cfgs)
 	if errSovereignNodeRunner != nil {

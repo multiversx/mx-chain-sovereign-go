@@ -349,13 +349,11 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 	for idx, receivedTx := range ftxs {
 		tx, txHash, err = tg.createTransaction(&receivedTx)
 		if err != nil {
-			logging.LogCreateTransactionError(receivedTx, err)
 			continue
 		}
 
 		err = tg.getFacade().ValidateTransaction(tx)
 		if err != nil {
-			logging.LogValidateTransactionError(tx, err)
 			continue
 		}
 
