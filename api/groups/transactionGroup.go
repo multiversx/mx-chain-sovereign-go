@@ -355,7 +355,7 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 
 		err = tg.getFacade().ValidateTransaction(tx)
 		if err != nil {
-			logging.LogValidateTransactionError(*tx, err)
+			logging.LogValidateTransactionError(tx, err)
 			continue
 		}
 

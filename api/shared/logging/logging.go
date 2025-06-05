@@ -35,7 +35,11 @@ func LogCreateTransactionError(tx transaction.FrontendTransaction, err error) {
 }
 
 // LogValidateTransactionError will log the error
-func LogValidateTransactionError(tx transaction.Transaction, err error) {
+func LogValidateTransactionError(tx *transaction.Transaction, err error) {
+	if tx == nil {
+		return
+	}
+
 	txBytes, _ := json.Marshal(tx)
 	log.Debug("API ValidateTransaction error", "tx", string(txBytes), "error", err.Error())
 }
