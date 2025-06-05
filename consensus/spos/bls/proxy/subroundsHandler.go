@@ -204,12 +204,6 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 	}
 
 	if s.enableEpochsHandler.IsFlagEnabledInEpoch(common.ConsensusModelSovereignFlag, epoch) {
-		if s.currentConsensusType == consensusSovereign {
-			return nil
-		}
-
-		s.currentConsensusType = consensusSovereign
-
 		baseFactory, castOK := fct.(sovereign.SubRoundsFactoryHandler)
 		if !castOK {
 			return fmt.Errorf("%w when trying to create sovereign sub rounds factory", errMx.ErrWrongTypeAssertion)
