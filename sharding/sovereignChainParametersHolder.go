@@ -53,3 +53,8 @@ func validateSovereignChainParameters(chainParametersConfig []config.ChainParame
 
 	return nil
 }
+
+// IsInterfaceNil checks if the underlying pointer is nil
+func (scp *sovereignChainParametersHolder) IsInterfaceNil() bool {
+	return scp == nil
+}
