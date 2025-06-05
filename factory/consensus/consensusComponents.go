@@ -59,7 +59,6 @@ type ConsensusComponentsFactoryArgs struct {
 	ScheduledProcessor      consensus.ScheduledProcessor
 	IsInImportMode          bool
 	ShouldDisableWatchdog   bool
-	ConsensusModel          consensus.ConsensusModel
 	ExtraSignersHolder      bls.ExtraSignersHolder
 	OutGoingBridgeOpHandler bls.BridgeOperationsHandler
 }

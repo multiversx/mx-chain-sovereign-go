@@ -28,8 +28,6 @@ type factory struct {
 	extraSignersHolder    bls.ExtraSignersHolder
 }
 
-// TODO: MARIUS C: REMOVE consensusModel consensus.ConsensusModel from args
-
 // NewSubroundsFactory creates a new factory object
 func NewSubroundsFactory(
 	consensusDataContainer spos.ConsensusCoreHandler,

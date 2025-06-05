@@ -57,4 +57,5 @@ type baseRequestHandler interface {
 	getShardHeaderRequester(shardID uint32) (dataRetriever.Requester, error)
 	getValidatorsInfoRequester() (dataRetriever.Requester, error)
 	getMiniBlocksRequester(destShardID uint32) (dataRetriever.Requester, error)
+	getEquivalentProofsRequester(headerShard uint32) (dataRetriever.Requester, error)
 }

@@ -78,7 +78,6 @@ func createArgsSovSubRoundsFactory() sovereign.ArgsSovereignSubRoundsFactory {
 		ConsensusState:         consensusState,
 		Worker:                 worker,
 		OutportHandler:         nil,
-		ConsensusModel:         consensus.ConsensusModelV2,
 		BaseSubRoundsFactory:   baseFactory,
 		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
 		BridgeOpHandler:        &sovTests.BridgeOperationsHandlerMock{},
@@ -355,19 +354,6 @@ func TestFactory_GenerateSubroundsNilOutportShouldFail(t *testing.T) {
 
 	err := fct.GenerateSubrounds(0)
 	assert.Equal(t, outport.ErrNilDriver, err)
-}
-
-func TestFactory_GenerateSubroundsInvalidConsensusModelShouldFail(t *testing.T) {
-	t.Parallel()
-
-	args := createArgsSovSubRoundsFactory()
-	args.ConsensusModel = consensus.ConsensusModelV1
-	fct, _ := sovereign.NewSubroundsFactory(args)
-
-	fct.SetOutportHandler(&testscommonOutport.OutportStub{})
-
-	err := fct.GenerateSubrounds(0)
-	assert.ErrorIs(t, err, errors.ErrUnimplementedConsensusModel)
 }
 
 func TestFactory_SetIndexerShouldWork(t *testing.T) {

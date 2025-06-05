@@ -78,7 +78,6 @@ func (s *SubroundsHandler) EpochConfirmed(epoch uint32, _ uint64) {
 }
 
 const (
-	// TODO: MARIUS C: Add sovereign consensus here instead of adding it to SubRoundsHandlerArgs
 	consensusNone consensusStateMachineType = iota
 	consensusV1
 	consensusV2
@@ -221,7 +220,6 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			ConsensusState:         s.consensusState,
 			Worker:                 s.worker,
 			OutportHandler:         s.outportHandler,
-			ConsensusModel:         consensus.ConsensusModelV2,
 			BaseSubRoundsFactory:   baseFactory,
 			OutGoingOperationsPool: s.runTypeComponents.OutGoingOperationsPoolHandler(),
 			BridgeOpHandler:        s.outGoingBridgeOpHandler,

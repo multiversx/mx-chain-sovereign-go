@@ -181,7 +181,6 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 		ScheduledProcessor:    &consensusMocks.ScheduledProcessorStub{},
 		IsInImportMode:        false,
 		ShouldDisableWatchdog: false,
-		ConsensusModel:        consensus.ConsensusModelV1,
 		ExtraSignersHolder:    &subRoundsHolder.ExtraSignersHolderMock{},
 		RunTypeComponents: &mainFactoryMocks.RunTypeComponentsStub{
 			BootstrapperFromStorageFactory: &factoryMocks.BootstrapperFromStorageFactoryMock{

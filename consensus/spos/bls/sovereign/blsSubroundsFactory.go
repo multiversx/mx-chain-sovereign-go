@@ -1,11 +1,8 @@
 package sovereign
 
 import (
-	"fmt"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -18,7 +15,6 @@ type ArgsSovereignSubRoundsFactory struct {
 	ConsensusState         spos.ConsensusStateHandler
 	Worker                 spos.WorkerHandler
 	OutportHandler         outport.OutportHandler
-	ConsensusModel         consensus.ConsensusModel
 	BaseSubRoundsFactory   SubRoundsFactoryHandler
 	OutGoingOperationsPool bls.OutGoingOperationsPool
 	BridgeOpHandler        bls.BridgeOperationsHandler
@@ -32,7 +28,6 @@ type factory struct {
 	worker         spos.WorkerHandler
 
 	outportHandler       outport.OutportHandler
-	consensusModel       consensus.ConsensusModel
 	baseSubRoundsFactory SubRoundsFactoryHandler
 
 	outGoingOperationsPool bls.OutGoingOperationsPool
@@ -59,7 +54,6 @@ func NewSubroundsFactory(args ArgsSovereignSubRoundsFactory) (*factory, error) {
 		consensusState:         args.ConsensusState,
 		worker:                 args.Worker,
 		outportHandler:         args.OutportHandler,
-		consensusModel:         args.ConsensusModel,
 		baseSubRoundsFactory:   args.BaseSubRoundsFactory,
 		outGoingOperationsPool: args.OutGoingOperationsPool,
 		bridgeOpHandler:        args.BridgeOpHandler,
@@ -116,27 +110,22 @@ func (fct *factory) GenerateSubrounds(_ uint32) error {
 		return err
 	}
 
-	switch fct.consensusModel {
-	case consensus.ConsensusModelV2:
-		err = fct.generateBlockSubroundV2()
-		if err != nil {
-			return err
-		}
-
-		err = fct.generateSignatureSubroundV2()
-		if err != nil {
-			return err
-		}
-
-		err = fct.generateEndRoundSubroundV2()
-		if err != nil {
-			return err
-		}
-
-		return nil
-	default:
-		return fmt.Errorf("%w model %v", errors.ErrUnimplementedConsensusModel, fct.consensusModel)
+	err = fct.generateBlockSubroundV2()
+	if err != nil {
+		return err
 	}
+
+	err = fct.generateSignatureSubroundV2()
+	if err != nil {
+		return err
+	}
+
+	err = fct.generateEndRoundSubroundV2()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (fct *factory) generateStartRoundSubround() error {

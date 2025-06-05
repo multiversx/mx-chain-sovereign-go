@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool"
 	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	dataRetrieverMocks "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
@@ -22,7 +23,7 @@ func createMockDataPoolArgs() dataPool.DataPoolArgs {
 		Transactions:              testscommon.NewShardedDataStub(),
 		UnsignedTransactions:      testscommon.NewShardedDataStub(),
 		RewardTransactions:        testscommon.NewShardedDataStub(),
-		Headers:                   &testscommon.HeadersCacherStub{},
+		Headers:                   &processMock.HeadersCacherStub{},
 		MiniBlocks:                cache.NewCacherStub(),
 		PeerChangesBlocks:         cache.NewCacherStub(),
 		TrieNodes:                 cache.NewCacherStub(),
