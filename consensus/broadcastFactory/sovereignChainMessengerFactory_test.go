@@ -46,3 +46,14 @@ func TestSovereignChainMessengerFactory_CreateShardChainMessenger(t *testing.T) 
 	require.NotNil(t, msg)
 	require.Equal(t, "*broadcast.sovereignChainMessenger", fmt.Sprintf("%T", msg))
 }
+
+func TestSovereignChainMessengerFactory_CreateDelayedBlockBroadcaster(t *testing.T) {
+	t.Parallel()
+
+	f := NewSovereignShardChainMessengerFactory()
+	args := createDefaultDelayedBlockBroadcasterArgs()
+	dbb, err := f.CreateDelayedBlockBroadcaster(args)
+	require.Nil(t, err)
+	require.NotNil(t, dbb)
+	require.Equal(t, "*broadcast.sovereignDelayedBroadcastData", fmt.Sprintf("%T", dbb))
+}

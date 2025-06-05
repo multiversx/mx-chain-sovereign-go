@@ -52,8 +52,7 @@ func GetBroadcastMessenger(
 		AlarmScheduler:        alarmScheduler,
 	}
 
-	// TODO: MARIUS C: Here, inject run type comps
-	delayedBroadcaster, err := broadcast.NewSovereignDelayedBlockBroadcaster(dbbArgs)
+	delayedBroadcaster, err := shardMessengerFactory.CreateDelayedBlockBroadcaster(dbbArgs)
 	if err != nil {
 		return nil, err
 	}
