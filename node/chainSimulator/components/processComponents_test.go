@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
-	commonRunType "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/graceperiod"
+	commonRunType "github.com/multiversx/mx-chain-go/common/runType"
 	disabledStatistics "github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
@@ -45,7 +45,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	updateMocks "github.com/multiversx/mx-chain-go/update/mock"
-	"github.com/stretchr/testify/require"
 )
 
 const testingProtocolSustainabilityAddress = "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp"
@@ -65,7 +64,9 @@ var (
 )
 
 func createArgsProcessComponentsHolder() ArgsProcessComponentsHolder {
-	nodesSetup, _ := sharding.NewNodesSetup("../../../integrationTests/factory/testdata/nodesSetup.json", addrPubKeyConv, valPubKeyConv, 3)
+	var nodesConfig config.NodesConfig
+	_ = core.LoadJsonFile(&nodesConfig, "../../../integrationTests/factory/testdata/nodesSetup.json")
+	nodesSetup, _ := sharding.NewNodesSetup(nodesConfig, &chainParameters.ChainParametersHolderMock{}, addrPubKeyConv, valPubKeyConv, 3)
 	generalConfig := testscommon.GetGeneralConfig()
 	roundConfig := testscommon.GetDefaultRoundsConfig()
 	gracePeriod, _ := graceperiod.NewEpochChangeGracePeriod([]config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}})

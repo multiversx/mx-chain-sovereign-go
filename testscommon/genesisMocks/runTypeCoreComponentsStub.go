@@ -3,7 +3,6 @@ package genesisMocks
 import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/factory"
 	genesisMocks "github.com/multiversx/mx-chain-go/genesis/mock"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
@@ -16,7 +15,7 @@ type RunTypeCoreComponentsStub struct {
 	GenesisNodesSetupFactory sharding.GenesisNodesSetupFactory
 	RatingsDataFactory       rating.RatingsDataFactory
 	EnableEpochsFactory      enablers.EnableEpochsFactory
-	ChainParametersFactory   factory.ChainParametersHolderFactory
+	ChainParametersFactory   chainParamFactory.ChainParametersHolderFactory
 }
 
 // NewRunTypeCoreComponentsStub -
@@ -75,7 +74,7 @@ func (r *RunTypeCoreComponentsStub) EnableEpochsFactoryCreator() enablers.Enable
 }
 
 // ChainParametersHolderFactory -
-func (r *RunTypeCoreComponentsStub) ChainParametersHolderFactory() factory.ChainParametersHolderFactory {
+func (r *RunTypeCoreComponentsStub) ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory {
 	return r.ChainParametersFactory
 }
 

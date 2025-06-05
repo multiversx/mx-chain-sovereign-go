@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/watchdog"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	disabledClient "github.com/multiversx/mx-chain-sovereign-bridge-go/client/disabled"
 	"github.com/multiversx/mx-chain-storage-go/timecache"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -96,8 +97,6 @@ type consensusComponents struct {
 
 // NewConsensusComponentsFactory creates an instance of consensusComponentsFactory
 func NewConsensusComponentsFactory(args ConsensusComponentsFactoryArgs) (*consensusComponentsFactory, error) {
-	// TODO: MARIUS C:
-	// nil checks outGoingBridgeOpHandler bls.BridgeOperationsHandler
 	err := checkArgs(args)
 	if err != nil {
 		return nil, err
@@ -816,6 +815,10 @@ func checkArgs(args ConsensusComponentsFactoryArgs) error {
 	}
 	if check.IfNil(args.RunTypeComponents.BroadCastShardMessengerFactoryHandler()) {
 		return errors.ErrNilBroadCastShardMessengerFactoryHandler
+	}
+	if check.IfNil(args.OutGoingBridgeOpHandler) {
+		log.Warn("nil outgoing bridge op handler provided in NewConsensusComponentsFactory, using disabled one")
+		args.OutGoingBridgeOpHandler = disabledClient.NewDisabledClient()
 	}
 	return nil
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -689,7 +690,7 @@ type RunTypeCoreComponentsHolder interface {
 	GenesisNodesSetupFactoryCreator() sharding.GenesisNodesSetupFactory
 	RatingsDataFactoryCreator() rating.RatingsDataFactory
 	EnableEpochsFactoryCreator() enablers.EnableEpochsFactory
-	ChainParametersHolderFactory() ChainParametersHolderFactory
+	ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory
 	Create() error
 	Close() error
 	CheckSubcomponents() error
@@ -746,11 +747,5 @@ type ExportHandlerFactoryCreator interface {
 // OutportDataProviderFactoryHandler defines an outport data provider factory handler
 type OutportDataProviderFactoryHandler interface {
 	CreateOutportDataProvider(arg outportFactory.ArgOutportDataProviderFactory) (outport.DataProviderOutport, error)
-	IsInterfaceNil() bool
-}
-
-// ChainParametersHolderFactory defines a chain paramters holder factory
-type ChainParametersHolderFactory interface {
-	CreateChainParametersHolder(args sharding.ArgsChainParametersHolder) (process.ChainParametersHandler, error)
 	IsInterfaceNil() bool
 }

@@ -31,6 +31,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing/sha256"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -3383,7 +3384,7 @@ func TestCreateShardedStores_NilTransactionDataPoolShouldError(t *testing.T) {
 		return nil
 	}
 	dataPool.HeadersCalled = func() dataRetriever.HeadersPool {
-		return &testscommon.HeadersCacherStub{}
+		return &processMock.HeadersCacherStub{}
 	}
 	coreComponents := getDefaultCoreComponents()
 	coreComponents.IntMarsh = getMarshalizer()
@@ -3463,7 +3464,7 @@ func TestCreateShardedStores_ReturnsSuccessfully(t *testing.T) {
 		return testscommon.NewShardedDataStub()
 	}
 	dataPool.HeadersCalled = func() dataRetriever.HeadersPool {
-		return &testscommon.HeadersCacherStub{}
+		return &processMock.HeadersCacherStub{}
 	}
 
 	coreComponents := getDefaultCoreComponents()

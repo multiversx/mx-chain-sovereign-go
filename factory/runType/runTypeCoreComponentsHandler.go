@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 )
 
 var _ factory.ComponentHandler = (*managedRunTypeCoreComponents)(nil)
@@ -124,7 +125,7 @@ func (mrcc *managedRunTypeCoreComponents) EnableEpochsFactoryCreator() enablers.
 }
 
 // ChainParametersHolderFactory returns the chain parameters holder factory
-func (mrcc *managedRunTypeCoreComponents) ChainParametersHolderFactory() factory.ChainParametersHolderFactory {
+func (mrcc *managedRunTypeCoreComponents) ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory {
 	mrcc.mutRunTypeCoreComponents.RLock()
 	defer mrcc.mutRunTypeCoreComponents.RUnlock()
 

@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
 	"github.com/multiversx/mx-chain-go/p2p"
 	"github.com/multiversx/mx-chain-go/process/factory"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -62,7 +63,7 @@ func createDataPoolsForShard() dataRetriever.PoolsHolder {
 		return testscommon.NewShardedDataStub()
 	}
 	pools.HeadersCalled = func() dataRetriever.HeadersPool {
-		return &testscommon.HeadersCacherStub{}
+		return &processMock.HeadersCacherStub{}
 	}
 	pools.MiniBlocksCalled = func() storage.Cacher {
 		return cache.NewCacherStub()
