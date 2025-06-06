@@ -8,6 +8,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -18,7 +20,6 @@ import (
 	consensusMock "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	"github.com/stretchr/testify/assert"
 )
 
 func defaultSubroundForSRBlock(consensusState *spos.ConsensusState, ch chan bool,
@@ -48,16 +49,6 @@ func defaultSubroundBlockFromSubround(sr *spos.Subround) (bls.SubRoundBlockHandl
 	)
 
 	return srBlock, err
-}
-
-func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) bls.SubRoundBlockHandler {
-	srBlock, _ := v1.NewSubroundBlock(
-		sr,
-		extend,
-		processingThresholdPercent,
-	)
-
-	return srBlock
 }
 
 func initSubroundBlock(

@@ -2351,15 +2351,6 @@ func (sp *shardProcessor) applyBodyToHeader(
 	return newBody, nil
 }
 
-func (sp *shardProcessor) waitForMetaHdrHashes(waitTime time.Duration) error {
-	select {
-	case <-sp.chRcvAllHdrs:
-		return nil
-	case <-time.After(waitTime):
-		return process.ErrTimeIsOut
-	}
-}
-
 // MarshalizedDataToBroadcast prepares underlying data into a marshalized object according to destination
 func (sp *shardProcessor) MarshalizedDataToBroadcast(
 	header data.HeaderHandler,

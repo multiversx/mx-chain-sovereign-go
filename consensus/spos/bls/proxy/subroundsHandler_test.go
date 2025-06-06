@@ -6,12 +6,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-sovereign-bridge-go/client/disabled"
+	"github.com/stretchr/testify/require"
+
 	cmn "github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/testscommon/mainFactoryMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	"github.com/multiversx/mx-chain-sovereign-bridge-go/client/disabled"
-	"github.com/stretchr/testify/require"
 
 	cnsMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -306,10 +307,7 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
-				if flag == cmn.ConsensusModelSovereignFlag {
-					return false
-				}
-				return true
+				return flag != cmn.ConsensusModelSovereignFlag
 			},
 		}
 		handlerArgs.Chronology = chronology
@@ -340,10 +338,7 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
-				if flag == cmn.ConsensusModelSovereignFlag {
-					return false
-				}
-				return true
+				return flag != cmn.ConsensusModelSovereignFlag
 			},
 		}
 		handlerArgs.Chronology = chronology
@@ -375,10 +370,7 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 		}
 		enableEpoch := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
-				if flag == cmn.ConsensusModelSovereignFlag {
-					return false
-				}
-				return true
+				return flag != cmn.ConsensusModelSovereignFlag
 			},
 		}
 		handlerArgs.Chronology = chronology

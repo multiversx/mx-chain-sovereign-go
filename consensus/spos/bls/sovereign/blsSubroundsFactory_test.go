@@ -11,6 +11,9 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -25,8 +28,6 @@ import (
 	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 const processingThresholdPercent = 85
@@ -214,6 +215,8 @@ func TestFactory_GenerateSubroundBlock(t *testing.T) {
 		}
 
 		fct, err := sovereign.NewSubroundsFactory(args)
+		require.Nil(t, err)
+
 		err = fct.GenerateBlockSubroundV2()
 		require.NotNil(t, err)
 	})
@@ -247,6 +250,8 @@ func TestFactory_GenerateSubroundSignature(t *testing.T) {
 		}
 
 		fct, err := sovereign.NewSubroundsFactory(args)
+		require.Nil(t, err)
+
 		err = fct.GenerateSignatureSubroundV2()
 		require.Equal(t, spos.ErrNilChannel, err)
 	})
@@ -280,6 +285,8 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 		}
 
 		fct, err := sovereign.NewSubroundsFactory(args)
+		require.Nil(t, err)
+
 		err = fct.GenerateEndRoundSubroundV2()
 		require.Equal(t, spos.ErrNilChannel, err)
 	})

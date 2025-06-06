@@ -16,7 +16,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapperStubs"
 	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/processMocks"
@@ -2287,10 +2287,7 @@ func TestWorker_ProcessReceivedMessageWithInvalidSigners(t *testing.T) {
 	}
 	workerArgs.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 		IsFlagEnabledCalled: func(flag core.EnableEpochFlag) bool {
-			if flag == common.ConsensusModelSovereignFlag {
-				return false
-			}
-			return true
+			return flag != common.ConsensusModelSovereignFlag
 		},
 	}
 	wrk, _ := spos.NewWorker(workerArgs)

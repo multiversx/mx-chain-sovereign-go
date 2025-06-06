@@ -252,7 +252,11 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 			return nil, nil, err
 		}
 
-		scbp.blockChainHook.SetCurrentHeader(initialHdr)
+		err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		scbp.requestHandler.SetEpoch(initialHdr.GetEpoch())
 		return initialHdr, &block.Body{}, nil
 	}
@@ -262,7 +266,10 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 		return nil, nil, err
 	}
 
-	scbp.blockChainHook.SetCurrentHeader(initialHdr)
+	err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	crossMiniblocks, miniBlocks, err := scbp.createAllMiniBlocks(haveTime, initialHdr)
 	if err != nil {
@@ -824,7 +831,10 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 		return nil, nil, err
 	}
 
-	scbp.blockChainHook.SetCurrentHeader(headerHandler)
+	err = scbp.blockChainHook.SetCurrentHeader(headerHandler)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	scbp.txCoordinator.RequestBlockTransactions(body)
 	requestedExtendedShardHdrs := scbp.requestExtendedShardHeaders(sovChainHeader)
