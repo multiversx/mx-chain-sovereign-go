@@ -12,10 +12,6 @@ import (
 	"github.com/multiversx/mx-chain-go/storage/mock"
 	"github.com/multiversx/mx-chain-go/storage/pruning"
 	"github.com/multiversx/mx-chain-go/testscommon/cache"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/multiversx/mx-chain-go/testscommon"
 )
 
 func TestNewTriePruningStorer(t *testing.T) {

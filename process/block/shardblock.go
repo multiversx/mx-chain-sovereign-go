@@ -1557,36 +1557,6 @@ func (sp *shardProcessor) CreateNewHeader(round uint64, nonce uint64) (data.Head
 		return nil, process.ErrWrongTypeAssertion
 	}
 
-	// TODO: MARIUS C
-
-	/*
-		CHECK WHAT IS MISSING from setRoundNonceInitFees from here:
-
-			err := shardHeader.SetRound(round)
-			if err != nil {
-				return nil, err
-			}
-
-			sp.roundNotifier.CheckRound(header)
-			sp.epochNotifier.CheckEpoch(header)
-
-			err = shardHeader.SetNonce(nonce)
-			if err != nil {
-				return nil, err
-			}
-
-			err = shardHeader.SetAccumulatedFees(big.NewInt(0))
-			if err != nil {
-				return nil, err
-			}
-
-			err = shardHeader.SetDeveloperFees(big.NewInt(0))
-			if err != nil {
-				return nil, err
-			}
-
-	*/
-
 	err := sp.setRoundNonceInitFees(round, nonce, shardHeader)
 	if err != nil {
 		return nil, err

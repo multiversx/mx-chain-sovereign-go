@@ -739,23 +739,6 @@ func GetProcessArgs(
 	}
 	args.RunTypeComponents = runTypeComponents
 	args.EnableEpochsFactory = GetRunTypeCoreComponents().EnableEpochsFactoryCreator()
-
-	// TODO: MARIUS C: Check how these args are passed
-	/*
-		args.Config.GeneralSettings.ChainParametersByEpoch = []config.ChainParametersByEpochConfig{
-			{
-				RoundDuration:               5000,
-				Hysteresis:                  0,
-				EnableEpoch:                 0,
-				ShardConsensusGroupSize:     1,
-				ShardMinNumNodes:            1,
-				MetachainConsensusGroupSize: 0,
-				MetachainMinNumNodes:        0,
-				Adaptivity:                  false,
-			},
-		}
-
-	*/
 	return args
 }
 

@@ -19,12 +19,6 @@ import (
 
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/forking"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -34,7 +28,6 @@ import (
 	"github.com/multiversx/mx-chain-go/integrationTests/mock"
 	"github.com/multiversx/mx-chain-go/integrationTests/vm/wasm"
 	vmFactory "github.com/multiversx/mx-chain-go/process/factory"
-	interceptorFactory "github.com/multiversx/mx-chain-go/process/interceptors/factory"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -618,10 +611,6 @@ func createHardForkExporter(
 		networkComponents.InputAntiFlood = &mock.NilAntifloodHandler{}
 		networkComponents.OutputAntiFlood = &mock.NilAntifloodHandler{}
 
-		interceptorDataVerifierFactoryArgs := interceptorFactory.InterceptedDataVerifierFactoryArgs{
-			CacheSpan:   time.Second * 5,
-			CacheExpiry: time.Second * 10,
-		}
 		argsExportHandler := mxFactory.ArgsExporter{
 			CoreComponents:       coreComponents,
 			CryptoComponents:     cryptoComponents,
@@ -671,13 +660,12 @@ func createHardForkExporter(
 				NumResolveFailureThreshold: 3,
 				DebugLineExpiration:        3,
 			},
-			MaxHardCapForMissingNodes:      500,
-			NumConcurrentTrieSyncers:       50,
-			TrieSyncerVersion:              2,
-			CheckNodesOnDisk:               false,
-			NodeOperationMode:              node.NodeOperationMode,
-			InterceptedDataVerifierFactory: interceptorFactory.NewInterceptedDataVerifierFactory(interceptorDataVerifierFactoryArgs),
-			ShardCoordinatorFactory:        sharding.NewMultiShardCoordinatorFactory(),
+			MaxHardCapForMissingNodes: 500,
+			NumConcurrentTrieSyncers:  50,
+			TrieSyncerVersion:         2,
+			CheckNodesOnDisk:          false,
+			NodeOperationMode:         node.NodeOperationMode,
+			ShardCoordinatorFactory:   sharding.NewMultiShardCoordinatorFactory(),
 		}
 
 		exportHandler, err := factory.NewExportHandlerFactory(argsExportHandler)

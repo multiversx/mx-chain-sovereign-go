@@ -10,8 +10,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/stretchr/testify/require"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -47,12 +48,12 @@ import (
 	outportMocks "github.com/multiversx/mx-chain-go/testscommon/outport"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	stateMocks "github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/storageManager"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 	"github.com/multiversx/mx-chain-go/update"
-	"github.com/stretchr/testify/assert"
 )
 
 func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponentsFactoryArgs {
@@ -199,6 +200,7 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 			OutGoingOperationsPool:                     &sovereign.OutGoingOperationsPoolMock{},
 			ConsensusModelType:                         consensus.ConsensusModelV1,
 		},
+		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
 

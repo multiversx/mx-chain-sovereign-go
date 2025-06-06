@@ -14,9 +14,11 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
+	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
+
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
 	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
-	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
+	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/enablers"
@@ -88,6 +90,7 @@ func CreateNodesWithTestFullNode(
 	numKeysOnEachNode int,
 	enableEpochsConfig config.EnableEpochs,
 	withSync bool,
+	isSovereign bool,
 ) map[uint32][]*TestFullNode {
 
 	nodes := make(map[uint32][]*TestFullNode, nodesPerShard)
@@ -114,6 +117,7 @@ func CreateNodesWithTestFullNode(
 					WithSync:             withSync,
 					EpochsConfig:         &enableEpochsConfig,
 					NodeKeys:             keysPair,
+					IsSovereign:          isSovereign,
 				},
 				ShardID:       shardID,
 				ConsensusSize: consensusSize,
@@ -125,6 +129,7 @@ func CreateNodesWithTestFullNode(
 				P2PKeyGen:     cp.P2PKeyGen,
 				MultiSigner:   multiSignerMock,
 				StartTime:     startTime,
+				IsSovereign:   isSovereign,
 			}
 
 			tfn := NewTestFullNode(args)
@@ -154,6 +159,7 @@ type ArgsTestFullNode struct {
 	P2PKeyGen     crypto.KeyGenerator
 	MultiSigner   *cryptoMocks.MultisignerMock
 	StartTime     int64
+	IsSovereign   bool
 }
 
 // TestFullNode defines the structure for testing node with full processing and consensus components
@@ -241,7 +247,7 @@ func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArg
 	tpn.initHeaderValidator()
 	tpn.initRoundHandler()
 
-	roundDuration := time.Millisecond * time.Duration(args.NodesSetup.GetRoundDuration())
+	roundDuration := time.Millisecond * time.Duration(fullArgs.RoundTime)
 	syncer := ntp.NewSyncTime(ntp.NewNTPGoogleConfig(), nil, roundDuration)
 	syncer.StartSyncingTime()
 	tpn.GenesisTimeField = time.Unix(fullArgs.StartTime, 0)
@@ -759,6 +765,7 @@ func (tcn *TestFullNode) initInterceptors(
 		HardforkTrigger:                &testscommon.HardforkTriggerStub{},
 		NodeOperationMode:              common.NormalOperation,
 		InterceptedDataVerifierFactory: interceptorsFactory.NewInterceptedDataVerifierFactory(interceptorDataVerifierArgs),
+		IncomingHeaderSubscriber:       &sovereign.IncomingHeaderSubscriberStub{},
 	}
 	if tcn.ShardCoordinator.SelfId() == core.MetachainShardId {
 		interceptorContainerFactory, err := interceptorscontainer.NewMetaInterceptorsContainerFactory(interceptorContainerFactoryArgs)
@@ -796,10 +803,8 @@ func (tcn *TestFullNode) initInterceptors(
 		}
 		_, _ = shardchain.NewEpochStartTrigger(argsShardEpochStart)
 
-		interceptorContainerFactory, err := interceptorscontainer.NewShardInterceptorsContainerFactory(interceptorContainerFactoryArgs)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		interceptorContainerFactory, errFactory := interceptorscontainer.NewShardInterceptorsContainerFactory(interceptorContainerFactoryArgs)
+		log.LogIfError(errFactory)
 
 		tcn.MainInterceptorsContainer, _, err = interceptorContainerFactory.Create()
 		if err != nil {
@@ -866,6 +871,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 		BlockProcessingCutoffHandler: &testscommon.BlockProcessingCutoffStub{},
 		ManagedPeersHolder:           &testscommon.ManagedPeersHolderStub{},
 		SentSignaturesTracker:        &testscommon.SentSignatureTrackerStub{},
+		RunTypeComponents:            tpn.RunTypeComponents,
 	}
 
 	if check.IfNil(tpn.EpochStartNotifier) {
@@ -947,6 +953,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 			},
 			StakingDataProvider:   stakingDataProvider,
 			EconomicsDataProvider: economicsDataProvider,
+			RewardsHandler:        tpn.EconomicsData,
 		}
 		epochStartRewards, err := metachain.NewRewardsCreatorProxy(argsEpochRewards)
 		if err != nil {
@@ -1106,6 +1113,7 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 		BlockProcessingCutoffHandler: &testscommon.BlockProcessingCutoffStub{},
 		ManagedPeersHolder:           &testscommon.ManagedPeersHolderStub{},
 		SentSignaturesTracker:        &testscommon.SentSignatureTrackerStub{},
+		RunTypeComponents:            tpn.RunTypeComponents,
 	}
 
 	if tpn.ShardCoordinator.SelfId() == core.MetachainShardId {

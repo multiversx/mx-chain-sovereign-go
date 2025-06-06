@@ -18,10 +18,12 @@ import (
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
+	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 )
 
@@ -65,7 +67,7 @@ func TestConsensusBLSWithFullProcessing_BeforeEquivalentProofs(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, integrationTests.UnreachableEpoch, 1)
+	testConsensusBLSWithFullProcessing(t, integrationTests.UnreachableEpoch, integrationTests.UnreachableEpoch, 1)
 }
 
 func TestConsensusBLSWithFullProcessing_WithEquivalentProofs(t *testing.T) {
@@ -73,7 +75,7 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, uint32(0), 1)
+	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 1)
 }
 
 func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testing.T) {
@@ -81,10 +83,10 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testin
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, uint32(0), 3)
+	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 3)
 }
 
-func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivationEpoch uint32, numKeysOnEachNode int) {
+func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivationEpoch uint32, sovereignConsensusActivationEpoch uint32, numKeysOnEachNode int) {
 	numMetaNodes := uint32(2)
 	numNodes := uint32(2)
 	consensusSize := uint32(2 * numKeysOnEachNode)
@@ -99,6 +101,7 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 	enableEpochsConfig := integrationTests.CreateEnableEpochsConfig()
 
 	enableEpochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
+	enableEpochsConfig.ConsensusModelV2EnableEpoch = sovereignConsensusActivationEpoch
 
 	fmt.Println("Step 1. Setup nodes...")
 
@@ -111,6 +114,7 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 		numKeysOnEachNode,
 		enableEpochsConfig,
 		true,
+		false, // is sovereign // TODO: MARIUS C: Have these tests also working when consensus v2 is fully integrated in sovereign
 	)
 
 	for shardID, nodesList := range nodes {
@@ -190,17 +194,20 @@ func startFullConsensusNode(
 				SyncProcessTimeInMillis: 6000,
 			},
 		},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       n.Node.GetCoreComponents(),
-		NetworkComponents:    n.Node.GetNetworkComponents(),
-		CryptoComponents:     n.Node.GetCryptoComponents(),
-		DataComponents:       n.Node.GetDataComponents(),
-		ProcessComponents:    n.Node.GetProcessComponents(),
-		StateComponents:      n.Node.GetStateComponents(),
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: n.Node.GetStatusCoreComponents(),
-		ScheduledProcessor:   &consensusMocks.ScheduledProcessorStub{},
-		IsInImportMode:       n.Node.IsInImportMode(),
+		BootstrapRoundIndex:     0,
+		CoreComponents:          n.Node.GetCoreComponents(),
+		NetworkComponents:       n.Node.GetNetworkComponents(),
+		CryptoComponents:        n.Node.GetCryptoComponents(),
+		DataComponents:          n.Node.GetDataComponents(),
+		ProcessComponents:       n.Node.GetProcessComponents(),
+		StateComponents:         n.Node.GetStateComponents(),
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    n.Node.GetStatusCoreComponents(),
+		ScheduledProcessor:      &consensusMocks.ScheduledProcessorStub{},
+		IsInImportMode:          n.Node.IsInImportMode(),
+		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
+		ExtraSignersHolder:      holders.NewEmptyExtraSignersHolder(),
+		RunTypeComponents:       n.RunTypeComponents,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -335,19 +342,20 @@ func startNodesWithCommitBlock(
 					SyncProcessTimeInMillis: 6000,
 				},
 			},
-			BootstrapRoundIndex:  0,
-			CoreComponents:       n.Node.GetCoreComponents(),
-			NetworkComponents:    n.Node.GetNetworkComponents(),
-			CryptoComponents:     n.Node.GetCryptoComponents(),
-			DataComponents:       n.Node.GetDataComponents(),
-			ProcessComponents:    n.Node.GetProcessComponents(),
-			StateComponents:      n.Node.GetStateComponents(),
-			StatusComponents:     statusComponents,
-			StatusCoreComponents: n.Node.GetStatusCoreComponents(),
-			ScheduledProcessor:   &consensusMocks.ScheduledProcessorStub{},
-			IsInImportMode:       n.Node.IsInImportMode(),
-			RunTypeComponents:    n.Node.GetRunTypeComponents(),
-			ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
+			BootstrapRoundIndex:     0,
+			CoreComponents:          n.Node.GetCoreComponents(),
+			NetworkComponents:       n.Node.GetNetworkComponents(),
+			CryptoComponents:        n.Node.GetCryptoComponents(),
+			DataComponents:          n.Node.GetDataComponents(),
+			ProcessComponents:       n.Node.GetProcessComponents(),
+			StateComponents:         n.Node.GetStateComponents(),
+			StatusComponents:        statusComponents,
+			StatusCoreComponents:    n.Node.GetStatusCoreComponents(),
+			ScheduledProcessor:      &consensusMocks.ScheduledProcessorStub{},
+			IsInImportMode:          n.Node.IsInImportMode(),
+			RunTypeComponents:       n.Node.GetRunTypeComponents(),
+			ExtraSignersHolder:      &subRoundsHolder.ExtraSignersHolderMock{},
+			OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 		}
 
 		consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)

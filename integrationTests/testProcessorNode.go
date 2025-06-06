@@ -116,8 +116,8 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks"
 	cacheMocks "github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
-	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/components"
+	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	dblookupextMock "github.com/multiversx/mx-chain-go/testscommon/dblookupext"
@@ -322,6 +322,7 @@ type ArgTestProcessorNode struct {
 	NodeOperationMode       common.NodeOperation
 	Proofs                  dataRetriever.ProofsPool
 	RunTypeComponents       factory.RunTypeComponentsHolder
+	IsSovereign             bool
 }
 
 // TestProcessorNode represents a container type of class used in integration tests
@@ -534,14 +535,23 @@ func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
 
 	logsProcessor, _ := transactionLog.NewTxLogProcessor(transactionLog.ArgTxLogProcessor{Marshalizer: TestMarshalizer})
 
-	rtc := components.GetRunTypeComponentsWithCoreComp(&mock.CoreComponentsStub{
-		HasherField:                 TestHasher,
-		InternalMarshalizerField:    TestMarshalizer,
-		EnableEpochsHandlerField:    enableEpochsHandler,
-		AddressPubKeyConverterField: &testscommon.PubkeyConverterStub{},
-	})
-	runTypeComponents := components.GetRunTypeComponentsStub(rtc)
-	runTypeComponents.AccountParser = &genesisMocks.AccountsParserStub{}
+	var runTypeComponents factory.RunTypeComponentsHolder
+
+	if args.IsSovereign {
+		runTypeComponents = components.GetSovereignRunTypeComponents()
+
+	} else {
+		rtc := components.GetRunTypeComponentsWithCoreComp(&mock.CoreComponentsStub{
+			HasherField:                 TestHasher,
+			InternalMarshalizerField:    TestMarshalizer,
+			EnableEpochsHandlerField:    enableEpochsHandler,
+			AddressPubKeyConverterField: &testscommon.PubkeyConverterStub{},
+		})
+
+		runTypeComponents = components.GetRunTypeComponentsStub(rtc)
+		runTypeComponents.(*mainFactoryMocks.RunTypeComponentsStub).AccountParser = &genesisMocks.AccountsParserStub{}
+	}
+
 	args.RunTypeComponents = runTypeComponents
 
 	tpn := &TestProcessorNode{
@@ -577,11 +587,11 @@ func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
 		PeersRatingMonitor:            peersRatingMonitor,
 		TxExecutionOrderHandler:       ordering.NewOrderedCollection(),
 		EpochStartTrigger:             &mock.EpochStartTriggerStub{},
-		RequestHandlerCreator:      requestHandlers.NewResolverRequestHandlerFactory(),
-		BlockProcessorCreator:      args.RunTypeComponents.BlockProcessorCreator(),
-		BlockTrackerCreator:        args.RunTypeComponents.BlockTrackerCreator(),
-		RunTypeComponents:          args.RunTypeComponents,
-		EnableEpochsFactory:        enablers.NewEnableEpochsFactory(),
+		RequestHandlerCreator:         requestHandlers.NewResolverRequestHandlerFactory(),
+		BlockProcessorCreator:         args.RunTypeComponents.BlockProcessorCreator(),
+		BlockTrackerCreator:           args.RunTypeComponents.BlockTrackerCreator(),
+		RunTypeComponents:             args.RunTypeComponents,
+		EnableEpochsFactory:           enablers.NewEnableEpochsFactory(),
 	}
 
 	tpn.NodeKeys = args.NodeKeys
