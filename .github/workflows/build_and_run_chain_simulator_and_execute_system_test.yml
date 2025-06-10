@@ -161,7 +161,7 @@ jobs:
           # Start ChainSimulator with minimal args to initialize configs
           INIT_LOG_FILE="/tmp/chainsim_init.log"
           echo "Starting ChainSimulator initialization process..."
-          ./chainsimulator > $INIT_LOG_FILE 2>&1 &
+          ./chainsimulator ${{ matrix.is_sovereign && '--sovereign' || '' }} > $INIT_LOG_FILE 2>&1 &
           INIT_PROCESS_PID=$!
           
           # Verify the process is running
