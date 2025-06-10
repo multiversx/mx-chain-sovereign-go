@@ -9,7 +9,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
-	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/containers"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -20,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
+	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/trie/factory"
@@ -31,7 +31,7 @@ type sovereignBootStrapShardProcessor struct {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*block.MiniBlock) error {
-	// TODO: MARIUS C
+	// TODO: MARIUS C MX-16955
 	// THIS CODE WAS ADDED IN BARNARD AND SHOULD BE ADAPTED FOR SOVEREIGN AS WELL, check: requestAndProcessForShard from
 	// bootStrapShardProcessor.go
 	/*
@@ -164,7 +164,7 @@ func (sbp *sovereignBootStrapShardProcessor) createResolversContainer() error {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
-	// TODO: MARIUS C
+	// TODO: MARIUS C MX-16955
 
 	// TAKE FROM ORIGINAL BARNARD CODE: bootStrapShardProcessor.go -> syncHeadersFrom
 	// THIS CODE BELOW TO ALSO SYNC PROOF

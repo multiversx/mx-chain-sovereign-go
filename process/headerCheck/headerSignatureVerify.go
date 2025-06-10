@@ -256,7 +256,7 @@ func getPubKeySigners(consensusPubKeys []string, pubKeysBitmap []byte) [][]byte 
 
 // VerifySignature will check if signature is correct
 func (hsv *HeaderSigVerifier) VerifySignature(header data.HeaderHandler) error {
-	// TODO: MARIUS C: This is not ok for sovereign, we still need to check signatures for outgoing ops
+	// TODO: MARIUS C: MX-16954 This is not ok for sovereign, we still need to check signatures for outgoing ops
 	if hsv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
 		return nil
 	}
@@ -273,7 +273,8 @@ func (hsv *HeaderSigVerifier) VerifySignature(header data.HeaderHandler) error {
 
 	bitmap := header.GetPubKeysBitmap()
 	sig := header.GetSignature()
-	return hsv.VerifySignatureForHash2(header, headerCopy, hash, bitmap, sig)
+
+	return hsv.VerifySignatureForHash(header, hash, bitmap, sig)
 }
 
 // VerifySignatureForHash will check if signature is correct for the provided hash
@@ -306,38 +307,6 @@ func (hsv *HeaderSigVerifier) VerifySignatureForHash(header data.HeaderHandler, 
 	}
 
 	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
-}
-
-// TODO: MARIUS C: Proably use original one called correctly
-func (hsv *HeaderSigVerifier) VerifySignatureForHash2(originalHeader, header data.HeaderHandler, hash []byte, pubkeysBitmap []byte, signature []byte) error {
-	multiSigVerifier, err := hsv.multiSigContainer.GetMultiSigner(header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	randSeed := header.GetPrevRandSeed()
-	if randSeed == nil {
-		return process.ErrNilPrevRandSeed
-	}
-	pubKeysSigners, err := hsv.getConsensusSigners(
-		randSeed,
-		header.GetShardID(),
-		header.GetEpoch(),
-		header.IsStartOfEpochBlock(),
-		header.GetRound(),
-		header.GetPrevHash(),
-		pubkeysBitmap,
-	)
-	if err != nil {
-		return err
-	}
-
-	err = multiSigVerifier.VerifyAggregatedSig(pubKeysSigners, hash, signature)
-	if err != nil {
-		return err
-	}
-
-	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(originalHeader, multiSigVerifier, pubKeysSigners)
 }
 
 func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderProofHandler) (data.HeaderHandler, error) {

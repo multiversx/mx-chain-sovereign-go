@@ -2,8 +2,8 @@ module github.com/multiversx/mx-chain-go
 
 replace (
 	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250521135959-7db9d641a703
-	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250521130800-2613933f0b30
-	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250521130706-591665a418d7
+	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250610105538-c2d0e40a2887
+	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250610105414-e0ea5a20c81d
 )
 
 go 1.23.0
@@ -46,8 +46,8 @@ require (
 )
 
 require (
-	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250415123521-f8e74872db10
-	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250401122239-2e7a2570c8d8
+	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250610105734-30b3338debcf
+	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250610105857-815660e78064
 	github.com/multiversx/mx-sdk-abi-go v0.3.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.1

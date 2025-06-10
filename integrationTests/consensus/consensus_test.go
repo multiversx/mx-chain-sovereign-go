@@ -114,7 +114,7 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 		numKeysOnEachNode,
 		enableEpochsConfig,
 		true,
-		false, // is sovereign // TODO: MARIUS C: Have these tests also working when consensus v2 is fully integrated in sovereign
+		false, // is sovereign // TODO: MARIUS C: MX-16953 Have these tests also working when consensus v2 is fully integrated in sovereign
 	)
 
 	for shardID, nodesList := range nodes {
@@ -489,7 +489,7 @@ func runFullConsensusTest(
 	}
 }
 
-// TODO: Marius C check here duplicated tests
+// TODO: Marius C MX-16953 check here all these new tests and have them working for sovereign as well
 func TestConsensusBLSFullTestSingleKeysConsensusModelV1(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")

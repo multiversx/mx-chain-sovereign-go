@@ -356,7 +356,7 @@ func GetSovereignCoreComponents() factory.CoreComponentsHolder {
 	sovRunTypeCoreComponents := GetSovereignRunTypeCoreComponents()
 	coreArgs := GetCoreArgs()
 
-	// TODO: MARIUS C: Inject cfg.NodesSetup and chain params by epoch component for sovereign in run type
+	// TODO: MARIUS C: MX-16953 Inject all necessary sov args for sovereign in run type
 	coreArgs.Config.GeneralSettings.ChainParametersByEpoch = []config.ChainParametersByEpochConfig{
 		{
 			RoundDuration:               5000,

@@ -23,7 +23,7 @@ func initNodesWithTestSigner(
 	numInvalid uint32,
 	roundTime uint64,
 	consensusType string,
-	// TODO: Marius C: Inject run type comps here
+	// TODO: Marius C: MX-16953 Inject run type comps here
 	consensusModel consensus.ConsensusModel,
 ) (map[uint32][]*integrationTests.TestFullNode, map[string]struct{}) {
 
@@ -35,7 +35,7 @@ func initNodesWithTestSigner(
 	enableEpochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
 	isSovereign := false
 	if consensusModel == consensus.ConsensusModelV2 {
-		// TODO: MARIUS C: Here, have this enabled when we integrate consensus v2 into sovereign consensus
+		// TODO: MARIUS C: MX-16954 Here, have this enabled when we integrate consensus v2 into sovereign consensus
 		enableEpochsConfig.AndromedaEnableEpoch = 99999
 		enableEpochsConfig.ConsensusModelV2EnableEpoch = 0
 		isSovereign = true
@@ -93,7 +93,7 @@ func TestConsensusWithInvalidSignersConsensusModelV1(t *testing.T) {
 	runConsensusWithInvalidSigners(t, consensus.ConsensusModelV1)
 }
 
-// TODO: MARIUS C: Fix this test once we have run type comps integrated in this node
+// TODO: MARIUS C: MX-16953 Fix this test once we have run type comps integrated in this node
 /*
 func TestConsensusWithInvalidSignersConsensusModelV2(t *testing.T) {
 	if testing.Short() {

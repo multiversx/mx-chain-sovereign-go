@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -16,7 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C, this should be merged with subroundEndV2 in a sovereign specific file
+// TODO: Marius C MX-16954 , this should be merged with subroundEndV2 in a sovereign specific file
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2

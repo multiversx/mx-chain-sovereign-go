@@ -499,7 +499,7 @@ func (bp *blockProcessor) baseRequestHeadersIfNothingNewIsReceived(
 	shardID := latestValidHeader.GetShardID()
 	// force the trigger to be activated by removing the start of epoch block on Andromeda activation
 
-	// TODO: Marius C, most probably this won't work for sovereign
+	// TODO: Marius C, MX-16955 most probably this won't work for sovereign
 	header, headerHash, err := process.GetMetaHeaderFromPoolWithNonce(fromNonce, bp.headersPool)
 	isHeaderStartOfEpochForAndromedaActivation := err == nil && shardID == common.MetachainShardId &&
 		common.IsEpochChangeBlockForFlagActivation(header, bp.enableEpochsHandler, common.AndromedaFlag)
