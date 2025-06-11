@@ -140,6 +140,10 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 	}
 
 	runType.ConfigureUnixTime(runType.Milliseconds)
+	err = runType.SetWhiteListedAddresses(cfgs.SovereignExtraConfig.WhiteListedAddress.Addresses, cfgs.GeneralConfig.AddressPubkeyConverter)
+	if err != nil {
+		return err
+	}
 
 	err = nodeRunner.Start()
 	if err != nil {

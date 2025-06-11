@@ -9,6 +9,7 @@ type SovereignConfig struct {
 	OutGoingBridge                   OutGoingBridge           `toml:"OutGoingBridge"`
 	NotifierConfig                   NotifierConfig           `toml:"NotifierConfig"`
 	GenesisConfig                    GenesisConfig            `toml:"GenesisConfig"`
+	WhiteListedAddress               WhiteListedAddress       `toml:"WhiteListedAddress"`
 	OutGoingBridgeCertificate        OutGoingBridgeCertificate
 }
 
@@ -67,4 +68,9 @@ type WebSocketConfig struct {
 // GenesisConfig should hold all sovereign genesis related configs
 type GenesisConfig struct {
 	NativeESDT string `toml:"NativeESDT"`
+}
+
+// WhiteListedAddress should hold all whitelisted addresses
+type WhiteListedAddress struct {
+	Addresses []string `toml:"Addresses"`
 }
