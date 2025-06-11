@@ -179,23 +179,7 @@ func (sbp *sovereignBootStrapShardProcessor) createResolversContainer() error {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
-	// TODO: MARIUS C MX-16955
-
-	// TAKE FROM ORIGINAL BARNARD CODE: bootStrapShardProcessor.go -> syncHeadersFrom
-	// THIS CODE BELOW TO ALSO SYNC PROOF
-	/*
-		epochStartMetaHash, err := core.CalculateHash(bp.coreComponentsHolder.InternalMarshalizer(), bp.coreComponentsHolder.Hasher(), meta)
-		if err != nil {
-			return nil, err
-		}
-
-		// add the epoch start meta hash to the list to sync its proof
-		// TODO: this can be removed when the proof will be loaded from storage
-		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
-		shardIds = append(shardIds, core.MetachainShardId)
-	*/
-
-	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData, true)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
@@ -204,15 +188,28 @@ func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
 	_ uint32,
 	timeToWaitForRequestedData time.Duration,
 ) (map[string]data.HeaderHandler, error) {
-	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData, false)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 	meta data.MetaHeaderHandler,
 	timeToWaitForRequestedData time.Duration,
+	withCurrentHeader bool,
 ) (map[string]data.HeaderHandler, error) {
 	hashesToRequest := make([][]byte, 0, 2)
 	shardIds := make([]uint32, 0, 2)
+
+	if withCurrentHeader {
+		epochStartMetaHash, err := core.CalculateHash(sbp.coreComponentsHolder.InternalMarshalizer(), sbp.coreComponentsHolder.Hasher(), meta)
+		if err != nil {
+			return nil, err
+		}
+
+		// add the epoch start meta hash to the list to sync its proof
+		// TODO: this can be removed when the proof will be loaded from storage
+		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+		shardIds = append(shardIds, core.SovereignChainShardId)
+	}
 
 	for _, epochStartData := range meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
 		hashesToRequest = append(hashesToRequest, epochStartData.GetHeaderHash())

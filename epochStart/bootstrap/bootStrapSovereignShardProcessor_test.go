@@ -162,6 +162,58 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 	syncedHeaders := map[string]data.HeaderHandler{
 		"hash": &block.SovereignChainHeader{},
 	}
+
+	currentHeaderHash, _ := core.CalculateHash(
+		sovProc.coreComponentsHolder.InternalMarshalizer(),
+		sovProc.coreComponentsHolder.Hasher(),
+		sovHdr,
+	)
+
+	headersSyncedCt := 0
+	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
+		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
+			require.Equal(t, []uint32{core.SovereignChainShardId, core.MainChainShardId, core.SovereignChainShardId}, shardIDs)
+			require.Equal(t, [][]byte{currentHeaderHash, lastCrossChainHeaderHash, prevEpochStartHash}, headersHashes)
+			headersSyncedCt++
+			return nil
+		},
+		GetHeadersCalled: func() (map[string]data.HeaderHandler, error) {
+			return syncedHeaders, nil
+		},
+	}
+
+	res, err := sovProc.syncHeadersFrom(sovHdr)
+	require.Nil(t, err)
+	require.Equal(t, res, syncedHeaders)
+	require.Equal(t, 1, headersSyncedCt)
+}
+
+func TestBootStrapSovereignShardProcessor_syncHeadersFromStorage(t *testing.T) {
+	t.Parallel()
+
+	sovProc := createSovBootStrapProc()
+
+	prevEpochStartHash := []byte("prevEpochStartHash")
+	lastCrossChainHeaderHash := []byte("lastCrossChainHeaderHash")
+	sovHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			Epoch: 4,
+		},
+		EpochStart: block.EpochStartSovereign{
+			Economics: block.Economics{
+				PrevEpochStartHash: prevEpochStartHash,
+			},
+			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
+				ShardID:    core.MainChainShardId,
+				HeaderHash: lastCrossChainHeaderHash,
+			},
+		},
+	}
+
+	syncedHeaders := map[string]data.HeaderHandler{
+		"hash": &block.SovereignChainHeader{},
+	}
+
 	headersSyncedCt := 0
 	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
 		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
@@ -175,15 +227,10 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 		},
 	}
 
-	res, err := sovProc.syncHeadersFrom(sovHdr)
+	res, err := sovProc.syncHeadersFromStorage(sovHdr, 0, 0, DefaultTimeToWaitForRequestedData)
 	require.Nil(t, err)
 	require.Equal(t, res, syncedHeaders)
 	require.Equal(t, 1, headersSyncedCt)
-
-	res, err = sovProc.syncHeadersFromStorage(sovHdr, 0, 0, DefaultTimeToWaitForRequestedData)
-	require.Nil(t, err)
-	require.Equal(t, res, syncedHeaders)
-	require.Equal(t, 2, headersSyncedCt)
 }
 
 func TestBootStrapSovereignShardProcessor_processNodesConfigFromStorage(t *testing.T) {
