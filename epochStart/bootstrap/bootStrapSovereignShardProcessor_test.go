@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/dataRetriever"
 	factoryInterceptors "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -22,8 +22,10 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	updateMock "github.com/multiversx/mx-chain-go/update/mock"
 )
 
 func createSovBootStrapProc() *sovereignBootStrapShardProcessor {
@@ -105,6 +107,8 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
+	// TODO: Here, check this func is called if proven useful
+	epochStartProvider.epochStartShardHeaderSyncer = &updateMock.PendingEpochStartShardHeaderStub{}
 
 	err := sovProc.requestAndProcessForShard(make([]*block.MiniBlock, 0))
 	require.Nil(t, err)

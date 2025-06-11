@@ -31,19 +31,14 @@ type sovereignBootStrapShardProcessor struct {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*block.MiniBlock) error {
-	// TODO: MARIUS C MX-16955
-	// THIS CODE WAS ADDED IN BARNARD AND SHOULD BE ADAPTED FOR SOVEREIGN AS WELL, check: requestAndProcessForShard from
-	// bootStrapShardProcessor.go
-	/*
-		ctx, cancel = context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
-		epochStartShardBlock, epochStartShardBlockHash, err := bp.syncLatestEpochStartShardBlock(epochStartData.GetEpoch(), ctx)
-		cancel()
-		if err != nil {
-			return err
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+	epochStartShardBlock, epochStartShardBlockHash, err := sbp.syncLatestEpochStartShardBlock(sbp.epochStartMeta.GetEpoch(), ctx)
+	cancel()
+	if err != nil {
+		return err
+	}
 
-		bp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
-	*/
+	sbp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
 
 	argsStorageHandler := StorageHandlerArgs{
 		GeneralConfig:                   sbp.generalConfig,
@@ -110,6 +105,26 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 	}
 
 	return sovStorageHandler.SaveDataToStorage(components, sbp.epochStartMeta, false, make(map[string]*block.MiniBlock))
+}
+
+func (sbp *sovereignBootStrapShardProcessor) syncLatestEpochStartShardBlock(targetEpoch uint32, ctx context.Context) (data.HeaderHandler, []byte, error) {
+	prevEpochLatestFinalizedBlock := sbp.prevEpochStartMeta
+	if prevEpochLatestFinalizedBlock == nil {
+		return nil, nil, epochStart.ErrEpochStartDataForShardNotFound
+	}
+
+	sbp.epochStartShardHeaderSyncer.ClearFields()
+	err := sbp.epochStartShardHeaderSyncer.SyncEpochStartShardHeader(sbp.shardCoordinator.SelfId(), targetEpoch, prevEpochLatestFinalizedBlock.GetNonce(), ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	epochStartShardBlock, epochStartShardBlockHash, err := sbp.epochStartShardHeaderSyncer.GetEpochStartHeader()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return epochStartShardBlock, epochStartShardBlockHash, nil
 }
 
 func (sbp *sovereignBootStrapShardProcessor) computeNumShards(_ data.MetaHeaderHandler) uint32 {
