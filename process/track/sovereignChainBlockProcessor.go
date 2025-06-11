@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -35,6 +36,7 @@ func NewSovereignChainBlockProcessor(blockProcessor *blockProcessor) (*sovereign
 	scbp.doJobOnReceivedCrossNotarizedHeaderFunc = scbp.doJobOnReceivedCrossNotarizedHeader
 	scbp.requestHeaderWithShardAndNonceFunc = scbp.requestHeaderWithShardAndNonce
 	scbp.requestHeadersIfNothingNewIsReceivedFunc = scbp.requestHeadersIfNothingNewIsReceived
+	scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc = scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivation
 	scbp.blockFinality = 0
 
 	extendedShardHeaderRequester, ok := scbp.requestHandler.(extendedShardHeaderRequestHandler)
@@ -122,4 +124,13 @@ func (scbp *sovereignChainBlockProcessor) requestHeadersIfNothingNewIsReceived(
 	}
 
 	scbp.baseRequestHeadersIfNothingNewIsReceived(lastNotarizedHeaderNonce, latestValidHeader, highestRoundInReceivedHeaders)
+}
+
+func (scbp *sovereignChainBlockProcessor) removeHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce uint64, shardID uint32) {
+	header, headerHash, err := process.GetSovereignHeaderFromPoolWithNonce(fromNonce, scbp.headersPool)
+	isHeaderStartOfEpochForAndromedaActivation := err == nil && shardID == core.SovereignChainShardId &&
+		common.IsEpochChangeBlockForFlagActivation(header, scbp.enableEpochsHandler, common.AndromedaFlag)
+	if isHeaderStartOfEpochForAndromedaActivation {
+		scbp.headersPool.RemoveHeaderByHash(headerHash)
+	}
 }

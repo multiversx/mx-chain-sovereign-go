@@ -47,6 +47,7 @@ type blockProcessor struct {
 		highestRoundInReceivedHeaders uint64,
 		shardID uint32,
 	)
+	removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc func(fromNonce uint64, shardID uint32)
 }
 
 // NewBlockProcessor creates a block processor object which implements blockProcessorHandler interface
@@ -82,6 +83,7 @@ func NewBlockProcessor(arguments ArgBlockProcessor) (*blockProcessor, error) {
 	bp.doJobOnReceivedCrossNotarizedHeaderFunc = bp.doJobOnReceivedCrossNotarizedHeader
 	bp.requestHeaderWithShardAndNonceFunc = bp.requestHeaderWithShardAndNonce
 	bp.requestHeadersIfNothingNewIsReceivedFunc = bp.requestHeadersIfNothingNewIsReceived
+	bp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc = bp.removeHeaderHashIfStartOfEpochIsAndromedaActivation
 
 	return &bp, nil
 }
@@ -499,14 +501,17 @@ func (bp *blockProcessor) baseRequestHeadersIfNothingNewIsReceived(
 	shardID := latestValidHeader.GetShardID()
 	// force the trigger to be activated by removing the start of epoch block on Andromeda activation
 
-	// TODO: Marius C, MX-16955 most probably this won't work for sovereign
+	bp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc(fromNonce, shardID)
+	bp.requestHeaders(shardID, fromNonce)
+}
+
+func (bp *blockProcessor) removeHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce uint64, shardID uint32) {
 	header, headerHash, err := process.GetMetaHeaderFromPoolWithNonce(fromNonce, bp.headersPool)
 	isHeaderStartOfEpochForAndromedaActivation := err == nil && shardID == common.MetachainShardId &&
 		common.IsEpochChangeBlockForFlagActivation(header, bp.enableEpochsHandler, common.AndromedaFlag)
 	if isHeaderStartOfEpochForAndromedaActivation {
 		bp.headersPool.RemoveHeaderByHash(headerHash)
 	}
-	bp.requestHeaders(shardID, fromNonce)
 }
 
 func (bp *blockProcessor) requestHeaders(shardID uint32, fromNonce uint64) {
