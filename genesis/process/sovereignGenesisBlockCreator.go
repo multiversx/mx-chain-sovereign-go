@@ -459,8 +459,15 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 		return err
 	}
 
-	valAcc.SetMainChainID(big.NewInt(int64(id)).Bytes())
+	valAcc.SetMainChainID(idToBytes(id))
 	return peerAccountsDB.SaveAccount(valAcc)
+}
+
+func idToBytes(id int) []byte {
+	if id == 0 {
+		return []byte{0x00}
+	}
+	return big.NewInt(int64(id)).Bytes()
 }
 
 func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {
