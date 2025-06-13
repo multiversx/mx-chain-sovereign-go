@@ -1,7 +1,6 @@
 package process
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -460,14 +459,8 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 		return err
 	}
 
-	valAcc.SetMainChainID(intTo2Bytes(id))
+	valAcc.SetMainChainID(big.NewInt(int64(id)).Bytes())
 	return peerAccountsDB.SaveAccount(valAcc)
-}
-
-func intTo2Bytes(n int) []byte {
-	b := make([]byte, 2)
-	binary.BigEndian.PutUint16(b, uint16(n)) // Convert only the lower 2 bytes
-	return b
 }
 
 func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {
