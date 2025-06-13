@@ -465,7 +465,7 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 
 func intToBytes(n int) []byte {
 	if n == 0 {
-		return []byte{0x00}
+		return []byte{0x0}
 	}
 	return big.NewInt(int64(n)).Bytes()
 }
