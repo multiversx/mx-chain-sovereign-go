@@ -339,6 +339,11 @@ func (scbp *sovereignChainBlockProcessor) RemoveHeaderHashIfStartOfEpochIsAndrom
 	scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce, shardID)
 }
 
+// DoReceivedHeaderJob -
+func (scsbt *sovereignChainShardBlockTrack) DoReceivedHeaderJob(headerHandler data.HeaderHandler, headerHash []byte) {
+	scsbt.doReceivedHeaderJob(headerHandler, headerHash)
+}
+
 // miniBlockTrack
 
 // ReceivedMiniBlock -
