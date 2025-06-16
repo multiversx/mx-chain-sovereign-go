@@ -205,7 +205,6 @@ func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 			return nil, err
 		}
 
-		// add the epoch start meta hash to the list to sync its proof
 		// TODO: this can be removed when the proof will be loaded from storage
 		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
 		shardIds = append(shardIds, core.SovereignChainShardId)

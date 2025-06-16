@@ -423,6 +423,7 @@ func (sp *shardProcessor) requestEpochStartInfo(header data.ShardHeaderHandler, 
 
 		epochStartMetaHdr, err := headersPool.GetHeaderByHash(header.GetEpochStartMetaHash())
 		if err != nil {
+			// TODO: MX-16975 Analyse if this might be useful for sovereign
 			go sp.requestHandler.RequestMetaHeader(header.GetEpochStartMetaHash())
 			sp.requestEpochStartProofIfNeeded(header.GetEpochStartMetaHash(), header.GetEpoch())
 			continue

@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
@@ -331,6 +332,11 @@ func (scbp *sovereignChainBlockProcessor) ShouldProcessReceivedHeader(headerHand
 
 func (scbp *sovereignChainBlockProcessor) GetBlockFinality() uint64 {
 	return scbp.blockFinality
+}
+
+// RemoveHeaderHashIfStartOfEpochIsAndromedaActivation -
+func (scbp *sovereignChainBlockProcessor) RemoveHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce uint64, shardID uint32) {
+	scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce, shardID)
 }
 
 // miniBlockTrack
