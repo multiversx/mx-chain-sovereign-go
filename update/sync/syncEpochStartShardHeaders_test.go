@@ -531,7 +531,7 @@ func TestSyncEpochStartShardHeader_ProofsBeforeHeaderShouldWork(t *testing.T) {
 		HeaderEpoch:   epoch,
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &processMock.HeadersCacherStub{}
 	proofsPool := &dataRetrieverMocks.ProofsPoolMock{
 		HasProofCalled: func(shardID uint32, headerHash []byte) bool {
 			return true
@@ -597,7 +597,7 @@ func TestSyncEpochStartShardHeader_ShouldWorkWithoutAndromedaActivated(t *testin
 		HeaderEpoch:   epoch,
 	}
 
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &processMock.HeadersCacherStub{}
 	proofsPool := &dataRetrieverMocks.ProofsPoolMock{
 		HasProofCalled: func(shardID uint32, headerHash []byte) bool {
 			return false
@@ -642,7 +642,7 @@ func TestSyncEpochStartShardHeader_ShouldWorkWithoutAndromedaActivated(t *testin
 }
 
 func createPendingEpochStartShardHeaderSyncerArgs() ArgsPendingEpochStartShardHeaderSyncer {
-	headersPool := &mock.HeadersCacherStub{}
+	headersPool := &processMock.HeadersCacherStub{}
 	proofsPool := &dataRetrieverMocks.ProofsPoolMock{}
 	args := ArgsPendingEpochStartShardHeaderSyncer{
 		HeadersPool: headersPool,
