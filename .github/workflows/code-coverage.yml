@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [ubuntu, Linux, X64]
     name: Build
     steps:
       - name: Set up Go 1.23.6
