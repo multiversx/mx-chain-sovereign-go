@@ -34,16 +34,18 @@ jobs:
       MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH: ""
       MX_CHAIN_SIMULATOR_TARGET_BRANCH: ""
       MX_CHAIN_TESTING_SUITE_TARGET_BRANCH: ""
-    name: build-and-test (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})
 
       CF_R2_ACCESS_KEY: ${{ secrets.CF_R2_ACCESS_KEY }}
       CF_R2_SECRET_KEY: ${{ secrets.CF_R2_SECRET_KEY }}
-      CF_R2_ENDPOINT:    ${{ secrets.CF_R2_ENDPOINT }}
+      CF_R2_ENDPOINT: ${{ secrets.CF_R2_ENDPOINT }}
 
-      REPORT_BUCKET:  mx-chain-go-testing-reports
+      REPORT_BUCKET: mx-chain-go-testing-reports
       REPORT_BASE_URL: https://mx-chain-go-testing-reports.multiversx.com
 
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    name: build-and-test (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})
+
 
     steps:
       - name: Determine Target Branches
