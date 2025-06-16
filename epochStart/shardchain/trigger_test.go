@@ -12,9 +12,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
@@ -690,7 +691,7 @@ func TestTrigger_ReceivedHeaderChangeEpochWithoutPrevHeader(t *testing.T) {
 	numGetHeadersFromPoolCalls := 0
 	args.DataPool = &dataRetrieverMock.PoolsHolderStub{
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &mock.HeadersCacherStub{
+			return &processMock.HeadersCacherStub{
 				GetHeaderByHashCalled: func(hash []byte) (data.HeaderHandler, error) {
 					if bytes.Equal(hash, oldHash) {
 						if numGetHeadersFromPoolCalls == 0 {

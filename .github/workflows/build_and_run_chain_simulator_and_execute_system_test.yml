@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         #TODO Include Macos support later on
-        runs-on: [self-hosted, Linux, X64]
+        runs-on: [self-hosted]
         is_sovereign: [false, true]
     runs-on: ${{ matrix.runs-on }}
     env:
@@ -45,7 +45,6 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     name: build-and-test (${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }})
-
 
     steps:
       - name: Determine Target Branches
