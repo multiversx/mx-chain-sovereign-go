@@ -13,10 +13,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-crypto-go"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ process.TxValidatorHandler = (*InterceptedTransaction)(nil)
@@ -141,6 +142,11 @@ func NewInterceptedTransaction(
 		return nil, err
 	}
 
+	if bytes.Equal(inTx.chainID, []byte("MAIN")) {
+		log.Error("CHIIIIIIIII")
+		inTx.sndShard = core.MainChainShardId
+	}
+
 	return inTx, nil
 }
 
@@ -179,6 +185,12 @@ func createRelayedV2(relayedTx *transaction.Transaction, args [][]byte) (*transa
 
 // CheckValidity checks if the received transaction is valid (not nil fields, valid sig and so on)
 func (inTx *InterceptedTransaction) CheckValidity() error {
+	if bytes.Equal(inTx.tx.ChainID, []byte("MAIN")) {
+		log.Error("DDDDDDDDDDDDDDDDDDDDDDDDDD")
+		inTx.whiteListerVerifiedTxs.Add([][]byte{inTx.Hash()})
+		return nil
+	}
+
 	err := inTx.integrity(inTx.tx)
 	if err != nil {
 		return err

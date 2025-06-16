@@ -23,6 +23,7 @@ type sovereignTrigger struct {
 	*trigger
 	currentEpochValidatorInfoPool epochStart.ValidatorInfoCacher
 	validatorInfoSyncer           process.ValidatorInfoSyncer
+	//outGoingOpPool                sovereign.OutGoingOperationsPool
 }
 
 // NewSovereignTrigger creates a new sovereign epoch start trigger
@@ -182,6 +183,8 @@ func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.MetaHeaderHand
 	for validatorInfoHash, validatorInfo := range validatorsInfo {
 		st.currentEpochValidatorInfoPool.AddValidatorInfo([]byte(validatorInfoHash), validatorInfo)
 	}
+
+	hdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
 
 	st.epochStartNotifier.NotifyAllPrepare(hdr, blockBody)
 	return true

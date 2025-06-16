@@ -2,6 +2,7 @@ package block
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -248,6 +249,13 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 		}
 
 		err = scbp.createEpochStartDataCrossChain(sovereignChainHeaderHandler)
+		if err != nil {
+			return nil, nil, err
+		}
+		outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+			Type: block.OutGoingMbChangeValidatorSet,
+		}
+		err = sovereignChainHeaderHandler.SetOutGoingMiniBlockHeaderHandler(outGoingMbHeader)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -836,7 +844,15 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 		return nil, nil, err
 	}
 
-	scbp.txCoordinator.RequestBlockTransactions(body)
+	if !sovChainHeader.IsStartOfEpochBlock() {
+		scbp.txCoordinator.RequestBlockTransactions(body)
+	}
+
+	if sovChainHeader.IsStartOfEpochBlock() {
+		outGoingDataJson, _ := json.Marshal(sovChainHeader.GetOutGoingMiniBlockHeaderHandlers())
+		log.Error("sovChainHeader.IsStartOfEpochBlock()", "data", string(outGoingDataJson))
+	}
+
 	requestedExtendedShardHdrs := scbp.requestExtendedShardHeaders(sovChainHeader)
 
 	if haveTime() < 0 {
@@ -1528,6 +1544,10 @@ func (scbp *sovereignChainBlockProcessor) addOutGoingTxToPool(outGoingOp *sovCor
 			}),
 		GasPrice: scbp.economicsData.MinGasPrice(),
 		Data:     outGoingOp.Data,
+		//Version:  1,
+		//ChainID:  []byte("MAIN"),
+		//SndAddr:  core.ESDTSCAddress,
+		//RcvAddr:  core.ESDTSCAddress,
 	}
 
 	cacheID := fmt.Sprintf("%d_%d", core.SovereignChainShardId, core.MainChainShardId)
@@ -1546,26 +1566,26 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	outGoingOperationsHash []byte,
 	mbType block.OutGoingMBType,
 ) error {
-	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMb)
-	if err != nil {
-		return err
-	}
+	//outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMb)
+	//if err != nil {
+	//	return err
+	//}
 
-	sovereignChainHdr, ok := headerHandler.(data.SovereignChainHeaderHandler)
-	if !ok {
-		return fmt.Errorf("%w in sovereignChainBlockProcessor.setOutGoingOperation", process.ErrWrongTypeAssertion)
-	}
+	//sovereignChainHdr, ok := headerHandler.(data.SovereignChainHeaderHandler)
+	//if !ok {
+	//	return fmt.Errorf("%w in sovereignChainBlockProcessor.setOutGoingOperation", process.ErrWrongTypeAssertion)
+	//}
+	//
+	//outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+	//	Type:                   mbType,
+	//	Hash:                   outGoingMbHash,
+	//	OutGoingOperationsHash: outGoingOperationsHash,
+	//}
 
-	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
-		Type:                   mbType,
-		Hash:                   outGoingMbHash,
-		OutGoingOperationsHash: outGoingOperationsHash,
-	}
-
-	err = sovereignChainHdr.SetOutGoingMiniBlockHeaderHandler(outGoingMbHeader)
-	if err != nil {
-		return err
-	}
+	//err = sovereignChainHdr.SetOutGoingMiniBlockHeaderHandler(outGoingMbHeader)
+	//if err != nil {
+	//	return err
+	//}
 
 	createdBlockBody.MiniBlocks = append(createdBlockBody.MiniBlocks, outGoingMb)
 	scbp.txCoordinator.AddTxsFromMiniBlocks([]*block.MiniBlock{outGoingMb})

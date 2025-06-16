@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -77,6 +78,7 @@ type trigger struct {
 	appStatusHandler            core.AppStatusHandler
 	validatorInfoPool           epochStart.ValidatorInfoCacher
 	registryHandler             registryHandler
+	dataPool                    dataRetriever.PoolsHolder
 }
 
 // NewEpochStartTrigger creates a trigger for start of epoch
@@ -126,6 +128,7 @@ func newTrigger(
 		nextEpochStartRound:         disabledRoundForForceEpochStart,
 		validatorInfoPool:           args.DataPool.CurrentEpochValidatorInfo(),
 		registryHandler:             registryHandler,
+		dataPool:                    args.DataPool,
 	}
 
 	err = trig.saveState(trig.triggerStateKey)

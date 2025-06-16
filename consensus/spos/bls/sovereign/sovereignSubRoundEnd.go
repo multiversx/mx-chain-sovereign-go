@@ -51,11 +51,20 @@ func NewSovereignSubRoundEndRound(
 	return sr, nil
 }
 
+// block propus la inceput nu ajunge pe topic de consensus cum era inainte -> se propune pe topic normal de HEADER si ajunge si shard si meta chain
+// nu mai avem receivedBlockHeaderFinalInfo, oricine agrega si pot fi versiuni diferite
+// toti iau decizia sa construieasca eq proof si dupa il propaga: fiecare propaga unul singur: fie pe al lor, fie pe unul primit inainte
+//
+
 func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
 	success := sr.subroundEndRoundV2.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
+
+	log.Error("receivedBlockHeaderFinalInfo", "success", success)
 	if !success {
 		return false
 	}
+
+	log.Error("receivedBlockHeaderFinalInfo")
 
 	// TODO: MX-15502 once we have ZKProofs included in blocks for leaders which have resent the unconfirmed
 	// outgoing operation we should also call resetOutGoingOpTimer here for consensus participants
@@ -68,6 +77,8 @@ func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Mes
 		log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded", "error", errors.ErrWrongTypeAssertion)
 		return errors.ErrWrongTypeAssertion
 	}
+
+	log.Error("sovereignSubRoundEnd.updateOutGoingPoolIfNeeded", "len", len(sovHeader.GetOutGoingMiniBlockHeaderHandlers()))
 
 	for _, outGoingMbHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
 		err := sr.updatePoolForOutGoingMiniBlock(outGoingMbHdr, cnsDta)

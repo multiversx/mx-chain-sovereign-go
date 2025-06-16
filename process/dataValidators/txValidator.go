@@ -6,12 +6,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 var _ process.TxValidator = (*txValidator)(nil)
@@ -75,6 +76,8 @@ func (txv *txValidator) CheckTxValidity(interceptedTx process.InterceptedTransac
 	if txv.isSenderInDifferentShard(interceptedTx) {
 		return nil
 	}
+
+	//return nil
 
 	// for relayed v3, we allow sender accounts that do not exist
 	isRelayedV3 := common.IsRelayedTxV3(interceptedTx.Transaction())
