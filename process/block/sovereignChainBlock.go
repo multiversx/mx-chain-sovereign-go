@@ -257,13 +257,30 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 
 		/////// create outgoing mb for change epoch
 
-		//_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
-		//	sovereignChainHeaderHandler.GetRandSeed(),
-		//	sovereignChainHeaderHandler.GetRound(),
-		//	core.SovereignChainShardId,
-		//	sovereignChainHeaderHandler.GetEpoch(),
-		//)
-		pubKeys := []string{"dsa"}
+		currentRootHash, err := scbp.validatorStatisticsProcessor.RootHash()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		allValidatorsInfo, err := scbp.validatorStatisticsProcessor.GetValidatorInfoForRootHash(currentRootHash)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		validatorMiniBlocks, err := scbp.validatorInfoCreator.CreateValidatorInfoMiniBlocks(allValidatorsInfo)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		scbp.nodesCoordinator.EpochStartPrepare(initialHdr, &block.Body{MiniBlocks: validatorMiniBlocks})
+
+		_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
+			sovereignChainHeaderHandler.GetRandSeed(),
+			sovereignChainHeaderHandler.GetRound(),
+			core.SovereignChainShardId,
+			sovereignChainHeaderHandler.GetEpoch(),
+		)
+		//pubKeys := []string{"dsa"}
 		if err != nil {
 			return nil, nil, err
 		}
@@ -406,7 +423,6 @@ func (scbp *sovereignChainBlockProcessor) createEpochStartBody(metaBlock data.So
 
 	return &block.Body{MiniBlocks: finalMiniBlocks}, nil
 }
-
 */
 
 // We should call this func only on ProcessBlock for all participants.
@@ -1199,7 +1215,7 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 		return err
 	}
 
-	pubKeys = []string{"dsa"}
+	//pubKeys = []string{"dsa"}
 
 	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
 	if err != nil {
