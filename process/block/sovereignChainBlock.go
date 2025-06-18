@@ -255,59 +255,11 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 			return nil, nil, err
 		}
 
-		/////// create outgoing mb for change epoch
-
-		currentRootHash, err := scbp.validatorStatisticsProcessor.RootHash()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		allValidatorsInfo, err := scbp.validatorStatisticsProcessor.GetValidatorInfoForRootHash(currentRootHash)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		validatorMiniBlocks, err := scbp.validatorInfoCreator.CreateValidatorInfoMiniBlocks(allValidatorsInfo)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		scbp.nodesCoordinator.EpochStartPrepare(initialHdr, &block.Body{MiniBlocks: validatorMiniBlocks})
-
-		_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
-			sovereignChainHeaderHandler.GetRandSeed(),
-			sovereignChainHeaderHandler.GetRound(),
-			core.SovereignChainShardId,
-			sovereignChainHeaderHandler.GetEpoch(),
-		)
-		//pubKeys := []string{"dsa"}
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if err != nil {
-			return nil, nil, err
-		}
-
-		outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(
-			pubKeys,
-			sovereignChainHeaderHandler.GetEpoch(),
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-
 		body := &block.Body{}
-		err = scbp.createAndSetOutGoingMiniBlock(
-			initialHdr,
-			[][]byte{outGoingOperationChangeValidatorSet},
-			body,
-			block.OutGoingMbChangeValidatorSet,
-		)
+		err = scbp.createAndSetEpochStartOutGoingOperationMiniBlocks(initialHdr, body)
 		if err != nil {
 			return nil, nil, err
 		}
-		/////
 
 		err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
 		if err != nil {
@@ -354,76 +306,55 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 	return initialHdr, &block.Body{MiniBlocks: miniBlocks}, nil
 }
 
-/*
-func (scbp *sovereignChainBlockProcessor) createEpochStartBody(metaBlock data.SovereignChainHeaderHandler) (data.BodyHandler, error) {
-	log.Debug("started creating epoch start block body",
-		"epoch", metaBlock.GetEpoch(),
-		"round", metaBlock.GetRound(),
-		"nonce", metaBlock.GetNonce(),
-	)
-
+func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperationMiniBlocks(
+	header data.HeaderHandler,
+	body *block.Body,
+) error {
 	currentRootHash, err := scbp.validatorStatisticsProcessor.RootHash()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	allValidatorsInfo, err := scbp.validatorStatisticsProcessor.GetValidatorInfoForRootHash(currentRootHash)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = scbp.validatorStatisticsProcessor.ProcessRatingsEndOfEpoch(allValidatorsInfo, metaBlock.GetEpoch())
+	validatorMiniBlocks, err := scbp.validatorInfoCreator.CreateValidatorInfoMiniBlocks(allValidatorsInfo)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var rewardMiniBlocks block.MiniBlockSlice
-	if mp.isRewardsV2Enabled(metaBlock) {
-		err = mp.epochSystemSCProcessor.ProcessSystemSmartContract(allValidatorsInfo, metaBlock)
-		if err != nil {
-			return nil, err
-		}
+	// Prepare next epoch pub keys configuration to be sent to main chains, we only need validator mbs
+	scbp.nodesCoordinator.EpochStartPrepare(header, &block.Body{MiniBlocks: validatorMiniBlocks})
 
-		rewardMiniBlocks, err = mp.epochRewardsCreator.CreateRewardsMiniBlocks(metaBlock, allValidatorsInfo, &metaBlock.EpochStart.Economics)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		rewardMiniBlocks, err = mp.epochRewardsCreator.CreateRewardsMiniBlocks(metaBlock, allValidatorsInfo, &metaBlock.EpochStart.Economics)
-		if err != nil {
-			return nil, err
-		}
-
-		err = mp.epochSystemSCProcessor.ProcessSystemSmartContract(allValidatorsInfo, metaBlock)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	metaBlock.EpochStart.Economics.RewardsForProtocolSustainability.Set(mp.epochRewardsCreator.GetProtocolSustainabilityRewards())
-
-	err = mp.epochSystemSCProcessor.ProcessDelegationRewards(rewardMiniBlocks, mp.epochRewardsCreator.GetLocalTxCache())
+	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
+		header.GetRandSeed(),
+		header.GetRound(),
+		core.SovereignChainShardId,
+		header.GetEpoch(),
+	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	validatorMiniBlocks, err := mp.validatorInfoCreator.CreateValidatorInfoMiniBlocks(allValidatorsInfo)
+	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(
+		pubKeys,
+		header.GetEpoch(),
+	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = mp.validatorStatisticsProcessor.ResetValidatorStatisticsAtNewEpoch(allValidatorsInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	finalMiniBlocks := make([]*block.MiniBlock, 0)
-	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
-	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
-
-	return &block.Body{MiniBlocks: finalMiniBlocks}, nil
+	// Leader will only set outgoing mini-block header in proposed epoch start block.
+	// The rest of the mini-blocks, will be created and processed by all participants on ProcessBlock
+	return scbp.createAndSetOutGoingMiniBlock(
+		header,
+		[][]byte{outGoingOperationChangeValidatorSet},
+		body,
+		block.OutGoingMbChangeValidatorSet,
+	)
 }
-*/
 
 // We should call this func only on ProcessBlock for all participants.
 // No need to call it on CreateBlock for epoch start processing.
@@ -1203,73 +1134,18 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 		return err
 	}
 
+	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(sovHdr, body)
+	if err != nil {
+		return err
+	}
+
 	finalMiniBlocks := make([]*block.MiniBlock, 0)
 	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
 	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
+	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet)
 	body.MiniBlocks = finalMiniBlocks
 
-	scbp.nodesCoordinator.EpochStartPrepare(header, body)
-
-	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	//pubKeys = []string{"dsa"}
-
-	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	// verify outgoing blocks
-	// TODO: ALSO VERIFY WHAT IS DONE IN setOutGoingMiniBlock
-	outGoingMbChangeValidatorSet, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(
-		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
-		block.OutGoingMbChangeValidatorSet,
-	)
-	if err != nil {
-		return err
-	}
-
-	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbChangeValidatorSet)
-	if err != nil {
-		return err
-	}
-
-	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
-		Type:                   block.OutGoingMbChangeValidatorSet,
-		Hash:                   outGoingMbHash,
-		OutGoingOperationsHash: outGoingOperationsHash,
-	}
-
-	computedHashOutGoingMb, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbHeader)
-	if err != nil {
-		return err
-	}
-
-	recievedOutGoingMB := sovHdr.GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbChangeValidatorSet))
-	toCompareWithMB := &block.OutGoingMiniBlockHeader{
-		Type:                   block.OutGoingMbChangeValidatorSet,
-		Hash:                   recievedOutGoingMB.GetHash(),
-		OutGoingOperationsHash: recievedOutGoingMB.GetOutGoingOperationsHash(),
-	}
-
-	receivedHashOutGoingMb, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, toCompareWithMB)
-	if err != nil {
-		return err
-	}
-
-	if !bytes.Equal(computedHashOutGoingMb, receivedHashOutGoingMb) {
-		v1, _ := json.Marshal(outGoingMbHeader)
-		v2, _ := json.Marshal(sovHdr.GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbChangeValidatorSet)))
-
-		log.Error("DDDDDDDDDD", "computed", string(v1), "received", string(v2))
-		return fmt.Errorf("ERROOOORRR", "computedHashOutGoingMb", computedHashOutGoingMb, "receivedHashOutGoingMb", receivedHashOutGoingMb)
-	}
 	scbp.txCoordinator.AddTxsFromMiniBlocks([]*block.MiniBlock{outGoingMbChangeValidatorSet})
-	//
 
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
@@ -1298,6 +1174,95 @@ func (scbp *sovereignChainBlockProcessor) createEpochStartDataCrossChain(sovHdr 
 		Nonce:      lastCrossNotarizedHeader.GetNonce(),
 		HeaderHash: lastCrossNotarizedHeaderHash,
 	})
+}
+
+func (scbp *sovereignChainBlockProcessor) computeAndVerifyEpochChangeOutGoingOperations(
+	header *block.SovereignChainHeader,
+	body *block.Body,
+) (*block.MiniBlock, error) {
+	outGoingMB, computedOutGoingMbHash, err := scbp.computeEpochChangeOutGoingMBHeaderAndHash(header, body)
+	if err != nil {
+		return nil, err
+	}
+
+	receivedOutGoingMbHash, err := scbp.computeReceivedOutGoingMBHeaderHash(header)
+	if err != nil {
+		return nil, err
+	}
+
+	if !bytes.Equal(computedOutGoingMbHash, receivedOutGoingMbHash) {
+		return nil, fmt.Errorf("%w, computedOutGoingMbHash: %x, receivedOutGoingMbHash: %x",
+			errOutGoingBlockHashMismatch, computedOutGoingMbHash, receivedOutGoingMbHash)
+	}
+
+	return outGoingMB, nil
+}
+
+func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndHash(
+	header *block.SovereignChainHeader,
+	body *block.Body,
+) (*block.MiniBlock, []byte, error) {
+	scbp.nodesCoordinator.EpochStartPrepare(header, body)
+
+	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
+		header.GetRandSeed(),
+		header.GetRound(),
+		core.SovereignChainShardId,
+		header.GetEpoch(),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	outGoingMbChangeValidatorSet, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(
+		header,
+		[][]byte{outGoingOperationChangeValidatorSet},
+		block.OutGoingMbChangeValidatorSet,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbChangeValidatorSet)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+		Type:                   block.OutGoingMbChangeValidatorSet,
+		Hash:                   outGoingMbHash,
+		OutGoingOperationsHash: outGoingOperationsHash,
+	}
+
+	computedHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbHeader)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return outGoingMbChangeValidatorSet, computedHash, nil
+}
+
+func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
+	header *block.SovereignChainHeader,
+) ([]byte, error) {
+	receivedOutGoingMB := header.GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbChangeValidatorSet))
+	if check.IfNil(receivedOutGoingMB) {
+		return nil, fmt.Errorf("%w for %s in func computeReceivedOutGoingMBHeaderHash",
+			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingMbChangeValidatorSet.String())
+	}
+
+	toCompareWithMB := &block.OutGoingMiniBlockHeader{
+		Type:                   block.OutGoingMbChangeValidatorSet,
+		Hash:                   receivedOutGoingMB.GetHash(),
+		OutGoingOperationsHash: receivedOutGoingMB.GetOutGoingOperationsHash(),
+	}
+
+	return core.CalculateHash(scbp.marshalizer, scbp.hasher, toCompareWithMB)
 }
 
 func (scbp *sovereignChainBlockProcessor) applyBodyToHeaderForEpochChange(header data.HeaderHandler, body *block.Body) error {
