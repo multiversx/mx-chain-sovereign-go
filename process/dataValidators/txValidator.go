@@ -77,8 +77,6 @@ func (txv *txValidator) CheckTxValidity(interceptedTx process.InterceptedTransac
 		return nil
 	}
 
-	//return nil
-
 	// for relayed v3, we allow sender accounts that do not exist
 	isRelayedV3 := common.IsRelayedTxV3(interceptedTx.Transaction())
 	hasValue := hasTxValue(interceptedTx)

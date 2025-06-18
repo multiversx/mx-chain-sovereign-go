@@ -77,7 +77,7 @@ func (bdi *baseDataInterceptor) processInterceptedData(data process.InterceptedD
 		)
 		bdi.processDebugInterceptedData(data, err)
 
-		//return
+		return
 	}
 
 	err = bdi.processor.Save(data, msg.Peer(), bdi.topic)

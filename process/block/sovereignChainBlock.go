@@ -2,7 +2,6 @@ package block
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -895,13 +894,11 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 		return nil, nil, err
 	}
 
+	// At the start of an epoch, there should be no "unknown" operations present in the block.
+	// All operations (e.g., rewards, outgoing miniblocks for validator set changes, etc.) added to the epoch start block
+	// are deterministic and must be computed independently by all participants, without requiring additional data fetches.
 	if !sovChainHeader.IsStartOfEpochBlock() {
 		scbp.txCoordinator.RequestBlockTransactions(body)
-	}
-
-	if sovChainHeader.IsStartOfEpochBlock() {
-		outGoingDataJson, _ := json.Marshal(sovChainHeader.GetOutGoingMiniBlockHeaderHandlers())
-		log.Error("sovChainHeader.IsStartOfEpochBlock()", "data", string(outGoingDataJson))
 	}
 
 	requestedExtendedShardHdrs := scbp.requestExtendedShardHeaders(sovChainHeader)
@@ -1256,13 +1253,13 @@ func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingMbChangeValidatorSet.String())
 	}
 
-	toCompareWithMB := &block.OutGoingMiniBlockHeader{
+	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
 		Type:                   block.OutGoingMbChangeValidatorSet,
 		Hash:                   receivedOutGoingMB.GetHash(),
 		OutGoingOperationsHash: receivedOutGoingMB.GetOutGoingOperationsHash(),
 	}
 
-	return core.CalculateHash(scbp.marshalizer, scbp.hasher, toCompareWithMB)
+	return core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMBHeader)
 }
 
 func (scbp *sovereignChainBlockProcessor) applyBodyToHeaderForEpochChange(header data.HeaderHandler, body *block.Body) error {
@@ -1670,10 +1667,6 @@ func (scbp *sovereignChainBlockProcessor) addOutGoingTxToPool(outGoingOp *sovCor
 			}),
 		GasPrice: scbp.economicsData.MinGasPrice(),
 		Data:     outGoingOp.Data,
-		//Version:  1,
-		//ChainID:  []byte("MAIN"),
-		//SndAddr:  core.ESDTSCAddress,
-		//RcvAddr:  core.ESDTSCAddress,
 	}
 
 	cacheID := fmt.Sprintf("%d_%d", core.SovereignChainShardId, core.MainChainShardId)
