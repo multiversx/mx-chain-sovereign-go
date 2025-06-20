@@ -1160,6 +1160,14 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			},
 		}
 		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+
+		wereBlockTxsRequested := false
+		arguments.TxCoordinator = &testscommon.TransactionCoordinatorMock{
+			RequestBlockTransactionsCalled: func(body *block.Body) {
+				wereBlockTxsRequested = true
+			},
+		}
+
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 		require.Nil(t, err)
@@ -1182,6 +1190,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		require.Equal(t, sovHeader, hdr)
 		require.False(t, check.IfNil(bodyHandler))
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+		require.True(t, wereBlockTxsRequested)
 	})
 	t.Run("process block start of epoch, should work", func(t *testing.T) {
 		expectedBusyIdleSequencePerCall := []string{busyIdentifier, idleIdentifier}
@@ -1217,10 +1226,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 				busyIdleCalled = append(busyIdleCalled, busyIdentifier)
 			},
 		}
-		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
-		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
-		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
-		require.Nil(t, err)
+		coreComponents.Hash = &hashingMocks.HasherMock{}
 
 		sovHeader := &block.SovereignChainHeader{
 			Header: &block.Header{
@@ -1239,11 +1245,87 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 			IsStartOfEpoch: true,
 		}
 
+		arguments := createSovChainBaseBlockProcessorArgs(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+
+		wereBlockTxsRequested := false
+		arguments.TxCoordinator = &testscommon.TransactionCoordinatorMock{
+			RequestBlockTransactionsCalled: func(body *block.Body) {
+				wereBlockTxsRequested = true
+			},
+		}
+
+		expectedPubKeys := []string{"pk1", "pk2"}
+		arguments.NodesCoordinator = &shardingMocks.NodesCoordinatorStub{
+			GetValidatorsPublicKeysCalled: func(randomness []byte, round uint64, shardId uint32, epoch uint32) (string, []string, error) {
+				require.Equal(t, sovHeader.GetRandSeed(), randomness)
+				require.Equal(t, sovHeader.GetRound(), round)
+				require.Equal(t, core.SovereignChainShardId, shardId)
+				require.Equal(t, sovHeader.GetEpoch(), epoch)
+
+				return expectedPubKeys[0], expectedPubKeys, nil
+			},
+		}
+
+		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		outGoingOp := []byte("outGoingOp")
+		sovArgs.OutgoingOperationsFormatter = &sovereign.OutgoingOperationsFormatterMock{
+			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) ([]byte, error) {
+				require.Equal(t, expectedPubKeys, pubKeys)
+				require.Equal(t, epoch, sovHeader.GetEpoch())
+				return outGoingOp, nil
+			},
+		}
+
+		outGoingOpHash := []byte("outGoingOpHash")
+		outGoingOpsHash := []byte("outGoingOpsHash")
+		hasherCalledCt := 0
+		sovArgs.OperationsHasher = &testscommon.HasherStub{
+			ComputeCalled: func(s string) []byte {
+				hasherCalledCt++
+
+				switch hasherCalledCt {
+				case 1:
+					require.Equal(t, string(outGoingOp), s)
+					return outGoingOpHash
+				case 2:
+					require.Equal(t, string(outGoingOpHash), s)
+					return outGoingOpsHash
+				}
+
+				require.Fail(t, "should not call this func more times")
+				return nil
+			},
+		}
+
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+		require.Nil(t, err)
+
+		expectedOutGoingMB := &block.MiniBlock{
+
+			TxHashes:        [][]byte{outGoingOpHash},
+			ReceiverShardID: core.MainChainShardId,
+			SenderShardID:   core.SovereignChainShardId,
+		}
+
+		outGoingMBHash, _ := core.CalculateHash(
+			arguments.CoreComponents.InternalMarshalizer(),
+			arguments.CoreComponents.Hasher(),
+			expectedOutGoingMB,
+		)
+		sovHeader.OutGoingMiniBlockHeaders = []*block.OutGoingMiniBlockHeader{
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				Hash:                   outGoingMBHash,
+				OutGoingOperationsHash: outGoingOpsHash,
+			},
+		}
+
 		hdr, bodyHandler, err := scbp.ProcessBlock(sovHeader, &block.Body{}, haveTime)
 		require.Nil(t, err)
 		require.Equal(t, sovHeader, hdr)
 		require.False(t, check.IfNil(bodyHandler))
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+		require.False(t, wereBlockTxsRequested)
 	})
 }
 
