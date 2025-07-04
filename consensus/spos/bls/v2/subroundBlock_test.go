@@ -1,6 +1,7 @@
 package v2_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/big"
@@ -697,7 +698,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenBodyAndHeaderAre
 		nil,
 		nil,
 	)
-	assert.False(t, sr.ProcessReceivedBlock(cnsMsg))
+	assert.False(t, sr.ProcessReceivedBlock(context.Background(), cnsMsg))
 }
 
 func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockFails(t *testing.T) {
@@ -733,7 +734,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockFail
 	)
 	sr.SetHeader(hdr)
 	sr.SetBody(blkBody)
-	assert.False(t, sr.ProcessReceivedBlock(cnsMsg))
+	assert.False(t, sr.ProcessReceivedBlock(context.Background(), cnsMsg))
 }
 
 func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockReturnsInNextRound(t *testing.T) {
@@ -769,7 +770,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnFalseWhenProcessBlockRetu
 	}
 	container.SetBlockProcessor(blockProcessorMock)
 	container.SetRoundHandler(&consensusMocks.RoundHandlerMock{RoundIndex: 1})
-	assert.False(t, sr.ProcessReceivedBlock(cnsMsg))
+	assert.False(t, sr.ProcessReceivedBlock(context.Background(), cnsMsg))
 }
 
 func TestSubroundBlock_ProcessReceivedBlockShouldReturnTrue(t *testing.T) {
@@ -802,7 +803,7 @@ func TestSubroundBlock_ProcessReceivedBlockShouldReturnTrue(t *testing.T) {
 		)
 		sr.SetHeader(hdr)
 		sr.SetBody(blkBody)
-		assert.True(t, sr.ProcessReceivedBlock(cnsMsg))
+		assert.True(t, sr.ProcessReceivedBlock(context.Background(), cnsMsg))
 	}
 }
 
@@ -1180,7 +1181,7 @@ func TestSubroundBlock_ReceivedBlockComputeProcessDuration(t *testing.T) {
 	sr.SetBody(blkBody)
 
 	minimumExpectedValue := uint64(delay * 100 / srDuration)
-	_ = sr.ProcessReceivedBlock(cnsMsg)
+	_ = sr.ProcessReceivedBlock(context.Background(), cnsMsg)
 
 	assert.True(t,
 		receivedValue >= minimumExpectedValue,

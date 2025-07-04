@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/outport"
@@ -113,12 +114,12 @@ func (fct *factory) GenerateSubrounds(epoch uint32) error {
 	fct.worker.RemoveAllReceivedMessagesCalls()
 	fct.worker.RemoveAllReceivedHeaderHandlers()
 
-	err := fct.generateStartRoundSubround()
+	err := fct.generateStartRoundSubroundV2()
 	if err != nil {
 		return err
 	}
 
-	err = fct.generateBlockSubround()
+	err = fct.generateBlockSubroundV2()
 	if err != nil {
 		return err
 	}
@@ -140,7 +141,23 @@ func (fct *factory) getTimeDuration() time.Duration {
 	return fct.consensusCore.RoundHandler().TimeDuration()
 }
 
-func (fct *factory) generateStartRoundSubround() error {
+func (fct *factory) generateStartRoundSubroundV2() error {
+	subroundStartRoundInstance, err := fct.GenerateStartRoundSubround()
+	if err != nil {
+		return err
+	}
+
+	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
+	if err != nil {
+		return err
+	}
+
+	fct.consensusCore.Chronology().AddSubround(subroundStartRoundInstance)
+
+	return nil
+}
+
+func (fct *factory) GenerateStartRoundSubround() (bls.SubRoundStartHandler, error) {
 	subround, err := spos.NewSubround(
 		-1,
 		bls.SrStartRound,
@@ -157,30 +174,18 @@ func (fct *factory) generateStartRoundSubround() error {
 		fct.appStatusHandler,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	subroundStartRoundInstance, err := NewSubroundStartRound(
+	return NewSubroundStartRound(
 		subround,
 		processingThresholdPercent,
 		fct.sentSignaturesTracker,
 		fct.worker,
 	)
-	if err != nil {
-		return err
-	}
-
-	err = subroundStartRoundInstance.SetOutportHandler(fct.outportHandler)
-	if err != nil {
-		return err
-	}
-
-	fct.consensusCore.Chronology().AddSubround(subroundStartRoundInstance)
-
-	return nil
 }
 
-func (fct *factory) generateBlockSubround() error {
+func (fct *factory) GenerateBlockSubround() (bls.SubRoundBlockHandler, error) {
 	subround, err := spos.NewSubround(
 		bls.SrStartRound,
 		bls.SrBlock,
@@ -197,7 +202,7 @@ func (fct *factory) generateBlockSubround() error {
 		fct.appStatusHandler,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	subroundBlockInstance, err := NewSubroundBlock(
@@ -206,11 +211,21 @@ func (fct *factory) generateBlockSubround() error {
 		fct.worker,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fct.worker.AddReceivedMessageCall(bls.MtBlockBody, subroundBlockInstance.receivedBlockBody)
 	fct.worker.AddReceivedHeaderHandler(subroundBlockInstance.receivedBlockHeader)
+
+	return subroundBlockInstance, nil
+}
+
+func (fct *factory) generateBlockSubroundV2() error {
+	subroundBlockInstance, err := fct.GenerateBlockSubround()
+	if err != nil {
+		return err
+	}
+
 	fct.consensusCore.Chronology().AddSubround(subroundBlockInstance)
 
 	return nil

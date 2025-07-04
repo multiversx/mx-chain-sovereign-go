@@ -97,13 +97,13 @@ func (fct *factory) SetWorker(worker spos.WorkerHandler) {
 }
 
 // GenerateStartRoundSubround generates the instance of subround StartRound and added it to the chronology subrounds list
-func (fct *factory) GenerateStartRoundSubround() error {
-	return fct.generateStartRoundSubround()
+func (fct *factory) GenerateStartRoundSubroundV2() error {
+	return fct.generateStartRoundSubroundV2()
 }
 
 // GenerateBlockSubround generates the instance of subround Block and added it to the chronology subrounds list
-func (fct *factory) GenerateBlockSubround() error {
-	return fct.generateBlockSubround()
+func (fct *factory) GenerateBlockSubroundV2() error {
+	return fct.generateBlockSubroundV2()
 }
 
 // GenerateSignatureSubround generates the instance of subround Signature and added it to the chronology subrounds list
@@ -169,11 +169,6 @@ func (sr *subroundBlock) BlockChain() data.ChainHandler {
 // DoBlockJob method does the job of the subround Block
 func (sr *subroundBlock) DoBlockJob() bool {
 	return sr.doBlockJob(context.Background())
-}
-
-// ProcessReceivedBlock method processes the received proposed block in the subround Block
-func (sr *subroundBlock) ProcessReceivedBlock(cnsDta *consensus.Message) bool {
-	return sr.processReceivedBlock(context.Background(), cnsDta.RoundIndex, cnsDta.PubKey)
 }
 
 // DoBlockConsensusCheck method checks if the consensus in the subround Block is achieved

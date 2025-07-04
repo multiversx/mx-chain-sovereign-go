@@ -7,7 +7,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -21,6 +20,7 @@ import (
 	testscommonConsensus "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
 	testscommonOutport "github.com/multiversx/mx-chain-go/testscommon/outport"
+	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 )
 
@@ -547,7 +547,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundFail(t *test
 		return nil
 	}
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -559,7 +559,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundStartRoundFa
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }
@@ -572,7 +572,7 @@ func TestFactory_GenerateSubroundBlockShouldFailWhenNewSubroundFail(t *testing.T
 		return nil
 	}
 
-	err := fct.GenerateBlockSubround()
+	err := fct.GenerateBlockSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -584,7 +584,7 @@ func TestFactory_GenerateSubroundBlockShouldFailWhenNewSubroundBlockFail(t *test
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateBlockSubround()
+	err := fct.GenerateBlockSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }

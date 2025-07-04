@@ -74,62 +74,14 @@ func checkNewSubroundBlockParams(
 
 // doBlockJob method does the job of the subround Block
 func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
-	if !sr.IsSelfLeader() { // is NOT self leader in this round?
+	args, deferFunc := sr.DoBlockComputation(ctx)
+	defer deferFunc()
+
+	if args == nil {
 		return false
 	}
 
-	if sr.RoundHandler().Index() <= sr.getRoundInLastCommittedBlock() {
-		return false
-	}
-
-	if sr.IsLeaderJobDone(sr.Current()) {
-		return false
-	}
-
-	if sr.IsSubroundFinished(sr.Current()) {
-		return false
-	}
-
-	metricStatTime := time.Now()
-	defer sr.computeSubroundProcessingMetric(metricStatTime, common.MetricCreatedProposedBlock)
-
-	header, err := sr.createHeader()
-	if err != nil {
-		printLogMessage(ctx, "doBlockJob.createHeader", err)
-		return false
-	}
-
-	header, body, err := sr.createBlock(header)
-	if err != nil {
-		printLogMessage(ctx, "doBlockJob.createBlock", err)
-		return false
-	}
-
-	// block proof verification should be done over the header that contains the leader signature
-	leaderSignature, err := sr.signBlockHeader(header)
-	if err != nil {
-		printLogMessage(ctx, "doBlockJob.signBlockHeader", err)
-		return false
-	}
-
-	err = header.SetLeaderSignature(leaderSignature)
-	if err != nil {
-		printLogMessage(ctx, "doBlockJob.SetLeaderSignature", err)
-		return false
-	}
-
-	leader, errGetLeader := sr.GetLeader()
-	if errGetLeader != nil {
-		log.Debug("doBlockJob.GetLeader", "error", errGetLeader)
-		return false
-	}
-
-	sentWithSuccess := sr.sendBlock(header, body, leader)
-	if !sentWithSuccess {
-		return false
-	}
-
-	err = sr.SetJobDone(leader, sr.Current(), true)
+	err := sr.SetJobDone(args.Leader, sr.Current(), true)
 	if err != nil {
 		log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
 		return false
@@ -137,9 +89,74 @@ func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
 
 	// placeholder for subroundBlock.doBlockJob script
 
-	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(header, body, sr.GetRoundTimeStamp())
+	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(args.Header, args.Body, sr.GetRoundTimeStamp())
 
 	return true
+}
+
+func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundBlockProcessRes, func()) {
+	if !sr.IsSelfLeader() { // is NOT self leader in this round?
+		return nil, func() {}
+	}
+
+	if sr.RoundHandler().Index() <= sr.getRoundInLastCommittedBlock() {
+		return nil, func() {}
+	}
+
+	if sr.IsLeaderJobDone(sr.Current()) {
+		return nil, func() {}
+	}
+
+	if sr.IsSubroundFinished(sr.Current()) {
+		return nil, func() {}
+	}
+
+	metricStatTime := time.Now()
+	deferFunc := func() {
+		sr.computeSubroundProcessingMetric(metricStatTime, common.MetricCreatedProposedBlock)
+	}
+
+	header, err := sr.createHeader()
+	if err != nil {
+		printLogMessage(ctx, "doBlockJob.createHeader", err)
+		return nil, func() {}
+	}
+
+	header, body, err := sr.createBlock(header)
+	if err != nil {
+		printLogMessage(ctx, "doBlockJob.createBlock", err)
+		return nil, func() {}
+	}
+
+	// block proof verification should be done over the header that contains the leader signature
+	leaderSignature, err := sr.signBlockHeader(header)
+	if err != nil {
+		printLogMessage(ctx, "doBlockJob.signBlockHeader", err)
+		return nil, func() {}
+	}
+
+	err = header.SetLeaderSignature(leaderSignature)
+	if err != nil {
+		printLogMessage(ctx, "doBlockJob.SetLeaderSignature", err)
+		return nil, func() {}
+	}
+
+	leader, errGetLeader := sr.GetLeader()
+	if errGetLeader != nil {
+		log.Debug("doBlockJob.GetLeader", "error", errGetLeader)
+		return nil, func() {}
+	}
+
+	sentWithSuccess := sr.sendBlock(header, body, leader)
+	if !sentWithSuccess {
+		return nil, func() {}
+	}
+
+	return &bls.SubRoundBlockProcessRes{
+		Header: header,
+		Body:   body,
+		Leader: leader,
+	}, deferFunc
 }
 
 func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, error) {
@@ -548,6 +565,11 @@ func (sr *subroundBlock) shouldProcessBlock(headerLeader string) bool {
 	return true
 }
 
+// ProcessReceivedBlock will process received block
+func (sr *subroundBlock) ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool {
+	return sr.processReceivedBlock(ctx, cnsDta.RoundIndex, []byte(sr.Leader()))
+}
+
 func (sr *subroundBlock) processReceivedBlock(
 	ctx context.Context,
 	round int64,
@@ -724,6 +746,11 @@ func (sr *subroundBlock) getRoundInLastCommittedBlock() int64 {
 	}
 
 	return roundInLastCommittedBlock
+}
+
+// SetBlockJob sets the block job
+func (sr *subroundBlock) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
+	sr.Job = doBlockJob
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

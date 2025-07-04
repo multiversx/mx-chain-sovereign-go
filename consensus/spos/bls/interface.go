@@ -80,7 +80,7 @@ type SubRoundStartHandler interface {
 type SubRoundBlockHandler interface {
 	SubRoundHandler
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
-	DoBlockComputation() (*SubRoundBlockProcessRes, func())
+	DoBlockComputation(ctx context.Context) (*SubRoundBlockProcessRes, func())
 	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
 }
 
