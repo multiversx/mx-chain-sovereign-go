@@ -124,7 +124,7 @@ func (fct *factory) GenerateSubrounds(epoch uint32) error {
 		return err
 	}
 
-	err = fct.generateSignatureSubround()
+	err = fct.generateSignatureSubroundV2()
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,18 @@ func (fct *factory) generateBlockSubroundV2() error {
 	return nil
 }
 
-func (fct *factory) generateSignatureSubround() error {
+func (fct *factory) generateSignatureSubroundV2() error {
+	subroundSignatureInstance, err := fct.GenerateSignatureSubround()
+	if err != nil {
+		return err
+	}
+
+	fct.consensusCore.Chronology().AddSubround(subroundSignatureInstance)
+
+	return nil
+}
+
+func (fct *factory) GenerateSignatureSubround() (bls.SubRoundSignatureHandler, error) {
 	subround, err := spos.NewSubround(
 		bls.SrBlock,
 		bls.SrSignature,
@@ -248,23 +259,16 @@ func (fct *factory) generateSignatureSubround() error {
 		fct.appStatusHandler,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	subroundSignatureObject, err := NewSubroundSignature(
+	return NewSubroundSignature(
 		subround,
 		fct.appStatusHandler,
 		fct.sentSignaturesTracker,
 		fct.worker,
 		fct.signatureThrottler,
 	)
-	if err != nil {
-		return err
-	}
-
-	fct.consensusCore.Chronology().AddSubround(subroundSignatureObject)
-
-	return nil
 }
 
 func (fct *factory) generateEndRoundSubround() error {

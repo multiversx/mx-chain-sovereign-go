@@ -107,8 +107,8 @@ func (fct *factory) GenerateBlockSubroundV2() error {
 }
 
 // GenerateSignatureSubround generates the instance of subround Signature and added it to the chronology subrounds list
-func (fct *factory) GenerateSignatureSubround() error {
-	return fct.generateSignatureSubround()
+func (fct *factory) GenerateSignatureSubroundV2() error {
+	return fct.generateSignatureSubroundV2()
 }
 
 // GenerateEndRoundSubround generates the instance of subround EndRound and added it to the chronology subrounds list

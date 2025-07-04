@@ -24,6 +24,7 @@ type subroundSignature struct {
 	appStatusHandler     core.AppStatusHandler
 	sentSignatureTracker spos.SentSignaturesTracker
 	signatureThrottler   core.Throttler
+	getMessageToSignFunc func() []byte
 }
 
 // NewSubroundSignature creates a subroundSignature object
@@ -62,6 +63,7 @@ func NewSubroundSignature(
 	srSignature.Job = srSignature.doSignatureJob
 	srSignature.Check = srSignature.doSignatureConsensusCheck
 	srSignature.Extend = worker.Extend
+	srSignature.getMessageToSignFunc = srSignature.getMessageToSign
 
 	return &srSignature, nil
 }
@@ -151,8 +153,7 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 
 func (sr *subroundSignature) getProcessedHeaderHash() []byte {
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
-		// TODO: Marius C MX-16954 : Fix this in another PR
-		return nil //sr.getMessageToSignFunc()
+		return sr.getMessageToSignFunc()
 	}
 
 	return nil
@@ -256,8 +257,9 @@ func (sr *subroundSignature) doSignatureJobForManagedKeys(ctx context.Context) b
 func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool {
 	pkBytes := []byte(pk)
 
+	processedHeaderHash := sr.getMessageToSignFunc()
 	signatureShare, err := sr.SigningHandler().CreateSignatureShareForPublicKey(
-		sr.GetData(),
+		processedHeaderHash,
 		uint16(idx),
 		sr.GetHeader().GetEpoch(),
 		pkBytes,
@@ -299,8 +301,9 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 		return false
 	}
 
+	processedHeaderHash := sr.getMessageToSignFunc()
 	signatureShare, err := sr.SigningHandler().CreateSignatureShareForPublicKey(
-		sr.GetData(),
+		processedHeaderHash,
 		uint16(selfIndex),
 		sr.GetHeader().GetEpoch(),
 		[]byte(sr.SelfPubKey()),
@@ -317,6 +320,15 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 	}
 
 	return sr.completeSignatureSubRound(sr.SelfPubKey())
+}
+
+func (sr *subroundSignature) getMessageToSign() []byte {
+	return sr.GetData()
+}
+
+// SetMessageToSignFunc sets the message to sign func
+func (sr *subroundSignature) SetMessageToSignFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToSignFunc = verifyMsgFunc
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -597,7 +597,7 @@ func TestFactory_GenerateSubroundSignatureShouldFailWhenNewSubroundFail(t *testi
 		return nil
 	}
 
-	err := fct.GenerateSignatureSubround()
+	err := fct.GenerateSignatureSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -609,7 +609,7 @@ func TestFactory_GenerateSubroundSignatureShouldFailWhenNewSubroundSignatureFail
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateSignatureSubround()
+	err := fct.GenerateSignatureSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }
