@@ -52,6 +52,8 @@ func NewSovereignSubRoundEndRound(
 }
 
 func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
+	// TODO: MX-16954
+
 	success := sr.subroundEndRoundV2.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
 	if !success {
 		return false

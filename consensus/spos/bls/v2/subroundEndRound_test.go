@@ -505,7 +505,7 @@ func TestSubroundEndRound_DoEndRoundJobNilHeaderShouldFail(t *testing.T) {
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{})
 	sr.SetHeader(nil)
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -526,7 +526,7 @@ func TestSubroundEndRound_DoEndRoundJobErrAggregatingSigShouldFail(t *testing.T)
 	sr.SetSelfPubKey("A")
 
 	assert.True(t, sr.IsSelfLeader())
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -548,7 +548,7 @@ func TestSubroundEndRound_DoEndRoundJobErrCommitBlockShouldFail(t *testing.T) {
 	container.SetBlockProcessor(blProcMock)
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -569,7 +569,7 @@ func TestSubroundEndRound_DoEndRoundJobErrTimeIsOutShouldFail(t *testing.T) {
 	container.SetRoundHandler(roundHandlerMock)
 	sr.SetHeader(&block.Header{})
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.False(t, r)
 }
 
@@ -591,7 +591,7 @@ func TestSubroundEndRound_DoEndRoundJobAllOK(t *testing.T) {
 		_ = sr.SetJobDone(participant, bls.SrSignature, true)
 	}
 
-	r := sr.DoEndRoundJob()
+	r := sr.DoEndRoundJob(context.Background())
 	assert.True(t, r)
 }
 

@@ -112,8 +112,8 @@ func (fct *factory) GenerateSignatureSubroundV2() error {
 }
 
 // GenerateEndRoundSubround generates the instance of subround EndRound and added it to the chronology subrounds list
-func (fct *factory) GenerateEndRoundSubround() error {
-	return fct.generateEndRoundSubround()
+func (fct *factory) GenerateEndRoundSubroundV2() error {
+	return fct.generateEndRoundSubroundV2()
 }
 
 // AppStatusHandler gets the app status handler object
@@ -241,11 +241,6 @@ func (sr *subroundSignature) DoSignatureConsensusCheck() bool {
 // SubroundEndRound defines a type for the subroundEndRound structure
 type SubroundEndRound = *subroundEndRound
 
-// DoEndRoundJob method does the job of the subround EndRound
-func (sr *subroundEndRound) DoEndRoundJob() bool {
-	return sr.doEndRoundJob(context.Background())
-}
-
 // DoEndRoundConsensusCheck method checks if the consensus is achieved
 func (sr *subroundEndRound) DoEndRoundConsensusCheck() bool {
 	return sr.doEndRoundConsensusCheck()
@@ -264,11 +259,6 @@ func (sr *subroundEndRound) DoEndRoundJobByNode() bool {
 // CreateAndBroadcastProof calls the unexported createAndBroadcastHeaderFinalInfo function
 func (sr *subroundEndRound) CreateAndBroadcastProof(signature []byte, bitmap []byte) {
 	_ = sr.createAndBroadcastProof(signature, bitmap, "sender")
-}
-
-// ReceivedProof calls the unexported receivedProof function
-func (sr *subroundEndRound) ReceivedProof(proof consensus.ProofHandler) {
-	sr.receivedProof(proof)
 }
 
 // IsOutOfTime calls the unexported isOutOfTime function

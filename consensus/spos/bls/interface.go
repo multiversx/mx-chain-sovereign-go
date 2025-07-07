@@ -90,6 +90,7 @@ type SubRoundEndHandler interface {
 	SetMessageToVerifySigFunc(verifyMsgFunc func() []byte)
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
 	ReceivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool
+	ReceivedProof(proof consensus.ProofHandler)
 	DoEndRoundJob(ctx context.Context) bool
 	IsSelfLeaderInCurrentRound() bool
 }

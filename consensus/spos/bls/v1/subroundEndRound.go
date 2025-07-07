@@ -106,6 +106,10 @@ func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(ctx context.Context, cn
 	return sr.receivedBlockHeaderFinalInfo(ctx, cnsDta)
 }
 
+// ReceivedProof does nothing for v1 end subround
+func (sr *subroundEndRound) ReceivedProof(_ consensus.ProofHandler) {
+}
+
 // receivedBlockHeaderFinalInfo method is called when a block header final info is received
 func (sr *subroundEndRound) receivedBlockHeaderFinalInfo(_ context.Context, cnsDta *consensus.Message) bool {
 	node := string(cnsDta.PubKey)
@@ -293,6 +297,7 @@ func (sr *subroundEndRound) verifyInvalidSigner(msg p2p.MessageP2P) error {
 }
 
 func (sr *subroundEndRound) getHeaderHashToVerifySig(cnsMsg *consensus.Message) []byte {
+	// TODO: MX-16954 - check every usage of this and how to integrate it in v21
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return cnsMsg.ProcessedHeaderHash
 	}

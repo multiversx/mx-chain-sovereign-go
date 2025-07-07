@@ -33,6 +33,7 @@ type subroundEndRound struct {
 	sentSignatureTracker          spos.SentSignaturesTracker
 	worker                        spos.WorkerHandler
 	signatureThrottler            core.Throttler
+	getMessageToVerifySigFunc     func() []byte
 }
 
 // NewSubroundEndRound creates a subroundEndRound object
@@ -73,6 +74,7 @@ func NewSubroundEndRound(
 	srEndRound.Job = srEndRound.doEndRoundJob
 	srEndRound.Check = srEndRound.doEndRoundConsensusCheck
 	srEndRound.Extend = worker.Extend
+	srEndRound.getMessageToVerifySigFunc = srEndRound.getMessageToVerifySig
 
 	return &srEndRound, nil
 }
@@ -348,7 +350,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, nil
 	}
 
-	bitmap := sr.GenerateBitmap(bls.SrSignature)
+	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		log.Debug("sendProof.checkSignaturesValidity", "error", err.Error())
@@ -409,7 +411,7 @@ func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte, 
 	}
 
 	// the header (hash) verified here is with leader signature on it
-	err = sr.SigningHandler().Verify(sr.GetData(), bitmap, sr.GetHeader().GetEpoch())
+	err = sr.SigningHandler().Verify(sr.getMessageToVerifySigFunc(), bitmap, sr.GetHeader().GetEpoch())
 	if err != nil {
 		log.Debug("doEndRoundJobByNode.Verify", "error", err.Error())
 
@@ -437,7 +439,7 @@ func (sr *subroundEndRound) checkGoRoutinesThrottler(ctx context.Context) error 
 
 // verifySignature implements parallel signature verification
 func (sr *subroundEndRound) verifySignature(i int, pk string, sigShare []byte) error {
-	err := sr.SigningHandler().VerifySignatureShare(uint16(i), sigShare, sr.GetData(), sr.GetHeader().GetEpoch())
+	err := sr.SigningHandler().VerifySignatureShare(uint16(i), sigShare, sr.getMessageToVerifySigFunc(), sr.GetHeader().GetEpoch())
 	if err != nil {
 		log.Trace("VerifySignatureShare returned an error: ", "error", err)
 		errSetJob := sr.SetJobDone(pk, bls.SrSignature, false)
@@ -574,7 +576,7 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 			spos.ErrInvalidNumSigShares, numValidSigShares, threshold)
 	}
 
-	bitmap := sr.GenerateBitmap(bls.SrSignature)
+	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		return nil, nil, err
@@ -597,6 +599,15 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 	)
 
 	return bitmap, sig, nil
+}
+
+func (sr *subroundEndRound) generateBitmap() []byte {
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		processedHeaderHash := sr.getMessageToVerifySigFunc()
+		return sr.GenerateBitmapForHash(bls.SrSignature, processedHeaderHash)
+	}
+
+	return sr.GenerateBitmap(bls.SrSignature)
 }
 
 func (sr *subroundEndRound) createAndBroadcastProof(
@@ -702,8 +713,7 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(
 
 func (sr *subroundEndRound) getProcessedHeaderHash() []byte {
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
-		// TODO: Marius C MX-16954 : integrate these in another PR
-		return nil //sr.getMessageToVerifySigFunc()
+		return sr.getMessageToVerifySigFunc()
 	}
 
 	return nil
@@ -975,6 +985,35 @@ func (sr *subroundEndRound) getNumOfSignaturesCollected() int {
 func (sr *subroundEndRound) areSignaturesCollected(threshold int) (bool, int) {
 	n := sr.getNumOfSignaturesCollected()
 	return n >= threshold, n
+}
+
+// SetMessageToVerifySigFunc sets the verify message func
+func (sr *subroundEndRound) SetMessageToVerifySigFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToVerifySigFunc = verifyMsgFunc
+}
+
+func (sr *subroundEndRound) getMessageToVerifySig() []byte {
+	return sr.GetData()
+}
+
+// SetBlockJob sets the block job
+func (sr *subroundEndRound) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
+	sr.Job = doBlockJob
+}
+
+// ReceivedBlockHeaderFinalInfo does nothing vor v2 end subround
+func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(_ context.Context, _ *consensus.Message) bool {
+	return true
+}
+
+// ReceivedProof will handle processing of received proofs
+func (sr *subroundEndRound) ReceivedProof(proof consensus.ProofHandler) {
+	sr.receivedProof(proof)
+}
+
+// DoEndRoundJob method does the job of the subround EndRound
+func (sr *subroundEndRound) DoEndRoundJob(ctx context.Context) bool {
+	return sr.doEndRoundJob(ctx)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
