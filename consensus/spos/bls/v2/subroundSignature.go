@@ -159,7 +159,11 @@ func (sr *subroundSignature) getProcessedHeaderHash() []byte {
 	return nil
 }
 
-func (sr *subroundSignature) completeSignatureSubRound(pk string) bool {
+func (sr *subroundSignature) completeSignatureSubRound(
+	pk string,
+	index int,
+	processedHeaderHash []byte,
+) bool {
 	err := sr.SetJobDone(pk, sr.Current(), true)
 	if err != nil {
 		log.Debug("doSignatureJob.SetSelfJobDone",
@@ -168,6 +172,10 @@ func (sr *subroundSignature) completeSignatureSubRound(pk string) bool {
 			"pk", []byte(pk),
 		)
 		return false
+	}
+
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		sr.AddProcessedHeadersHashes(processedHeaderHash, index)
 	}
 
 	return true
@@ -276,7 +284,8 @@ func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool
 	}
 	sr.sentSignatureTracker.SignatureSent(pkBytes)
 
-	return sr.completeSignatureSubRound(pk)
+	// TODO: MX-16954 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
+	return sr.completeSignatureSubRound(pk, idx, processedHeaderHash)
 }
 
 func (sr *subroundSignature) checkGoRoutinesThrottler(ctx context.Context) error {
@@ -319,7 +328,7 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 		return false
 	}
 
-	return sr.completeSignatureSubRound(sr.SelfPubKey())
+	return sr.completeSignatureSubRound(sr.SelfPubKey(), selfIndex, processedHeaderHash)
 }
 
 func (sr *subroundSignature) getMessageToSign() []byte {

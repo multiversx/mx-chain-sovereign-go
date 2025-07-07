@@ -5,16 +5,16 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
-	errMx "github.com/multiversx/mx-chain-go/errors"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/outport"
 )
@@ -203,6 +203,7 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 		)
 	}
 
+	// TODO: MX-16954 move this outside if/else below
 	if s.enableEpochsHandler.IsFlagEnabledInEpoch(common.ConsensusModelSovereignFlag, epoch) {
 		baseFactory, castOK := fct.(sovereign.SubRoundsFactoryHandler)
 		if !castOK {
