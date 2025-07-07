@@ -52,8 +52,6 @@ func NewSovereignSubRoundEndRound(
 }
 
 func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
-	// TODO: MX-16954
-
 	success := sr.subroundEndRoundV2.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
 	if !success {
 		return false
@@ -62,6 +60,20 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 	// TODO: MX-15502 once we have ZKProofs included in blocks for leaders which have resent the unconfirmed
 	// outgoing operation we should also call resetOutGoingOpTimer here for consensus participants
 	return sr.updateOutGoingPoolIfNeeded(cnsDta) == nil
+}
+
+func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
+	// TODO: MX-16954 add received message in factory for this func
+
+	sr.subroundEndRoundV2.ReceivedProof(proof)
+
+	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
+		PubKeysBitmap:   proof.GetPubKeysBitmap(),
+		ExtraSignatures: nil, // TODO: MX-16954 integrate this in proofs
+	})
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
+	}
 }
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {

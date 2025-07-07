@@ -638,6 +638,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		HeaderShardId:       sr.GetHeader().GetShardID(),
 		HeaderRound:         sr.GetHeader().GetRound(),
 		IsStartOfEpoch:      sr.GetHeader().IsStartOfEpochBlock(),
+		// TODO: MX-16954- add aggregated sigs ?
 	}
 
 	err := sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))

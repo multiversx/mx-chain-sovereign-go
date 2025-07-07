@@ -297,7 +297,6 @@ func (sr *subroundEndRound) verifyInvalidSigner(msg p2p.MessageP2P) error {
 }
 
 func (sr *subroundEndRound) getHeaderHashToVerifySig(cnsMsg *consensus.Message) []byte {
-	// TODO: MX-16954 - check every usage of this and how to integrate it in v21
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return cnsMsg.ProcessedHeaderHash
 	}

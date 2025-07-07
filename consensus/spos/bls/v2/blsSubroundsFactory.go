@@ -8,6 +8,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 )
 
@@ -24,6 +25,7 @@ type factory struct {
 	chainID               []byte
 	currentPid            core.PeerID
 	signatureThrottler    core.Throttler
+	extraSignersHolder    bls.ExtraSignersHolder
 }
 
 // NewSubroundsFactory creates a new consensusState object
@@ -37,6 +39,7 @@ func NewSubroundsFactory(
 	sentSignaturesTracker spos.SentSignaturesTracker,
 	signatureThrottler core.Throttler,
 	outportHandler outport.OutportHandler,
+	extraSignersHolder bls.ExtraSignersHolder,
 ) (*factory, error) {
 	// no need to check the outport handler, it can be nil
 	err := checkNewFactoryParams(
@@ -47,6 +50,7 @@ func NewSubroundsFactory(
 		appStatusHandler,
 		sentSignaturesTracker,
 		signatureThrottler,
+		extraSignersHolder,
 	)
 	if err != nil {
 		return nil, err
@@ -62,6 +66,7 @@ func NewSubroundsFactory(
 		sentSignaturesTracker: sentSignaturesTracker,
 		signatureThrottler:    signatureThrottler,
 		outportHandler:        outportHandler,
+		extraSignersHolder:    extraSignersHolder,
 	}
 
 	return &fct, nil
@@ -75,6 +80,7 @@ func checkNewFactoryParams(
 	appStatusHandler core.AppStatusHandler,
 	sentSignaturesTracker spos.SentSignaturesTracker,
 	signatureThrottler core.Throttler,
+	extraSignersHolder bls.ExtraSignersHolder,
 ) error {
 	err := spos.ValidateConsensusCore(container)
 	if err != nil {
@@ -94,6 +100,9 @@ func checkNewFactoryParams(
 	}
 	if check.IfNil(signatureThrottler) {
 		return spos.ErrNilThrottler
+	}
+	if check.IfNil(extraSignersHolder) {
+		return errMx.ErrNilExtraSignersHolder
 	}
 	if len(chainID) == 0 {
 		return spos.ErrInvalidChainID
@@ -182,6 +191,7 @@ func (fct *factory) GenerateStartRoundSubround() (bls.SubRoundStartHandler, erro
 		processingThresholdPercent,
 		fct.sentSignaturesTracker,
 		fct.worker,
+		fct.extraSignersHolder.GetSubRoundStartExtraSignersHolder(),
 	)
 }
 

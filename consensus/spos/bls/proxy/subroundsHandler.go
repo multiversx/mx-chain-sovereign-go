@@ -183,6 +183,7 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			s.sentSignatureTracker,
 			s.signatureThrottler,
 			s.outportHandler,
+			s.extraSignersHolder,
 		)
 	} else {
 		if s.currentConsensusType == consensusV1 {

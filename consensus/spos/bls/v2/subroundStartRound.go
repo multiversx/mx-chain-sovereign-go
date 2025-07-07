@@ -14,6 +14,8 @@ import (
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/outport/disabled"
 )
@@ -27,6 +29,7 @@ type subroundStartRound struct {
 	worker               spos.WorkerHandler
 	outportHandler       outport.OutportHandler
 	outportMutex         sync.RWMutex
+	extraSignersHolder   bls.SubRoundStartExtraSignersHolder
 }
 
 // NewSubroundStartRound creates a subroundStartRound object
@@ -35,6 +38,7 @@ func NewSubroundStartRound(
 	processingThresholdPercentage int,
 	sentSignatureTracker spos.SentSignaturesTracker,
 	worker spos.WorkerHandler,
+	extraSignersHolder bls.SubRoundStartExtraSignersHolder,
 ) (*subroundStartRound, error) {
 	err := checkNewSubroundStartRoundParams(
 		baseSubround,
@@ -48,6 +52,9 @@ func NewSubroundStartRound(
 	if check.IfNil(worker) {
 		return nil, spos.ErrNilWorker
 	}
+	if check.IfNil(extraSignersHolder) {
+		return nil, errors.ErrNilStartRoundExtraSignersHolder
+	}
 
 	srStartRound := subroundStartRound{
 		Subround:                      baseSubround,
@@ -56,6 +63,7 @@ func NewSubroundStartRound(
 		worker:                        worker,
 		outportHandler:                disabled.NewDisabledOutport(),
 		outportMutex:                  sync.RWMutex{},
+		extraSignersHolder:            extraSignersHolder,
 	}
 	srStartRound.Job = srStartRound.doStartRoundJob
 	srStartRound.Check = srStartRound.doStartRoundConsensusCheck
@@ -197,6 +205,13 @@ func (sr *subroundStartRound) initCurrentRound() bool {
 
 		sr.SetRoundCanceled(true)
 
+		return false
+	}
+
+	err = sr.extraSignersHolder.Reset(pubKeys)
+	if err != nil {
+		log.Debug("initCurrentRound.extraSignersHolder.reset", "error", err.Error())
+		sr.SetRoundCanceled(true)
 		return false
 	}
 
