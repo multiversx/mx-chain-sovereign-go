@@ -278,6 +278,7 @@ func (fct *factory) GenerateSignatureSubround() (bls.SubRoundSignatureHandler, e
 		fct.sentSignaturesTracker,
 		fct.worker,
 		fct.signatureThrottler,
+		fct.extraSignersHolder.GetSubRoundSignatureExtraSignersHolder(),
 	)
 }
 
@@ -319,6 +320,7 @@ func (fct *factory) GenerateEndRoundSubround() (bls.SubRoundEndHandler, error) {
 		fct.sentSignaturesTracker,
 		fct.worker,
 		fct.signatureThrottler,
+		fct.extraSignersHolder,
 	)
 	if err != nil {
 		return nil, err

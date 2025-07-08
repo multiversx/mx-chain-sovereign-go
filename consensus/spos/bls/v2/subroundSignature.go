@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 )
 
 const timeSpentBetweenChecks = time.Millisecond
@@ -24,7 +25,9 @@ type subroundSignature struct {
 	appStatusHandler     core.AppStatusHandler
 	sentSignatureTracker spos.SentSignaturesTracker
 	signatureThrottler   core.Throttler
+
 	getMessageToSignFunc func() []byte
+	extraSignersHolder   bls.SubRoundSignatureExtraSignersHolder
 }
 
 // NewSubroundSignature creates a subroundSignature object
@@ -34,6 +37,7 @@ func NewSubroundSignature(
 	sentSignatureTracker spos.SentSignaturesTracker,
 	worker spos.WorkerHandler,
 	signatureThrottler core.Throttler,
+	extraSignersHolder bls.SubRoundSignatureExtraSignersHolder,
 ) (*subroundSignature, error) {
 	err := checkNewSubroundSignatureParams(
 		baseSubround,
@@ -53,13 +57,18 @@ func NewSubroundSignature(
 	if check.IfNil(signatureThrottler) {
 		return nil, spos.ErrNilThrottler
 	}
+	if check.IfNil(extraSignersHolder) {
+		return nil, errors.ErrNilSignatureRoundExtraSignersHolder
+	}
 
 	srSignature := subroundSignature{
 		Subround:             baseSubround,
 		appStatusHandler:     appStatusHandler,
 		sentSignatureTracker: sentSignatureTracker,
 		signatureThrottler:   signatureThrottler,
+		extraSignersHolder:   extraSignersHolder,
 	}
+
 	srSignature.Job = srSignature.doSignatureJob
 	srSignature.Check = srSignature.doSignatureConsensusCheck
 	srSignature.Extend = worker.Extend
@@ -120,7 +129,11 @@ func (sr *subroundSignature) doSignatureJob(ctx context.Context) bool {
 	return true
 }
 
-func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte, pkBytes []byte) bool {
+func (sr *subroundSignature) createAndSendSignatureMessage(
+	signatureShare []byte,
+	extraSigShares map[string][]byte,
+	pkBytes []byte,
+) bool {
 	cnsMsg := consensus.NewConsensusMessage(
 		sr.GetData(),
 		signatureShare,
@@ -139,7 +152,14 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 		sr.getProcessedHeaderHash(),
 	)
 
-	err := sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
+	err := sr.extraSignersHolder.AddExtraSigSharesToConsensusMessage(extraSigShares, cnsMsg)
+	if err != nil {
+		log.Debug("createAndSendSignatureMessage.extraSignersHolder.addExtraSigSharesToConsensusMessage",
+			"error", err.Error(), "pk", pkBytes)
+		return false
+	}
+
+	err = sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
 	if err != nil {
 		log.Debug("createAndSendSignatureMessage.BroadcastConsensusMessage",
 			"error", err.Error(), "pk", pkBytes)
@@ -277,8 +297,14 @@ func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool
 		return false
 	}
 
+	extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(idx), pkBytes)
+	if err != nil {
+		log.Debug("doSignatureJobForManagedKeys.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
+		return false
+	}
+
 	// with the equivalent messages feature on, signatures from all managed keys must be broadcast, as the aggregation is done by any participant
-	ok := sr.createAndSendSignatureMessage(signatureShare, pkBytes)
+	ok := sr.createAndSendSignatureMessage(signatureShare, extraSigShares, pkBytes)
 	if !ok {
 		return false
 	}
@@ -322,8 +348,14 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 		return false
 	}
 
+	extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(selfIndex), []byte(sr.SelfPubKey()))
+	if err != nil {
+		log.Debug("doSignatureJobForSingleKey.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
+		return false
+	}
+
 	// leader also sends his signature here
-	ok := sr.createAndSendSignatureMessage(signatureShare, []byte(sr.SelfPubKey()))
+	ok := sr.createAndSendSignatureMessage(signatureShare, extraSigShares, []byte(sr.SelfPubKey()))
 	if !ok {
 		return false
 	}

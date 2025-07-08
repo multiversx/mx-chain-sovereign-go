@@ -39,6 +39,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 )
 
 func initSubroundEndRoundWithContainer(
@@ -73,6 +74,7 @@ func initSubroundEndRoundWithContainer(
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	return srEndRound
@@ -111,6 +113,7 @@ func initSubroundEndRoundWithContainerAndConsensusState(
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		signatureThrottler,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	return srEndRound
@@ -157,6 +160,7 @@ func TestNewSubroundEndRound(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srEndRound)
@@ -172,6 +176,7 @@ func TestNewSubroundEndRound(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srEndRound)
@@ -187,6 +192,7 @@ func TestNewSubroundEndRound(t *testing.T) {
 			nil,
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srEndRound)
@@ -202,6 +208,7 @@ func TestNewSubroundEndRound(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			nil,
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srEndRound)
@@ -239,6 +246,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilBlockChainShouldFail(t *testing.
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -275,6 +283,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilBlockProcessorShouldFail(t *test
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -312,6 +321,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilConsensusStateShouldFail(t *test
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -348,6 +358,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilMultiSignerContainerShouldFail(t
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -384,6 +395,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilRoundHandlerShouldFail(t *testin
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -420,6 +432,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilSyncTimerShouldFail(t *testing.T
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -456,6 +469,7 @@ func TestSubroundEndRound_NewSubroundEndRoundNilThrottlerShouldFail(t *testing.T
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srEndRound))
@@ -492,6 +506,7 @@ func TestSubroundEndRound_NewSubroundEndRoundShouldWork(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.False(t, check.IfNil(srEndRound))
@@ -911,6 +926,7 @@ func TestSubroundEndRound_ReceivedProof(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		proof := &block.HeaderProof{}
@@ -1200,6 +1216,7 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		srEndRound.SetThreshold(bls.SrSignature, 2)
@@ -1333,6 +1350,7 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		srEndRound.SetThreshold(bls.SrEndRound, 2)
@@ -1426,6 +1444,7 @@ func TestSubroundEndRound_DoEndRoundJobByNode(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		consensusSize := sr.ConsensusGroupSize()
@@ -1567,6 +1586,7 @@ func TestSubroundEndRound_ReceivedInvalidSignersInfo(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMocks.ThrottlerStub{},
+			&subRoundsHolder.ExtraSignersHolderMock{},
 		)
 
 		srEndRound.SetSelfPubKey("A")
@@ -1971,6 +1991,7 @@ func TestSubroundEndRound_getMinConsensusGroupIndexOfManagedKeys(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMocks.ThrottlerStub{},
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	t.Run("no managed keys from consensus group", func(t *testing.T) {

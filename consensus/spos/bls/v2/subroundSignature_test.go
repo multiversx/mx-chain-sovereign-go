@@ -23,6 +23,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 )
 
 const setThresholdJobsDone = "threshold"
@@ -53,6 +54,7 @@ func initSubroundSignatureWithContainer(container *spos.ConsensusCore) v2.Subrou
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	return srSignature
@@ -95,6 +97,7 @@ func TestNewSubroundSignature(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srSignature)
@@ -109,6 +112,7 @@ func TestNewSubroundSignature(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			nil,
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srSignature)
@@ -123,6 +127,7 @@ func TestNewSubroundSignature(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srSignature)
@@ -137,6 +142,7 @@ func TestNewSubroundSignature(t *testing.T) {
 			nil,
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srSignature)
@@ -152,6 +158,7 @@ func TestNewSubroundSignature(t *testing.T) {
 			&testscommon.SentSignatureTrackerStub{},
 			&consensusMocks.SposWorkerMock{},
 			nil,
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		assert.Nil(t, srSignature)
@@ -189,6 +196,7 @@ func TestSubroundSignature_NewSubroundSignatureNilConsensusStateShouldFail(t *te
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -224,6 +232,7 @@ func TestSubroundSignature_NewSubroundSignatureNilHasherShouldFail(t *testing.T)
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -259,6 +268,7 @@ func TestSubroundSignature_NewSubroundSignatureNilMultiSignerContainerShouldFail
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -295,6 +305,7 @@ func TestSubroundSignature_NewSubroundSignatureNilRoundHandlerShouldFail(t *test
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -330,6 +341,7 @@ func TestSubroundSignature_NewSubroundSignatureNilSyncTimerShouldFail(t *testing
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -365,6 +377,7 @@ func TestSubroundSignature_NewSubroundSignatureNilAppStatusHandlerShouldFail(t *
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.True(t, check.IfNil(srSignature))
@@ -400,6 +413,7 @@ func TestSubroundSignature_NewSubroundSignatureShouldWork(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&consensusMocks.SposWorkerMock{},
 		&dataRetrieverMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	assert.False(t, check.IfNil(srSignature))
@@ -542,6 +556,7 @@ func TestSubroundSignature_DoSignatureJob(t *testing.T) {
 			},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		sr.SetHeader(&block.Header{})
@@ -629,6 +644,7 @@ func TestSubroundSignature_SendSignature(t *testing.T) {
 			},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		r := srSignature.SendSignatureForManagedKey(0, "a")
@@ -696,6 +712,7 @@ func TestSubroundSignature_SendSignature(t *testing.T) {
 			},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		r := srSignature.SendSignatureForManagedKey(1, "a")
@@ -765,6 +782,7 @@ func TestSubroundSignature_SendSignature(t *testing.T) {
 			},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		_ = srSignature.SendSignatureForManagedKey(1, "a")
@@ -831,6 +849,7 @@ func TestSubroundSignature_DoSignatureJobForManagedKeys(t *testing.T) {
 			},
 			&consensusMocks.SposWorkerMock{},
 			&dataRetrieverMock.ThrottlerStub{},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		sr.SetHeader(&block.Header{})
@@ -907,6 +926,7 @@ func TestSubroundSignature_DoSignatureJobForManagedKeys(t *testing.T) {
 					return false
 				},
 			},
+			&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 		)
 
 		sr.SetHeader(&block.Header{})

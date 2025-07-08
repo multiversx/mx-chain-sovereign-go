@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -127,6 +128,8 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 		printLogMessage(ctx, "doBlockJob.createBlock", err)
 		return nil, func() {}
 	}
+
+	// TODO: MX-16954- check here for extra signers maybe from sub round end round
 
 	// block proof verification should be done over the header that contains the leader signature
 	leaderSignature, err := sr.signBlockHeader(header)
@@ -349,7 +352,7 @@ func (sr *subroundBlock) createHeader() (data.HeaderHandler, error) {
 		return nil, err
 	}
 
-	err = hdr.SetTimeStamp(uint64(sr.RoundHandler().TimeStamp().Unix()))
+	err = hdr.SetTimeStamp(uint64(runType.TimeToUnix(sr.RoundHandler().TimeStamp())))
 	if err != nil {
 		return nil, err
 	}
