@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
@@ -17,12 +18,14 @@ import (
 type ArgsSovereignTrigger struct {
 	*ArgsNewMetaEpochStartTrigger
 	ValidatorInfoSyncer process.ValidatorInfoSyncer
+	EnableEpochsHandler common.EnableEpochsHandler
 }
 
 type sovereignTrigger struct {
 	*trigger
 	currentEpochValidatorInfoPool epochStart.ValidatorInfoCacher
 	validatorInfoSyncer           process.ValidatorInfoSyncer
+	enableEpochsHandler           common.EnableEpochsHandler
 }
 
 // NewSovereignTrigger creates a new sovereign epoch start trigger
@@ -43,6 +46,7 @@ func NewSovereignTrigger(args ArgsSovereignTrigger) (*sovereignTrigger, error) {
 		trigger:                       metaTrigger,
 		currentEpochValidatorInfoPool: args.DataPool.CurrentEpochValidatorInfo(),
 		validatorInfoSyncer:           args.ValidatorInfoSyncer,
+		enableEpochsHandler:           args.EnableEpochsHandler,
 	}
 
 	args.DataPool.Headers().RegisterHandler(st.receivedBlock)
@@ -143,6 +147,11 @@ func (st *sovereignTrigger) receivedBlock(headerHandler data.HeaderHandler, _ []
 
 	header, ok := headerHandler.(data.MetaHeaderHandler)
 	if !ok {
+		return
+	}
+
+	if st.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, headerHandler.GetEpoch()) {
+		log.Error("sovereignTrigger.ANDROMEDA ACTIVATION")
 		return
 	}
 

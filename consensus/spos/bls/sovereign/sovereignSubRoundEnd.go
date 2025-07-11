@@ -62,6 +62,7 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 	return sr.updateOutGoingPoolIfNeeded(cnsDta) == nil
 }
 
+// //
 func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
 	// TODO: MX-16954 add received message in factory for this func
 
@@ -75,6 +76,8 @@ func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
 		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
 	}
 }
+
+////
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {
 	sovHeader, castOk := sr.GetHeader().(data.SovereignChainHeaderHandler)

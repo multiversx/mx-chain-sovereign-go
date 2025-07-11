@@ -82,11 +82,12 @@ func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
 		return false
 	}
 
-	err := sr.SetJobDone(args.Leader, sr.Current(), true)
-	if err != nil {
-		log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
-		return false
-	}
+	// MX-16954- add this back
+	//err := sr.SetJobDone(args.Leader, sr.Current(), true)
+	//if err != nil {
+	//	log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
+	//	return false
+	//}
 
 	// placeholder for subroundBlock.doBlockJob script
 
@@ -154,6 +155,12 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 	if !sentWithSuccess {
 		return nil, func() {}
 	}
+
+	//err = sr.SetJobDone(leader, sr.Current(), true)
+	//if err != nil {
+	//	log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
+	//	return nil, func() {}
+	//}
 
 	return &bls.SubRoundBlockProcessRes{
 		Header: header,
@@ -554,9 +561,9 @@ func (sr *subroundBlock) CanProcessReceivedHeader(headerLeader string) bool {
 }
 
 func (sr *subroundBlock) shouldProcessBlock(headerLeader string) bool {
-	if sr.IsNodeSelf(headerLeader) {
-		return false
-	}
+	//if sr.IsNodeSelf(headerLeader) {
+	//	return false
+	//}
 	if sr.IsJobDone(headerLeader, sr.Current()) {
 		return false
 	}
@@ -753,7 +760,7 @@ func (sr *subroundBlock) getRoundInLastCommittedBlock() int64 {
 
 // SetBlockJob sets the block job
 func (sr *subroundBlock) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
-	//sr.Job = doBlockJob
+	sr.Job = doBlockJob
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
