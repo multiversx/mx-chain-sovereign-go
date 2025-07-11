@@ -63,7 +63,6 @@ type hdrInfo struct {
 	usedInBlock bool
 	hdr         data.HeaderHandler
 
-	// TODO: MARIUS C. MX-16955 Check how to use these flags in sovereign code as well
 	hasProof          bool
 	hasProofRequested bool
 }

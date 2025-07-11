@@ -10,6 +10,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -18,7 +21,6 @@ import (
 	cnsTest "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/stretchr/testify/require"
 )
 
 func createSovShardMsgArgs() ArgsSovereignShardChainMessenger {
@@ -191,6 +193,30 @@ func TestSovereignChainMessenger_BroadcastHeader(t *testing.T) {
 	args.Messenger = messenger
 	sovMsg, _ := NewSovereignShardChainMessenger(args)
 	err = sovMsg.BroadcastHeader(hdr, []byte("key"))
+	require.Nil(t, err)
+	require.Equal(t, 1, broadCastCt)
+}
+
+func TestSovereignChainMessenger_BroadcastEquivalentProof(t *testing.T) {
+	t.Parallel()
+
+	args := createSovShardMsgArgs()
+	hdrProof := &block.HeaderProof{HeaderHash: []byte("hash")}
+	hdrProofBytes, err := args.Marshaller.Marshal(hdrProof)
+	require.Nil(t, err)
+
+	broadCastCt := 0
+	messenger := &p2pmocks.MessengerStub{
+		BroadcastCalled: func(topic string, buff []byte) {
+			require.Equal(t, fmt.Sprintf("%s_%d", common.EquivalentProofsTopic, core.SovereignChainShardId), topic)
+			require.Equal(t, hdrProofBytes, buff)
+			broadCastCt++
+		},
+	}
+
+	args.Messenger = messenger
+	sovMsg, _ := NewSovereignShardChainMessenger(args)
+	err = sovMsg.BroadcastEquivalentProof(hdrProof, []byte("key"))
 	require.Nil(t, err)
 	require.Equal(t, 1, broadCastCt)
 }
