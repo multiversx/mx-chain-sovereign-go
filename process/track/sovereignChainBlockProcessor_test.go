@@ -10,15 +10,19 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	processBlock "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/process/track"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/multiversx/mx-chain-go/testscommon/pool"
 )
 
 // CreateSovereignChainBlockProcessorMockArguments -
@@ -401,4 +405,53 @@ func TestSovereignChainBlockProcessor_RequestHeadersShouldAddAndRequestForExtend
 	assert.Equal(t, []uint64{fromNonce}, nonceAddCalled)
 	assert.Equal(t, []uint32{shardID}, shardIDRequestCalled)
 	assert.Equal(t, []uint64{fromNonce}, nonceRequestCalled)
+}
+
+func TestSovereignChainBlockProcessor_removeHeaderHashIfStartOfEpochIsAndromedaActivation(t *testing.T) {
+	t.Parallel()
+
+	epoch := uint32(4)
+	sovHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			Epoch: epoch,
+		},
+		IsStartOfEpoch: true,
+	}
+
+	args := CreateSovereignChainBlockProcessorMockArguments()
+	args.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
+		GetActivationEpochCalled: func(flag core.EnableEpochFlag) uint32 {
+			if flag == common.AndromedaFlag {
+				return epoch
+			}
+
+			return 0
+		},
+	}
+
+	nonce := uint64(3)
+	wasHdrRemoved := false
+	sovHdrHash := []byte("hash")
+	args.HeadersPool = &pool.HeadersPoolStub{
+		RemoveHeaderByHashCalled: func(headerHash []byte) {
+			require.Equal(t, sovHdrHash, headerHash)
+			wasHdrRemoved = true
+		},
+		GetHeaderByNonceAndShardIdCalled: func(hdrNonce uint64, shardId uint32) ([]data.HeaderHandler, [][]byte, error) {
+			require.Equal(t, nonce, hdrNonce)
+			require.Equal(t, core.SovereignChainShardId, shardId)
+			return []data.HeaderHandler{sovHdr}, [][]byte{sovHdrHash}, nil
+		},
+	}
+
+	bp, _ := track.NewBlockProcessor(args)
+	scbp, _ := track.NewSovereignChainBlockProcessor(bp)
+
+	_ = sovHdr.SetEpoch(0)
+	scbp.RemoveHeaderHashIfStartOfEpochIsAndromedaActivation(nonce, core.SovereignChainShardId)
+	require.False(t, wasHdrRemoved)
+
+	_ = sovHdr.SetEpoch(epoch)
+	scbp.RemoveHeaderHashIfStartOfEpochIsAndromedaActivation(nonce, core.SovereignChainShardId)
+	require.True(t, wasHdrRemoved)
 }

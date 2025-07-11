@@ -107,9 +107,8 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
-	// TODO: Here, check this func is called if proven useful
+	// TODO: Here MX-16975 check if this new behavior is proven useful when nodes syncing works
 	epochStartProvider.epochStartShardHeaderSyncer = &updateMock.PendingEpochStartShardHeaderStub{}
-
 	err := sovProc.requestAndProcessForShard(make([]*block.MiniBlock, 0))
 	require.Nil(t, err)
 }
