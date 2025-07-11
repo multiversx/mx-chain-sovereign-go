@@ -131,8 +131,10 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 }
 
 func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool {
+	log.Error("START")
 	success := sr.subroundEndRoundV2.DoEndRoundJob(ctx)
 	if !success {
+		log.Error("doSovereignEndRoundJob NO SUCCESS")
 		return false
 	}
 

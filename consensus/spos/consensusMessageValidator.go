@@ -9,12 +9,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/p2p"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 type consensusMessageValidator struct {
@@ -420,7 +421,7 @@ func (cmv *consensusMessageValidator) checkMessageWithSignatureValidity(cnsMsg *
 		cnsMsg.InvalidSigners != nil
 
 	if isMessageInvalid {
-		log.Trace("received message from consensus topic is invalid",
+		log.Error("received message from consensus topic is invalid",
 			"body len", len(cnsMsg.Body),
 			"header len", len(cnsMsg.Header),
 			"PubKeysBitmap", cnsMsg.PubKeysBitmap,
@@ -434,6 +435,7 @@ func (cmv *consensusMessageValidator) checkMessageWithSignatureValidity(cnsMsg *
 	}
 
 	if len(cnsMsg.SignatureShare) != cmv.signatureSize {
+		log.Error("DASDSADSADSADSADSA")
 		return fmt.Errorf("%w : received signature share from consensus topic has an invalid size: %d",
 			ErrInvalidSignatureSize,
 			len(cnsMsg.SignatureShare))

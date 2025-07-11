@@ -211,6 +211,9 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			return fmt.Errorf("%w when trying to create sovereign sub rounds factory", errMx.ErrWrongTypeAssertion)
 		}
 
+		log.Error("CHANGEEEEEEE",
+			"baseFactory", fmt.Sprintf("%T", baseFactory))
+
 		fct, err = sovereign.NewSubroundsFactory(sovereign.ArgsSovereignSubRoundsFactory{
 			ConsensusDataContainer: s.consensusCoreHandler,
 			ConsensusState:         s.consensusState,

@@ -344,7 +344,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.checkSignaturesValidity", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.checkSignaturesValidity", "error", err.Error())
 		return false
 	}
 
@@ -357,25 +357,26 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 	// Aggregate sig and add it to the block
 	aggSigsRes, err := sr.aggregateSigsAndHandleInvalidSigners(bitmap)
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.aggregateSigsAndHandleInvalidSigners", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.aggregateSigsAndHandleInvalidSigners", "error", err.Error())
 		return false
 	}
 
 	bitmap = aggSigsRes.bitmap
 	err = header.SetPubKeysBitmap(bitmap)
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.SetPubKeysBitmap", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.SetPubKeysBitmap", "error", err.Error())
 		return false
 	}
 
 	err = header.SetSignature(aggSigsRes.aggregatedSig)
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.SetSignature", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.SetSignature", "error", err.Error())
 		return false
 	}
 
 	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(header, aggSigsRes.extraAggregatedSigs)
 	if err != nil {
+		log.Error("extraSignersHolder.SetAggregatedSignatureInHeader")
 		return false
 	}
 
@@ -394,19 +395,20 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 
 	err = sr.extraSignersHolder.SignAndSetLeaderSignature(header, leaderPubKey)
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.extraSignatureAggregator.SignAndSetLeaderSignature", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.extraSignatureAggregator.SignAndSetLeaderSignature", "error", err.Error())
 		return false
 	}
 
 	ok := sr.ScheduledProcessor().IsProcessedOKWithTimeout()
 	// placeholder for subroundEndRound.doEndRoundJobByLeader script
 	if !ok {
+		log.Error("sr.ScheduledProcessor().IsProcessedOKWithTimeout()")
 		return false
 	}
 
 	roundHandler := sr.RoundHandler()
 	if roundHandler.RemainingTime(roundHandler.TimeStamp(), roundHandler.TimeDuration()) < 0 {
-		log.Debug("doEndRoundJob: time is out -> cancel broadcasting final info and header",
+		log.Error("doEndRoundJob: time is out -> cancel broadcasting final info and header",
 			"round time stamp", roundHandler.TimeStamp(),
 			"current time", time.Now())
 		return false
@@ -418,14 +420,14 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 
 	leader, errGetLeader := sr.GetLeader()
 	if errGetLeader != nil {
-		log.Debug("doEndRoundJobByLeader.GetLeader", "error", errGetLeader)
+		log.Error("doEndRoundJobByLeader.GetLeader", "error", errGetLeader)
 		return false
 	}
 
 	// broadcast header
 	err = sr.BroadcastMessenger().BroadcastHeader(header, []byte(leader))
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.BroadcastHeader", "error", err.Error())
+		log.Error("doEndRoundJobByLeader.BroadcastHeader", "error", err.Error())
 	}
 
 	startTime := time.Now()
@@ -439,7 +441,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 		)
 	}
 	if err != nil {
-		log.Debug("doEndRoundJobByLeader.CommitBlock", "error", err)
+		log.Error("doEndRoundJobByLeader.CommitBlock", "error", err)
 		return false
 	}
 

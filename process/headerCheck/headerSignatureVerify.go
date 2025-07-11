@@ -351,6 +351,11 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
+	log.Error("HeaderSigVerifier.verifyHeaderProofAtTransition",
+		"consensusPubKeys", consensusPubKeys,
+		"proof", fmt.Sprintf("%v", proof),
+	)
+
 	multiSigVerifier, err := hsv.multiSigContainer.GetMultiSigner(proof.GetHeaderEpoch())
 	if err != nil {
 		return err
@@ -358,6 +363,8 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 
 	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
 }
+
+// TODO: MX-16954- verify extra signers
 
 // VerifyHeaderProof checks if the proof is correct for the header
 func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHandler) error {

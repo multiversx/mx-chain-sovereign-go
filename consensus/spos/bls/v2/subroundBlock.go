@@ -570,7 +570,7 @@ func (sr *subroundBlock) shouldProcessBlock(headerLeader string) bool {
 
 // ProcessReceivedBlock will process received block
 func (sr *subroundBlock) ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool {
-	return sr.processReceivedBlock(ctx, cnsDta.RoundIndex, []byte(sr.Leader()))
+	return sr.processReceivedBlock(ctx, cnsDta.RoundIndex, cnsDta.PubKey)
 }
 
 func (sr *subroundBlock) processReceivedBlock(
@@ -753,7 +753,7 @@ func (sr *subroundBlock) getRoundInLastCommittedBlock() int64 {
 
 // SetBlockJob sets the block job
 func (sr *subroundBlock) SetBlockJob(doBlockJob func(ctx context.Context) bool) {
-	sr.Job = doBlockJob
+	//sr.Job = doBlockJob
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

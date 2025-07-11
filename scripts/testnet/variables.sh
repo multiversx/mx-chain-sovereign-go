@@ -70,9 +70,9 @@ export SOVEREIGN_DEPLOY=1
 
 # Shard structure
 export SHARDCOUNT=1
-export SHARD_VALIDATORCOUNT=2
+export SHARD_VALIDATORCOUNT=5
 export SHARD_OBSERVERCOUNT=1
-export SHARD_CONSENSUS_SIZE=2
+export SHARD_CONSENSUS_SIZE=5
 
 # Metashard structure
 export META_VALIDATORCOUNT=0
@@ -80,7 +80,7 @@ export META_OBSERVERCOUNT=0
 export META_CONSENSUS_SIZE=$META_VALIDATORCOUNT
 
 # ROUND_DURATION_IN_MS is the duration in milliseconds for one round
-export ROUND_DURATION_IN_MS=600
+export ROUND_DURATION_IN_MS=900
 
 # MULTI_KEY_NODES if set to 1, one observer will be generated on each shard that will handle all generated keys
 export MULTI_KEY_NODES=0
@@ -129,7 +129,7 @@ export PORT_ORIGIN_VALIDATOR_REST="9500"
 export USETMUX=1
 
 # Log level for the logger in the Node.
-export LOGLEVEL="*:DEBUG"
+export LOGLEVEL="*:TRACE"
 
 
 if [ "$TESTNETMODE" == "debug" ]; then

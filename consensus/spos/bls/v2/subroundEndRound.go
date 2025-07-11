@@ -257,6 +257,7 @@ func (sr *subroundEndRound) applyBlacklistOnNode(peer core.PeerID) {
 // doEndRoundJob method does the job of the subround EndRound
 func (sr *subroundEndRound) doEndRoundJob(_ context.Context) bool {
 	if check.IfNil(sr.GetHeader()) {
+		log.Error("doEndRoundJob", " check.IfNil(sr.GetHeader())")
 		return false
 	}
 
@@ -284,8 +285,11 @@ func (sr *subroundEndRound) commitBlock() error {
 }
 
 func (sr *subroundEndRound) doEndRoundJobByNode() bool {
-	if sr.shouldSendProof() {
+	shouldSendProof := sr.shouldSendProof()
+	log.Error("doEndRoundJobByNode", "shouldSendProof", shouldSendProof)
+	if shouldSendProof {
 		if !sr.waitForSignalSync() {
+			log.Error("doEndRoundJobByNode", "!sr.waitForSignalSync()", "dsa")
 			return false
 		}
 
@@ -375,7 +379,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, nil
 	}
 
-	bitmap := sr.generateBitmap()
+	bitmap := sr.GenerateBitmap(bls.SrSignature) //////////////////////sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		log.Debug("sendProof.checkSignaturesValidity", "error", err.Error())
@@ -436,14 +440,15 @@ func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte, 
 		return sr.handleInvalidSignersOnAggSigFail(sender)
 	}
 
-	extraSigs, err := sr.extraSignersHolder.AggregateSignatures(bitmap, sr.GetHeader())
-	if err != nil {
-		log.Debug("doEndRoundJobByNode.extraAggregatedSig.AggregateAndSetSignatures", "error", err.Error())
-		// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
-		// Task: MX-14756
-		return nil, err
-	}
-
+	/*
+		extraSigs, err := sr.extraSignersHolder.AggregateSignatures(bitmap, sr.GetHeader())
+		if err != nil {
+			log.Debug("doEndRoundJobByNode.extraAggregatedSig.AggregateAndSetSignatures", "error", err.Error())
+			// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
+			// Task: MX-14756
+			return nil, err
+		}
+	*/
 	err = sr.SigningHandler().SetAggregatedSig(sig)
 	if err != nil {
 		log.Debug("doEndRoundJobByNode.SetAggregatedSig", "error", err.Error())
@@ -458,18 +463,21 @@ func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte, 
 		return sr.handleInvalidSignersOnAggSigFail(sender)
 	}
 
-	err = sr.extraSignersHolder.VerifyAggregatedSignatures(sr.GetHeader(), bitmap)
-	if err != nil {
-		log.Debug("doEndRoundJobByNode.extraSignersHolder.verifyAggregatedSignatures", "error", err.Error())
-		// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
-		// Task: MX-14756
-		return nil, err
-	}
+	/*
+		err = sr.extraSignersHolder.VerifyAggregatedSignatures(sr.GetHeader(), bitmap)
+		if err != nil {
+			log.Debug("doEndRoundJobByNode.extraSignersHolder.verifyAggregatedSignatures", "error", err.Error())
+			// TODO: [nice to have] we could add behavior to handle invalid sigs on outgoing operations and decrease rating
+			// Task: MX-14756
+			return nil, err
+		}
+
+	*/
 
 	return &aggregatedSigsResult{
 		bitmap:              bitmap,
 		aggregatedSig:       sig,
-		extraAggregatedSigs: extraSigs,
+		extraAggregatedSigs: nil, //extraSigs,
 	}, nil
 }
 
@@ -632,7 +640,7 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 			spos.ErrInvalidNumSigShares, numValidSigShares, threshold)
 	}
 
-	bitmap := sr.generateBitmap()
+	bitmap := sr.GenerateBitmap(bls.SrSignature) //sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		return nil, nil, err
@@ -671,6 +679,8 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 	bitmap []byte,
 	sender string,
 ) error {
+	log.Error("subroundEndRound.createAndBroadcastProof")
+
 	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.GetData()) {
 		// no need to broadcast a proof if already received and verified one
 		return ErrProofAlreadyPropagated
@@ -916,6 +926,11 @@ func (sr *subroundEndRound) receivedSignature(_ context.Context, cnsDta *consens
 	node := string(cnsDta.PubKey)
 	pkForLogs := core.GetTrimmedPk(hex.EncodeToString(cnsDta.PubKey))
 
+	log.Error("received signature",
+		"pk", cnsDta.PubKey,
+		"round", cnsDta.RoundIndex,
+	)
+
 	if !sr.IsConsensusDataSet() {
 		return false
 	}
@@ -1010,6 +1025,19 @@ func (sr *subroundEndRound) checkReceivedSignatures() bool {
 	isSelfJobDone := sr.IsSelfJobDone(bls.SrSignature)
 
 	shouldStopWaitingSignatures := isSelfJobDone && isSignatureCollectionDone
+
+	log.Error("checkReceivedSignatures",
+		"isTransitionBlock", isTransitionBlock,
+		"areSignaturesCollected", areSignaturesCollected,
+		"numSigs", numSigs,
+		"areAllSignaturesCollected", areAllSignaturesCollected,
+		"shouldStopWaitingSignatures", shouldStopWaitingSignatures,
+	)
+
+	//if isTransitionBlock {
+	//	shouldStopWaitingSignatures = true
+	//}
+
 	if shouldStopWaitingSignatures {
 		log.Debug("step 2: signatures collection done",
 			"subround", sr.Name(),
@@ -1055,7 +1083,7 @@ func (sr *subroundEndRound) areSignaturesCollected(threshold int) (bool, int) {
 
 // SetMessageToVerifySigFunc sets the verify message func
 func (sr *subroundEndRound) SetMessageToVerifySigFunc(verifyMsgFunc func() []byte) {
-	sr.getMessageToVerifySigFunc = verifyMsgFunc
+	//sr.getMessageToVerifySigFunc = verifyMsgFunc
 }
 
 func (sr *subroundEndRound) getMessageToVerifySig() []byte {

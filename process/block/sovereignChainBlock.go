@@ -2,6 +2,7 @@ package block
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -1130,6 +1131,11 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	if err != nil {
 		return err
 	}
+
+	body.MiniBlocks = append(body.MiniBlocks, validatorMiniBlocks...)
+
+	bodyMsg, _ := json.Marshal(body)
+	log.Error("processEpochStartMetaBlock", " bodyMSG", string(bodyMsg))
 
 	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(sovHdr, body)
 	if err != nil {

@@ -323,6 +323,7 @@ func (e *epochStartMetaBlockProcessor) requestProofForMetaBlock(metablockHash []
 	return nil
 }
 
+// TODO: MX-16954 check this one as well
 func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofHandler) {
 	startOfEpochMetaBlock, hash, err := e.getMostReceivedMetaBlock()
 	if err != nil {

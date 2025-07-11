@@ -3,6 +3,7 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -99,8 +100,8 @@ func (fct *factory) SetOutportHandler(driver outport.OutportHandler) {
 }
 
 // GenerateSubrounds will generate the subrounds used in BLS consensus
-func (fct *factory) GenerateSubrounds(_ uint32) error {
-	fct.initConsensusThreshold()
+func (fct *factory) GenerateSubrounds(epoch uint32) error {
+	fct.initConsensusThreshold(epoch)
 	fct.consensusCore.Chronology().RemoveAllSubrounds()
 	fct.worker.RemoveAllReceivedMessagesCalls()
 	fct.worker.RemoveAllReceivedHeaderHandlers()
@@ -197,15 +198,19 @@ func (fct *factory) generateEndRoundSubroundV2() error {
 	}
 
 	fct.worker.ResetHandlers(bls.MtBlockHeaderFinalInfo)
+
+	//fct.worker.AddReceivedProofHandler(sovEndRound.ReceivedProof)
+
 	fct.worker.AddReceivedMessageCall(bls.MtBlockHeaderFinalInfo, sovEndRound.receivedBlockHeaderFinalInfo)
 	fct.consensusCore.Chronology().AddSubround(sovEndRound)
 
 	return nil
 }
 
-func (fct *factory) initConsensusThreshold() {
-	pBFTThreshold := core.GetPBFTThreshold(fct.consensusState.ConsensusGroupSize())
-	pBFTFallbackThreshold := core.GetPBFTFallbackThreshold(fct.consensusState.ConsensusGroupSize())
+func (fct *factory) initConsensusThreshold(epoch uint32) {
+	consensusGroupSizeForEpoch := fct.consensusCore.NodesCoordinator().ConsensusGroupSizeForShardAndEpoch(fct.consensusCore.ShardCoordinator().SelfId(), epoch)
+	pBFTThreshold := core.GetPBFTThreshold(consensusGroupSizeForEpoch)
+	pBFTFallbackThreshold := core.GetPBFTFallbackThreshold(consensusGroupSizeForEpoch)
 	fct.consensusState.SetThreshold(bls.SrBlock, 1)
 	fct.consensusState.SetThreshold(bls.SrSignature, pBFTThreshold)
 	fct.consensusState.SetFallbackThreshold(bls.SrBlock, 1)

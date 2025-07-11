@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
@@ -488,6 +489,8 @@ func (wrk *Worker) ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedP
 		return nil, ErrBlacklistedConsensusPeer
 	}
 
+	log.Error("ProcessReceivedMessage", "topic", message.Topic())
+
 	topic := GetConsensusTopicID(wrk.shardCoordinator)
 	err := wrk.antifloodHandler.CanProcessMessagesOnTopic(message.Peer(), topic, 1, uint64(len(message.Data())), message.SeqNo())
 	if err != nil {
@@ -848,6 +851,8 @@ func (wrk *Worker) callReceivedHeaderCallbacks(message *consensus.Message) {
 
 // Extend does an extension for the subround with subroundId
 func (wrk *Worker) Extend(subroundId int) {
+	debug.PrintStack()
+
 	wrk.consensusState.SetExtendedCalled(true)
 	log.Debug("extend function is called",
 		"subround", wrk.consensusService.GetSubroundName(subroundId))
@@ -960,7 +965,7 @@ func (wrk *Worker) ResetInvalidSignersCache() {
 func (wrk *Worker) checkValidityAndProcessFinalInfo(cnsMsg *consensus.Message, p2pMessage p2p.MessageP2P) error {
 	msgType := consensus.MessageType(cnsMsg.MsgType)
 
-	log.Trace("received message from consensus topic",
+	log.Error("received message from consensus topic",
 		"msg type", wrk.consensusService.GetStringValue(msgType),
 		"from", cnsMsg.PubKey,
 		"header hash", cnsMsg.BlockHeaderHash,
@@ -968,7 +973,11 @@ func (wrk *Worker) checkValidityAndProcessFinalInfo(cnsMsg *consensus.Message, p
 		"size", len(p2pMessage.Data()),
 	)
 
-	return wrk.consensusMessageValidator.checkConsensusMessageValidity(cnsMsg, p2pMessage.Peer())
+	err := wrk.consensusMessageValidator.checkConsensusMessageValidity(cnsMsg, p2pMessage.Peer())
+	if err != nil {
+		log.Error("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", "error", err)
+	}
+	return err
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

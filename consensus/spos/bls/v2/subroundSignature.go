@@ -369,7 +369,7 @@ func (sr *subroundSignature) getMessageToSign() []byte {
 
 // SetMessageToSignFunc sets the message to sign func
 func (sr *subroundSignature) SetMessageToSignFunc(verifyMsgFunc func() []byte) {
-	sr.getMessageToSignFunc = verifyMsgFunc
+	//sr.getMessageToSignFunc = verifyMsgFunc
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
