@@ -2,7 +2,6 @@ package block
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -260,6 +259,8 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 		if err != nil {
 			return nil, nil, err
 		}
+
+		// TODO: MX-16954- check if/how possible to create block with validator mbs
 
 		err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
 		if err != nil {
@@ -1132,19 +1133,19 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 		return err
 	}
 
-	body.MiniBlocks = append(body.MiniBlocks, validatorMiniBlocks...)
+	finalMiniBlocks := make([]*block.MiniBlock, 0)
+	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
+	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
 
-	bodyMsg, _ := json.Marshal(body)
-	log.Error("processEpochStartMetaBlock", " bodyMSG", string(bodyMsg))
-
-	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(sovHdr, body)
+	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(
+		sovHdr,
+		&block.Body{
+			MiniBlocks: append(body.MiniBlocks, finalMiniBlocks...),
+		})
 	if err != nil {
 		return err
 	}
 
-	finalMiniBlocks := make([]*block.MiniBlock, 0)
-	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
-	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
 	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet)
 	body.MiniBlocks = finalMiniBlocks
 

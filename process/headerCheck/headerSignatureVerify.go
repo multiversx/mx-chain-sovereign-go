@@ -351,11 +351,6 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	log.Error("HeaderSigVerifier.verifyHeaderProofAtTransition",
-		"consensusPubKeys", consensusPubKeys,
-		"proof", fmt.Sprintf("%v", proof),
-	)
-
 	multiSigVerifier, err := hsv.multiSigContainer.GetMultiSigner(proof.GetHeaderEpoch())
 	if err != nil {
 		return err

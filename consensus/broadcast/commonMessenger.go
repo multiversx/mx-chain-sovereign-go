@@ -206,7 +206,7 @@ func (cm *commonMessenger) extractMetaMiniBlocksAndTransactions(
 	metaTransactions := make(map[string][][]byte)
 
 	for shardID, mbsMarshalized := range miniBlocks {
-		if shardID != core.SovereignChainShardId {
+		if shardID != core.MetachainShardId {
 			continue
 		}
 
@@ -214,7 +214,7 @@ func (cm *commonMessenger) extractMetaMiniBlocksAndTransactions(
 		delete(miniBlocks, shardID)
 	}
 
-	identifier := cm.shardCoordinator.CommunicationIdentifier(core.SovereignChainShardId)
+	identifier := cm.shardCoordinator.CommunicationIdentifier(core.MetachainShardId)
 
 	for broadcastTopic, txsMarshalized := range transactions {
 		if !strings.Contains(broadcastTopic, identifier) {

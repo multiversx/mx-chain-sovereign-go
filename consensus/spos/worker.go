@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
@@ -472,15 +471,12 @@ func (wrk *Worker) getCleanedList(cnsDataList []*consensus.Message) []*consensus
 // ProcessReceivedMessage method redirects the received message to the channel which should handle it
 func (wrk *Worker) ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedPeer core.PeerID, _ p2p.MessageHandler) ([]byte, error) {
 	if check.IfNil(message) {
-		log.Error("ProcessReceivedMessage", "reason", "check.IfNil(message)")
 		return nil, ErrNilMessage
 	}
 	if message.Data() == nil {
-		log.Error("ProcessReceivedMessage", "reason", "message.Data() == ni")
 		return nil, ErrNilDataToProcess
 	}
 	if len(message.Signature()) == 0 {
-		log.Error("ProcessReceivedMessage", "reason", "len(message.Signature()) == 0 ")
 		return nil, ErrNilSignatureOnP2PMessage
 	}
 
@@ -854,8 +850,6 @@ func (wrk *Worker) callReceivedHeaderCallbacks(message *consensus.Message) {
 
 // Extend does an extension for the subround with subroundId
 func (wrk *Worker) Extend(subroundId int) {
-	debug.PrintStack()
-
 	wrk.consensusState.SetExtendedCalled(true)
 	log.Debug("extend function is called",
 		"subround", wrk.consensusService.GetSubroundName(subroundId))

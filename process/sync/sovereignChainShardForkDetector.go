@@ -35,7 +35,6 @@ func (scsfd *sovereignChainShardForkDetector) doJobOnBHProcessed(
 	scsfd.setFinalCheckpoint(scsfd.lastCheckpoint())
 
 	newCheckpoint := &checkpointInfo{nonce: header.GetNonce(), round: header.GetRound(), hash: headerHash}
-
 	scsfd.addCheckpoint(newCheckpoint)
 
 	// first shard block with proof does not have increased consensus

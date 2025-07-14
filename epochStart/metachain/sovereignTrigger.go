@@ -150,10 +150,11 @@ func (st *sovereignTrigger) receivedBlock(headerHandler data.HeaderHandler, _ []
 		return
 	}
 
-	if st.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, headerHandler.GetEpoch()) {
-		log.Error("sovereignTrigger.ANDROMEDA ACTIVATION")
-		return
-	}
+	// TODO: MX-16954 - analyse this early exit if it would work for syncing nodes
+	//if st.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, headerHandler.GetEpoch()) {
+	//	log.Error("sovereignTrigger andromeda activation, early exiting")
+	//	return
+	//}
 
 	if !header.IsStartOfEpochBlock() {
 		return

@@ -257,7 +257,6 @@ func (sr *subroundEndRound) applyBlacklistOnNode(peer core.PeerID) {
 // doEndRoundJob method does the job of the subround EndRound
 func (sr *subroundEndRound) doEndRoundJob(_ context.Context) bool {
 	if check.IfNil(sr.GetHeader()) {
-		log.Error("doEndRoundJob", " check.IfNil(sr.GetHeader())")
 		return false
 	}
 
@@ -1033,10 +1032,6 @@ func (sr *subroundEndRound) checkReceivedSignatures() bool {
 		"areAllSignaturesCollected", areAllSignaturesCollected,
 		"shouldStopWaitingSignatures", shouldStopWaitingSignatures,
 	)
-
-	//if isTransitionBlock {
-	//	shouldStopWaitingSignatures = true
-	//}
 
 	if shouldStopWaitingSignatures {
 		log.Debug("step 2: signatures collection done",

@@ -1,9 +1,7 @@
 package nodesCoordinator
 
 import (
-	"encoding/json"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -245,11 +243,6 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) EpochStartPrepare(hdr data.Hea
 	}
 
 	ihnc.updateEpochFlags(newEpoch)
-
-	debug.PrintStack()
-
-	receivedBody, _ := json.Marshal(body)
-	log.Error("DDDDDDDDDDDDD", "receivedBody", string(receivedBody))
 
 	allValidatorInfo, err := ihnc.createValidatorInfoFromBody(body, ihnc.numTotalEligible, newEpoch)
 	if err != nil {
