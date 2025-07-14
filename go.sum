@@ -407,8 +407,8 @@ github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250401112546-700ac
 github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250401112546-700ac474fa5c/go.mod h1:lC11Gf27XxA9kHgmyYhls/Mw0fRbuR5uDPpri2MBeL4=
 github.com/multiversx/mx-chain-storage-go v1.0.19 h1:2R35MoSXcuNJOFmV5xEhcXqiEGZw6AYGy9R8J9KH66Q=
 github.com/multiversx/mx-chain-storage-go v1.0.19/go.mod h1:Pb/BuVmiFqO66DSZO16KFkSUeom94x3e3Q9IloBvkYI=
-github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250310160624-2027f24f8de5 h1:tdnMVSR+LJQ05E/HolsQy7VYPcgJ0LzF9mrPL2W4pKI=
-github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250310160624-2027f24f8de5/go.mod h1:C7KVj6/+TAhxDjgY7oAMO5wSj7WbBYIJ5TCMzmxk2w0=
+github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250612113809-4ced1f92c22e h1:k8REFw9tKu2j9pIYT/UgOKN0w5cLBji1o/xM2Mp8xag=
+github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250612113809-4ced1f92c22e/go.mod h1:572hesYTHS5DdRzASZSqpzfABG437EpSc/RLqFFqkCw=
 github.com/multiversx/mx-chain-vm-go v1.5.37 h1:Iy3KCvM+DOq1f9UPA7uYK/rI3ZbBOXc2CVNO2/vm5zw=
 github.com/multiversx/mx-chain-vm-go v1.5.37/go.mod h1:nzLrWeXvfxCIiwj5uNBZq3d7stkXyeY+Fktfr4tTaiY=
 github.com/multiversx/mx-chain-vm-v1_2-go v1.2.68 h1:L3GoAVFtLLzr9ya0rVv1YdTUzS3MyM7kQNBSAjCNO2g=
