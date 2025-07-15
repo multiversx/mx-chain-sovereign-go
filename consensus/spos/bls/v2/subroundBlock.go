@@ -131,7 +131,7 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 		return nil, func() {}
 	}
 
-	// TODO: MX-16954- check here for extra signers maybe from sub round end round
+	// TODO: MX-17039- check here for extra signers maybe from sub round end round
 
 	// block proof verification should be done over the header that contains the leader signature
 	leaderSignature, err := sr.signBlockHeader(header)

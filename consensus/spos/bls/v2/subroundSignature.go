@@ -310,7 +310,7 @@ func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool
 	}
 	sr.sentSignatureTracker.SignatureSent(pkBytes)
 
-	// TODO: MX-16954 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
+	// TODO: MX-17040 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
 	return sr.completeSignatureSubRound(pk, idx, processedHeaderHash)
 }
 
@@ -369,7 +369,7 @@ func (sr *subroundSignature) getMessageToSign() []byte {
 
 // SetMessageToSignFunc should set the message to sign func
 func (sr *subroundSignature) SetMessageToSignFunc(_ func() []byte) {
-	// TODO: MX-16954 Analyse if we will ever use this func, since it doesn't work for now
+	// TODO: MX-17040 Analyse if we will ever use this func, since it doesn't work for now
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

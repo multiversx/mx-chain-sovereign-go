@@ -199,7 +199,7 @@ func (fct *factory) generateEndRoundSubroundV2() error {
 
 	fct.worker.ResetHandlers(bls.MtBlockHeaderFinalInfo)
 
-	// TODO: MX-16954 Here we need to:
+	// TODO: MX-17039 Here we need to:
 	// 1. Remove handler for base received proof from cns v2
 	// 2. Add aggregated sig for outgoing ops in proof to be received on sovereign sub round handler
 	// 3. Implement sov sub round handler to received proofs, which should also call base receivedProof handler

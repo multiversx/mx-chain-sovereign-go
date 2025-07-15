@@ -400,7 +400,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, ErrTimeOut
 	}
 
-	// TODO: MX-16954-this signature should be added in proof in createAndBroadcastProof, instead of being added in header
+	// TODO: MX-17039-this signature should be added in proof in createAndBroadcastProof, instead of being added in header
 	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(sr.GetHeader(), aggSigsRes.extraAggregatedSigs)
 	if err != nil {
 		return false, err
@@ -657,7 +657,7 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 	return bitmap, sig, nil
 }
 
-// TODO: MX-16954 Check if we can make this work including getMessageToVerifySigFunc
+// TODO: MX-17040 Check if we can make this work including getMessageToVerifySigFunc
 func (sr *subroundEndRound) generateBitmap() []byte {
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		processedHeaderHash := sr.getMessageToVerifySigFunc()
@@ -686,7 +686,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		HeaderShardId:       sr.GetHeader().GetShardID(),
 		HeaderRound:         sr.GetHeader().GetRound(),
 		IsStartOfEpoch:      sr.GetHeader().IsStartOfEpochBlock(),
-		// TODO: MX-16954- add extra aggregated sigs in proof
+		// TODO: MX-17039- add extra aggregated sigs in proof
 	}
 
 	err := sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
@@ -1056,7 +1056,7 @@ func (sr *subroundEndRound) areSignaturesCollected(threshold int) (bool, int) {
 
 // SetMessageToVerifySigFunc should set the verify message func
 func (sr *subroundEndRound) SetMessageToVerifySigFunc(_ func() []byte) {
-	// TODO: MX-16954 Analyse if we will ever use this func, since it doesn't work for now
+	// TODO: MX-17040 Analyse if we will ever use this func, since it doesn't work for now
 }
 
 func (sr *subroundEndRound) getMessageToVerifySig() []byte {

@@ -17,7 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C MX-16954 , this should be merged with subroundEndV2 in a sovereign specific file
+// TODO: Marius C MX-17040 , this should be merged with subroundEndV2 in a sovereign specific file
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2
@@ -63,13 +63,13 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 }
 
 func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
-	// TODO: MX-16954 add received message in factory for this func
+	// TODO: MX-17039 add received message in factory for this func
 
 	sr.subroundEndRoundV2.ReceivedProof(proof)
 
 	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
 		PubKeysBitmap:   proof.GetPubKeysBitmap(),
-		ExtraSignatures: nil, // TODO: MX-16954 integrate this in proofs
+		ExtraSignatures: nil, // TODO: MX-17039 integrate this in proofs
 	})
 	if err != nil {
 		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)

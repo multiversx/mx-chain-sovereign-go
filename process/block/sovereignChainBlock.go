@@ -260,7 +260,7 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 			return nil, nil, err
 		}
 
-		// TODO: MX-16954- check if/how possible to create block with validator mbs
+		// TODO: MX-17040- check if/how possible to create block with validator mbs
 
 		err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
 		if err != nil {

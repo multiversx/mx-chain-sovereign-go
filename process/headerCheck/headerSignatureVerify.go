@@ -256,7 +256,7 @@ func getPubKeySigners(consensusPubKeys []string, pubKeysBitmap []byte) [][]byte 
 
 // VerifySignature will check if signature is correct
 func (hsv *HeaderSigVerifier) VerifySignature(header data.HeaderHandler) error {
-	// TODO: MARIUS C: MX-16954 This is not ok for sovereign, we still need to check signatures for outgoing ops
+	// TODO: MARIUS C: MX-17039 This is not ok for sovereign, we still need to check signatures for outgoing ops
 	if hsv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
 		return nil
 	}
@@ -359,7 +359,7 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
 }
 
-// TODO: MX-16954- verify extra signers
+// TODO: MX-17039- verify extra signers
 
 // VerifyHeaderProof checks if the proof is correct for the header
 func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHandler) error {
