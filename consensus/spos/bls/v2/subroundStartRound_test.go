@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
+	"github.com/multiversx/mx-chain-go/errors"
 	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapperStubs"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus"
@@ -161,6 +162,20 @@ func TestNewSubroundStartRound(t *testing.T) {
 
 		assert.Nil(t, srStartRound)
 		assert.Equal(t, spos.ErrNilWorker, err)
+	})
+	t.Run("nil extra signers, should error", func(t *testing.T) {
+		t.Parallel()
+
+		srStartRound, err := v2.NewSubroundStartRound(
+			sr,
+			v2.ProcessingThresholdPercent,
+			&testscommon.SentSignatureTrackerStub{},
+			&consensus.SposWorkerMock{},
+			nil,
+		)
+
+		require.Nil(t, srStartRound)
+		require.Equal(t, errors.ErrNilStartRoundExtraSignersHolder, err)
 	})
 }
 

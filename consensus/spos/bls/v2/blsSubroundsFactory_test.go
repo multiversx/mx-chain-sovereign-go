@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
 	dataRetrieverMocks "github.com/multiversx/mx-chain-go/dataRetriever/mock"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	testscommonConsensus "github.com/multiversx/mx-chain-go/testscommon/consensus"
@@ -525,6 +526,30 @@ func TestFactory_NewFactoryNilThrottlerShouldFail(t *testing.T) {
 
 	assert.Nil(t, fct)
 	assert.Equal(t, spos.ErrNilThrottler, err)
+}
+
+func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
+	t.Parallel()
+
+	consensusState := initializers.InitConsensusState()
+	container := testscommonConsensus.InitConsensusCore()
+	worker := initWorker()
+
+	fct, err := v2.NewSubroundsFactory(
+		container,
+		consensusState,
+		worker,
+		chainID,
+		currentPid,
+		&statusHandler.AppStatusHandlerStub{},
+		&testscommon.SentSignatureTrackerStub{},
+		&dataRetrieverMocks.ThrottlerStub{},
+		nil,
+		nil,
+	)
+
+	require.Nil(t, fct)
+	require.Equal(t, errMx.ErrNilExtraSignersHolder, err)
 }
 
 func TestFactory_NewFactoryShouldWork(t *testing.T) {

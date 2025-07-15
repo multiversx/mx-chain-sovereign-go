@@ -28,6 +28,7 @@ import (
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
 	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
 	dataRetrieverMocks "github.com/multiversx/mx-chain-go/dataRetriever/mock"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/p2p"
 	"github.com/multiversx/mx-chain-go/p2p/factory"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
@@ -474,6 +475,43 @@ func TestSubroundEndRound_NewSubroundEndRoundNilThrottlerShouldFail(t *testing.T
 
 	assert.True(t, check.IfNil(srEndRound))
 	assert.Equal(t, err, spos.ErrNilThrottler)
+}
+
+func TestSubroundEndRound_NewSubroundEndRoundNilExtraSignersShouldFail(t *testing.T) {
+	t.Parallel()
+
+	container := consensusMocks.InitConsensusCore()
+	consensusState := initializers.InitConsensusState()
+	ch := make(chan bool, 1)
+
+	sr, _ := spos.NewSubround(
+		bls.SrSignature,
+		bls.SrEndRound,
+		-1,
+		int64(85*roundTimeDuration/100),
+		int64(95*roundTimeDuration/100),
+		"(END_ROUND)",
+		consensusState,
+		ch,
+		executeStoredMessages,
+		container,
+		chainID,
+		currentPid,
+		&statusHandler.AppStatusHandlerStub{},
+	)
+
+	srEndRound, err := v2.NewSubroundEndRound(
+		sr,
+		v2.ProcessingThresholdPercent,
+		&statusHandler.AppStatusHandlerStub{},
+		&testscommon.SentSignatureTrackerStub{},
+		&consensusMocks.SposWorkerMock{},
+		&dataRetrieverMocks.ThrottlerStub{},
+		nil,
+	)
+
+	require.True(t, check.IfNil(srEndRound))
+	require.Equal(t, err, errMx.ErrNilExtraSignersHolder)
 }
 
 func TestSubroundEndRound_NewSubroundEndRoundShouldWork(t *testing.T) {

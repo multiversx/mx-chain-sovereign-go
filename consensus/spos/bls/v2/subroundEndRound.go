@@ -400,7 +400,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, ErrTimeOut
 	}
 
-	// TODO: MX-16954-this should be added in proof below in createAndBroadcastProof
+	// TODO: MX-16954-this signature should be added in proof in createAndBroadcastProof, instead of being added in header
 	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(sr.GetHeader(), aggSigsRes.extraAggregatedSigs)
 	if err != nil {
 		return false, err
@@ -672,8 +672,6 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 	bitmap []byte,
 	sender string,
 ) error {
-	log.Error("subroundEndRound.createAndBroadcastProof")
-
 	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySig()) {
 		// no need to broadcast a proof if already received and verified one
 		return ErrProofAlreadyPropagated
@@ -1070,7 +1068,7 @@ func (sr *subroundEndRound) SetBlockJob(doBlockJob func(ctx context.Context) boo
 	sr.Job = doBlockJob
 }
 
-// ReceivedBlockHeaderFinalInfo does nothing vor v2 end subround
+// ReceivedBlockHeaderFinalInfo does not exist as a handler anymore for cns v2, so this will simply return true
 func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(_ context.Context, _ *consensus.Message) bool {
 	return true
 }
