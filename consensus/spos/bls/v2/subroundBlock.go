@@ -27,6 +27,7 @@ type subroundBlock struct {
 	processingThresholdPercentage int
 	worker                        spos.WorkerHandler
 	mutBlockProcessing            sync.Mutex
+	enableEpochHandler            common.EnableEpochsHandler
 }
 
 // NewSubroundBlock creates a subroundBlock object
@@ -48,6 +49,7 @@ func NewSubroundBlock(
 		Subround:                      baseSubround,
 		processingThresholdPercentage: processingThresholdPercentage,
 		worker:                        worker,
+		enableEpochHandler:            baseSubround.EnableEpochsHandler(),
 	}
 
 	srBlock.Job = srBlock.doBlockJob
@@ -82,12 +84,11 @@ func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
 		return false
 	}
 
-	// MX-16954- add this back
-	//err := sr.SetJobDone(args.Leader, sr.Current(), true)
-	//if err != nil {
-	//	log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
-	//	return false
-	//}
+	err := sr.SetJobDone(args.Leader, sr.Current(), true)
+	if err != nil {
+		log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
+		return false
+	}
 
 	// placeholder for subroundBlock.doBlockJob script
 
@@ -155,12 +156,6 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 	if !sentWithSuccess {
 		return nil, func() {}
 	}
-
-	//err = sr.SetJobDone(leader, sr.Current(), true)
-	//if err != nil {
-	//	log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
-	//	return nil, func() {}
-	//}
 
 	return &bls.SubRoundBlockProcessRes{
 		Header: header,
@@ -561,9 +556,10 @@ func (sr *subroundBlock) CanProcessReceivedHeader(headerLeader string) bool {
 }
 
 func (sr *subroundBlock) shouldProcessBlock(headerLeader string) bool {
-	//if sr.IsNodeSelf(headerLeader) {
-	//	return false
-	//}
+	if !sr.shouldProcessBlockAsLeader(headerLeader) {
+		return false
+	}
+
 	if sr.IsJobDone(headerLeader, sr.Current()) {
 		return false
 	}
@@ -573,6 +569,16 @@ func (sr *subroundBlock) shouldProcessBlock(headerLeader string) bool {
 	}
 
 	return true
+}
+
+func (sr *subroundBlock) shouldProcessBlockAsLeader(headerLeader string) bool {
+	// For sovereign, leader will only propose block to be processed, but he needs to process it as well
+	if sr.enableEpochHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return true
+	}
+
+	// should not process block as leader in cns v2
+	return !sr.IsNodeSelf(headerLeader)
 }
 
 // ProcessReceivedBlock will process received block
