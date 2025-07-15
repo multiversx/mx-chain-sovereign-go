@@ -421,7 +421,7 @@ func (cmv *consensusMessageValidator) checkMessageWithSignatureValidity(cnsMsg *
 		cnsMsg.InvalidSigners != nil
 
 	if isMessageInvalid {
-		log.Error("received message from consensus topic is invalid",
+		log.Trace("received message from consensus topic is invalid",
 			"body len", len(cnsMsg.Body),
 			"header len", len(cnsMsg.Header),
 			"PubKeysBitmap", cnsMsg.PubKeysBitmap,

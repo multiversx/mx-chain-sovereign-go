@@ -204,7 +204,6 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 		)
 	}
 
-	// TODO: MX-16954 move this outside if/else below
 	if s.enableEpochsHandler.IsFlagEnabledInEpoch(common.ConsensusModelSovereignFlag, epoch) {
 		baseFactory, castOK := fct.(sovereign.SubRoundsFactoryHandler)
 		if !castOK {

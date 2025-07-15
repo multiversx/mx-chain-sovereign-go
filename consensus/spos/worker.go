@@ -488,8 +488,6 @@ func (wrk *Worker) ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedP
 		return nil, ErrBlacklistedConsensusPeer
 	}
 
-	log.Error("ProcessReceivedMessage", "topic", message.Topic())
-
 	topic := GetConsensusTopicID(wrk.shardCoordinator)
 	err := wrk.antifloodHandler.CanProcessMessagesOnTopic(message.Peer(), topic, 1, uint64(len(message.Data())), message.SeqNo())
 	if err != nil {
@@ -962,7 +960,7 @@ func (wrk *Worker) ResetInvalidSignersCache() {
 func (wrk *Worker) checkValidityAndProcessFinalInfo(cnsMsg *consensus.Message, p2pMessage p2p.MessageP2P) error {
 	msgType := consensus.MessageType(cnsMsg.MsgType)
 
-	log.Error("received message from consensus topic",
+	log.Trace("received message from consensus topic",
 		"msg type", wrk.consensusService.GetStringValue(msgType),
 		"from", cnsMsg.PubKey,
 		"header hash", cnsMsg.BlockHeaderHash,
@@ -970,11 +968,7 @@ func (wrk *Worker) checkValidityAndProcessFinalInfo(cnsMsg *consensus.Message, p
 		"size", len(p2pMessage.Data()),
 	)
 
-	err := wrk.consensusMessageValidator.checkConsensusMessageValidity(cnsMsg, p2pMessage.Peer())
-	if err != nil {
-		log.Error("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", "error", err)
-	}
-	return err
+	return wrk.consensusMessageValidator.checkConsensusMessageValidity(cnsMsg, p2pMessage.Peer())
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

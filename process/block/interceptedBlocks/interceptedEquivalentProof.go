@@ -63,7 +63,7 @@ func NewInterceptedEquivalentProof(args ArgInterceptedEquivalentProof) (*interce
 
 	return &interceptedEquivalentProof{
 		proof:             equivalentProof,
-		isForCurrentShard: true, //extractIsForCurrentShard(args.ShardCoordinator, equivalentProof),
+		isForCurrentShard: extractIsForCurrentShard(args.ShardCoordinator, equivalentProof),
 		headerSigVerifier: args.HeaderSigVerifier,
 		proofsPool:        args.Proofs,
 		marshaller:        args.Marshaller,

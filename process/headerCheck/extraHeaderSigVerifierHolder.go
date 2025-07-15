@@ -36,6 +36,7 @@ func (holder *extraHeaderSigVerifierHolder) VerifyAggregatedSignature(header dat
 				"error", err.Error(),
 				"id", id,
 			)
+			// TODO: MX-16954 Restore these once we have extra sigs working
 			//return err
 			return nil
 		}
@@ -56,6 +57,7 @@ func (holder *extraHeaderSigVerifierHolder) VerifyLeaderSignature(header data.He
 				"error", err.Error(),
 				"id", id,
 			)
+			// TODO: MX-16954 Restore these once we have extra sigs working
 			// return err
 			return nil
 		}

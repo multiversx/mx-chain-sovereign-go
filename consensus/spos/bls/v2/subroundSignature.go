@@ -102,7 +102,7 @@ func (sr *subroundSignature) doSignatureJob(ctx context.Context) bool {
 		return false
 	}
 
-	proofAlreadyReceived := sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.GetData())
+	proofAlreadyReceived := sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToSignFunc())
 	if proofAlreadyReceived {
 		sr.SetStatus(sr.Current(), spos.SsFinished)
 		log.Debug("step 2: subround has been finished, proof already received",
@@ -367,9 +367,9 @@ func (sr *subroundSignature) getMessageToSign() []byte {
 	return sr.GetData()
 }
 
-// SetMessageToSignFunc sets the message to sign func
-func (sr *subroundSignature) SetMessageToSignFunc(verifyMsgFunc func() []byte) {
-	//sr.getMessageToSignFunc = verifyMsgFunc
+// SetMessageToSignFunc should set the message to sign func
+func (sr *subroundSignature) SetMessageToSignFunc(_ func() []byte) {
+	// TODO: MX-16954 Analyse if we will ever use this func, since it doesn't work for now
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
