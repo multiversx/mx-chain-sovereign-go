@@ -338,7 +338,7 @@ jobs:
             echo "❌ Report not found - using original exit code"
             FINAL_PYTEST_EXIT_CODE=$INITIAL_PYTEST_EXIT_CODE
           fi
-echo "PYTEST_EXIT_CODE=$FINAL_PYTEST_EXIT_CODE" >> $GITHUB_ENV
+          echo "PYTEST_EXIT_CODE=$FINAL_PYTEST_EXIT_CODE" >> $GITHUB_ENV
           echo "Final pytest exit code: $FINAL_PYTEST_EXIT_CODE"
 
       - name: Stage report for R2

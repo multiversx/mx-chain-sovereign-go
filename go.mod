@@ -6,7 +6,7 @@ replace (
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250715130724-5581a5bc9fa5
 )
 
-go 1.23
+go 1.23.0
 
 require (
 	github.com/beevik/ntp v1.3.0
