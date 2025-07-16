@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         #TODO Include Macos support later on
-        runs-on: [self-hosted]
+        runs-on: [ubuntu-latest]
         is_sovereign: [false, true]
     runs-on: ${{ matrix.runs-on }}
     env:
