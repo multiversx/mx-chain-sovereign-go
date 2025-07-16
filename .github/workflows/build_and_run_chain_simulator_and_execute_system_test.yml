@@ -470,7 +470,7 @@ jobs:
               message = `
               ${verdict}
             
-              📊 **MultiversX Automated Test Report:** [View Report](${reportUrl})
+              📊 **MultiversX Automated Test Report:** [View Report](${backupUrl})
               [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
             
               📊 **MultiversX Automated Test Report:** [View Report](${r2Url})
