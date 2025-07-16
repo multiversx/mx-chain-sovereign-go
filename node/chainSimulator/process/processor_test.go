@@ -93,6 +93,9 @@ func TestBlocksCreator_IncrementRound(t *testing.T) {
 						},
 					}
 				},
+				EnableEpochsHandlerCalled: func() common.EnableEpochsHandler {
+					return &enableEpochsHandlerMock.EnableEpochsHandlerStub{}
+				},
 			}
 		},
 		GetStatusCoreComponentsCalled: func() factory.StatusCoreComponentsHolder {
@@ -336,6 +339,9 @@ func TestBlocksCreator_CreateNewBlock(t *testing.T) {
 							return nil, expectedErr
 						},
 					}
+				},
+				EnableEpochsHandlerCalled: func() common.EnableEpochsHandler {
+					return &enableEpochsHandlerMock.EnableEpochsHandlerStub{}
 				},
 			}
 		}

@@ -70,7 +70,7 @@ func main() {
 
 	baseVersion := fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 	app.Version = fmt.Sprintf("%s/%s", baseVersion, machineID)
-	app.Usage = "This is the entry point for starting a new MultiversX sovereign node - the app will start after the genesis timestamp"
+	app.Usage = "This is the entry point for starting a new Multiversx sovereign node - the app will start after the genesis timestamp"
 	app.Flags = getFlags()
 	app.Authors = []cli.Author{
 		{

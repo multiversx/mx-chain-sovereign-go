@@ -108,3 +108,7 @@ func (br *baseSovereignRequest) getEquivalentProofsRequester(_ uint32) (dataRetr
 
 	return requester, nil
 }
+
+func (br *baseSovereignRequest) getCrossRequesterForHashes(_ uint32, topic string) (dataRetriever.Requester, error) {
+	return br.requestersFinder.IntraShardRequester(topic)
+}
