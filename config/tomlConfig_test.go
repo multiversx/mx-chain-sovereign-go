@@ -938,6 +938,9 @@ func TestEnableEpochConfig(t *testing.T) {
     # AutomaticActivationOfNodesDisableEpoch represents the epoch when automatic activation of nodes for validators is disabled
     AutomaticActivationOfNodesDisableEpoch = 111
 
+    # FixGetBalanceEnableEpoch represents the epoch when Barnard opcodes will be enabled
+    FixGetBalanceEnableEpoch = 112
+
     # ConsensusModelV2EnableEpoch represents the epoch when the consensus model V2 is enabled
     ConsensusModelV2EnableEpoch = 69
 
@@ -1071,6 +1074,7 @@ func TestEnableEpochConfig(t *testing.T) {
 			ValidationOnGobDecodeEnableEpoch:                         109,
 			BarnardOpcodesEnableEpoch:                                110,
 			AutomaticActivationOfNodesDisableEpoch:                   111,
+			FixGetBalanceEnableEpoch:                                 112,
 			MaxNodesChangeEnableEpoch: []MaxNodesChangeConfig{
 				{
 					EpochEnable:            44,

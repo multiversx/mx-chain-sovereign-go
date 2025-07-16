@@ -70,7 +70,6 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding/networksharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/state/accounts"
 	"github.com/multiversx/mx-chain-go/state/parsers"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/cache"
@@ -943,13 +942,13 @@ func (pcf *processComponentsFactory) indexAndReturnGenesisAccounts() (map[string
 
 	genesisAccounts := make(map[string]*alteredAccount.AlteredAccount, 0)
 	for leaf := range leavesChannels.LeavesChan {
-		userAccount, errUnmarshal := pcf.unmarshalUserAccount(leaf.Value())
+		userAccount, errUnmarshal := pcf.getUserAccount(leaf.Key(), leaf.Value())
 		if errUnmarshal != nil {
 			log.Debug("cannot unmarshal genesis user account. it may be a code leaf", "error", errUnmarshal)
 			continue
 		}
 
-		encodedAddress, errEncode := pcf.coreData.AddressPubKeyConverter().Encode(userAccount.GetAddress())
+		encodedAddress, errEncode := pcf.coreData.AddressPubKeyConverter().Encode(userAccount.AddressBytes())
 		if errEncode != nil {
 			return map[string]*alteredAccount.AlteredAccount{}, errEncode
 		}
@@ -971,19 +970,28 @@ func (pcf *processComponentsFactory) indexAndReturnGenesisAccounts() (map[string
 	}
 
 	shardID := pcf.bootstrapComponents.ShardCoordinator().SelfId()
+	blockTimestamp := uint64(pcf.coreData.GenesisNodesSetup().GetStartTime())
 	pcf.statusComponents.OutportHandler().SaveAccounts(&outport.Accounts{
-		ShardID:         shardID,
-		BlockTimestamp:  uint64(pcf.coreData.GenesisNodesSetup().GetStartTime()),
-		AlteredAccounts: genesisAccounts,
+		ShardID:          shardID,
+		BlockTimestamp:   blockTimestamp,
+		AlteredAccounts:  genesisAccounts,
+		BlockTimestampMs: common.ConvertTimeStampSecToMs(blockTimestamp),
 	})
 	return genesisAccounts, nil
 }
 
-func (pcf *processComponentsFactory) unmarshalUserAccount(userAccountsBytes []byte) (*accounts.UserAccountData, error) {
-	userAccount := &accounts.UserAccountData{}
-	err := pcf.coreData.InternalMarshalizer().Unmarshal(userAccount, userAccountsBytes)
+func (pcf *processComponentsFactory) getUserAccount(
+	address []byte,
+	userAccountsBytes []byte,
+) (state.UserAccountHandler, error) {
+	account, err := pcf.state.AccountsAdapter().GetAccountFromBytes(address, userAccountsBytes)
 	if err != nil {
 		return nil, err
+	}
+
+	userAccount, ok := account.(state.UserAccountHandler)
+	if !ok {
+		return nil, process.ErrWrongTypeAssertion
 	}
 
 	return userAccount, nil

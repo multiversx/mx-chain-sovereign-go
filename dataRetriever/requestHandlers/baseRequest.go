@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -159,4 +160,8 @@ func (br *baseRequest) getEquivalentProofsRequester(headerShard uint32) (dataRet
 	}
 
 	return requester, nil
+}
+
+func (br *baseRequest) getCrossRequesterForHashes(destShardID uint32, topic string) (dataRetriever.Requester, error) {
+	return br.requestersFinder.CrossShardRequester(topic, destShardID)
 }

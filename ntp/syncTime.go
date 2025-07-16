@@ -42,11 +42,11 @@ const minTimeout = 100
 
 // outOfBoundsRoundDurationPercentage specifies the percentage of the round duration
 // that determines the allowable clock offset beyond the defined limits.
-const outOfBoundsRoundDurationPercentage = 20 // 20% * roundDuration
+const outOfBoundsRoundDurationPercentage = 10 // 10% * roundDuration
 
 // maxAllowedNTPQueryResponseTimeMS specifies the maximum duration (in milliseconds)
 // allowed for an NTP query. If a query takes longer than this limit, its response will be disregarded.
-const maxAllowedNTPQueryResponseTimeMS = 200
+const maxAllowedNTPQueryResponseTimeMS = 100
 
 // NTPOptions defines configuration options for a NTP query
 type NTPOptions struct {
