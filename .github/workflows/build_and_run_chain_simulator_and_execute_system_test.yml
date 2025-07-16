@@ -514,7 +514,6 @@ jobs:
             echo "SLACK_WEBHOOK_URL not set. Skipping Slack notification."
             exit 0
           fi
-          
           status="❌ FAILED"
           [ "${PYTEST_EXIT_CODE}" = "0" ] && status="✅ PASSED"
           repo="${GITHUB_REPOSITORY##*/}"
