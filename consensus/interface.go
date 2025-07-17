@@ -253,5 +253,6 @@ type ProofHandler interface {
 	GetHeaderNonce() uint64
 	GetHeaderShardId() uint32
 	GetIsStartOfEpoch() bool
+	GetExtraSignatureHandlers() map[string]data.ExtraSignatureDataHandler
 	IsInterfaceNil() bool
 }

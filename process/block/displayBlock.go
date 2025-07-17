@@ -138,7 +138,7 @@ func (txc *transactionCounter) displayLogInfo(
 	dataPool dataRetriever.PoolsHolder,
 	blockTracker process.BlockTracker,
 ) {
-	headerProof, _ := dataPool.Proofs().GetProof(selfId, headerHash)
+	headerProof, _ := dataPool.Proofs().GetProofByNonce(header.GetNonce(), header.GetShardID())
 	dispHeader, dispLines := txc.createDisplayableShardHeaderAndBlockBody(header, body, headerProof)
 
 	tblString, err := display.CreateTableString(dispHeader, dispLines)

@@ -326,7 +326,8 @@ func (fct *factory) GenerateEndRoundSubround() (bls.SubRoundEndHandler, error) {
 		return nil, err
 	}
 
-	fct.worker.AddReceivedProofHandler(subroundEndRoundObject.receivedProof)
+	// TODO: MX-17039 REVERT THIS BACK
+	//fct.worker.AddReceivedProofHandler(subroundEndRoundObject.receivedProof)
 	fct.worker.AddReceivedMessageCall(bls.MtInvalidSigners, subroundEndRoundObject.receivedInvalidSignersInfo)
 	fct.worker.AddReceivedMessageCall(bls.MtSignature, subroundEndRoundObject.receivedSignature)
 

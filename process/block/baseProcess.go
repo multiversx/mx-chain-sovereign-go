@@ -503,14 +503,60 @@ func displayHeader(
 				"",
 				"Nonce",
 				fmt.Sprintf("%d", proofNonce)}),
-			display.NewLineData(true, []string{
-				"",
-				"IsStartOfEpoch",
-				fmt.Sprintf("%t", isStartOfEpoch)}),
+		)
+
+		logLines = displayProofsExtraSignatures(logLines, headerProof.GetExtraSignatureHandlers())
+
+		logLines = append(logLines, display.NewLineData(true, []string{
+			"",
+			"IsStartOfEpoch",
+			fmt.Sprintf("%t", isStartOfEpoch)}),
 		)
 	}
 
 	return logLines
+}
+
+func displayProofsExtraSignatures(
+	lines []*display.LineData,
+	proofExtraSignatures map[string]data.ExtraSignatureDataHandler,
+) []*display.LineData {
+	for id, proofData := range proofExtraSignatures {
+		lines = displayProofExtraSignatures(lines, id, proofData)
+	}
+
+	return lines
+}
+
+func displayProofExtraSignatures(
+	lines []*display.LineData,
+	id string,
+	proofData data.ExtraSignatureDataHandler,
+) []*display.LineData {
+	// TODO Check.ifNil here, add it to CORE
+	if proofData == nil {
+		return lines
+	}
+
+	lines = append(lines, display.NewLineData(false, []string{
+		"Extra signature",
+		"ID",
+		id}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Aggregated Signature",
+		logger.DisplayByteSlice(proofData.GetAggregatedSignature())}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Leader Signature",
+		logger.DisplayByteSlice(proofData.GetLeaderSignature())}),
+	)
+
+	lines[len(lines)-1].HorizontalRuleAfter = true
+
+	return lines
 }
 
 // checkProcessorParameters will check the input parameters values
@@ -1593,7 +1639,7 @@ func (bp *baseProcessor) saveProof(
 		return
 	}
 
-	proof, err := bp.proofsPool.GetProof(header.GetShardID(), hash)
+	proof, err := bp.proofsPool.GetProofByNonce(header.GetNonce(), header.GetShardID())
 	if err != nil {
 		log.Error("could not find proof for header",
 			"hash", hex.EncodeToString(hash),
