@@ -884,7 +884,13 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 
 	scbp.blockChainHook.SetCurrentHeader(headerHandler)
 
-	scbp.txCoordinator.RequestBlockTransactions(body)
+	// At the start of an epoch, there should be no "unknown" operations present in the block.
+	// All operations (e.g., rewards, outgoing miniblocks for validator set changes, etc.) added to the epoch start block
+	// are deterministic and must be computed independently by all participants, without requiring additional data fetches.
+	if !sovChainHeader.IsStartOfEpochBlock() {
+		scbp.txCoordinator.RequestBlockTransactions(body)
+	}
+
 	requestedExtendedShardHdrs := scbp.requestExtendedShardHeaders(sovChainHeader)
 
 	if haveTime() < 0 {
@@ -894,13 +900,6 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 	err = scbp.txCoordinator.IsDataPreparedForProcessing(haveTime)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	// At the start of an epoch, there should be no "unknown" operations present in the block.
-	// All operations (e.g., rewards, outgoing miniblocks for validator set changes, etc.) added to the epoch start block
-	// are deterministic and must be computed independently by all participants, without requiring additional data fetches.
-	if !sovChainHeader.IsStartOfEpochBlock() {
-		scbp.txCoordinator.RequestBlockTransactions(body)
 	}
 
 	err = scbp.waitForExtendedHeadersIfMissing(requestedExtendedShardHdrs, haveTime)
