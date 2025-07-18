@@ -78,6 +78,7 @@ type SubRoundEndExtraSignatureHandler interface {
 	SetAggregatedSignatureInHeader(header data.HeaderHandler, aggregatedSig []byte) error
 	SetConsensusDataInHeader(header data.HeaderHandler, cnsMsg *Message) error
 	VerifyAggregatedSignatures(bitmap []byte, header data.HeaderHandler) error
+	GetLeaderExtraSig(header data.HeaderHandler) ([]byte, error)
 	Identifier() string
 	IsInterfaceNil() bool
 }

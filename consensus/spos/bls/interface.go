@@ -35,6 +35,7 @@ type SubRoundEndExtraSignersHolder interface {
 	SetAggregatedSignatureInHeader(header data.HeaderHandler, aggregatedSigs map[string][]byte) error
 	VerifyAggregatedSignatures(header data.HeaderHandler, bitmap []byte) error
 	HaveConsensusHeaderWithFullInfo(header data.HeaderHandler, cnsMsg *consensus.Message) error
+	GetLeaderExtraSig(header data.HeaderHandler, id string) ([]byte, error)
 	RegisterExtraSigningHandler(extraSigner consensus.SubRoundEndExtraSignatureHandler) error
 	IsInterfaceNil() bool
 }

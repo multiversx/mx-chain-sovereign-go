@@ -679,12 +679,14 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 			continue
 		}
 
+		leaderSig, err := sr.extraSignersHolder.GetLeaderExtraSig(sr.GetHeader(), id)
+		if err != nil {
+			return err
+		}
+
 		extraSigs[id] = &block.ExtraSignatureData{
-			// TODO: MX-17039 I think we need to remove SignatureShare from this proof
-			SignatureShare:      nil,
 			AggregatedSignature: aggSig,
-			LeaderSignature:     nil,
-			//OperationHash: ?
+			LeaderSignature:     leaderSig,
 		}
 	}
 

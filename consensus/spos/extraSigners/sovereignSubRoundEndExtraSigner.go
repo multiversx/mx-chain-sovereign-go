@@ -164,6 +164,21 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 	return sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMb)
 }
 
+// GetLeaderExtraSig will return the leader extra sig from the header
+func (sr *sovereignSubRoundEndOutGoingTxData) GetLeaderExtraSig(header data.HeaderHandler) ([]byte, error) {
+	sovHeader, castOk := header.(data.SovereignChainHeaderHandler)
+	if !castOk {
+		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetConsensusDataInHeader", errors.ErrWrongTypeAssertion)
+	}
+
+	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
+	if check.IfNil(outGoingMb) {
+		return nil, nil
+	}
+
+	return outGoingMb.GetLeaderSignatureOutGoingOperations(), nil
+}
+
 // AddLeaderAndAggregatedSignatures adds aggregated and leader signature in consensus message with provided data from header
 func (sr *sovereignSubRoundEndOutGoingTxData) AddLeaderAndAggregatedSignatures(header data.HeaderHandler, cnsMsg *consensus.Message) error {
 	sovHeader, castOk := header.(data.SovereignChainHeaderHandler)
