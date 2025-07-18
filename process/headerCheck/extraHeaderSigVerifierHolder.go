@@ -25,20 +25,18 @@ func NewExtraHeaderSigVerifierHolder() *extraHeaderSigVerifierHolder {
 }
 
 // VerifyAggregatedSignature calls VerifyAggregatedSignature for all registered verifiers
-func (holder *extraHeaderSigVerifierHolder) VerifyAggregatedSignature(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+func (holder *extraHeaderSigVerifierHolder) VerifyAggregatedSignature(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 	holder.mutExtraVerifiers.RLock()
 	defer holder.mutExtraVerifiers.RUnlock()
 
 	for id, extraSigner := range holder.extraVerifiers {
-		err := extraSigner.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
+		err := extraSigner.VerifyAggregatedSignature(proof, header, multiSigVerifier, pubKeysSigners)
 		if err != nil {
 			log.Error("holder.VerifyAggregatedSignature",
 				"error", err.Error(),
 				"id", id,
 			)
-			// TODO: MX-17039 Restore these once we have extra sigs working
-			//return err
-			return nil
+			return err
 		}
 	}
 

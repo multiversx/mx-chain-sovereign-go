@@ -672,12 +672,19 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		return ErrProofAlreadyPropagated
 	}
 
+	// Iterate over outgoing mbs and add in map below, along with operation hash
 	extraSigs := make(map[string]*block.ExtraSignatureData)
 	for id, aggSig := range extraAggregatedSigs {
+		if len(aggSig) == 0 {
+			continue
+		}
+
 		extraSigs[id] = &block.ExtraSignatureData{
-			SignatureShare:      aggSig,
-			AggregatedSignature: nil,
+			// TODO: MX-17039 I think we need to remove SignatureShare from this proof
+			SignatureShare:      nil,
+			AggregatedSignature: aggSig,
 			LeaderSignature:     nil,
+			//OperationHash: ?
 		}
 	}
 

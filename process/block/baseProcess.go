@@ -503,15 +503,13 @@ func displayHeader(
 				"",
 				"Nonce",
 				fmt.Sprintf("%d", proofNonce)}),
+			display.NewLineData(true, []string{
+				"",
+				"IsStartOfEpoch",
+				fmt.Sprintf("%t", isStartOfEpoch)}),
 		)
 
 		logLines = displayProofsExtraSignatures(logLines, headerProof.GetExtraSignatureHandlers())
-
-		logLines = append(logLines, display.NewLineData(true, []string{
-			"",
-			"IsStartOfEpoch",
-			fmt.Sprintf("%t", isStartOfEpoch)}),
-		)
 	}
 
 	return logLines
@@ -539,7 +537,7 @@ func displayProofExtraSignatures(
 	}
 
 	lines = append(lines, display.NewLineData(false, []string{
-		"Extra signature",
+		"Header proof extra signature",
 		"ID",
 		id}),
 	)

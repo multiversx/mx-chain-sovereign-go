@@ -5,29 +5,40 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
 type sovereignHeaderSigVerifier struct {
-	singleSigVerifier crypto.SingleSigner
+	singleSigVerifier   crypto.SingleSigner
+	enableEpochsHandler common.EnableEpochsHandler
 }
 
 // NewSovereignHeaderSigVerifier creates a new sovereign header sig verifier for outgoing operations
-func NewSovereignHeaderSigVerifier(singleSigVerifier crypto.SingleSigner) (*sovereignHeaderSigVerifier, error) {
+func NewSovereignHeaderSigVerifier(
+	singleSigVerifier crypto.SingleSigner,
+	enableEpochsHandler common.EnableEpochsHandler,
+) (*sovereignHeaderSigVerifier, error) {
 	if check.IfNil(singleSigVerifier) {
 		return nil, process.ErrNilSingleSigner
 	}
+	if check.IfNil(enableEpochsHandler) {
+		return nil, errors.ErrNilEnableEpochsHandler
+	}
 
 	return &sovereignHeaderSigVerifier{
-		singleSigVerifier: singleSigVerifier,
+		singleSigVerifier:   singleSigVerifier,
+		enableEpochsHandler: enableEpochsHandler,
 	}, nil
 }
 
 // VerifyAggregatedSignature verifies aggregated sig for outgoing operations
 func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
+	proof data.HeaderProofHandler,
 	header data.HeaderHandler,
 	multiSigVerifier crypto.MultiSigner,
 	pubKeysSigners [][]byte,
@@ -38,10 +49,26 @@ func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
+		aggregatedSig := outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()
+
+		if hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+			if check.IfNil(proof) {
+				return process.ErrNilHeaderProof
+			}
+
+			extraSigHandler, found := proof.GetExtraSignatureHandlers()[block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()]
+			if !found {
+				return fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",
+					errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound())
+			}
+
+			aggregatedSig = extraSigHandler.GetAggregatedSignature()
+		}
+
 		err := multiSigVerifier.VerifyAggregatedSig(
 			pubKeysSigners,
 			outGoingMBHdr.GetOutGoingOperationsHash(),
-			outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(),
+			aggregatedSig,
 		)
 		if err != nil {
 			return err

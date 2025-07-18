@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -306,7 +307,7 @@ func (hsv *HeaderSigVerifier) VerifySignatureForHash(header data.HeaderHandler, 
 		return err
 	}
 
-	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(nil, header, multiSigVerifier, pubKeysSigners)
 }
 
 func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
@@ -314,7 +315,7 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	var err error
 
 	for {
-		header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
+		header, err = hsv.getHeaderForProof(proof)
 		if err == nil {
 			break
 		}
@@ -328,6 +329,18 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	}
 
 	return header, nil
+}
+
+func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
+	hdr, _, err := process.GetShardHeaderWithNonce(
+		proof.GetHeaderNonce(),
+		proof.GetHeaderShardId(),
+		hsv.headersPool,
+		hsv.marshalizer,
+		hsv.storageService,
+		uint64ByteSlice.NewBigEndianConverter(),
+	)
+	return hdr, err
 }
 
 func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderProofHandler) error {
@@ -356,7 +369,12 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
+	if err != nil {
+		return err
+	}
+
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(proof, header, multiSigVerifier, consensusPubKeys)
 }
 
 // TODO: MX-17039- verify extra signers
@@ -384,7 +402,17 @@ func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHan
 		return err
 	}
 
-	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	if err != nil {
+		return err
+	}
+
+	header, err := hsv.getHeaderForProof(proofHandler)
+	if err != nil {
+		return err
+	}
+
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(proofHandler, header, multiSigVerifier, consensusPubKeys)
 }
 
 // VerifyRandSeed will check if rand seed is correct
