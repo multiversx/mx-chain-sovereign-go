@@ -89,9 +89,12 @@ func (hsv *sovereignHeaderSigVerifier) VerifyLeaderSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
-		leaderMsgToSign := append(
-			outGoingMBHdr.GetOutGoingOperationsHash(),
-			outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
+		leaderMsgToSign := outGoingMBHdr.GetOutGoingOperationsHash()
+
+		// In consensus v2 leader will only sign the outgoing op hash
+		if !hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+			leaderMsgToSign = append(leaderMsgToSign, outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
+		}
 
 		err := hsv.singleSigVerifier.Verify(
 			leaderPubKey,

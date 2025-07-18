@@ -55,9 +55,7 @@ func (holder *extraHeaderSigVerifierHolder) VerifyLeaderSignature(header data.He
 				"error", err.Error(),
 				"id", id,
 			)
-			// TODO: MX-17039 Restore these once we have extra sigs working
-			// return err
-			return nil
+			return err
 		}
 	}
 

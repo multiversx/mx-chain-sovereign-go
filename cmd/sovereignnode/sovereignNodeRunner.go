@@ -978,7 +978,7 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 
-	extraSignersHolder, err := createOutGoingTxDataSigners(cryptoComponents.ConsensusSigningHandler())
+	extraSignersHolder, err := createOutGoingTxDataSigners(cryptoComponents.ConsensusSigningHandler(), coreComponents.EnableEpochsHandler())
 	if err != nil {
 		return nil, err
 	}
@@ -1019,7 +1019,7 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 	return managedConsensusComponents, nil
 }
 
-func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.ExtraSignersHolder, error) {
+func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler, enableEpochsHandler common.EnableEpochsHandler) (bls.ExtraSignersHolder, error) {
 	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
@@ -1046,7 +1046,7 @@ func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.E
 			return nil, err
 		}
 
-		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType)
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType, enableEpochsHandler)
 		if err != nil {
 			return nil, err
 		}

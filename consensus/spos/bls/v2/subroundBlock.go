@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 )
 
 // maxAllowedSizeInBytes defines how many bytes are allowed as payload in a message
@@ -28,6 +29,7 @@ type subroundBlock struct {
 	worker                        spos.WorkerHandler
 	mutBlockProcessing            sync.Mutex
 	enableEpochHandler            common.EnableEpochsHandler
+	extraSignersHolder            bls.SubRoundEndExtraSignersHolder
 }
 
 // NewSubroundBlock creates a subroundBlock object
@@ -35,6 +37,7 @@ func NewSubroundBlock(
 	baseSubround *spos.Subround,
 	processingThresholdPercentage int,
 	worker spos.WorkerHandler,
+	extraSignersHolder bls.SubRoundEndExtraSignersHolder,
 ) (*subroundBlock, error) {
 	err := checkNewSubroundBlockParams(baseSubround)
 	if err != nil {
@@ -44,12 +47,16 @@ func NewSubroundBlock(
 	if check.IfNil(worker) {
 		return nil, spos.ErrNilWorker
 	}
+	if check.IfNil(extraSignersHolder) {
+		return nil, errors.ErrNilEndRoundExtraSignersHolder
+	}
 
 	srBlock := subroundBlock{
 		Subround:                      baseSubround,
 		processingThresholdPercentage: processingThresholdPercentage,
 		worker:                        worker,
 		enableEpochHandler:            baseSubround.EnableEpochsHandler(),
+		extraSignersHolder:            extraSignersHolder,
 	}
 
 	srBlock.Job = srBlock.doBlockJob
@@ -134,7 +141,7 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 	// TODO: MX-17039- check here for extra signers maybe from sub round end round
 
 	// block proof verification should be done over the header that contains the leader signature
-	leaderSignature, err := sr.signBlockHeader(header)
+	leaderPubKey, leaderSignature, err := sr.signBlockHeader(header)
 	if err != nil {
 		printLogMessage(ctx, "doBlockJob.signBlockHeader", err)
 		return nil, func() {}
@@ -143,6 +150,12 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 	err = header.SetLeaderSignature(leaderSignature)
 	if err != nil {
 		printLogMessage(ctx, "doBlockJob.SetLeaderSignature", err)
+		return nil, func() {}
+	}
+
+	err = sr.extraSignersHolder.SignAndSetLeaderSignature(header, leaderPubKey)
+	if err != nil {
+		log.Debug("doEndRoundJobByLeader.extraSignatureAggregator.SignAndSetLeaderSignature", "error", err.Error())
 		return nil, func() {}
 	}
 
@@ -164,24 +177,30 @@ func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundB
 	}, deferFunc
 }
 
-func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, error) {
+func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, []byte, error) {
 	headerClone := header.ShallowClone()
 	err := headerClone.SetLeaderSignature(nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	marshalledHdr, err := sr.Marshalizer().Marshal(headerClone)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	leader, errGetLeader := sr.GetLeader()
 	if errGetLeader != nil {
-		return nil, errGetLeader
+		return nil, nil, errGetLeader
 	}
 
-	return sr.SigningHandler().CreateSignatureForPublicKey(marshalledHdr, []byte(leader))
+	leaderPubKey := []byte(leader)
+	leaderSignature, err := sr.SigningHandler().CreateSignatureForPublicKey(marshalledHdr, leaderPubKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return leaderPubKey, leaderSignature, nil
 }
 
 func printLogMessage(ctx context.Context, baseMessage string, err error) {
