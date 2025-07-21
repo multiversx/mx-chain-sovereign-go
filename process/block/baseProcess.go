@@ -529,10 +529,9 @@ func displayProofsExtraSignatures(
 func displayProofExtraSignatures(
 	lines []*display.LineData,
 	id string,
-	proofData data.ExtraSignatureDataHandler,
+	extraSigData data.ExtraSignatureDataHandler,
 ) []*display.LineData {
-	// TODO Check.ifNil here, add it to CORE
-	if proofData == nil {
+	if check.IfNil(extraSigData) {
 		return lines
 	}
 
@@ -544,12 +543,12 @@ func displayProofExtraSignatures(
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"Aggregated Signature",
-		logger.DisplayByteSlice(proofData.GetAggregatedSignature())}),
+		logger.DisplayByteSlice(extraSigData.GetAggregatedSignature())}),
 	)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"Leader Signature",
-		logger.DisplayByteSlice(proofData.GetLeaderSignature())}),
+		logger.DisplayByteSlice(extraSigData.GetLeaderSignature())}),
 	)
 
 	lines[len(lines)-1].HorizontalRuleAfter = true

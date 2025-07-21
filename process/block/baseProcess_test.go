@@ -33,8 +33,8 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
-	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	proofscache "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/proofsCache"
+	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	blproc "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
@@ -3414,6 +3414,19 @@ func TestBaseProcessor_DisplayHeader(t *testing.T) {
 
 		lines := blproc.DisplayHeader(header, proof)
 		require.Equal(t, 23, len(lines))
+
+		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
+			block.OutGoingMbTx.String(): {
+				AggregatedSignature: []byte("aggSig1"),
+				LeaderSignature:     []byte("leaderSig1"),
+			},
+			block.OutGoingMbChangeValidatorSet.String(): {
+				AggregatedSignature: []byte("aggSig2"),
+				LeaderSignature:     []byte("leaderSig2"),
+			},
+		}
+		lines = blproc.DisplayHeader(header, proof)
+		require.Equal(t, 29, len(lines))
 	})
 	t.Run("meta header with proof info", func(t *testing.T) {
 		t.Parallel()
