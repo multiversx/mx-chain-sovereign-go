@@ -693,7 +693,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 	headerProof := &block.HeaderProof{
 		PubKeysBitmap:       bitmap,
 		AggregatedSignature: signature,
-		HeaderHash:          sr.getMessageToVerifySig(), // THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
+		HeaderHash:          sr.getMessageToVerifySig(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
 		HeaderEpoch:         sr.GetHeader().GetEpoch(),
 		HeaderNonce:         sr.GetHeader().GetNonce(),
 		HeaderShardId:       sr.GetHeader().GetShardID(),

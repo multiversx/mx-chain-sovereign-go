@@ -1636,6 +1636,8 @@ func (bp *baseProcessor) saveProof(
 	if !common.IsProofsFlagEnabledForHeader(bp.enableEpochsHandler, header) {
 		return
 	}
+	// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage:
+	// proof, err := bp.proofsPool.GetProof(header.GetShardID(), hash)
 
 	proof, err := bp.proofsPool.GetProofByNonce(header.GetNonce(), header.GetShardID())
 	if err != nil {

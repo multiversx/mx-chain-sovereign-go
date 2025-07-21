@@ -1019,7 +1019,10 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 	return managedConsensusComponents, nil
 }
 
-func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler, enableEpochsHandler common.EnableEpochsHandler) (bls.ExtraSignersHolder, error) {
+func createOutGoingTxDataSigners(
+	signingHandler consensus.SigningHandler,
+	enableEpochsHandler common.EnableEpochsHandler,
+) (bls.ExtraSignersHolder, error) {
 	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
