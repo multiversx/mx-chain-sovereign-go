@@ -672,22 +672,9 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		return ErrProofAlreadyPropagated
 	}
 
-	// Iterate over outgoing mbs and add in map below, along with operation hash
-	extraSigs := make(map[string]*block.ExtraSignatureData)
-	for id, aggSig := range extraAggregatedSigs {
-		if len(aggSig) == 0 {
-			continue
-		}
-
-		leaderSig, err := sr.extraSignersHolder.GetLeaderExtraSig(sr.GetHeader(), id)
-		if err != nil {
-			return err
-		}
-
-		extraSigs[id] = &block.ExtraSignatureData{
-			AggregatedSignature: aggSig,
-			LeaderSignature:     leaderSig,
-		}
+	extraSigs, err := sr.prepareExtraSignaturesForProof(extraAggregatedSigs)
+	if err != nil {
+		return err
 	}
 
 	headerProof := &block.HeaderProof{
@@ -702,7 +689,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		ExtraSignatures:     extraSigs,
 	}
 
-	err := sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
+	err = sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
 	if err != nil {
 		return err
 	}
@@ -713,6 +700,27 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		"proof sender", hex.EncodeToString([]byte(sender)))
 
 	return nil
+}
+
+func (sr *subroundEndRound) prepareExtraSignaturesForProof(extraAggregatedSigs map[string][]byte) (map[string]*block.ExtraSignatureData, error) {
+	extraSigs := make(map[string]*block.ExtraSignatureData)
+	for id, aggSig := range extraAggregatedSigs {
+		if len(aggSig) == 0 {
+			continue
+		}
+
+		leaderSig, err := sr.extraSignersHolder.GetLeaderExtraSig(sr.GetHeader(), id)
+		if err != nil {
+			return nil, err
+		}
+
+		extraSigs[id] = &block.ExtraSignatureData{
+			AggregatedSignature: aggSig,
+			LeaderSignature:     leaderSig,
+		}
+	}
+
+	return extraSigs, nil
 }
 
 func (sr *subroundEndRound) getEquivalentProofSender() string {

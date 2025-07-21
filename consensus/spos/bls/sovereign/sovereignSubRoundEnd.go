@@ -65,6 +65,16 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
 	sr.subroundEndRoundV2.ReceivedProof(proof)
 
+	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
+		PubKeysBitmap:   proof.GetPubKeysBitmap(),
+		ExtraSignatures: getExtraSigsOutGoingOps(proof),
+	})
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
+	}
+}
+
+func getExtraSigsOutGoingOps(proof consensus.ProofHandler) map[string]*consensus.ExtraSignatureData {
 	extraSigsOutGoingOps := make(map[string]*consensus.ExtraSignatureData)
 
 	for id, sigData := range proof.GetExtraSignatureHandlers() {
@@ -74,13 +84,7 @@ func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
 		}
 	}
 
-	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
-		PubKeysBitmap:   proof.GetPubKeysBitmap(),
-		ExtraSignatures: extraSigsOutGoingOps,
-	})
-	if err != nil {
-		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
-	}
+	return extraSigsOutGoingOps
 }
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {

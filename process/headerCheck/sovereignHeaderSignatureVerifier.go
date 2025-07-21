@@ -49,23 +49,12 @@ func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
-		aggregatedSig := outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()
-
-		if hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
-			if check.IfNil(proof) {
-				return process.ErrNilHeaderProof
-			}
-
-			extraSigHandler, found := proof.GetExtraSignatureHandlers()[block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()]
-			if !found {
-				return fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",
-					errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound())
-			}
-
-			aggregatedSig = extraSigHandler.GetAggregatedSignature()
+		aggregatedSig, err := hsv.getAggregatedSignature(outGoingMBHdr, proof)
+		if err != nil {
+			return err
 		}
 
-		err := multiSigVerifier.VerifyAggregatedSig(
+		err = multiSigVerifier.VerifyAggregatedSig(
 			pubKeysSigners,
 			outGoingMBHdr.GetOutGoingOperationsHash(),
 			aggregatedSig,
@@ -76,6 +65,28 @@ func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
 	}
 
 	return nil
+}
+
+func (hsv *sovereignHeaderSigVerifier) getAggregatedSignature(
+	outGoingMBHdr data.OutGoingMiniBlockHeaderHandler,
+	proof data.HeaderProofHandler,
+) ([]byte, error) {
+	if !hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+		return outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(), nil
+	}
+
+	if check.IfNil(proof) {
+		return nil, process.ErrNilHeaderProof
+	}
+
+	mbTypeStr := block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()
+	extraSigHandler, found := proof.GetExtraSignatureHandlers()[mbTypeStr]
+	if !found {
+		return nil, fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",
+			errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound())
+	}
+
+	return extraSigHandler.GetAggregatedSignature(), nil
 }
 
 // VerifyLeaderSignature verifies leader sig for outgoing operations
@@ -89,16 +100,9 @@ func (hsv *sovereignHeaderSigVerifier) VerifyLeaderSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
-		leaderMsgToSign := outGoingMBHdr.GetOutGoingOperationsHash()
-
-		// In consensus v2 leader will only sign the outgoing op hash
-		if !hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
-			leaderMsgToSign = append(leaderMsgToSign, outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
-		}
-
 		err := hsv.singleSigVerifier.Verify(
 			leaderPubKey,
-			leaderMsgToSign,
+			hsv.getLeaderSignedMessage(outGoingMBHdr),
 			outGoingMBHdr.GetLeaderSignatureOutGoingOperations())
 		if err != nil {
 			return err
@@ -106,6 +110,15 @@ func (hsv *sovereignHeaderSigVerifier) VerifyLeaderSignature(
 	}
 
 	return nil
+}
+
+func (hsv *sovereignHeaderSigVerifier) getLeaderSignedMessage(outGoingMBHdr data.OutGoingMiniBlockHeaderHandler) []byte {
+	// In consensus v2 leader will only sign the outgoing op hash
+	if hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+		return outGoingMBHdr.GetOutGoingOperationsHash()
+	}
+
+	return append(outGoingMBHdr.GetOutGoingOperationsHash(), outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
 }
 
 // RemoveLeaderSignature removes leader sig from outgoing operations

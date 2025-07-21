@@ -314,6 +314,8 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	var err error
 
 	for {
+		// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage
+		// header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
 		header, err = hsv.getHeaderForProof(proof)
 		if err == nil {
 			break
@@ -337,6 +339,7 @@ func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (
 		hsv.headersPool,
 		hsv.marshalizer,
 		hsv.storageService,
+		// TODO: MX-17040: This shall be either injected from constructor, or totally replaced if we use processed header hash
 		uint64ByteSlice.NewBigEndianConverter(),
 	)
 	return hdr, err
