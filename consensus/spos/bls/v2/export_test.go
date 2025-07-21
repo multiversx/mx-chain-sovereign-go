@@ -257,8 +257,8 @@ func (sr *subroundEndRound) DoEndRoundJobByNode() bool {
 }
 
 // CreateAndBroadcastProof calls the unexported createAndBroadcastHeaderFinalInfo function
-func (sr *subroundEndRound) CreateAndBroadcastProof(signature []byte, bitmap []byte) {
-	_ = sr.createAndBroadcastProof(signature, bitmap, "sender")
+func (sr *subroundEndRound) CreateAndBroadcastProof(signature []byte, bitmap []byte, extraAggregatedSigs map[string][]byte) {
+	_ = sr.createAndBroadcastProof(signature, bitmap, "sender", extraAggregatedSigs)
 }
 
 // IsOutOfTime calls the unexported isOutOfTime function

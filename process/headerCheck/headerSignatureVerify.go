@@ -333,7 +333,12 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 }
 
 func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
-	hdr, _, err := process.GetShardHeaderWithNonce(
+	hdr, err := process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
+	if err == nil {
+		return hdr, nil
+	}
+
+	hdr, _, err = process.GetShardHeaderWithNonce(
 		proof.GetHeaderNonce(),
 		proof.GetHeaderShardId(),
 		hsv.headersPool,

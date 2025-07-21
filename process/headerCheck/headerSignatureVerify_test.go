@@ -717,7 +717,7 @@ func TestHeaderSigVerifier_VerifySignatureOk(t *testing.T) {
 		}})
 
 	args.ExtraHeaderSigVerifierHolder = &headerSigVerifier.ExtraHeaderSigVerifierHolderMock{
-		VerifyAggregatedSignatureCalled: func(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+		VerifyAggregatedSignatureCalled: func(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 			wasExtraHdrSigVerifierCalled = true
 			return nil
 		},
