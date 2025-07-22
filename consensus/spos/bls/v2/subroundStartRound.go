@@ -13,7 +13,10 @@ import (
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/outport/disabled"
 )
@@ -27,6 +30,7 @@ type subroundStartRound struct {
 	worker               spos.WorkerHandler
 	outportHandler       outport.OutportHandler
 	outportMutex         sync.RWMutex
+	extraSignersHolder   bls.SubRoundStartExtraSignersHolder
 }
 
 // NewSubroundStartRound creates a subroundStartRound object
@@ -35,6 +39,7 @@ func NewSubroundStartRound(
 	processingThresholdPercentage int,
 	sentSignatureTracker spos.SentSignaturesTracker,
 	worker spos.WorkerHandler,
+	extraSignersHolder bls.SubRoundStartExtraSignersHolder,
 ) (*subroundStartRound, error) {
 	err := checkNewSubroundStartRoundParams(
 		baseSubround,
@@ -48,6 +53,9 @@ func NewSubroundStartRound(
 	if check.IfNil(worker) {
 		return nil, spos.ErrNilWorker
 	}
+	if check.IfNil(extraSignersHolder) {
+		return nil, errors.ErrNilStartRoundExtraSignersHolder
+	}
 
 	srStartRound := subroundStartRound{
 		Subround:                      baseSubround,
@@ -56,6 +64,7 @@ func NewSubroundStartRound(
 		worker:                        worker,
 		outportHandler:                disabled.NewDisabledOutport(),
 		outportMutex:                  sync.RWMutex{},
+		extraSignersHolder:            extraSignersHolder,
 	}
 	srStartRound.Job = srStartRound.doStartRoundJob
 	srStartRound.Check = srStartRound.doStartRoundConsensusCheck
@@ -200,6 +209,13 @@ func (sr *subroundStartRound) initCurrentRound() bool {
 		return false
 	}
 
+	err = sr.extraSignersHolder.Reset(pubKeys)
+	if err != nil {
+		log.Debug("initCurrentRound.extraSignersHolder.reset", "error", err.Error())
+		sr.SetRoundCanceled(true)
+		return false
+	}
+
 	startTime := sr.GetRoundTimeStamp()
 	maxTime := sr.RoundHandler().TimeDuration() * time.Duration(sr.processingThresholdPercentage) / 100
 	if sr.RoundHandler().RemainingTime(startTime, maxTime) < 0 {
@@ -274,7 +290,7 @@ func (sr *subroundStartRound) indexRoundIfNeeded(pubKeys []string) {
 		BlockWasProposed: false,
 		ShardId:          shardId,
 		Epoch:            epoch,
-		Timestamp:        uint64(sr.GetRoundTimeStamp().Unix()),
+		Timestamp:        uint64(runType.TimeToUnix(sr.GetRoundTimeStamp())),
 	}
 	roundsInfo := &outportcore.RoundsInfo{
 		ShardID:    shardId,

@@ -339,7 +339,7 @@ func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	subRoundsMap := make(map[string]struct{})
 	chrm.AddSubroundCalled = func(subroundHandler consensus.SubroundHandler) {
 		subRoundHandlerName := fmt.Sprintf("%T", subroundHandler)
-		// TODO: Marius C: MX-16954 rename all rounds with sovereign name to have this working?
+		// TODO: Marius C: MX-17040 rename all rounds with sovereign name to have this working?
 		//	require.True(t, strings.Contains(subRoundHandlerName, "sovereign"))
 		subRoundsMap[subRoundHandlerName] = struct{}{}
 	}
@@ -375,4 +375,4 @@ func TestFactory_SetIndexerShouldWork(t *testing.T) {
 	require.Equal(t, outportHandler, fct.Outport())
 }
 
-// TODO: Marius C: MX-16954 Mock for base factory and check that we do not call AddReceivedMessageCall more times than necessary
+// TODO: Marius C: MX-17040 Mock for base factory and check that we do not call AddReceivedMessageCall more times than necessary

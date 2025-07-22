@@ -26,6 +26,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 )
 
 func BenchmarkSubroundSignature_doSignatureJobForManagedKeys63(b *testing.B) {
@@ -120,6 +121,7 @@ func benchmarkSubroundSignatureDoSignatureJobForManagedKeys(b *testing.B, number
 		},
 		&consensus.SposWorkerMock{},
 		&nodeMock.ThrottlerStub{},
+		&subRounds.SubRoundSignatureExtraSignersHolderMock{},
 	)
 
 	sr.SetHeader(&block.Header{})

@@ -1,15 +1,28 @@
 package processMocks
 
+import (
+	"github.com/multiversx/mx-chain-core-go/data"
+)
+
 // HeaderProofHandlerStub -
 type HeaderProofHandlerStub struct {
-	GetPubKeysBitmapCalled       func() []byte
-	GetAggregatedSignatureCalled func() []byte
-	GetHeaderHashCalled          func() []byte
-	GetHeaderEpochCalled         func() uint32
-	GetHeaderNonceCalled         func() uint64
-	GetHeaderShardIdCalled       func() uint32
-	GetHeaderRoundCalled         func() uint64
-	GetIsStartOfEpochCalled      func() bool
+	GetPubKeysBitmapCalled          func() []byte
+	GetAggregatedSignatureCalled    func() []byte
+	GetHeaderHashCalled             func() []byte
+	GetHeaderEpochCalled            func() uint32
+	GetHeaderNonceCalled            func() uint64
+	GetHeaderShardIdCalled          func() uint32
+	GetHeaderRoundCalled            func() uint64
+	GetIsStartOfEpochCalled         func() bool
+	GetExtraSignatureHandlersCalled func() map[string]data.ExtraSignatureDataHandler
+}
+
+func (h *HeaderProofHandlerStub) GetExtraSignatureHandlers() map[string]data.ExtraSignatureDataHandler {
+	if h.GetExtraSignatureHandlersCalled != nil {
+		return h.GetExtraSignatureHandlersCalled()
+	}
+
+	return nil
 }
 
 // GetPubKeysBitmap -

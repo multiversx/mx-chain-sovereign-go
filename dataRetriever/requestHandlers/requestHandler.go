@@ -135,7 +135,7 @@ func (rrh *resolverRequestHandler) requestByHashes(destShardID uint32, hashes []
 		"shard", destShardID,
 		"num txs", len(unrequestedHashes),
 	)
-	requester, err := rrh.requestersFinder.CrossShardRequester(topic, destShardID)
+	requester, err := rrh.baseRequestHandler.getCrossRequesterForHashes(destShardID, topic)
 	if err != nil {
 		log.Error("requestByHashes.CrossShardRequester",
 			"error", err.Error(),

@@ -3,6 +3,7 @@ package interceptorscontainer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
@@ -90,6 +91,11 @@ func (sicf *sovereignShardInterceptorsContainerFactory) Create() (process.Interc
 	}
 
 	err = sicf.generateSovereignExtendedHeaderInterceptors()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = sicf.generateEquivalentProofsInterceptor()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -216,6 +222,16 @@ func (sicf *sovereignShardInterceptorsContainerFactory) generateSovereignExtende
 	}
 
 	return sicf.addInterceptorsToContainers([]string{identifierHdr}, []process.Interceptor{interceptor})
+}
+
+func (sicf *sovereignShardInterceptorsContainerFactory) generateEquivalentProofsInterceptor() error {
+	identifierEquivalentProofsShard := common.EquivalentProofsTopic + sicf.shardCoordinator.CommunicationIdentifier(core.SovereignChainShardId)
+	interceptorShard, err := sicf.createOneShardEquivalentProofsInterceptor(identifierEquivalentProofsShard)
+	if err != nil {
+		return err
+	}
+
+	return sicf.addInterceptorsToContainers([]string{identifierEquivalentProofsShard}, []process.Interceptor{interceptorShard})
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -31,19 +31,14 @@ type sovereignBootStrapShardProcessor struct {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*block.MiniBlock) error {
-	// TODO: MARIUS C MX-16955
-	// THIS CODE WAS ADDED IN BARNARD AND SHOULD BE ADAPTED FOR SOVEREIGN AS WELL, check: requestAndProcessForShard from
-	// bootStrapShardProcessor.go
-	/*
-		ctx, cancel = context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
-		epochStartShardBlock, epochStartShardBlockHash, err := bp.syncLatestEpochStartShardBlock(epochStartData.GetEpoch(), ctx)
-		cancel()
-		if err != nil {
-			return err
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+	epochStartShardBlock, epochStartShardBlockHash, err := sbp.syncLatestEpochStartShardBlock(sbp.epochStartMeta.GetEpoch(), ctx)
+	cancel()
+	if err != nil {
+		return err
+	}
 
-		bp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
-	*/
+	sbp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
 
 	argsStorageHandler := StorageHandlerArgs{
 		GeneralConfig:                   sbp.generalConfig,
@@ -112,6 +107,26 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 	return sovStorageHandler.SaveDataToStorage(components, sbp.epochStartMeta, false, make(map[string]*block.MiniBlock))
 }
 
+func (sbp *sovereignBootStrapShardProcessor) syncLatestEpochStartShardBlock(targetEpoch uint32, ctx context.Context) (data.HeaderHandler, []byte, error) {
+	prevEpochLatestFinalizedBlock := sbp.prevEpochStartMeta
+	if prevEpochLatestFinalizedBlock == nil {
+		return nil, nil, epochStart.ErrEpochStartDataForShardNotFound
+	}
+
+	sbp.epochStartShardHeaderSyncer.ClearFields()
+	err := sbp.epochStartShardHeaderSyncer.SyncEpochStartShardHeader(sbp.shardCoordinator.SelfId(), targetEpoch, prevEpochLatestFinalizedBlock.GetNonce(), ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	epochStartShardBlock, epochStartShardBlockHash, err := sbp.epochStartShardHeaderSyncer.GetEpochStartHeader()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return epochStartShardBlock, epochStartShardBlockHash, nil
+}
+
 func (sbp *sovereignBootStrapShardProcessor) computeNumShards(_ data.MetaHeaderHandler) uint32 {
 	return 1
 }
@@ -164,23 +179,7 @@ func (sbp *sovereignBootStrapShardProcessor) createResolversContainer() error {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
-	// TODO: MARIUS C MX-16955
-
-	// TAKE FROM ORIGINAL BARNARD CODE: bootStrapShardProcessor.go -> syncHeadersFrom
-	// THIS CODE BELOW TO ALSO SYNC PROOF
-	/*
-		epochStartMetaHash, err := core.CalculateHash(bp.coreComponentsHolder.InternalMarshalizer(), bp.coreComponentsHolder.Hasher(), meta)
-		if err != nil {
-			return nil, err
-		}
-
-		// add the epoch start meta hash to the list to sync its proof
-		// TODO: this can be removed when the proof will be loaded from storage
-		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
-		shardIds = append(shardIds, core.MetachainShardId)
-	*/
-
-	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData, true)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
@@ -189,15 +188,27 @@ func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
 	_ uint32,
 	timeToWaitForRequestedData time.Duration,
 ) (map[string]data.HeaderHandler, error) {
-	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData, false)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 	meta data.MetaHeaderHandler,
 	timeToWaitForRequestedData time.Duration,
+	withCurrentHeader bool,
 ) (map[string]data.HeaderHandler, error) {
 	hashesToRequest := make([][]byte, 0, 2)
 	shardIds := make([]uint32, 0, 2)
+
+	if withCurrentHeader {
+		epochStartMetaHash, err := core.CalculateHash(sbp.coreComponentsHolder.InternalMarshalizer(), sbp.coreComponentsHolder.Hasher(), meta)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: this can be removed when the proof will be loaded from storage
+		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+		shardIds = append(shardIds, core.SovereignChainShardId)
+	}
 
 	for _, epochStartData := range meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
 		hashesToRequest = append(hashesToRequest, epochStartData.GetHeaderHash())

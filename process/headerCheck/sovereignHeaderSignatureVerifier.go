@@ -5,29 +5,40 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
 type sovereignHeaderSigVerifier struct {
-	singleSigVerifier crypto.SingleSigner
+	singleSigVerifier   crypto.SingleSigner
+	enableEpochsHandler common.EnableEpochsHandler
 }
 
 // NewSovereignHeaderSigVerifier creates a new sovereign header sig verifier for outgoing operations
-func NewSovereignHeaderSigVerifier(singleSigVerifier crypto.SingleSigner) (*sovereignHeaderSigVerifier, error) {
+func NewSovereignHeaderSigVerifier(
+	singleSigVerifier crypto.SingleSigner,
+	enableEpochsHandler common.EnableEpochsHandler,
+) (*sovereignHeaderSigVerifier, error) {
 	if check.IfNil(singleSigVerifier) {
 		return nil, process.ErrNilSingleSigner
 	}
+	if check.IfNil(enableEpochsHandler) {
+		return nil, errors.ErrNilEnableEpochsHandler
+	}
 
 	return &sovereignHeaderSigVerifier{
-		singleSigVerifier: singleSigVerifier,
+		singleSigVerifier:   singleSigVerifier,
+		enableEpochsHandler: enableEpochsHandler,
 	}, nil
 }
 
 // VerifyAggregatedSignature verifies aggregated sig for outgoing operations
 func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
+	proof data.HeaderProofHandler,
 	header data.HeaderHandler,
 	multiSigVerifier crypto.MultiSigner,
 	pubKeysSigners [][]byte,
@@ -38,10 +49,15 @@ func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
-		err := multiSigVerifier.VerifyAggregatedSig(
+		aggregatedSig, err := hsv.getAggregatedSignature(outGoingMBHdr, proof)
+		if err != nil {
+			return err
+		}
+
+		err = multiSigVerifier.VerifyAggregatedSig(
 			pubKeysSigners,
 			outGoingMBHdr.GetOutGoingOperationsHash(),
-			outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(),
+			aggregatedSig,
 		)
 		if err != nil {
 			return err
@@ -49,6 +65,28 @@ func (hsv *sovereignHeaderSigVerifier) VerifyAggregatedSignature(
 	}
 
 	return nil
+}
+
+func (hsv *sovereignHeaderSigVerifier) getAggregatedSignature(
+	outGoingMBHdr data.OutGoingMiniBlockHeaderHandler,
+	proof data.HeaderProofHandler,
+) ([]byte, error) {
+	if !hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+		return outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(), nil
+	}
+
+	if check.IfNil(proof) {
+		return nil, process.ErrNilHeaderProof
+	}
+
+	mbTypeStr := block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()
+	extraSigHandler, found := proof.GetExtraSignatureHandlers()[mbTypeStr]
+	if !found {
+		return nil, fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",
+			errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound())
+	}
+
+	return extraSigHandler.GetAggregatedSignature(), nil
 }
 
 // VerifyLeaderSignature verifies leader sig for outgoing operations
@@ -62,13 +100,9 @@ func (hsv *sovereignHeaderSigVerifier) VerifyLeaderSignature(
 	}
 
 	for _, outGoingMBHdr := range sovHeader.GetOutGoingMiniBlockHeaderHandlers() {
-		leaderMsgToSign := append(
-			outGoingMBHdr.GetOutGoingOperationsHash(),
-			outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
-
 		err := hsv.singleSigVerifier.Verify(
 			leaderPubKey,
-			leaderMsgToSign,
+			hsv.getLeaderSignedMessage(outGoingMBHdr),
 			outGoingMBHdr.GetLeaderSignatureOutGoingOperations())
 		if err != nil {
 			return err
@@ -76,6 +110,15 @@ func (hsv *sovereignHeaderSigVerifier) VerifyLeaderSignature(
 	}
 
 	return nil
+}
+
+func (hsv *sovereignHeaderSigVerifier) getLeaderSignedMessage(outGoingMBHdr data.OutGoingMiniBlockHeaderHandler) []byte {
+	// In consensus v2 leader will only sign the outgoing op hash
+	if hsv.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+		return outGoingMBHdr.GetOutGoingOperationsHash()
+	}
+
+	return append(outGoingMBHdr.GetOutGoingOperationsHash(), outGoingMBHdr.GetAggregatedSignatureOutGoingOperations()...)
 }
 
 // RemoveLeaderSignature removes leader sig from outgoing operations

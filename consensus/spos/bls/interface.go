@@ -35,6 +35,7 @@ type SubRoundEndExtraSignersHolder interface {
 	SetAggregatedSignatureInHeader(header data.HeaderHandler, aggregatedSigs map[string][]byte) error
 	VerifyAggregatedSignatures(header data.HeaderHandler, bitmap []byte) error
 	HaveConsensusHeaderWithFullInfo(header data.HeaderHandler, cnsMsg *consensus.Message) error
+	GetLeaderExtraSig(header data.HeaderHandler, id string) ([]byte, error)
 	RegisterExtraSigningHandler(extraSigner consensus.SubRoundEndExtraSignatureHandler) error
 	IsInterfaceNil() bool
 }
@@ -80,7 +81,7 @@ type SubRoundStartHandler interface {
 type SubRoundBlockHandler interface {
 	SubRoundHandler
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
-	DoBlockComputation() (*SubRoundBlockProcessRes, func())
+	DoBlockComputation(ctx context.Context) (*SubRoundBlockProcessRes, func())
 	ProcessReceivedBlock(ctx context.Context, cnsDta *consensus.Message) bool
 }
 
@@ -90,6 +91,7 @@ type SubRoundEndHandler interface {
 	SetMessageToVerifySigFunc(verifyMsgFunc func() []byte)
 	SetBlockJob(doBlockJob func(ctx context.Context) bool)
 	ReceivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool
+	ReceivedProof(proof consensus.ProofHandler)
 	DoEndRoundJob(ctx context.Context) bool
 	IsSelfLeaderInCurrentRound() bool
 }

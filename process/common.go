@@ -450,6 +450,24 @@ func GetMetaHeaderFromPoolWithNonce(
 	return hdr, hash, nil
 }
 
+// GetSovereignHeaderFromPoolWithNonce method returns a sovereign block header from pool with a given nonce
+func GetSovereignHeaderFromPoolWithNonce(
+	nonce uint64,
+	headersCacher dataRetriever.HeadersPool,
+) (data.MetaHeaderHandler, []byte, error) {
+	obj, hash, err := getHeaderFromPoolWithNonce(nonce, core.SovereignChainShardId, headersCacher)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	hdr, ok := obj.(data.MetaHeaderHandler)
+	if !ok {
+		return nil, nil, ErrWrongTypeAssertion
+	}
+
+	return hdr, hash, nil
+}
+
 // GetHeaderFromStorageWithNonce method returns a block header from storage with a given nonce and shardId
 func GetHeaderFromStorageWithNonce(
 	nonce uint64,

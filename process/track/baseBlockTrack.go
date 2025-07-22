@@ -163,7 +163,6 @@ func (bbt *baseBlockTrack) receivedHeader(headerHandler data.HeaderHandler, head
 }
 
 func (bbt *baseBlockTrack) doReceivedHeaderJob(headerHandler data.HeaderHandler, headerHash []byte) {
-	// TODO: Marius C MX-16955 Check this useful for sovereign
 	if common.IsProofsFlagEnabledForHeader(bbt.enableEpochsHandler, headerHandler) {
 		if !bbt.proofsPool.HasProof(headerHandler.GetShardID(), headerHash) {
 			return

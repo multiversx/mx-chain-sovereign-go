@@ -7,7 +7,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -16,12 +15,15 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
 	dataRetrieverMocks "github.com/multiversx/mx-chain-go/dataRetriever/mock"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/outport"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	testscommonConsensus "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
 	testscommonOutport "github.com/multiversx/mx-chain-go/testscommon/outport"
+	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 )
 
 var chainID = []byte("chain ID")
@@ -74,6 +76,7 @@ func initFactoryWithContainer(container *spos.ConsensusCore) v2.Factory {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	return fct
@@ -125,6 +128,7 @@ func TestFactory_NewFactoryNilContainerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -147,6 +151,7 @@ func TestFactory_NewFactoryNilConsensusStateShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -171,6 +176,7 @@ func TestFactory_NewFactoryNilBlockchainShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -195,6 +201,7 @@ func TestFactory_NewFactoryNilBlockProcessorShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -219,6 +226,7 @@ func TestFactory_NewFactoryNilBootstrapperShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -243,6 +251,7 @@ func TestFactory_NewFactoryNilChronologyHandlerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -267,6 +276,7 @@ func TestFactory_NewFactoryNilHasherShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -291,6 +301,7 @@ func TestFactory_NewFactoryNilMarshalizerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -315,6 +326,7 @@ func TestFactory_NewFactoryNilMultiSignerContainerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -339,6 +351,7 @@ func TestFactory_NewFactoryNilRoundHandlerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -363,6 +376,7 @@ func TestFactory_NewFactoryNilShardCoordinatorShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -387,6 +401,7 @@ func TestFactory_NewFactoryNilSyncTimerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -411,6 +426,7 @@ func TestFactory_NewFactoryNilValidatorGroupSelectorShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -433,6 +449,7 @@ func TestFactory_NewFactoryNilWorkerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -456,6 +473,7 @@ func TestFactory_NewFactoryNilAppStatusHandlerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -479,6 +497,7 @@ func TestFactory_NewFactoryNilSignaturesTrackerShouldFail(t *testing.T) {
 		nil,
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -502,10 +521,35 @@ func TestFactory_NewFactoryNilThrottlerShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		nil,
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
 	assert.Equal(t, spos.ErrNilThrottler, err)
+}
+
+func TestFactory_NewFactoryNilExtraSignersHolderShouldFail(t *testing.T) {
+	t.Parallel()
+
+	consensusState := initializers.InitConsensusState()
+	container := testscommonConsensus.InitConsensusCore()
+	worker := initWorker()
+
+	fct, err := v2.NewSubroundsFactory(
+		container,
+		consensusState,
+		worker,
+		chainID,
+		currentPid,
+		&statusHandler.AppStatusHandlerStub{},
+		&testscommon.SentSignatureTrackerStub{},
+		&dataRetrieverMocks.ThrottlerStub{},
+		nil,
+		nil,
+	)
+
+	require.Nil(t, fct)
+	require.Equal(t, errMx.ErrNilExtraSignersHolder, err)
 }
 
 func TestFactory_NewFactoryShouldWork(t *testing.T) {
@@ -533,6 +577,7 @@ func TestFactory_NewFactoryEmptyChainIDShouldFail(t *testing.T) {
 		&testscommon.SentSignatureTrackerStub{},
 		&dataRetrieverMocks.ThrottlerStub{},
 		nil,
+		&subRoundsHolder.ExtraSignersHolderMock{},
 	)
 
 	assert.Nil(t, fct)
@@ -547,7 +592,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundFail(t *test
 		return nil
 	}
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -559,7 +604,7 @@ func TestFactory_GenerateSubroundStartRoundShouldFailWhenNewSubroundStartRoundFa
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateStartRoundSubround()
+	err := fct.GenerateStartRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }
@@ -572,7 +617,7 @@ func TestFactory_GenerateSubroundBlockShouldFailWhenNewSubroundFail(t *testing.T
 		return nil
 	}
 
-	err := fct.GenerateBlockSubround()
+	err := fct.GenerateBlockSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -584,7 +629,7 @@ func TestFactory_GenerateSubroundBlockShouldFailWhenNewSubroundBlockFail(t *test
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateBlockSubround()
+	err := fct.GenerateBlockSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }
@@ -597,7 +642,7 @@ func TestFactory_GenerateSubroundSignatureShouldFailWhenNewSubroundFail(t *testi
 		return nil
 	}
 
-	err := fct.GenerateSignatureSubround()
+	err := fct.GenerateSignatureSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -609,7 +654,7 @@ func TestFactory_GenerateSubroundSignatureShouldFailWhenNewSubroundSignatureFail
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateSignatureSubround()
+	err := fct.GenerateSignatureSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }
@@ -622,7 +667,7 @@ func TestFactory_GenerateSubroundEndRoundShouldFailWhenNewSubroundFail(t *testin
 		return nil
 	}
 
-	err := fct.GenerateEndRoundSubround()
+	err := fct.GenerateEndRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilChannel, err)
 }
@@ -634,7 +679,7 @@ func TestFactory_GenerateSubroundEndRoundShouldFailWhenNewSubroundEndRoundFail(t
 	fct := *initFactoryWithContainer(container)
 	container.SetSyncTimer(nil)
 
-	err := fct.GenerateEndRoundSubround()
+	err := fct.GenerateEndRoundSubroundV2()
 
 	assert.Equal(t, spos.ErrNilSyncTimer, err)
 }

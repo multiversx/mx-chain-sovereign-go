@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/errors"
 )
 
 const timeSpentBetweenChecks = time.Millisecond
@@ -24,6 +25,9 @@ type subroundSignature struct {
 	appStatusHandler     core.AppStatusHandler
 	sentSignatureTracker spos.SentSignaturesTracker
 	signatureThrottler   core.Throttler
+
+	getMessageToSignFunc func() []byte
+	extraSignersHolder   bls.SubRoundSignatureExtraSignersHolder
 }
 
 // NewSubroundSignature creates a subroundSignature object
@@ -33,6 +37,7 @@ func NewSubroundSignature(
 	sentSignatureTracker spos.SentSignaturesTracker,
 	worker spos.WorkerHandler,
 	signatureThrottler core.Throttler,
+	extraSignersHolder bls.SubRoundSignatureExtraSignersHolder,
 ) (*subroundSignature, error) {
 	err := checkNewSubroundSignatureParams(
 		baseSubround,
@@ -52,16 +57,22 @@ func NewSubroundSignature(
 	if check.IfNil(signatureThrottler) {
 		return nil, spos.ErrNilThrottler
 	}
+	if check.IfNil(extraSignersHolder) {
+		return nil, errors.ErrNilSignatureRoundExtraSignersHolder
+	}
 
 	srSignature := subroundSignature{
 		Subround:             baseSubround,
 		appStatusHandler:     appStatusHandler,
 		sentSignatureTracker: sentSignatureTracker,
 		signatureThrottler:   signatureThrottler,
+		extraSignersHolder:   extraSignersHolder,
 	}
+
 	srSignature.Job = srSignature.doSignatureJob
 	srSignature.Check = srSignature.doSignatureConsensusCheck
 	srSignature.Extend = worker.Extend
+	srSignature.getMessageToSignFunc = srSignature.getMessageToSign
 
 	return &srSignature, nil
 }
@@ -91,7 +102,7 @@ func (sr *subroundSignature) doSignatureJob(ctx context.Context) bool {
 		return false
 	}
 
-	proofAlreadyReceived := sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.GetData())
+	proofAlreadyReceived := sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToSignFunc())
 	if proofAlreadyReceived {
 		sr.SetStatus(sr.Current(), spos.SsFinished)
 		log.Debug("step 2: subround has been finished, proof already received",
@@ -118,7 +129,11 @@ func (sr *subroundSignature) doSignatureJob(ctx context.Context) bool {
 	return true
 }
 
-func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte, pkBytes []byte) bool {
+func (sr *subroundSignature) createAndSendSignatureMessage(
+	signatureShare []byte,
+	extraSigShares map[string][]byte,
+	pkBytes []byte,
+) bool {
 	cnsMsg := consensus.NewConsensusMessage(
 		sr.GetData(),
 		signatureShare,
@@ -137,7 +152,14 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 		sr.getProcessedHeaderHash(),
 	)
 
-	err := sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
+	err := sr.extraSignersHolder.AddExtraSigSharesToConsensusMessage(extraSigShares, cnsMsg)
+	if err != nil {
+		log.Debug("createAndSendSignatureMessage.extraSignersHolder.addExtraSigSharesToConsensusMessage",
+			"error", err.Error(), "pk", pkBytes)
+		return false
+	}
+
+	err = sr.BroadcastMessenger().BroadcastConsensusMessage(cnsMsg)
 	if err != nil {
 		log.Debug("createAndSendSignatureMessage.BroadcastConsensusMessage",
 			"error", err.Error(), "pk", pkBytes)
@@ -151,14 +173,17 @@ func (sr *subroundSignature) createAndSendSignatureMessage(signatureShare []byte
 
 func (sr *subroundSignature) getProcessedHeaderHash() []byte {
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
-		// TODO: Marius C MX-16954 : Fix this in another PR
-		return nil //sr.getMessageToSignFunc()
+		return sr.getMessageToSignFunc()
 	}
 
 	return nil
 }
 
-func (sr *subroundSignature) completeSignatureSubRound(pk string) bool {
+func (sr *subroundSignature) completeSignatureSubRound(
+	pk string,
+	index int,
+	processedHeaderHash []byte,
+) bool {
 	err := sr.SetJobDone(pk, sr.Current(), true)
 	if err != nil {
 		log.Debug("doSignatureJob.SetSelfJobDone",
@@ -167,6 +192,10 @@ func (sr *subroundSignature) completeSignatureSubRound(pk string) bool {
 			"pk", []byte(pk),
 		)
 		return false
+	}
+
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		sr.AddProcessedHeadersHashes(processedHeaderHash, index)
 	}
 
 	return true
@@ -256,8 +285,9 @@ func (sr *subroundSignature) doSignatureJobForManagedKeys(ctx context.Context) b
 func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool {
 	pkBytes := []byte(pk)
 
+	processedHeaderHash := sr.getMessageToSignFunc()
 	signatureShare, err := sr.SigningHandler().CreateSignatureShareForPublicKey(
-		sr.GetData(),
+		processedHeaderHash,
 		uint16(idx),
 		sr.GetHeader().GetEpoch(),
 		pkBytes,
@@ -267,14 +297,21 @@ func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool
 		return false
 	}
 
+	extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(idx), pkBytes)
+	if err != nil {
+		log.Debug("doSignatureJobForManagedKeys.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
+		return false
+	}
+
 	// with the equivalent messages feature on, signatures from all managed keys must be broadcast, as the aggregation is done by any participant
-	ok := sr.createAndSendSignatureMessage(signatureShare, pkBytes)
+	ok := sr.createAndSendSignatureMessage(signatureShare, extraSigShares, pkBytes)
 	if !ok {
 		return false
 	}
 	sr.sentSignatureTracker.SignatureSent(pkBytes)
 
-	return sr.completeSignatureSubRound(pk)
+	// TODO: MX-17040 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
+	return sr.completeSignatureSubRound(pk, idx, processedHeaderHash)
 }
 
 func (sr *subroundSignature) checkGoRoutinesThrottler(ctx context.Context) error {
@@ -299,8 +336,9 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 		return false
 	}
 
+	processedHeaderHash := sr.getMessageToSignFunc()
 	signatureShare, err := sr.SigningHandler().CreateSignatureShareForPublicKey(
-		sr.GetData(),
+		processedHeaderHash,
 		uint16(selfIndex),
 		sr.GetHeader().GetEpoch(),
 		[]byte(sr.SelfPubKey()),
@@ -310,13 +348,28 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 		return false
 	}
 
+	extraSigShares, err := sr.extraSignersHolder.CreateExtraSignatureShares(sr.GetHeader(), uint16(selfIndex), []byte(sr.SelfPubKey()))
+	if err != nil {
+		log.Debug("doSignatureJobForSingleKey.extraSignersHolder.createExtraSignatureShares", "error", err.Error())
+		return false
+	}
+
 	// leader also sends his signature here
-	ok := sr.createAndSendSignatureMessage(signatureShare, []byte(sr.SelfPubKey()))
+	ok := sr.createAndSendSignatureMessage(signatureShare, extraSigShares, []byte(sr.SelfPubKey()))
 	if !ok {
 		return false
 	}
 
-	return sr.completeSignatureSubRound(sr.SelfPubKey())
+	return sr.completeSignatureSubRound(sr.SelfPubKey(), selfIndex, processedHeaderHash)
+}
+
+func (sr *subroundSignature) getMessageToSign() []byte {
+	return sr.GetData()
+}
+
+// SetMessageToSignFunc should set the message to sign func
+func (sr *subroundSignature) SetMessageToSignFunc(_ func() []byte) {
+	// TODO: MX-17040 Analyse if we will ever use this func, since it doesn't work for now
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

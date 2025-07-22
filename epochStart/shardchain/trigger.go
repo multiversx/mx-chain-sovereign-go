@@ -19,12 +19,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/storage"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("epochStart/shardchain")
@@ -561,6 +562,7 @@ func (t *trigger) changeEpochFinalityAttestingRoundIfNeeded(
 	t.epochFinalityAttestingRound = metaHdr.GetRound()
 }
 
+// TODO: MX-17040 integrate this in sovereign
 func (t *trigger) receivedProof(headerProof data.HeaderProofHandler) {
 	if check.IfNil(headerProof) {
 		return
@@ -649,15 +651,18 @@ func (t *trigger) shouldUpdateTrigger(metaHdr *block.MetaBlock, metaBlockHash []
 		return false
 	}
 
-	isMetaStartOfEpochForCurrentEpoch := metaHdr.Epoch == t.epoch && metaHdr.IsStartOfEpochBlock()
-	if isMetaStartOfEpochForCurrentEpoch {
+	isMetaStartOfEpochForCurrentOrOlderEpoch := metaHdr.Epoch <= t.epoch && metaHdr.IsStartOfEpochBlock()
+	if isMetaStartOfEpochForCurrentOrOlderEpoch {
 		return false
 	}
 
-	if _, ok := t.mapHashHdr[string(metaBlockHash)]; ok {
-		return false
-	}
-	if _, ok := t.mapEpochStartHdrs[string(metaBlockHash)]; ok {
+	_, foundHdrInMap := t.mapHashHdr[string(metaBlockHash)]
+	_, foundHdrInEpochStartMap := t.mapEpochStartHdrs[string(metaBlockHash)]
+
+	finalizedMetaBlockHash, ok := t.mapFinalizedEpochs[metaHdr.Epoch]
+	foundHdrInFinalizedMap := ok && bytes.Equal(metaBlockHash, []byte(finalizedMetaBlockHash))
+
+	if foundHdrInMap && foundHdrInEpochStartMap && foundHdrInFinalizedMap {
 		return false
 	}
 

@@ -106,6 +106,10 @@ func (sr *subroundEndRound) ReceivedBlockHeaderFinalInfo(ctx context.Context, cn
 	return sr.receivedBlockHeaderFinalInfo(ctx, cnsDta)
 }
 
+// ReceivedProof does nothing for v1 end subround
+func (sr *subroundEndRound) ReceivedProof(_ consensus.ProofHandler) {
+}
+
 // receivedBlockHeaderFinalInfo method is called when a block header final info is received
 func (sr *subroundEndRound) receivedBlockHeaderFinalInfo(_ context.Context, cnsDta *consensus.Message) bool {
 	node := string(cnsDta.PubKey)
@@ -372,6 +376,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 
 	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(header, aggSigsRes.extraAggregatedSigs)
 	if err != nil {
+		log.Debug("cns v1: doEndRoundJobByLeader.extraSignersHolder.SetAggregatedSignatureInHeader", "error", err)
 		return false
 	}
 
@@ -397,6 +402,7 @@ func (sr *subroundEndRound) doEndRoundJobByLeader() bool {
 	ok := sr.ScheduledProcessor().IsProcessedOKWithTimeout()
 	// placeholder for subroundEndRound.doEndRoundJobByLeader script
 	if !ok {
+		log.Debug("subroundEndRound", "error", "in sr.ScheduledProcessor().IsProcessedOKWithTimeout()")
 		return false
 	}
 
@@ -728,7 +734,7 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(invalidSigners []by
 }
 
 func (sr *subroundEndRound) getProcessedHeaderHash() []byte {
-	// TODO: Marius C: MX-16954 here and everywhere, instead of having this flag, better just use injected runType interfaces
+	// TODO: Marius C: MX-17040 here and everywhere, instead of having this flag, better just use injected runType interfaces
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return sr.getMessageToVerifySigFunc()
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -66,6 +65,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/track"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
 	syncerFactory "github.com/multiversx/mx-chain-go/state/syncer/factory"
@@ -431,6 +431,7 @@ type ConsensusWorker interface {
 	RemoveAllReceivedHeaderHandlers()
 	// AddReceivedProofHandler adds a new handler function for a received proof
 	AddReceivedProofHandler(handler func(proofHandler consensus.ProofHandler))
+	ResetReceivedProofHandler()
 	// RemoveAllReceivedMessagesCalls removes all the functions handlers
 	RemoveAllReceivedMessagesCalls()
 	// ProcessReceivedMessage method redirects the received message to the channel which should handle it

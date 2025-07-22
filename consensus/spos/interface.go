@@ -107,6 +107,7 @@ type WorkerHandler interface {
 	RemoveAllReceivedHeaderHandlers()
 	// AddReceivedProofHandler adds a new handler function for a received proof
 	AddReceivedProofHandler(handler func(consensus.ProofHandler))
+	ResetReceivedProofHandler()
 	// RemoveAllReceivedMessagesCalls removes all the functions handlers
 	RemoveAllReceivedMessagesCalls()
 	// ProcessReceivedMessage method redirects the received message to the channel which should handle it

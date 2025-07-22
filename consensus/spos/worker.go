@@ -423,6 +423,13 @@ func (wrk *Worker) AddReceivedProofHandler(handler func(proofHandler consensus.P
 	wrk.mutReceivedProofHandler.Unlock()
 }
 
+// ResetReceivedProofHandler resets all received proof handlers
+func (wrk *Worker) ResetReceivedProofHandler() {
+	wrk.mutReceivedProofHandler.Lock()
+	wrk.receivedProofHandlers = make([]func(proofHandler consensus.ProofHandler), 0)
+	wrk.mutReceivedProofHandler.Unlock()
+}
+
 func (wrk *Worker) initReceivedMessages() {
 	wrk.mutReceivedMessages.Lock()
 	wrk.receivedMessages = wrk.consensusService.InitReceivedMessages()
