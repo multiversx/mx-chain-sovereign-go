@@ -167,7 +167,7 @@ func createProofInterceptor(
 	}
 	interceptedEquivalentProofsFactory := interceptorsFactory.NewInterceptedEquivalentProofsFactory(argsInterceptedEquivalentProofsFactory)
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardID, core.AllShardId)
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardID, shardID)
 	return interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
 			Topic:                   proofsTopic,

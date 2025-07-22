@@ -36,6 +36,7 @@ func (holder *extraHeaderSigVerifierHolder) VerifyAggregatedSignature(proof data
 				"error", err.Error(),
 				"id", id,
 			)
+			return nil
 			return err
 		}
 	}

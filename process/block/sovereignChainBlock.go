@@ -2,6 +2,7 @@ package block
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -255,6 +256,28 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 		}
 
 		body := &block.Body{}
+
+		/////////////////
+
+		currentRootHash, err := scbp.validatorStatisticsProcessor.RootHash()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		allValidatorsInfo, err := scbp.validatorStatisticsProcessor.GetValidatorInfoForRootHash(currentRootHash)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		validatorMiniBlocks, err := scbp.validatorInfoCreator.CreateValidatorInfoMiniBlocks(allValidatorsInfo)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		body.MiniBlocks = validatorMiniBlocks
+
+		//////////////
+
 		err = scbp.createAndSetEpochStartOutGoingOperationMiniBlocks(initialHdr, body)
 		if err != nil {
 			return nil, nil, err
@@ -1133,19 +1156,18 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 		return err
 	}
 
-	finalMiniBlocks := make([]*block.MiniBlock, 0)
-	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
-	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
-
 	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(
 		sovHdr,
 		&block.Body{
-			MiniBlocks: append(body.MiniBlocks, finalMiniBlocks...),
+			MiniBlocks: body.MiniBlocks, // append(body.MiniBlocks, finalMiniBlocks...),
 		})
 	if err != nil {
 		return err
 	}
 
+	finalMiniBlocks := make([]*block.MiniBlock, 0)
+	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
+	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
 	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet)
 	body.MiniBlocks = finalMiniBlocks
 
@@ -1184,6 +1206,10 @@ func (scbp *sovereignChainBlockProcessor) computeAndVerifyEpochChangeOutGoingOpe
 	header *block.SovereignChainHeader,
 	body *block.Body,
 ) (*block.MiniBlock, error) {
+
+	receivedBody, _ := json.Marshal(body)
+	log.Error("computeAndVerifyEpochChangeOutGoingOperations", "receivedBody", string(receivedBody))
+
 	outGoingMB, computedOutGoingMbHash, err := scbp.computeEpochChangeOutGoingMBHeaderAndHash(header, body)
 	if err != nil {
 		return nil, err
@@ -1243,6 +1269,10 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 		OutGoingOperationsHash: outGoingOperationsHash,
 	}
 
+	outGoingMbHeaderStr, _ := json.Marshal(outGoingMbHeader)
+
+	log.Error("computeEpochChangeOutGoingMBHeaderAndHash", "outGoingMbHeaderStr", string(outGoingMbHeaderStr))
+
 	computedHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbHeader)
 	if err != nil {
 		return nil, nil, err
@@ -1265,6 +1295,10 @@ func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 		Hash:                   receivedOutGoingMB.GetHash(),
 		OutGoingOperationsHash: receivedOutGoingMB.GetOutGoingOperationsHash(),
 	}
+
+	outGoingMBHeaderReceived, _ := json.Marshal(outGoingMBHeader)
+
+	log.Error("computeReceivedOutGoingMBHeaderHash", "outGoingMBHeaderReceived", string(outGoingMBHeaderReceived))
 
 	return core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMBHeader)
 }
