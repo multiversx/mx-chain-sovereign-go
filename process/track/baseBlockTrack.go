@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -155,7 +156,21 @@ func (bbt *baseBlockTrack) receivedProof(proof data.HeaderProofHandler) {
 }
 
 func (bbt *baseBlockTrack) getHeaderForProof(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
-	return process.GetHeader(proof.GetHeaderHash(), bbt.headersPool, bbt.store, bbt.marshalizer, proof.GetHeaderShardId())
+	//process.GetShardHeaderWithNonce()
+
+	hdr, err := process.GetHeader(proof.GetHeaderHash(), bbt.headersPool, bbt.store, bbt.marshalizer, proof.GetHeaderShardId())
+	if err == nil {
+		return nil, err
+	}
+
+	hdr, _, err = process.GetHeaderFromStorageWithNonce(
+		proof.GetHeaderNonce(),
+		proof.GetHeaderShardId(),
+		bbt.store,
+		uint64ByteSlice.NewBigEndianConverter(),
+		bbt.marshalizer,
+	)
+	return hdr, err
 }
 
 func (bbt *baseBlockTrack) receivedHeader(headerHandler data.HeaderHandler, headerHash []byte) {
