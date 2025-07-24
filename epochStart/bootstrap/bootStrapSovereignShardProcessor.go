@@ -31,14 +31,14 @@ type sovereignBootStrapShardProcessor struct {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*block.MiniBlock) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
-	epochStartShardBlock, epochStartShardBlockHash, err := sbp.syncLatestEpochStartShardBlock(sbp.epochStartMeta.GetEpoch(), ctx)
-	cancel()
-	if err != nil {
-		return err
-	}
-
-	sbp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
+	//ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+	//epochStartShardBlock, epochStartShardBlockHash, err := sbp.syncLatestEpochStartShardBlock(sbp.epochStartMeta.GetEpoch(), ctx)
+	//cancel()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//sbp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
 
 	argsStorageHandler := StorageHandlerArgs{
 		GeneralConfig:                   sbp.generalConfig,

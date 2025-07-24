@@ -251,7 +251,7 @@ func (e *epochStartMetaBlockProcessor) waitForMetaBlockProof(
 	ctx context.Context,
 	metaBlockHash []byte,
 ) error {
-	if e.proofsPool.HasProof(core.MetachainShardId, metaBlockHash) {
+	if e.proofsPool.HasProof(core.SovereignChainShardId, metaBlockHash) {
 		return nil
 	}
 
@@ -312,13 +312,13 @@ func (e *epochStartMetaBlockProcessor) requestMetaBlock() error {
 
 func (e *epochStartMetaBlockProcessor) requestProofForMetaBlock(metablockHash []byte) error {
 	numConnectedPeers := len(e.messenger.ConnectedPeers())
-	topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
-	err := e.requestHandler.SetNumPeersToQuery(topic, numConnectedPeers, numConnectedPeers)
+	topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.SovereignChainShardId, core.SovereignChainShardId)
+	err := e.requestHandler.SetNumPeersToQuery(topic, numConnectedPeers, 0)
 	if err != nil {
 		return err
 	}
 
-	e.requestHandler.RequestEquivalentProofByHash(core.MetachainShardId, metablockHash)
+	e.requestHandler.RequestEquivalentProofByHash(core.SovereignChainShardId, metablockHash)
 
 	return nil
 }
@@ -330,9 +330,19 @@ func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofH
 		return
 	}
 
-	hashesMatchMostReceived := string(proof.GetHeaderHash()) == hash
-	hashesMatchLocal := string(proof.GetHeaderHash()) == e.metaBlockHash
+	hashesMatchMostReceived := string(proof.GetProcessedHeaderHash()) == hash
+	hashesMatchLocal := string(proof.GetProcessedHeaderHash()) == e.metaBlockHash
 	if !hashesMatchMostReceived && !hashesMatchLocal {
+		log.Error("epochStartMetaBlockProcessor.receivedProof",
+			"hashesMatchMostReceived", hashesMatchMostReceived,
+			"hashesMatchLocal", hashesMatchLocal,
+			"hash", hash,
+			"e.metaBlockHash", e.metaBlockHash,
+			"proof.GetHeaderHash()", proof.GetHeaderHash(),
+			"proof.GetProcessedHeaderHash()", proof.GetProcessedHeaderHash(),
+		)
+
+		//e.chanMetaBlockProofReached <- true
 		return
 	}
 
@@ -343,6 +353,7 @@ func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofH
 
 	err = common.VerifyProofAgainstHeader(proof, metaBlock)
 	if err != nil {
+		log.Error("receivedProof.VerifyProofAgainstHeader", "error", e)
 		return
 	}
 

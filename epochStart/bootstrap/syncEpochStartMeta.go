@@ -225,7 +225,7 @@ func (e *epochStartMetaSyncer) resetTopicsAndInterceptors() {
 		log.Trace("error unregistering message processors", "error", err)
 	}
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.SovereignChainShardId, core.SovereignChainShardId)
 	err = e.messenger.UnregisterMessageProcessor(proofsTopic, common.EpochStartInterceptorsIdentifier)
 	if err != nil {
 		log.Trace("error unregistering message processors", "error", err)
@@ -239,7 +239,7 @@ func (e *epochStartMetaSyncer) initTopicForEpochStartMetaBlockInterceptor() erro
 		return err
 	}
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.SovereignChainShardId, core.SovereignChainShardId)
 	err = e.messenger.CreateTopic(proofsTopic, true)
 	if err != nil {
 		log.Warn("error messenger create topic", "topic", proofsTopic, "error", err)
