@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -137,6 +138,11 @@ func (bsh *baseStorageHandler) saveProofToStorage(shardID uint32, headerHash []b
 	}
 
 	errPut := proofsStorer.Put(proof.GetHeaderHash(), marshalledProof)
+	if errPut != nil {
+		return errPut
+	}
+
+	errPut = proofsStorer.Put(proof.GetProcessedHeaderHash(), marshalledProof)
 	if errPut != nil {
 		return errPut
 	}

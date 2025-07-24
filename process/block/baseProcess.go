@@ -1661,6 +1661,13 @@ func (bp *baseProcessor) saveProof(
 			"err", errNotCritical)
 	}
 
+	errNotCritical = bp.store.Put(dataRetriever.ProofsUnit, proof.GetProcessedHeaderHash(), marshalledProof)
+	if errNotCritical != nil {
+		logging.LogErrAsWarnExceptAsDebugIfClosingError(log, errNotCritical,
+			"saveProof.Put -> ProofsUnit",
+			"err", errNotCritical)
+	}
+
 	log.Trace("saved proof to storage", "hash", hash)
 }
 

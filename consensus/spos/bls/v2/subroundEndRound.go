@@ -677,7 +677,14 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		return err
 	}
 
+	processedHeaderHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
+	if err != nil {
+		log.Error("subroundEndRound.createAndBroadcastProof", "error", err.Error())
+		return nil
+	}
+
 	headerProof := &block.HeaderProof{
+		ProcessedHeaderHash: processedHeaderHash,
 		PubKeysBitmap:       bitmap,
 		AggregatedSignature: signature,
 		HeaderHash:          sr.getMessageToVerifySig(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
@@ -688,6 +695,10 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		IsStartOfEpoch:      sr.GetHeader().IsStartOfEpochBlock(),
 		ExtraSignatures:     extraSigs,
 	}
+
+	log.Error("SENDING PROOF", "headerProof.ProcessedHeaderHash", headerProof.ProcessedHeaderHash,
+		"headerProof.HeaderHash", headerProof.GetHeaderHash(),
+	)
 
 	err = sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
 	if err != nil {
@@ -1000,6 +1011,10 @@ func (sr *subroundEndRound) receivedSignature(_ context.Context, cnsDta *consens
 		spos.GetConsensusTopicID(sr.ShardCoordinator()),
 		spos.ValidatorPeerHonestyIncreaseFactor,
 	)
+
+	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		sr.AddProcessedHeadersHashes(cnsDta.ProcessedHeaderHash, index)
+	}
 
 	return true
 }
