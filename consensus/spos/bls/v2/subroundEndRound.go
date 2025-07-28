@@ -375,7 +375,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, nil
 	}
 
-	bitmap := sr.GenerateBitmap(bls.SrSignature)
+	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		log.Debug("sendProof.checkSignaturesValidity", "error", err.Error())
@@ -626,7 +626,7 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 			spos.ErrInvalidNumSigShares, numValidSigShares, threshold)
 	}
 
-	bitmap := sr.GenerateBitmap(bls.SrSignature)
+	bitmap := sr.generateBitmap()
 	err := sr.checkSignaturesValidity(bitmap)
 	if err != nil {
 		return nil, nil, err
@@ -687,7 +687,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		ProcessedHeaderHash: processedHeaderHash,
 		PubKeysBitmap:       bitmap,
 		AggregatedSignature: signature,
-		HeaderHash:          sr.getMessageToVerifySig(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
+		HeaderHash:          sr.GetData(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
 		HeaderEpoch:         sr.GetHeader().GetEpoch(),
 		HeaderNonce:         sr.GetHeader().GetNonce(),
 		HeaderShardId:       sr.GetHeader().GetShardID(),
@@ -1096,7 +1096,13 @@ func (sr *subroundEndRound) SetMessageToVerifySigFunc(_ func() []byte) {
 }
 
 func (sr *subroundEndRound) getMessageToVerifySig() []byte {
-	return sr.GetData()
+	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
+	if err != nil {
+		log.Error("subroundSignatureV2.getMessageToSign", "error", err.Error())
+		return nil
+	}
+
+	return headerHash
 }
 
 // SetBlockJob sets the block job

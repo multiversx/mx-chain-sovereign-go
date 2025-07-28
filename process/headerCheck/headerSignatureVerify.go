@@ -377,7 +377,7 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetProcessedHeaderHash(), proof.GetAggregatedSignature())
 	if err != nil {
 		return err
 	}
@@ -408,7 +408,7 @@ func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHan
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetProcessedHeaderHash(), proofHandler.GetAggregatedSignature())
 	if err != nil {
 		return err
 	}

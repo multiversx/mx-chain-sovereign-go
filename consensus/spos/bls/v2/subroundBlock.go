@@ -3,6 +3,7 @@ package v2
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -447,10 +448,18 @@ func (sr *subroundBlock) isHeaderForCurrentConsensus(header data.HeaderHandler) 
 	}
 
 	prevHeader, prevHash := sr.getPrevHeaderAndHash()
+
+	log.Error("isHeaderForCurrentConsensus", "prevHeader", fmt.Sprintf("%v", prevHeader), "prevHash", prevHash)
+
 	if check.IfNil(prevHeader) {
+		log.Error("check.IfNil(prevHeader)")
 		return false
 	}
 	if !bytes.Equal(header.GetPrevHash(), prevHash) {
+		log.Error("!bytes.Equal(header.GetPrevHash(), prevHash)",
+			"header.GetPrevHash()", header.GetPrevHash(),
+			"prevHash", prevHash,
+		)
 		return false
 	}
 	if header.GetNonce() != prevHeader.GetNonce()+1 {
@@ -554,6 +563,7 @@ func (sr *subroundBlock) receivedBlockHeader(headerHandler data.HeaderHandler) {
 		"nonce", sr.GetHeader().GetNonce(),
 		"hash", sr.GetData())
 
+	// another tryout was to remove this from here and use it after processing block
 	sr.AddReceivedHeader(headerHandler)
 
 	ctx, cancel := context.WithTimeout(context.Background(), sr.RoundHandler().TimeDuration())
@@ -673,8 +683,13 @@ func (sr *subroundBlock) processBlock(
 		remainingTimeInCurrentRound,
 	)
 
+	//headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), header)
+
 	sr.SetHeader(header)
 	sr.SetBody(body)
+	//sr.SetData(headerHash)
+
+	//sr.AddReceivedHeader(header)
 
 	if roundIndex < sr.RoundHandler().Index() {
 		log.Debug("canceled round, round index has been changed",

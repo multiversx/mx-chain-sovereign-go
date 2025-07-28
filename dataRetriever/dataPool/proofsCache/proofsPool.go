@@ -3,7 +3,6 @@ package proofscache
 import (
 	"bytes"
 	"fmt"
-	"runtime/debug"
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -176,8 +175,6 @@ func (pp *proofsPool) GetProof(
 		"headerHash", headerHash,
 		"shardID", shardID,
 	)
-
-	debug.PrintStack()
 
 	pp.mutCache.RLock()
 	proofsPerShard, ok := pp.cache[shardID]

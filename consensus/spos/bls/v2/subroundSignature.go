@@ -364,7 +364,15 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 }
 
 func (sr *subroundSignature) getMessageToSign() []byte {
-	return sr.GetData()
+	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
+	if err != nil {
+		log.Error("subroundSignatureV2.getMessageToSign", "error", err.Error())
+		return nil
+	}
+
+	return headerHash
+
+	//return sr.GetData()
 }
 
 // SetMessageToSignFunc should set the message to sign func
