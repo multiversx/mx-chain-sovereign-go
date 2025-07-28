@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -504,7 +505,12 @@ func (hsv *HeaderSigVerifier) verifyLeaderSignature(leaderPubKey crypto.PublicKe
 		return err
 	}
 
-	headerBytes, err := hsv.marshalizer.Marshal(headerCopy)
+	finalHeader := headerCopy
+	if hsv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
+		finalHeader = createBasicInitialHeaderToSign(headerCopy)
+	}
+
+	headerBytes, err := hsv.marshalizer.Marshal(finalHeader)
 	if err != nil {
 		return err
 	}
@@ -519,7 +525,6 @@ func (hsv *HeaderSigVerifier) verifyLeaderSignature(leaderPubKey crypto.PublicKe
 
 		log.Error("HeaderSigVerifier.verifyLeaderSignature", "error", err)
 
-		return nil
 		return err
 	}
 
@@ -574,4 +579,21 @@ func (hsv *HeaderSigVerifier) copyHeaderWithoutLeaderSig(header data.HeaderHandl
 	}
 
 	return headerCopy, nil
+}
+
+func createBasicInitialHeaderToSign(header data.HeaderHandler) data.HeaderHandler {
+	return &block.SovereignChainHeader{
+		Header: &block.Header{
+			Nonce:        header.GetNonce(),
+			PrevHash:     header.GetPrevHash(),
+			PrevRandSeed: header.GetPrevRandSeed(),
+			RandSeed:     header.GetRandSeed(),
+			ShardID:      header.GetShardID(),
+			TimeStamp:    header.GetTimeStamp(),
+			Round:        header.GetRound(),
+			Epoch:        header.GetEpoch(),
+			ChainID:      header.GetChainID(),
+		},
+		IsStartOfEpoch: header.IsStartOfEpochBlock(),
+	}
 }
