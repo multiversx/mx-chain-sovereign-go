@@ -364,20 +364,12 @@ func (sr *subroundSignature) doSignatureJobForSingleKey() bool {
 }
 
 func (sr *subroundSignature) getMessageToSign() []byte {
-	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
-	if err != nil {
-		log.Error("subroundSignatureV2.getMessageToSign", "error", err.Error())
-		return nil
-	}
-
-	return headerHash
-
-	//return sr.GetData()
+	return sr.GetData()
 }
 
 // SetMessageToSignFunc should set the message to sign func
-func (sr *subroundSignature) SetMessageToSignFunc(_ func() []byte) {
-	// TODO: MX-17040 Analyse if we will ever use this func, since it doesn't work for now
+func (sr *subroundSignature) SetMessageToSignFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToSignFunc = verifyMsgFunc
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

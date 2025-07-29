@@ -320,7 +320,7 @@ func (sr *subroundEndRound) prepareBroadcastBlockData() error {
 
 func (sr *subroundEndRound) waitForProof() bool {
 	shardID := sr.ShardCoordinator().SelfId()
-	headerHash := sr.getMessageToVerifySig()
+	headerHash := sr.getMessageToVerifySigFunc()
 	if sr.EquivalentProofsPool().HasProof(shardID, headerHash) {
 		return true
 	}
@@ -411,7 +411,7 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 }
 
 func (sr *subroundEndRound) shouldSendProof() bool {
-	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySig()) {
+	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySigFunc()) {
 		log.Debug("shouldSendProof: equivalent message already processed")
 		return false
 	}
@@ -592,7 +592,7 @@ func (sr *subroundEndRound) handleInvalidSignersOnAggSigFail(sender string) (*ag
 		return nil, err
 	}
 
-	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySig()) {
+	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySigFunc()) {
 		return nil, ErrProofAlreadyPropagated
 	}
 
@@ -667,7 +667,7 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 	sender string,
 	extraAggregatedSigs map[string][]byte,
 ) error {
-	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySig()) {
+	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySigFunc()) {
 		// no need to broadcast a proof if already received and verified one
 		return ErrProofAlreadyPropagated
 	}
@@ -677,14 +677,8 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		return err
 	}
 
-	processedHeaderHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
-	if err != nil {
-		log.Error("subroundEndRound.createAndBroadcastProof", "error", err.Error())
-		return nil
-	}
-
 	headerProof := &block.HeaderProof{
-		ProcessedHeaderHash: processedHeaderHash,
+		ProcessedHeaderHash: sr.getProcessedHeaderHash(),
 		PubKeysBitmap:       bitmap,
 		AggregatedSignature: signature,
 		HeaderHash:          sr.GetData(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
@@ -695,10 +689,6 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		IsStartOfEpoch:      sr.GetHeader().IsStartOfEpochBlock(),
 		ExtraSignatures:     extraSigs,
 	}
-
-	log.Error("SENDING PROOF", "headerProof.ProcessedHeaderHash", headerProof.ProcessedHeaderHash,
-		"headerProof.HeaderHash", headerProof.GetHeaderHash(),
-	)
 
 	err = sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
 	if err != nil {
@@ -1091,18 +1081,12 @@ func (sr *subroundEndRound) areSignaturesCollected(threshold int) (bool, int) {
 }
 
 // SetMessageToVerifySigFunc should set the verify message func
-func (sr *subroundEndRound) SetMessageToVerifySigFunc(_ func() []byte) {
-	// TODO: MX-17040 Analyse if we will ever use this func, since it doesn't work for now
+func (sr *subroundEndRound) SetMessageToVerifySigFunc(verifyMsgFunc func() []byte) {
+	sr.getMessageToVerifySigFunc = verifyMsgFunc
 }
 
 func (sr *subroundEndRound) getMessageToVerifySig() []byte {
-	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
-	if err != nil {
-		log.Error("subroundSignatureV2.getMessageToSign", "error", err.Error())
-		return nil
-	}
-
-	return headerHash
+	return sr.GetData()
 }
 
 // SetBlockJob sets the block job

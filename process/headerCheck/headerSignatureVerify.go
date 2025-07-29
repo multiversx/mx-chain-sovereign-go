@@ -1,7 +1,6 @@
 package headerCheck
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -517,14 +516,6 @@ func (hsv *HeaderSigVerifier) verifyLeaderSignature(leaderPubKey crypto.PublicKe
 
 	err = hsv.singleSigVerifier.Verify(leaderPubKey, headerBytes, header.GetLeaderSignature())
 	if err != nil {
-
-		headerWithoutLeaderSigs, _ := json.Marshal(headerCopy)
-		originalHeader, _ := json.Marshal(header)
-
-		log.Error("verifyLeaderSignature", "headerWithoutLeaderSigs", string(headerWithoutLeaderSigs), "originalHeader", string(originalHeader))
-
-		log.Error("HeaderSigVerifier.verifyLeaderSignature", "error", err)
-
 		return err
 	}
 

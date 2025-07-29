@@ -69,11 +69,6 @@ func (pc *proofsCache) addProof(proof data.HeaderProofHandler) {
 
 	pc.proofsByHash[string(proof.GetProcessedHeaderHash())] = proof
 	pc.proofsByHash[string(proof.GetHeaderHash())] = proof
-
-	log.Error("proofsCache.addProof",
-		"proof.GetProcessedHeaderHash()", proof.GetProcessedHeaderHash(),
-		"proof.GetHeaderHash()", proof.GetHeaderHash(),
-	)
 }
 
 // getBucketKey will return bucket key as lower bound window value

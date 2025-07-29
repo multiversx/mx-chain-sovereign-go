@@ -156,24 +156,6 @@ func (bbt *baseBlockTrack) receivedProof(proof data.HeaderProofHandler) {
 
 func (bbt *baseBlockTrack) getHeaderForProof(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
 	return process.GetHeader(proof.GetHeaderHash(), bbt.headersPool, bbt.store, bbt.marshalizer, proof.GetHeaderShardId())
-	/*
-			hdr, err := process.GetHeader(proof.GetHeaderHash(), bbt.headersPool, bbt.store, bbt.marshalizer, proof.GetHeaderShardId())
-		if err == nil {
-			return hdr, nil
-		}
-
-		hdr, _, err = process.GetShardHeaderWithNonce(
-			proof.GetHeaderNonce(),
-			proof.GetHeaderShardId(),
-			bbt.headersPool,
-			bbt.marshalizer,
-			bbt.store,
-			// TODO: MX-17040: This shall be either injected from constructor, or totally replaced if we use processed header hash
-			uint64ByteSlice.NewBigEndianConverter(),
-		)
-		return hdr, err
-
-	*/
 }
 
 func (bbt *baseBlockTrack) receivedHeader(headerHandler data.HeaderHandler, headerHash []byte) {
