@@ -26,6 +26,7 @@ type sovereignTrigger struct {
 	currentEpochValidatorInfoPool epochStart.ValidatorInfoCacher
 	validatorInfoSyncer           process.ValidatorInfoSyncer
 	enableEpochsHandler           common.EnableEpochsHandler
+	newEpochHdrReceived           bool
 }
 
 // NewSovereignTrigger creates a new sovereign epoch start trigger
@@ -47,6 +48,7 @@ func NewSovereignTrigger(args ArgsSovereignTrigger) (*sovereignTrigger, error) {
 		currentEpochValidatorInfoPool: args.DataPool.CurrentEpochValidatorInfo(),
 		validatorInfoSyncer:           args.ValidatorInfoSyncer,
 		enableEpochsHandler:           args.EnableEpochsHandler,
+		newEpochHdrReceived:           false,
 	}
 
 	args.DataPool.Headers().RegisterHandler(st.receivedBlock)
@@ -66,6 +68,7 @@ func (st *sovereignTrigger) SetProcessed(header data.HeaderHandler, body data.Bo
 	}
 
 	st.baseSetProcessed(sovChainHeader, body)
+	st.newEpochHdrReceived = false
 }
 
 // RevertStateToBlock will revert the state of the trigger to the current block
@@ -103,6 +106,8 @@ func (st *sovereignTrigger) RevertStateToBlock(header data.HeaderHandler) error 
 	st.mutTrigger.Lock()
 	st.currentRound = header.GetRound()
 	st.mutTrigger.Unlock()
+
+	st.newEpochHdrReceived = true
 
 	return nil
 }
@@ -150,22 +155,29 @@ func (st *sovereignTrigger) receivedBlock(headerHandler data.HeaderHandler, _ []
 		return
 	}
 
-	// TODO: MX-17040 - analyse this early exit if it would work for syncing nodes
-	//if st.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, headerHandler.GetEpoch()) {
-	//	log.Error("sovereignTrigger andromeda activation, early exiting")
-	//	return
-	//}
-
-	if !header.IsStartOfEpochBlock() {
+	if !st.shouldUpdateTrigger(headerHandler) {
 		return
 	}
 
-	isMetaStartOfEpochForCurrentEpoch := header.GetEpoch() == st.epoch
-	if isMetaStartOfEpochForCurrentEpoch {
-		return
-	}
-
+	st.newEpochHdrReceived = true
 	st.updateTrigger(header)
+}
+
+func (st *sovereignTrigger) shouldUpdateTrigger(headerHandler data.HeaderHandler) bool {
+	if !headerHandler.IsStartOfEpochBlock() {
+		return false
+	}
+
+	if !st.newEpochHdrReceived {
+		return false
+	}
+
+	isMetaStartOfEpochForCurrentOrOlderEpoch := headerHandler.GetEpoch() <= st.epoch
+	if isMetaStartOfEpochForCurrentOrOlderEpoch {
+		return false
+	}
+
+	return true
 }
 
 func (st *sovereignTrigger) updateTrigger(header data.MetaHeaderHandler) {
@@ -198,33 +210,33 @@ func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.MetaHeaderHand
 }
 
 // LastCommitedEpochStartHdr returns the header of the epoch start block
-func (t *sovereignTrigger) LastCommitedEpochStartHdr() (data.HeaderHandler, error) {
-	t.mutTrigger.RLock()
-	defer t.mutTrigger.RUnlock()
+func (st *sovereignTrigger) LastCommitedEpochStartHdr() (data.HeaderHandler, error) {
+	st.mutTrigger.RLock()
+	defer st.mutTrigger.RUnlock()
 
 	// marshal + unmarshal deep copy
-	headerBytes, err := t.marshaller.Marshal(t.epochStartMeta)
+	headerBytes, err := st.marshaller.Marshal(st.epochStartMeta)
 	if err != nil {
 		return nil, err
 	}
 
-	return process.UnmarshalSovereignChainHeader(t.marshaller, headerBytes)
+	return process.UnmarshalSovereignChainHeader(st.marshaller, headerBytes)
 }
 
 // GetEpochStartHdrFromStorage returns the header of the epoch start block from storage
-func (t *sovereignTrigger) GetEpochStartHdrFromStorage(epoch uint32) (data.HeaderHandler, error) {
-	t.mutTrigger.RLock()
-	defer t.mutTrigger.RUnlock()
+func (st *sovereignTrigger) GetEpochStartHdrFromStorage(epoch uint32) (data.HeaderHandler, error) {
+	st.mutTrigger.RLock()
+	defer st.mutTrigger.RUnlock()
 
 	epochStartIdentifier := core.EpochStartIdentifier(epoch)
-	epochStartMetaBuff, err := t.metaHeaderStorage.SearchFirst([]byte(epochStartIdentifier))
+	epochStartMetaBuff, err := st.metaHeaderStorage.SearchFirst([]byte(epochStartIdentifier))
 	if err != nil {
 		log.Warn("GetEpochStartHdrFromStorage search first", "epoch", epoch, "identifier", epochStartIdentifier, "error", err)
 		return nil, err
 	}
 
 	metaHdr := &block.SovereignChainHeader{}
-	err = t.marshaller.Unmarshal(metaHdr, epochStartMetaBuff)
+	err = st.marshaller.Unmarshal(metaHdr, epochStartMetaBuff)
 	if err != nil {
 		return nil, err
 	}
