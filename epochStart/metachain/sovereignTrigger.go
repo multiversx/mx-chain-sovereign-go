@@ -26,7 +26,6 @@ type sovereignTrigger struct {
 	currentEpochValidatorInfoPool epochStart.ValidatorInfoCacher
 	validatorInfoSyncer           process.ValidatorInfoSyncer
 	enableEpochsHandler           common.EnableEpochsHandler
-	newEpochHdrReceived           bool
 }
 
 // NewSovereignTrigger creates a new sovereign epoch start trigger
@@ -48,7 +47,6 @@ func NewSovereignTrigger(args ArgsSovereignTrigger) (*sovereignTrigger, error) {
 		currentEpochValidatorInfoPool: args.DataPool.CurrentEpochValidatorInfo(),
 		validatorInfoSyncer:           args.ValidatorInfoSyncer,
 		enableEpochsHandler:           args.EnableEpochsHandler,
-		newEpochHdrReceived:           false,
 	}
 
 	args.DataPool.Headers().RegisterHandler(st.receivedBlock)
@@ -68,7 +66,6 @@ func (st *sovereignTrigger) SetProcessed(header data.HeaderHandler, body data.Bo
 	}
 
 	st.baseSetProcessed(sovChainHeader, body)
-	st.newEpochHdrReceived = false
 }
 
 // RevertStateToBlock will revert the state of the trigger to the current block
@@ -106,8 +103,6 @@ func (st *sovereignTrigger) RevertStateToBlock(header data.HeaderHandler) error 
 	st.mutTrigger.Lock()
 	st.currentRound = header.GetRound()
 	st.mutTrigger.Unlock()
-
-	st.newEpochHdrReceived = true
 
 	return nil
 }
@@ -159,16 +154,11 @@ func (st *sovereignTrigger) receivedBlock(headerHandler data.HeaderHandler, _ []
 		return
 	}
 
-	st.newEpochHdrReceived = true
 	st.updateTrigger(header)
 }
 
 func (st *sovereignTrigger) shouldUpdateTrigger(headerHandler data.HeaderHandler) bool {
 	if !headerHandler.IsStartOfEpochBlock() {
-		return false
-	}
-
-	if !st.newEpochHdrReceived {
 		return false
 	}
 
