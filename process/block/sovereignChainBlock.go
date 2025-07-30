@@ -275,6 +275,15 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 
 		body.MiniBlocks = validatorMiniBlocks
 
+		_, mbHeaders, err := scbp.createMiniBlockHeaderHandlers(body.MiniBlocks)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		err = sovereignChainHeaderHandler.SetMiniBlockHeaderHandlers(mbHeaders)
+		if err != nil {
+			return nil, nil, err
+		}
 		//////////////
 
 		err = scbp.createAndSetEpochStartOutGoingOperationMiniBlocks(initialHdr, body)
