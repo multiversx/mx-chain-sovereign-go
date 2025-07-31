@@ -29,6 +29,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
@@ -270,6 +271,9 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	}
 	if check.IfNil(mrc.crawlerAddressGetter) {
 		return process.ErrNilCrawlerAllowedAddress
+	}
+	if check.IfNil(mrc.headerSigVerifierFactory) {
+		return errors.ErrNilHeaderSigVerifierFactory
 	}
 
 	return nil
@@ -933,6 +937,18 @@ func (mrc *managedRunTypeComponents) CrawlerAddressGetter() crawlerAddressGetter
 	}
 
 	return mrc.runTypeComponents.crawlerAddressGetter
+}
+
+// HeaderSigVerifierFactory returns header sig verifier factory
+func (mrc *managedRunTypeComponents) HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.headerSigVerifierFactory
 }
 
 // IsInterfaceNil returns true if the interface is nil

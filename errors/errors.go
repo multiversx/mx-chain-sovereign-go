@@ -889,3 +889,6 @@ var ErrReceivedSovereignEpochStartBlockWithExtendedHeaders = errors.New("receive
 
 // ErrNilChainParametersHolderFactory signals that a nil chain parameters holder factory has been provided
 var ErrNilChainParametersHolderFactory = errors.New("nil chain parameters holder factory has been provided")
+
+// ErrNilHeaderSigVerifierFactory signals that a nil header sig verifier factory has been provided
+var ErrNilHeaderSigVerifierFactory = errors.New("nil header sig verifier factory has been provided")

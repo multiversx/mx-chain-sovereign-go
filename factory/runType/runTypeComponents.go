@@ -41,6 +41,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/shard"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
@@ -136,6 +137,7 @@ type runTypeComponents struct {
 	totalStakedValueFactoryHandler          trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	versionedHeaderFactory                  genesis.VersionedHeaderFactory
 	crawlerAddressGetter                    crawlerAddressGetter.CrawlerAddressGetterHandler
+	headerSigVerifierFactory                headerSigVerifierFactory.HeaderSigVerifierFactory
 }
 
 // NewRunTypeComponentsFactory will return a new instance of runTypeComponentsFactory
@@ -265,6 +267,7 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewTotalStakedListProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
 		crawlerAddressGetter:                    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		headerSigVerifierFactory:                headerSigVerifierFactory.NewHeaderSignatureVerifyFactory(),
 	}, nil
 }
 

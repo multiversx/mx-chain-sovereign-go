@@ -25,6 +25,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
@@ -106,6 +107,7 @@ type RunTypeComponentsStub struct {
 	TotalStakedValueFactoryField                trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactoryField                 genesis.VersionedHeaderFactory
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
+	HeaderSigVerifierFactoryField               headerSigVerifierFactory.HeaderSigVerifierFactory
 }
 
 // NewRunTypeComponentsStub -
@@ -162,6 +164,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		OutportDataProviderFactoryField:             &testFactory.OutportDataProviderFactoryMock{},
 		VersionedHeaderFactoryField:                 &testscommon.VersionedHeaderFactoryStub{},
 		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
+		HeaderSigVerifierFactoryField:               &testFactory.HeaderSignatureVerifyFactoryMock{},
 	}
 }
 
@@ -458,6 +461,11 @@ func (r *RunTypeComponentsStub) VersionedHeaderFactory() genesis.VersionedHeader
 // CrawlerAddressGetter -
 func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
 	return r.CrawlerAddressGetterField
+}
+
+// HeaderSigVerifierFactory -
+func (r *RunTypeComponentsStub) HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory {
+	return r.HeaderSigVerifierFactoryField
 }
 
 // IsInterfaceNil -
