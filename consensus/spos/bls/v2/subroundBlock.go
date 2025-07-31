@@ -9,7 +9,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/runType"
@@ -183,7 +182,7 @@ func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, []b
 		return nil, nil, err
 	}
 
-	marshalledHdr, err := sr.Marshalizer().Marshal(createBasicInitialHeaderToSign(headerClone))
+	marshalledHdr, err := sr.Marshalizer().Marshal(runType.CreateSovereignProposedInitialHeader(headerClone))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -200,25 +199,6 @@ func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, []b
 	}
 
 	return leaderPubKey, leaderSignature, nil
-}
-
-func createBasicInitialHeaderToSign(header data.HeaderHandler) data.HeaderHandler {
-	log.Error("subroundBlockV2.createBasicInitialHeaderToSign")
-
-	return &block.SovereignChainHeader{
-		Header: &block.Header{
-			Nonce:        header.GetNonce(),
-			PrevHash:     header.GetPrevHash(),
-			PrevRandSeed: header.GetPrevRandSeed(),
-			RandSeed:     header.GetRandSeed(),
-			ShardID:      header.GetShardID(),
-			TimeStamp:    header.GetTimeStamp(),
-			Round:        header.GetRound(),
-			Epoch:        header.GetEpoch(),
-			ChainID:      header.GetChainID(),
-		},
-		IsStartOfEpoch: header.IsStartOfEpochBlock(),
-	}
 }
 
 func printLogMessage(ctx context.Context, baseMessage string, err error) {

@@ -7,7 +7,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -58,7 +57,8 @@ type HeaderSigVerifier struct {
 	proofsPool              dataRetriever.ProofsPool
 	storageService          dataRetriever.StorageService
 
-	extraSigVerifierHolder ExtraHeaderSigVerifierHolder
+	extraSigVerifierHolder  ExtraHeaderSigVerifierHolder
+	headerSigVerifierHelper headerSigVerifierHelper
 }
 
 // NewHeaderSigVerifier will create a new instance of HeaderSigVerifier
@@ -68,7 +68,7 @@ func NewHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) (*HeaderSigVerifier,
 		return nil, err
 	}
 
-	return &HeaderSigVerifier{
+	hsv := &HeaderSigVerifier{
 		marshalizer:             arguments.Marshalizer,
 		hasher:                  arguments.Hasher,
 		nodesCoordinator:        arguments.NodesCoordinator,
@@ -81,7 +81,10 @@ func NewHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) (*HeaderSigVerifier,
 		proofsPool:              arguments.ProofsPool,
 		storageService:          arguments.StorageService,
 		extraSigVerifierHolder:  arguments.ExtraHeaderSigVerifierHolder,
-	}, nil
+	}
+
+	hsv.headerSigVerifierHelper = hsv
+	return hsv, nil
 }
 
 func checkArgsHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) error {
@@ -377,7 +380,11 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetProcessedHeaderHash(), proof.GetAggregatedSignature())
+	err = hsv.headerSigVerifierHelper.verifyProofAggregatedSignature(
+		multiSigVerifier,
+		consensusPubKeys,
+		proof,
+	)
 	if err != nil {
 		return err
 	}
@@ -408,7 +415,11 @@ func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHan
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetProcessedHeaderHash(), proofHandler.GetAggregatedSignature())
+	err = hsv.headerSigVerifierHelper.verifyProofAggregatedSignature(
+		multiSigVerifier,
+		consensusPubKeys,
+		proofHandler,
+	)
 	if err != nil {
 		return err
 	}
@@ -504,12 +515,7 @@ func (hsv *HeaderSigVerifier) verifyLeaderSignature(leaderPubKey crypto.PublicKe
 		return err
 	}
 
-	finalHeader := headerCopy
-	if hsv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
-		finalHeader = createBasicInitialHeaderToSign(headerCopy)
-	}
-
-	headerBytes, err := hsv.marshalizer.Marshal(finalHeader)
+	headerBytes, err := hsv.marshalizer.Marshal(headerCopy)
 	if err != nil {
 		return err
 	}
@@ -569,22 +575,21 @@ func (hsv *HeaderSigVerifier) copyHeaderWithoutLeaderSig(header data.HeaderHandl
 		return nil, err
 	}
 
-	return headerCopy, nil
+	return hsv.headerSigVerifierHelper.getLeaderSignedHeader(headerCopy), nil
 }
 
-func createBasicInitialHeaderToSign(header data.HeaderHandler) data.HeaderHandler {
-	return &block.SovereignChainHeader{
-		Header: &block.Header{
-			Nonce:        header.GetNonce(),
-			PrevHash:     header.GetPrevHash(),
-			PrevRandSeed: header.GetPrevRandSeed(),
-			RandSeed:     header.GetRandSeed(),
-			ShardID:      header.GetShardID(),
-			TimeStamp:    header.GetTimeStamp(),
-			Round:        header.GetRound(),
-			Epoch:        header.GetEpoch(),
-			ChainID:      header.GetChainID(),
-		},
-		IsStartOfEpoch: header.IsStartOfEpochBlock(),
-	}
+func (hsv *HeaderSigVerifier) verifyProofAggregatedSignature(
+	multiSigVerifier crypto.MultiSigner,
+	pubKeysSigners [][]byte,
+	proof data.HeaderProofHandler,
+) error {
+	return multiSigVerifier.VerifyAggregatedSig(
+		pubKeysSigners,
+		proof.GetHeaderHash(),
+		proof.GetAggregatedSignature(),
+	)
+}
+
+func (hsv *HeaderSigVerifier) getLeaderSignedHeader(header data.HeaderHandler) data.HeaderHandler {
+	return header
 }
