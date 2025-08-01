@@ -111,7 +111,7 @@ func checkNewSubroundEndRoundParams(
 }
 
 func (sr *subroundEndRound) isProofForCurrentConsensus(proof consensus.ProofHandler) bool {
-	return bytes.Equal(sr.getMessageToVerifySigFunc(), proof.GetHeaderHash())
+	return bytes.Equal(sr.GetData(), proof.GetHeaderHash())
 }
 
 // receivedProof method is called when a block header final info is received
@@ -420,7 +420,7 @@ func (sr *subroundEndRound) shouldSendProof() bool {
 }
 
 func (sr *subroundEndRound) aggregateSigsAndHandleInvalidSigners(bitmap []byte, sender string) (*aggregatedSigsResult, error) {
-	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.GetData()) {
+	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySigFunc()) {
 		return nil, ErrProofAlreadyPropagated
 	}
 	sig, err := sr.SigningHandler().AggregateSigs(bitmap, sr.GetHeader().GetEpoch())

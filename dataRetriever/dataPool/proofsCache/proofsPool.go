@@ -88,6 +88,7 @@ func (pp *proofsPool) addProof(
 
 	log.Debug("added proof to pool",
 		"header hash", headerProof.GetHeaderHash(),
+		"processed header hash", headerProof.GetProcessedHeaderHash(),
 		"epoch", headerProof.GetHeaderEpoch(),
 		"nonce", headerProof.GetHeaderNonce(),
 		"shardID", headerProof.GetHeaderShardId(),

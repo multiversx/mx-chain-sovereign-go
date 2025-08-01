@@ -105,7 +105,10 @@ func (pc *proofsCache) cleanupProofsBehindNonce(nonce uint64) {
 }
 
 func (pc *proofsCache) cleanupProofsInBucket(bucket *proofNonceBucket) {
-	for _, headerHash := range bucket.proofsByNonce {
+	for nonce, headerHash := range bucket.proofsByNonce {
 		delete(pc.proofsByHash, headerHash)
+
+		processedHash := bucket.processedHashProofsByNonce[nonce]
+		delete(pc.proofsByHash, processedHash)
 	}
 }

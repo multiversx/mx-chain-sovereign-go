@@ -182,7 +182,12 @@ func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, []b
 		return nil, nil, err
 	}
 
-	marshalledHdr, err := sr.Marshalizer().Marshal(runType.CreateSovereignProposedInitialHeader(headerClone))
+	// TODO: MX-17040 Analyse if it would be worth here to inject run type comps instead of flag
+	if sr.enableEpochHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		headerClone = runType.CreateSovereignProposedInitialHeader(headerClone)
+	}
+
+	marshalledHdr, err := sr.Marshalizer().Marshal(headerClone)
 	if err != nil {
 		return nil, nil, err
 	}
