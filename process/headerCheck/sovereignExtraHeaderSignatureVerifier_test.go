@@ -90,7 +90,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 
 	isAndromedaActive := false
 	enableEpochsHandler := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
-		IsFlagEnabledCalled: func(flag core.EnableEpochFlag) bool {
+		IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
 			return isAndromedaActive
 		},
 	}
@@ -105,7 +105,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	}
 
 	t.Run("andromeda not active", func(t *testing.T) {
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, nil)
+		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, nil, 0)
 		require.Nil(t, err)
 		require.Equal(t, outGoingAggregatedSig, aggSig)
 	})
@@ -113,7 +113,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	isAndromedaActive = true
 
 	t.Run("andromeda active, nil proof", func(t *testing.T) {
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, nil)
+		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, nil, 0)
 		require.Nil(t, aggSig)
 		require.Equal(t, process.ErrNilHeaderProof, err)
 	})
@@ -126,7 +126,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 				},
 			},
 		}
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof)
+		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof, 0)
 		require.Nil(t, aggSig)
 		require.ErrorIs(t, err, errNoExtraSignatureDataFoundInProof)
 	})
@@ -140,7 +140,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 				},
 			},
 		}
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof)
+		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof, 0)
 		require.Nil(t, err)
 		require.Equal(t, aggregatedSigFromProof, aggSig)
 	})
@@ -152,7 +152,7 @@ func TestSovereignHeaderSigVerifier_getLeaderSignedMessage(t *testing.T) {
 
 	isAndromedaActive := false
 	enableEpochsHandler := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
-		IsFlagEnabledCalled: func(flag core.EnableEpochFlag) bool {
+		IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
 			return isAndromedaActive
 		},
 	}
@@ -167,7 +167,7 @@ func TestSovereignHeaderSigVerifier_getLeaderSignedMessage(t *testing.T) {
 	}
 
 	t.Run("before andromeda", func(t *testing.T) {
-		signedMsg := sovVerifier.getLeaderSignedMessage(outGoingMBHeader)
+		signedMsg := sovVerifier.getLeaderSignedMessage(outGoingMBHeader, 0)
 		require.Equal(t, append(
 			outGoingMBHeader.GetOutGoingOperationsHash(),
 			outGoingMBHeader.GetAggregatedSignatureOutGoingOperations()...),
@@ -176,7 +176,7 @@ func TestSovereignHeaderSigVerifier_getLeaderSignedMessage(t *testing.T) {
 
 	t.Run("after andromeda", func(t *testing.T) {
 		isAndromedaActive = true
-		signedMsg := sovVerifier.getLeaderSignedMessage(outGoingMBHeader)
+		signedMsg := sovVerifier.getLeaderSignedMessage(outGoingMBHeader, 0)
 		require.Equal(t, outGoingMBHeader.GetOutGoingOperationsHash(), signedMsg)
 	})
 }
