@@ -55,7 +55,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 	"github.com/multiversx/mx-chain-go/trie"
 )
 
@@ -236,7 +235,6 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 		StatusCoreComponents: GetStatusCoreComponents(),
 		ScheduledProcessor:   scheduledProcessor,
 		RunTypeComponents:    GetRunTypeComponents(),
-		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
 	}
 }
 
@@ -284,7 +282,6 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 		StatusCoreComponents: GetStatusCoreComponents(),
 		ScheduledProcessor:   scheduledProcessor,
 		RunTypeComponents:    GetSovereignRunTypeComponents(),
-		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
 	}
 }
 
