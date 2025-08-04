@@ -2,6 +2,8 @@ package mainFactoryMocks
 
 import (
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -108,6 +110,7 @@ type RunTypeComponentsStub struct {
 	VersionedHeaderFactoryField                 genesis.VersionedHeaderFactory
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactoryField               headerSigVerifierFactory.HeaderSigVerifierFactory
+	ExtraSignersHolderField                     bls.ExtraSignersHolder
 }
 
 // NewRunTypeComponentsStub -
@@ -165,6 +168,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		VersionedHeaderFactoryField:                 &testscommon.VersionedHeaderFactoryStub{},
 		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
 		HeaderSigVerifierFactoryField:               &testFactory.HeaderSignatureVerifyFactoryMock{},
+		ExtraSignersHolderField:                     holders.NewEmptyExtraSignersHolder(),
 	}
 }
 
@@ -466,6 +470,11 @@ func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.Craw
 // HeaderSigVerifierFactory -
 func (r *RunTypeComponentsStub) HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory {
 	return r.HeaderSigVerifierFactoryField
+}
+
+// ExtraSignersHolder -
+func (r *RunTypeComponentsStub) ExtraSignersHolder() bls.ExtraSignersHolder {
+	return r.ExtraSignersHolderField
 }
 
 // IsInterfaceNil -

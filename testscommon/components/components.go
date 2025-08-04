@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/stretchr/testify/require"
@@ -1196,8 +1197,9 @@ func createArgsRunTypeComponents() runType.ArgsRunTypeComponents {
 			AddressPubKeyConverterField: &testscommon.PubkeyConverterStub{},
 		},
 		CryptoComponents: &mockCoreComp.CryptoComponentsStub{
-			TxKeyGen: &mockCoreComp.KeyGenMock{},
-			BlockSig: &mockConsensus.SingleSignerMock{},
+			TxKeyGen:   &mockCoreComp.KeyGenMock{},
+			BlockSig:   &mockConsensus.SingleSignerMock{},
+			SigHandler: &consensus.SigningHandlerStub{},
 		},
 		Configs: config.Configs{
 			EconomicsConfig: &config.EconomicsConfig{
@@ -1270,6 +1272,7 @@ func GetRunTypeComponentsStub(rt factory.RunTypeComponentsHandler) *mainFactoryM
 		VersionedHeaderFactoryField:                 rt.VersionedHeaderFactory(),
 		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
 		HeaderSigVerifierFactoryField:               rt.HeaderSigVerifierFactory(),
+		ExtraSignersHolderField:                     rt.ExtraSignersHolder(),
 	}
 }
 

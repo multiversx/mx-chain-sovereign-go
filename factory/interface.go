@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -22,6 +23,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -675,6 +677,7 @@ type RunTypeComponentsHolder interface {
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory
+	ExtraSignersHolder() bls.ExtraSignersHolder
 	Create() error
 	Close() error
 	CheckSubcomponents() error

@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/genesis/data"
 	mockCoreComp "github.com/multiversx/mx-chain-go/integrationTests/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	testCns "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	factoryMock "github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
@@ -109,6 +110,7 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		require.Nil(t, managedRunTypeComponents.TotalStakedValueFactoryHandler())
 		require.Nil(t, managedRunTypeComponents.CrawlerAddressGetter())
 		require.Nil(t, managedRunTypeComponents.HeaderSigVerifierFactory())
+		require.Nil(t, managedRunTypeComponents.ExtraSignersHolder())
 
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
@@ -167,6 +169,7 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		require.NotNil(t, managedRunTypeComponents.TotalStakedValueFactoryHandler())
 		require.NotNil(t, managedRunTypeComponents.CrawlerAddressGetter())
 		require.NotNil(t, managedRunTypeComponents.HeaderSigVerifierFactory())
+		require.NotNil(t, managedRunTypeComponents.ExtraSignersHolder())
 
 		require.Equal(t, factory.RunTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())
@@ -248,8 +251,9 @@ func createArgsRunTypeComponents() runType.ArgsRunTypeComponents {
 			},
 		},
 		CryptoComponents: &mockCoreComp.CryptoComponentsStub{
-			TxKeyGen: &mockCoreComp.KeyGenMock{},
-			BlockSig: &mock.SingleSignerMock{},
+			TxKeyGen:   &mockCoreComp.KeyGenMock{},
+			BlockSig:   &mock.SingleSignerMock{},
+			SigHandler: &testCns.SigningHandlerStub{},
 		},
 		Configs: config.Configs{
 			EconomicsConfig: &config.EconomicsConfig{

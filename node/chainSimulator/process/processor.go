@@ -150,6 +150,11 @@ func (creator *blocksCreator) CreateNewBlock() error {
 		return err
 	}
 
+	err = creator.nodeHandler.GetRunTypeComponents().ExtraSignersHolder().GetSubRoundEndExtraSignersHolder().SignAndSetLeaderSignature(header, leader.PubKey())
+	if err != nil {
+		return err
+	}
+
 	prevHeaderStartOfEpoch := false
 	if prevHeader != nil {
 		prevHeaderStartOfEpoch = prevHeader.IsStartOfEpochBlock()
@@ -248,7 +253,7 @@ func (creator *blocksCreator) ApplySignaturesAndGetProof(
 	}
 
 	pubKeys := extractValidatorPubKeys(validators)
-	newHeaderSig, err := creator.generateAggregatedSignature(headerHash, header.GetEpoch(), header.GetPubKeysBitmap(), pubKeys)
+	extraSigs, newHeaderSig, err := creator.generateAggregatedSignature(header, headerHash, header.GetEpoch(), header.GetPubKeysBitmap(), pubKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +261,11 @@ func (creator *blocksCreator) ApplySignaturesAndGetProof(
 	var headerProof *dataBlock.HeaderProof
 	shouldAddCurrentProof := !nilPrevHeader && enableEpochHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch())
 	if shouldAddCurrentProof {
-		headerProof = createProofForHeader(pubKeyBitmap, newHeaderSig, headerHash, header)
+		headerProof, err = creator.createProofForHeader(extraSigs, pubKeyBitmap, newHeaderSig, headerHash, header)
+		if err != nil {
+			return nil, err
+		}
+
 		creator.nodeHandler.GetDataComponents().Datapool().Headers().AddHeader(headerHash, header)
 		err = creator.nodeHandler.GetProcessComponents().HeaderSigVerifier().VerifyHeaderProof(headerProof)
 		if err != nil {
@@ -270,17 +279,45 @@ func (creator *blocksCreator) ApplySignaturesAndGetProof(
 	return headerProof, nil
 }
 
-func createProofForHeader(pubKeyBitmap, signature, headerHash []byte, header data.HeaderHandler) *dataBlock.HeaderProof {
+func (creator *blocksCreator) createProofForHeader(extraSigs map[string][]byte, pubKeyBitmap, signature, headerHash []byte, header data.HeaderHandler) (*dataBlock.HeaderProof, error) {
+	extraSigsHeaderProof, err := creator.prepareExtraSignaturesForProof(extraSigs, header)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dataBlock.HeaderProof{
 		PubKeysBitmap:       pubKeyBitmap,
 		AggregatedSignature: signature,
 		HeaderHash:          headerHash,
+		ProcessedHeaderHash: headerHash,
 		HeaderEpoch:         header.GetEpoch(),
 		HeaderNonce:         header.GetNonce(),
 		HeaderShardId:       header.GetShardID(),
 		HeaderRound:         header.GetRound(),
 		IsStartOfEpoch:      header.IsStartOfEpochBlock(),
+		ExtraSignatures:     extraSigsHeaderProof,
+	}, nil
+}
+
+func (creator *blocksCreator) prepareExtraSignaturesForProof(extraAggregatedSigs map[string][]byte, header data.HeaderHandler) (map[string]*dataBlock.ExtraSignatureData, error) {
+	extraSigs := make(map[string]*dataBlock.ExtraSignatureData)
+	for id, aggSig := range extraAggregatedSigs {
+		if len(aggSig) == 0 {
+			continue
+		}
+
+		leaderSig, err := creator.nodeHandler.GetRunTypeComponents().ExtraSignersHolder().GetSubRoundEndExtraSignersHolder().GetLeaderExtraSig(header, id)
+		if err != nil {
+			return nil, err
+		}
+
+		extraSigs[id] = &dataBlock.ExtraSignatureData{
+			AggregatedSignature: aggSig,
+			LeaderSignature:     leaderSig,
+		}
 	}
+
+	return extraSigs, nil
 }
 
 func (creator *blocksCreator) getPreviousHeaderData() (nonce, round uint64, prevHash, prevRandSeed []byte, epoch uint32, currentHeader data.HeaderHandler) {
@@ -352,7 +389,7 @@ func (creator *blocksCreator) setHeaderSignatures(header data.HeaderHandler, bls
 	headerHash := creator.nodeHandler.GetCoreComponents().Hasher().Compute(string(marshalizedHdr))
 	pubKeys := extractValidatorPubKeys(validators)
 
-	sig, err := creator.generateAggregatedSignature(headerHash, header.GetEpoch(), header.GetPubKeysBitmap(), pubKeys)
+	_, sig, err := creator.generateAggregatedSignature(header, headerHash, header.GetEpoch(), header.GetPubKeysBitmap(), pubKeys)
 	if err != nil {
 		return err
 	}
@@ -369,18 +406,29 @@ func (creator *blocksCreator) setHeaderSignatures(header data.HeaderHandler, bls
 		return err
 	}
 
+	err = creator.nodeHandler.GetRunTypeComponents().ExtraSignersHolder().GetSubRoundEndExtraSignersHolder().SignAndSetLeaderSignature(header, blsKeyBytes)
+	if err != nil {
+		return err
+	}
+
 	return header.SetLeaderSignature(leaderSignature)
 }
 
-func (creator *blocksCreator) generateAggregatedSignature(headerHash []byte, epoch uint32, pubKeysBitmap []byte, pubKeys []string) ([]byte, error) {
+func (creator *blocksCreator) generateAggregatedSignature(header data.HeaderHandler, headerHash []byte, epoch uint32, pubKeysBitmap []byte, pubKeys []string) (map[string][]byte, []byte, error) {
 	signingHandler := creator.nodeHandler.GetCryptoComponents().ConsensusSigningHandler()
-
+	extraSigners := creator.nodeHandler.GetRunTypeComponents().ExtraSignersHolder()
 	err := signingHandler.Reset(pubKeys)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	extraSigners.GetSubRoundStartExtraSignersHolder().Reset(pubKeys)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	totalKey := 0
+
 	for idx, pubKey := range pubKeys {
 		isManaged := creator.nodeHandler.GetCryptoComponents().KeysHandler().IsKeyManagedByCurrentNode([]byte(pubKey))
 		if !isManaged {
@@ -390,17 +438,27 @@ func (creator *blocksCreator) generateAggregatedSignature(headerHash []byte, epo
 
 		totalKey++
 		if _, err = signingHandler.CreateSignatureShareForPublicKey(headerHash, uint16(idx), epoch, []byte(pubKey)); err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+
+		_, err = extraSigners.GetSubRoundSignatureExtraSignersHolder().CreateExtraSignatureShares(header, uint16(idx), []byte(pubKey))
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
 	aggSig, err := signingHandler.AggregateSigs(pubKeysBitmap, epoch)
 	if err != nil {
 		log.Warn("total", "total", totalKey, "err", err)
-		return nil, err
+		return nil, nil, err
 	}
 
-	return aggSig, nil
+	extraSigs, err := extraSigners.GetSubRoundEndExtraSignersHolder().AggregateSignatures(pubKeysBitmap, header)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return extraSigs, aggSig, nil
 }
 
 func extractValidatorPubKeys(validators []nodesCoordinator.Validator) []string {

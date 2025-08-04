@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -274,6 +275,9 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	}
 	if check.IfNil(mrc.headerSigVerifierFactory) {
 		return errors.ErrNilHeaderSigVerifierFactory
+	}
+	if check.IfNil(mrc.extraSignersHolder) {
+		return errors.ErrNilExtraSignersHolder
 	}
 
 	return nil
@@ -949,6 +953,18 @@ func (mrc *managedRunTypeComponents) HeaderSigVerifierFactory() headerSigVerifie
 	}
 
 	return mrc.runTypeComponents.headerSigVerifierFactory
+}
+
+// ExtraSignersHolder returns extra signers holder
+func (mrc *managedRunTypeComponents) ExtraSignersHolder() bls.ExtraSignersHolder {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.extraSignersHolder
 }
 
 // IsInterfaceNil returns true if the interface is nil
