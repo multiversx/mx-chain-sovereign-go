@@ -50,6 +50,7 @@ func (h *HeaderProofHandlerStub) GetHeaderHash() []byte {
 	return nil
 }
 
+// GetProcessedHeaderHash -
 func (h *HeaderProofHandlerStub) GetProcessedHeaderHash() []byte {
 	if h.GetProcessedHeaderHashCalled != nil {
 		return h.GetProcessedHeaderHashCalled()
