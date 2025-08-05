@@ -183,13 +183,8 @@ func (fct *factory) generateEndRoundSubroundV2() error {
 		return err
 	}
 
-	subroundEndV2Instance, err := NewSubroundEndRoundV2(subroundEndRoundInstance)
-	if err != nil {
-		return err
-	}
-
 	sovEndRound, err := NewSovereignSubRoundEndRound(
-		subroundEndV2Instance,
+		subroundEndRoundInstance,
 		fct.outGoingOperationsPool,
 		fct.bridgeOpHandler,
 	)
