@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	hrtBeat "github.com/multiversx/mx-chain-go/heartbeat"
+	"github.com/multiversx/mx-chain-go/testscommon/mainFactoryMocks"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -611,6 +612,9 @@ func getNodeHandler() *chainSimulator.NodeHandlerMock {
 		},
 		GetBroadcastMessengerCalled: func() consensus.BroadcastMessenger {
 			return &testsConsensus.BroadcastMessengerMock{}
+		},
+		GetRunTypeComponentsCalled: func() factory.RunTypeComponentsHolder {
+			return mainFactoryMocks.NewRunTypeComponentsStub()
 		},
 	}
 }
