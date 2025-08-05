@@ -17,7 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C MX-17040 , this should be merged with subroundEndV2 in a sovereign specific file
+// TODO: Marius C MX-17085 , this should be merged with subroundEndV2 in a sovereign specific file
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2

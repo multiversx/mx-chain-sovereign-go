@@ -182,7 +182,7 @@ func (sr *subroundBlock) signBlockHeader(header data.HeaderHandler) ([]byte, []b
 		return nil, nil, err
 	}
 
-	// TODO: MX-17040 Analyse if it would be worth here to inject run type comps instead of flag
+	// TODO: MX-17085 Analyse if it would be worth here to inject run type comps instead of flag
 	if sr.enableEpochHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		headerClone = runType.CreateSovereignProposedInitialHeader(headerClone)
 	}

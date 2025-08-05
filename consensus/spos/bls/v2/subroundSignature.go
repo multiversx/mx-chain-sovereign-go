@@ -310,7 +310,7 @@ func (sr *subroundSignature) sendSignatureForManagedKey(idx int, pk string) bool
 	}
 	sr.sentSignatureTracker.SignatureSent(pkBytes)
 
-	// TODO: MX-17040 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
+	// TODO: MX-17085 check at the end if this idx is ok or we should use selfIndex, err := sr.ConsensusGroupIndex(pk)
 	return sr.completeSignatureSubRound(pk, idx, processedHeaderHash)
 }
 
