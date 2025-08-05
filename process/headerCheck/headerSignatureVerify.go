@@ -7,7 +7,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -318,8 +317,6 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	var err error
 
 	for {
-		// TODO: MX-17085: If we would send the processed header hash, this might work as previous usage
-		// header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
 		header, err = hsv.getHeaderForProof(proof)
 		if err == nil {
 			break
@@ -342,16 +339,7 @@ func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (
 		return hdr, nil
 	}
 
-	hdr, _, err = process.GetShardHeaderWithNonce(
-		proof.GetHeaderNonce(),
-		proof.GetHeaderShardId(),
-		hsv.headersPool,
-		hsv.marshalizer,
-		hsv.storageService,
-		// TODO: MX-17085: This shall be either injected from constructor, or totally replaced if we use processed header hash
-		uint64ByteSlice.NewBigEndianConverter(),
-	)
-	return hdr, err
+	return process.GetHeader(proof.GetProcessedHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
 }
 
 func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderProofHandler) error {
