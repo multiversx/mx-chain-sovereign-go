@@ -1166,7 +1166,7 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(
 		sovHdr,
 		&block.Body{
-			MiniBlocks: body.MiniBlocks, // append(body.MiniBlocks, finalMiniBlocks...),
+			MiniBlocks: body.MiniBlocks,
 		})
 	if err != nil {
 		return err
