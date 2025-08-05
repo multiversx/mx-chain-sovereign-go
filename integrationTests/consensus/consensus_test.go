@@ -18,13 +18,11 @@ import (
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
 )
 
 const (
@@ -206,7 +204,6 @@ func startFullConsensusNode(
 		ScheduledProcessor:      &consensusMocks.ScheduledProcessorStub{},
 		IsInImportMode:          n.Node.IsInImportMode(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
-		ExtraSignersHolder:      holders.NewEmptyExtraSignersHolder(),
 		RunTypeComponents:       n.RunTypeComponents,
 	}
 
@@ -354,7 +351,6 @@ func startNodesWithCommitBlock(
 			ScheduledProcessor:      &consensusMocks.ScheduledProcessorStub{},
 			IsInImportMode:          n.Node.IsInImportMode(),
 			RunTypeComponents:       n.Node.GetRunTypeComponents(),
-			ExtraSignersHolder:      &subRoundsHolder.ExtraSignersHolderMock{},
 			OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 		}
 
