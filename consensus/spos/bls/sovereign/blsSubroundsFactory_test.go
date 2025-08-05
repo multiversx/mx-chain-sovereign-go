@@ -303,6 +303,9 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 
 		wasReceivedMsgCalled := false
 		shouldCheckAddReceivedMsg := false
+		resetReceivedProofHandlerCalled := false
+		shouldCheckAddReceivedProof := false
+		wasAddReceivedProofHandlerCalled := false
 		args := createArgsSovSubRoundsFactory()
 		args.ConsensusDataContainer = container
 		args.Worker = &consensusMock.SposWorkerMock{
@@ -320,6 +323,18 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 
 				wasReceivedMsgCalled = true
 			},
+			ResetReceivedProofHandlerCalled: func() {
+				resetReceivedProofHandlerCalled = true
+				shouldCheckAddReceivedProof = true
+			},
+			AddReceivedProofHandlerCalled: func(handler func(proofHandler consensus.ProofHandler)) {
+				if !shouldCheckAddReceivedProof {
+					return
+				}
+
+				require.True(t, strings.Contains(getFunctionName(handler), "(*sovereignSubRoundEnd).ReceivedProof"))
+				wasAddReceivedProofHandlerCalled = true
+			},
 		}
 
 		fct, _ := sovereign.NewSubroundsFactory(args)
@@ -328,6 +343,8 @@ func TestFactory_GenerateSubroundEndRound(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "*sovereign.sovereignSubRoundEnd", fmt.Sprintf("%T", addedSubround))
 		require.True(t, wasReceivedMsgCalled)
+		require.True(t, resetReceivedProofHandlerCalled)
+		require.True(t, wasAddReceivedProofHandlerCalled)
 	})
 
 }
@@ -339,8 +356,10 @@ func TestFactory_GenerateSubroundsShouldWork(t *testing.T) {
 	subRoundsMap := make(map[string]struct{})
 	chrm.AddSubroundCalled = func(subroundHandler consensus.SubroundHandler) {
 		subRoundHandlerName := fmt.Sprintf("%T", subroundHandler)
-		// TODO: Marius C: MX-17085 rename all rounds with sovereign name to have this working?
-		//	require.True(t, strings.Contains(subRoundHandlerName, "sovereign"))
+		if !strings.Contains(subRoundHandlerName, "StartRound") {
+			require.True(t, strings.Contains(subRoundHandlerName, "sovereign"))
+		}
+
 		subRoundsMap[subRoundHandlerName] = struct{}{}
 	}
 	container := consensusMock.InitConsensusCore()
@@ -374,5 +393,3 @@ func TestFactory_SetIndexerShouldWork(t *testing.T) {
 
 	require.Equal(t, outportHandler, fct.Outport())
 }
-
-// TODO: Marius C: MX-17085 Mock for base factory and check that we do not call AddReceivedMessageCall more times than necessary
