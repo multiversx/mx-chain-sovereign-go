@@ -232,9 +232,7 @@ func (tfn *TestFullNode) initNodesCoordinator(
 		ChanceComputer:      &mock.RaterMock{},
 	}
 	tfn.NodesCoordinator, _ = tfn.RunTypeComponents.NodesCoordinatorWithRaterCreator().CreateNodesCoordinatorWithRater(argumentsNodesCoordinatorWithRater)
-	//var err error
-	//tfn.NodesCoordinator, err = nodesCoordinator.NewIndexHashedNodesCoordinator(argumentsNodesCoordinator)
-	//tfn.NodesCoordinator, err = nodesCoordinator.NewSovereignIndexHashedNodesCoordinator(argumentsNodesCoordinator)
+	//tfn.NodesCoordinator = nc
 	//_ = err
 }
 

@@ -3676,8 +3676,12 @@ func getDefaultBootstrapComponents(shardCoordinator sharding.Coordinator, handle
 			return "1"
 		},
 	}
-	//versionedHeaderFactory, _ = hdrFactory.NewShardHeaderFactory(headerVersionHandler)
-	versionedHeaderFactory, _ = hdrFactory.NewSovereignShardHeaderFactory(headerVersionHandler)
+
+	if handler.IsFlagEnabledInEpoch(common.ConsensusModelSovereignFlag, 0) {
+		versionedHeaderFactory, _ = hdrFactory.NewSovereignShardHeaderFactory(headerVersionHandler)
+	} else {
+		versionedHeaderFactory, _ = hdrFactory.NewShardHeaderFactory(headerVersionHandler)
+	}
 	if shardCoordinator.SelfId() == core.MetachainShardId {
 		versionedHeaderFactory, _ = hdrFactory.NewMetaHeaderFactory(headerVersionHandler)
 	}
