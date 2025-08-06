@@ -35,7 +35,7 @@ func initNodesWithTestSigner(
 	enableEpochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
 	isSovereign := false
 	if consensusModel == consensus.ConsensusModelV2 {
-		// TODO: MARIUS C: MX-17085 Here, have this enabled when we integrate consensus v2 into sovereign consensus
+		// TODO: MARIUS C: MX-16953 Here, have this enabled when we integrate consensus v2 into sovereign consensus
 		enableEpochsConfig.AndromedaEnableEpoch = 99999
 		enableEpochsConfig.ConsensusModelV2EnableEpoch = 0
 		isSovereign = true
