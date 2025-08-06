@@ -57,7 +57,8 @@ type HeaderSigVerifier struct {
 	proofsPool              dataRetriever.ProofsPool
 	storageService          dataRetriever.StorageService
 
-	extraSigVerifierHolder ExtraHeaderSigVerifierHolder
+	extraSigVerifierHolder  ExtraHeaderSigVerifierHolder
+	headerSigVerifierHelper headerSigVerifierHelper
 }
 
 // NewHeaderSigVerifier will create a new instance of HeaderSigVerifier
@@ -67,7 +68,7 @@ func NewHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) (*HeaderSigVerifier,
 		return nil, err
 	}
 
-	return &HeaderSigVerifier{
+	hsv := &HeaderSigVerifier{
 		marshalizer:             arguments.Marshalizer,
 		hasher:                  arguments.Hasher,
 		nodesCoordinator:        arguments.NodesCoordinator,
@@ -80,7 +81,10 @@ func NewHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) (*HeaderSigVerifier,
 		proofsPool:              arguments.ProofsPool,
 		storageService:          arguments.StorageService,
 		extraSigVerifierHolder:  arguments.ExtraHeaderSigVerifierHolder,
-	}, nil
+	}
+
+	hsv.headerSigVerifierHelper = hsv
+	return hsv, nil
 }
 
 func checkArgsHeaderSigVerifier(arguments *ArgsHeaderSigVerifier) error {
@@ -314,7 +318,7 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	var err error
 
 	for {
-		// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage
+		// TODO: MX-17085: If we would send the processed header hash, this might work as previous usage
 		// header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
 		header, err = hsv.getHeaderForProof(proof)
 		if err == nil {
@@ -344,7 +348,7 @@ func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (
 		hsv.headersPool,
 		hsv.marshalizer,
 		hsv.storageService,
-		// TODO: MX-17040: This shall be either injected from constructor, or totally replaced if we use processed header hash
+		// TODO: MX-17085: This shall be either injected from constructor, or totally replaced if we use processed header hash
 		uint64ByteSlice.NewBigEndianConverter(),
 	)
 	return hdr, err
@@ -376,7 +380,11 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
+	err = hsv.headerSigVerifierHelper.verifyProofAggregatedSignature(
+		multiSigVerifier,
+		consensusPubKeys,
+		proof,
+	)
 	if err != nil {
 		return err
 	}
@@ -407,7 +415,11 @@ func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHan
 		return err
 	}
 
-	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	err = hsv.headerSigVerifierHelper.verifyProofAggregatedSignature(
+		multiSigVerifier,
+		consensusPubKeys,
+		proofHandler,
+	)
 	if err != nil {
 		return err
 	}
@@ -563,5 +575,21 @@ func (hsv *HeaderSigVerifier) copyHeaderWithoutLeaderSig(header data.HeaderHandl
 		return nil, err
 	}
 
-	return headerCopy, nil
+	return hsv.headerSigVerifierHelper.getLeaderSignedHeader(headerCopy), nil
+}
+
+func (hsv *HeaderSigVerifier) verifyProofAggregatedSignature(
+	multiSigVerifier crypto.MultiSigner,
+	pubKeysSigners [][]byte,
+	proof data.HeaderProofHandler,
+) error {
+	return multiSigVerifier.VerifyAggregatedSig(
+		pubKeysSigners,
+		proof.GetHeaderHash(),
+		proof.GetAggregatedSignature(),
+	)
+}
+
+func (hsv *HeaderSigVerifier) getLeaderSignedHeader(header data.HeaderHandler) data.HeaderHandler {
+	return header
 }

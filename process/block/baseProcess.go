@@ -1635,7 +1635,7 @@ func (bp *baseProcessor) saveProof(
 	if !common.IsProofsFlagEnabledForHeader(bp.enableEpochsHandler, header) {
 		return
 	}
-	// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage:
+	// TODO: MX-17085: If we would send the processed header hash, this might work as previous usage:
 	// proof, err := bp.proofsPool.GetProof(header.GetShardID(), hash)
 
 	proof, err := bp.proofsPool.GetProofByNonce(header.GetNonce(), header.GetShardID())
@@ -1655,6 +1655,13 @@ func (bp *baseProcessor) saveProof(
 	}
 
 	errNotCritical = bp.store.Put(dataRetriever.ProofsUnit, proof.GetHeaderHash(), marshalledProof)
+	if errNotCritical != nil {
+		logging.LogErrAsWarnExceptAsDebugIfClosingError(log, errNotCritical,
+			"saveProof.Put -> ProofsUnit",
+			"err", errNotCritical)
+	}
+
+	errNotCritical = bp.store.Put(dataRetriever.ProofsUnit, proof.GetProcessedHeaderHash(), marshalledProof)
 	if errNotCritical != nil {
 		logging.LogErrAsWarnExceptAsDebugIfClosingError(log, errNotCritical,
 			"saveProof.Put -> ProofsUnit",

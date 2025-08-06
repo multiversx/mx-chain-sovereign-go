@@ -251,11 +251,11 @@ func (e *epochStartMetaBlockProcessor) waitForMetaBlockProof(
 	ctx context.Context,
 	metaBlockHash []byte,
 ) error {
-	if e.proofsPool.HasProof(core.MetachainShardId, metaBlockHash) {
+	if e.proofsPool.HasProof(e.epochStartPeerHandler.getMetaChainShardID(), metaBlockHash) {
 		return nil
 	}
 
-	err := e.requestProofForMetaBlock(metaBlockHash)
+	err := e.epochStartPeerHandler.requestProofForMetaBlock(metaBlockHash)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (e *epochStartMetaBlockProcessor) waitForMetaBlockProof(
 		case <-ctx.Done():
 			return epochStart.ErrTimeoutWaitingForMetaBlock
 		case <-chanRequests:
-			err = e.requestProofForMetaBlock(metaBlockHash)
+			err = e.epochStartPeerHandler.requestProofForMetaBlock(metaBlockHash)
 			if err != nil {
 				return err
 			}
@@ -323,15 +323,14 @@ func (e *epochStartMetaBlockProcessor) requestProofForMetaBlock(metablockHash []
 	return nil
 }
 
-// TODO: MX-17040 check this one as well
 func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofHandler) {
 	startOfEpochMetaBlock, hash, err := e.getMostReceivedMetaBlock()
 	if err != nil {
 		return
 	}
 
-	hashesMatchMostReceived := string(proof.GetHeaderHash()) == hash
-	hashesMatchLocal := string(proof.GetHeaderHash()) == e.metaBlockHash
+	hashesMatchMostReceived := e.epochStartPeerHandler.hashMatches(hash, proof)
+	hashesMatchLocal := e.epochStartPeerHandler.hashMatches(e.metaBlockHash, proof)
 	if !hashesMatchMostReceived && !hashesMatchLocal {
 		return
 	}
@@ -347,6 +346,10 @@ func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofH
 	}
 
 	e.chanMetaBlockProofReached <- true
+}
+
+func (e *epochStartMetaBlockProcessor) hashMatches(hash string, proof dataCore.HeaderProofHandler) bool {
+	return string(proof.GetHeaderHash()) == hash
 }
 
 func (e *epochStartMetaBlockProcessor) checkMetaBlockMaps() {
@@ -398,6 +401,10 @@ func (e *epochStartMetaBlockProcessor) setNumPeers(
 
 func (e *epochStartMetaBlockProcessor) getTopic() string {
 	return factory.MetachainBlocksTopic
+}
+
+func (e *epochStartMetaBlockProcessor) getMetaChainShardID() uint32 {
+	return core.MetachainShardId
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

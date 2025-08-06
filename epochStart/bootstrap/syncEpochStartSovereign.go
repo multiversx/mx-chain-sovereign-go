@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
+
 	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/process/interceptors"
@@ -62,7 +63,7 @@ func createSovereignSingleDataInterceptors(args ArgsNewEpochStartMetaSyncer) (*s
 		return nil, err
 	}
 
-	proofInterceptor, err := createProofInterceptor(args, argsInterceptedDataFactory, interceptedDataVerifier, core.SovereignChainShardId)
+	proofInterceptor, err := createProofInterceptor(args, argsInterceptedDataFactory, interceptedDataVerifier, core.SovereignChainShardId, core.SovereignChainShardId)
 	if err != nil {
 		return nil, err
 	}

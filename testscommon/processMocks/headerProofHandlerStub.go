@@ -9,6 +9,7 @@ type HeaderProofHandlerStub struct {
 	GetPubKeysBitmapCalled          func() []byte
 	GetAggregatedSignatureCalled    func() []byte
 	GetHeaderHashCalled             func() []byte
+	GetProcessedHeaderHashCalled    func() []byte
 	GetHeaderEpochCalled            func() uint32
 	GetHeaderNonceCalled            func() uint64
 	GetHeaderShardIdCalled          func() uint32
@@ -45,6 +46,14 @@ func (h *HeaderProofHandlerStub) GetAggregatedSignature() []byte {
 func (h *HeaderProofHandlerStub) GetHeaderHash() []byte {
 	if h.GetHeaderHashCalled != nil {
 		return h.GetHeaderHashCalled()
+	}
+	return nil
+}
+
+// GetProcessedHeaderHash -
+func (h *HeaderProofHandlerStub) GetProcessedHeaderHash() []byte {
+	if h.GetProcessedHeaderHashCalled != nil {
+		return h.GetProcessedHeaderHashCalled()
 	}
 	return nil
 }

@@ -38,7 +38,7 @@ type epochStartMetaSyncer struct {
 	proofsInterceptor              process.Interceptor
 	metaBlockProcessor             EpochStartMetaBlockInterceptorProcessor
 	interceptedDataVerifierFactory process.InterceptedDataVerifierFactory
-	epochStartTopicProviderHandler epochStartTopicProviderHandler
+	epochStartTopicProviderHandler syncEpochStartMetaHelperHandler
 }
 
 // ArgsNewEpochStartMetaSyncer -
@@ -144,7 +144,7 @@ func createMetaSingleDataInterceptors(
 		return nil, err
 	}
 
-	proofInterceptor, err := createProofInterceptor(args, argsInterceptedDataFactory, interceptedDataVerifier, core.MetachainShardId)
+	proofInterceptor, err := createProofInterceptor(args, argsInterceptedDataFactory, interceptedDataVerifier, core.MetachainShardId, core.AllShardId)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +160,7 @@ func createProofInterceptor(
 	argsInterceptedDataFactory interceptorsFactory.ArgInterceptedDataFactory,
 	interceptedDataVerifier process.InterceptedDataVerifier,
 	shardID uint32,
+	allShardID uint32,
 ) (process.Interceptor, error) {
 	argsInterceptedEquivalentProofsFactory := interceptorsFactory.ArgInterceptedEquivalentProofsFactory{
 		ArgInterceptedDataFactory: argsInterceptedDataFactory,
@@ -167,7 +168,7 @@ func createProofInterceptor(
 	}
 	interceptedEquivalentProofsFactory := interceptorsFactory.NewInterceptedEquivalentProofsFactory(argsInterceptedEquivalentProofsFactory)
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardID, core.AllShardId)
+	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardID, allShardID)
 	return interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
 			Topic:                   proofsTopic,
@@ -225,7 +226,7 @@ func (e *epochStartMetaSyncer) resetTopicsAndInterceptors() {
 		log.Trace("error unregistering message processors", "error", err)
 	}
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	proofsTopic := e.epochStartTopicProviderHandler.getProofsTopic(core.MetachainShardId, core.AllShardId)
 	err = e.messenger.UnregisterMessageProcessor(proofsTopic, common.EpochStartInterceptorsIdentifier)
 	if err != nil {
 		log.Trace("error unregistering message processors", "error", err)
@@ -239,7 +240,7 @@ func (e *epochStartMetaSyncer) initTopicForEpochStartMetaBlockInterceptor() erro
 		return err
 	}
 
-	proofsTopic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	proofsTopic := e.epochStartTopicProviderHandler.getProofsTopic(core.MetachainShardId, core.AllShardId)
 	err = e.messenger.CreateTopic(proofsTopic, true)
 	if err != nil {
 		log.Warn("error messenger create topic", "topic", proofsTopic, "error", err)
@@ -257,6 +258,10 @@ func (e *epochStartMetaSyncer) initTopicForEpochStartMetaBlockInterceptor() erro
 
 func (e *epochStartMetaSyncer) getTopic() string {
 	return factory.MetachainBlocksTopic
+}
+
+func (e *epochStartMetaSyncer) getProofsTopic(shardId1 uint32, shardId2 uint32) string {
+	return common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(shardId1, shardId2)
 }
 
 // IsInterfaceNil returns true if underlying object is nil

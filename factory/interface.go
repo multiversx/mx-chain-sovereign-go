@@ -22,6 +22,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -54,6 +55,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	shardData "github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
@@ -673,6 +675,8 @@ type RunTypeComponentsHolder interface {
 	TotalStakedValueFactoryHandler() trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
+	HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory
+	ExtraSignersHolder() bls.ExtraSignersHolder
 	Create() error
 	Close() error
 	CheckSubcomponents() error

@@ -60,7 +60,6 @@ type ConsensusComponentsFactoryArgs struct {
 	ScheduledProcessor      consensus.ScheduledProcessor
 	IsInImportMode          bool
 	ShouldDisableWatchdog   bool
-	ExtraSignersHolder      bls.ExtraSignersHolder
 	OutGoingBridgeOpHandler bls.BridgeOperationsHandler
 }
 
@@ -81,7 +80,6 @@ type consensusComponentsFactory struct {
 	isInImportMode        bool
 	shouldDisableWatchdog bool
 
-	extraSignersHolder      bls.ExtraSignersHolder
 	shardMessengerFactory   sposFactory.BroadCastShardMessengerFactoryHandler
 	outGoingBridgeOpHandler bls.BridgeOperationsHandler
 }
@@ -118,7 +116,6 @@ func NewConsensusComponentsFactory(args ConsensusComponentsFactoryArgs) (*consen
 		isInImportMode:          args.IsInImportMode,
 		shouldDisableWatchdog:   args.ShouldDisableWatchdog,
 		runTypeComponents:       args.RunTypeComponents,
-		extraSignersHolder:      args.ExtraSignersHolder,
 		shardMessengerFactory:   args.RunTypeComponents.BroadCastShardMessengerFactoryHandler(),
 		outGoingBridgeOpHandler: args.OutGoingBridgeOpHandler,
 	}, nil
@@ -309,7 +306,7 @@ func (ccf *consensusComponentsFactory) Create() (*consensusComponents, error) {
 		EnableEpochsHandler:     ccf.coreComponents.EnableEpochsHandler(),
 		ChainID:                 []byte(ccf.coreComponents.ChainID()),
 		CurrentPid:              ccf.networkComponents.NetworkMessenger().ID(),
-		ExtraSignersHolder:      ccf.extraSignersHolder,
+		ExtraSignersHolder:      ccf.runTypeComponents.ExtraSignersHolder(),
 		OutGoingBridgeOpHandler: ccf.outGoingBridgeOpHandler,
 		RunTypeComponents:       ccf.runTypeComponents,
 	}
@@ -801,9 +798,6 @@ func checkArgs(args ConsensusComponentsFactoryArgs) error {
 	if check.IfNil(args.StatusCoreComponents) {
 		return errors.ErrNilStatusCoreComponents
 	}
-	if check.IfNil(args.ExtraSignersHolder) {
-		return errors.ErrNilExtraSignersHolder
-	}
 	if check.IfNil(args.RunTypeComponents) {
 		return errors.ErrNilRunTypeComponents
 	}
@@ -815,6 +809,9 @@ func checkArgs(args ConsensusComponentsFactoryArgs) error {
 	}
 	if check.IfNil(args.RunTypeComponents.BroadCastShardMessengerFactoryHandler()) {
 		return errors.ErrNilBroadCastShardMessengerFactoryHandler
+	}
+	if check.IfNil(args.RunTypeComponents.ExtraSignersHolder()) {
+		return errors.ErrNilExtraSignersHolder
 	}
 	if check.IfNil(args.OutGoingBridgeOpHandler) {
 		log.Warn("nil outgoing bridge op handler provided in NewConsensusComponentsFactory, using disabled one")

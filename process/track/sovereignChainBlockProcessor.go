@@ -98,6 +98,7 @@ func (scbp *sovereignChainBlockProcessor) doJobOnReceivedCrossNotarizedHeader(sh
 func (scbp *sovereignChainBlockProcessor) requestHeaderWithShardAndNonce(shardID uint32, nonce uint64) {
 	if shardID == scbp.shardCoordinator.SelfId() {
 		scbp.requestHandler.RequestShardHeaderByNonce(shardID, nonce)
+		scbp.requestHandler.RequestEquivalentProofByNonce(shardID, nonce)
 	} else if shardID == core.MainChainShardId {
 		scbp.extendedShardHeaderRequester.RequestExtendedShardHeaderByNonce(nonce)
 	} else {
