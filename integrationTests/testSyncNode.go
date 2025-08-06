@@ -197,6 +197,7 @@ func (tpn *TestProcessorNode) createShardBootstrapper() (TestBootstrapper, error
 		ArgBaseBootstrapper: argsBaseBootstrapper,
 	}
 
+	//bootstrap, err := tpn.RunTypeComponents.BootstrapperCreator().CreateBootstrapper(argsShardBootstrapper)
 	bootstrap, err := sync.NewShardBootstrap(argsShardBootstrapper)
 	if err != nil {
 		return nil, err

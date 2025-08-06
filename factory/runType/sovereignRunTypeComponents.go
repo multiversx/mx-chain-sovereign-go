@@ -228,7 +228,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		additionalStorageServiceCreator:         storageFactory.NewSovereignAdditionalStorageServiceFactory(),
 		scProcessorCreator:                      scProcessorCreator,
 		scResultPreProcessorCreator:             scResultPreProcessorCreator,
-		consensusModel:                          consensus.ConsensusModelV2,
+		consensusModel:                          consensus.ConsensusModelSovereign,
 		vmContainerMetaFactory:                  rtc.vmContainerMetaFactory,
 		vmContainerShardFactory:                 sovereignVmContainerShardCreator,
 		accountsParser:                          sovereignAccountsParser,

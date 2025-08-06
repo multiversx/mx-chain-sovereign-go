@@ -203,3 +203,9 @@ type NodesCoordinatorWithRaterFactory interface {
 	CreateNodesCoordinatorWithRater(args *NodesCoordinatorWithRaterArgs) (NodesCoordinator, error)
 	IsInterfaceNil() bool
 }
+
+// HashValidatorShufflerFactory should create hash validator shuffler
+type HashValidatorShufflerFactory interface {
+	CreateHashValidatorShuffler(args *NodesShufflerArgs) (NodesShuffler, error)
+	IsInterfaceNil() bool
+}

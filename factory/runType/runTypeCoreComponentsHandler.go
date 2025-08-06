@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
+	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
 
 var _ factory.ComponentHandler = (*managedRunTypeCoreComponents)(nil)
@@ -134,6 +135,18 @@ func (mrcc *managedRunTypeCoreComponents) ChainParametersHolderFactory() chainPa
 	}
 
 	return mrcc.runTypeCoreComponents.chainParametersFactory
+}
+
+// HashValidatorShufflerFactory returns the hash validator shuffler factory
+func (mrcc *managedRunTypeCoreComponents) HashValidatorShufflerFactory() nodesCoordinator.HashValidatorShufflerFactory {
+	mrcc.mutRunTypeCoreComponents.RLock()
+	defer mrcc.mutRunTypeCoreComponents.RUnlock()
+
+	if check.IfNil(mrcc.runTypeCoreComponents) {
+		return nil
+	}
+
+	return mrcc.runTypeCoreComponents.hashValidatorShufflerFactory
 }
 
 // IsInterfaceNil returns true if the interface is nil

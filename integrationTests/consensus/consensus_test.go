@@ -22,6 +22,7 @@ import (
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/testscommon/components"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
@@ -75,7 +76,7 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 1)
+	testConsensusBLSWithFullProcessing(t, uint32(0), uint32(0), 1)
 }
 
 func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testing.T) {
@@ -87,7 +88,10 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testin
 }
 
 func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivationEpoch uint32, sovereignConsensusActivationEpoch uint32, numKeysOnEachNode int) {
-	numMetaNodes := uint32(2)
+	//numMetaNodes := uint32(2)
+	numMetaNodes := uint32(0)
+	//numOfShards := uint32(2)
+	numOfShards := uint32(1)
 	numNodes := uint32(2)
 	consensusSize := uint32(2 * numKeysOnEachNode)
 	roundTime := uint64(1000)
@@ -105,16 +109,34 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 
 	fmt.Println("Step 1. Setup nodes...")
 
+	//genericEpochNotifier := forking.NewGenericEpochNotifier()
+	//epochsConfig := integrationTests.GetDefaultEnableEpochsConfig()
+	//enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(*epochsConfig, genericEpochNotifier)
+
+	//runTypeComponents := components.GetRunTypeComponentsWithCoreComp(&mock.CoreComponentsStub{
+	//	HasherField:                 integrationtests.TestHasher,
+	//	InternalMarshalizerField:    integrationtests.TestMarshalizer,
+	//	AddressPubKeyConverterField: &testscommon.PubkeyConverterStub{},
+	//	EnableEpochsHandlerField:    enableEpochsHandler,
+	//})
+	runTypeComponents := components.GetRunTypeComponents()
+	//runTypeComponents := components.GetSovereignRunTypeComponents()
+
+	//var runTypeComponents factory.RunTypeComponentsHolder
+	//runTypeComponents = components.GetRunTypeComponentsStub(rtc)
+	//runTypeComponents.(*mainFactoryMocks.RunTypeComponentsStub).AccountParser = &genesisMocks.AccountsParserStub{}
+
 	nodes := integrationTests.CreateNodesWithTestFullNode(
 		int(numMetaNodes),
 		int(numNodes),
+		numOfShards,
 		int(consensusSize),
 		roundTime,
 		blsConsensusType,
 		numKeysOnEachNode,
 		enableEpochsConfig,
 		true,
-		false, // is sovereign // TODO: MARIUS C: MX-16953 Have these tests also working when consensus v2 is fully integrated in sovereign
+		runTypeComponents, // is sovereign // TODO: MARIUS C: MX-16953 Have these tests also working when consensus v2 is fully integrated in sovereign
 	)
 
 	for shardID, nodesList := range nodes {

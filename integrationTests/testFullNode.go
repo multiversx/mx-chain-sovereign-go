@@ -14,9 +14,10 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 
-	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
+	runType "github.com/multiversx/mx-chain-go/factory"
 	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 
@@ -84,13 +85,14 @@ import (
 func CreateNodesWithTestFullNode(
 	numMetaNodes int,
 	nodesPerShard int,
+	numOfShards uint32,
 	consensusSize int,
 	roundTime uint64,
 	consensusType string,
 	numKeysOnEachNode int,
 	enableEpochsConfig config.EnableEpochs,
 	withSync bool,
-	isSovereign bool,
+	runTypeComponents runType.RunTypeComponentsHolder,
 ) map[uint32][]*TestFullNode {
 
 	nodes := make(map[uint32][]*TestFullNode, nodesPerShard)
@@ -111,13 +113,13 @@ func CreateNodesWithTestFullNode(
 
 			args := ArgsTestFullNode{
 				ArgTestProcessorNode: &ArgTestProcessorNode{
-					MaxShards:            2,
+					MaxShards:            numOfShards,
 					NodeShardId:          0,
 					TxSignPrivKeyShardId: 0,
 					WithSync:             withSync,
 					EpochsConfig:         &enableEpochsConfig,
 					NodeKeys:             keysPair,
-					IsSovereign:          isSovereign,
+					RunTypeComponents:    runTypeComponents,
 				},
 				ShardID:       shardID,
 				ConsensusSize: consensusSize,
@@ -129,7 +131,6 @@ func CreateNodesWithTestFullNode(
 				P2PKeyGen:     cp.P2PKeyGen,
 				MultiSigner:   multiSignerMock,
 				StartTime:     startTime,
-				IsSovereign:   isSovereign,
 			}
 
 			tfn := NewTestFullNode(args)
@@ -175,7 +176,8 @@ type TestFullNode struct {
 func NewTestFullNode(args ArgsTestFullNode) *TestFullNode {
 	tpn := newBaseTestProcessorNode(*args.ArgTestProcessorNode)
 
-	shardCoordinator, _ := sharding.NewMultiShardCoordinator(maxShards, args.ShardID)
+	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShards, args.ShardID)
+	_ = err
 
 	tfn := &TestFullNode{
 		TestProcessorNode: tpn,
@@ -227,7 +229,15 @@ func (tfn *TestFullNode) initNodesCoordinator(
 		NodesCoordinatorRegistryFactory: &shardingMocks.NodesCoordinatorRegistryFactoryMock{},
 	}
 
-	tfn.NodesCoordinator, _ = nodesCoordinator.NewIndexHashedNodesCoordinator(argumentsNodesCoordinator)
+	argumentsNodesCoordinatorWithRater := &nodesCoordinator.NodesCoordinatorWithRaterArgs{
+		ArgNodesCoordinator: argumentsNodesCoordinator,
+		ChanceComputer:      &mock.RaterMock{},
+	}
+	tfn.NodesCoordinator, _ = tfn.RunTypeComponents.NodesCoordinatorWithRaterCreator().CreateNodesCoordinatorWithRater(argumentsNodesCoordinatorWithRater)
+	//var err error
+	//tfn.NodesCoordinator, err = nodesCoordinator.NewIndexHashedNodesCoordinator(argumentsNodesCoordinator)
+	//tfn.NodesCoordinator, err = nodesCoordinator.NewSovereignIndexHashedNodesCoordinator(argumentsNodesCoordinator)
+	//_ = err
 }
 
 func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArgs ArgsTestFullNode) {
@@ -351,7 +361,7 @@ func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArg
 			tpn.NodeKeys.MainKey.Sk,
 			tpn.MainMessenger.ID(),
 		),
-		broadcastFactory.NewShardChainMessengerFactory(),
+		tpn.RunTypeComponents.BroadCastShardMessengerFactoryHandler(),
 	)
 
 	if args.WithSync {
@@ -803,7 +813,7 @@ func (tcn *TestFullNode) initInterceptors(
 		}
 		_, _ = shardchain.NewEpochStartTrigger(argsShardEpochStart)
 
-		interceptorContainerFactory, errFactory := interceptorscontainer.NewShardInterceptorsContainerFactory(interceptorContainerFactoryArgs)
+		interceptorContainerFactory, errFactory := tcn.RunTypeComponents.InterceptorsContainerFactoryCreator().CreateInterceptorsContainerFactory(interceptorContainerFactoryArgs)
 		log.LogIfError(errFactory)
 
 		tcn.MainInterceptorsContainer, _, err = interceptorContainerFactory.Create()
@@ -847,14 +857,28 @@ func (tpn *TestFullNode) initBlockProcessor(
 		BootstrapComponents:  bootstrapComponents,
 		StatusComponents:     statusComponents,
 		StatusCoreComponents: statusCoreComponents,
-		Config:               config.Config{},
-		AccountsDB:           accountsDb,
-		ForkDetector:         tpn.ForkDetector,
-		NodesCoordinator:     tpn.NodesCoordinator,
-		FeeHandler:           tpn.FeeAccumulator,
-		RequestHandler:       tpn.RequestHandler,
-		BlockChainHook:       tpn.BlockchainHook,
-		HeaderValidator:      tpn.HeaderValidator,
+		Config: config.Config{
+			SovereignConfig: config.SovereignConfig{
+				OutgoingSubscribedEvents: config.OutgoingSubscribedEvents{
+					SubscribedEvents: []config.SubscribedEvent{
+						{
+							Identifier: "bridgeOps",
+							Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
+						},
+					},
+				},
+				OutGoingBridge: config.OutGoingBridge{
+					Hasher: "sha256",
+				},
+			},
+		},
+		AccountsDB:       accountsDb,
+		ForkDetector:     tpn.ForkDetector,
+		NodesCoordinator: tpn.NodesCoordinator,
+		FeeHandler:       tpn.FeeAccumulator,
+		RequestHandler:   tpn.RequestHandler,
+		BlockChainHook:   tpn.BlockchainHook,
+		HeaderValidator:  tpn.HeaderValidator,
 		BootStorer: &mock.BoostrapStorerMock{
 			PutCalled: func(round int64, bootData bootstrapStorage.BootstrapData) error {
 				return nil
@@ -872,6 +896,8 @@ func (tpn *TestFullNode) initBlockProcessor(
 		ManagedPeersHolder:           &testscommon.ManagedPeersHolderStub{},
 		SentSignaturesTracker:        &testscommon.SentSignatureTrackerStub{},
 		RunTypeComponents:            tpn.RunTypeComponents,
+		VmContainer:                  tpn.VMContainer,
+		ValidatorStatisticsProcessor: tpn.ValidatorStatisticsProcessor,
 	}
 
 	if check.IfNil(tpn.EpochStartNotifier) {
@@ -1043,11 +1069,20 @@ func (tpn *TestFullNode) initBlockProcessor(
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
 
-		arguments := block.ArgShardProcessor{
-			ArgBaseProcessor: argumentsBase,
+		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
+			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
+
+			return &block.ExtraArgsMetaBlockProcessor{
+				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
+				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
+				EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
+				EpochSystemSCProcessor:    argsMetaProcessor.EpochSystemSCProcessor,
+				SCToProtocol:              argsMetaProcessor.SCToProtocol,
+				EpochEconomics:            argsMetaProcessor.EpochEconomics,
+			}, nil
 		}
 
-		tpn.BlockProcessor, err = block.NewShardProcessor(arguments)
+		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 		if err != nil {
 			log.Error("error creating shard blockprocessor", "error", err)
 		}
@@ -1088,15 +1123,29 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 		BootstrapComponents:  bootstrapComponents,
 		StatusComponents:     statusComponents,
 		StatusCoreComponents: statusCoreComponents,
-		Config:               config.Config{},
-		AccountsDB:           accountsDb,
-		ForkDetector:         nil,
-		NodesCoordinator:     tpn.NodesCoordinator,
-		FeeHandler:           tpn.FeeAccumulator,
-		RequestHandler:       tpn.RequestHandler,
-		BlockChainHook:       &testscommon.BlockChainHookStub{},
-		EpochStartTrigger:    &mock.EpochStartTriggerStub{},
-		HeaderValidator:      tpn.HeaderValidator,
+		Config: config.Config{
+			SovereignConfig: config.SovereignConfig{
+				OutgoingSubscribedEvents: config.OutgoingSubscribedEvents{
+					SubscribedEvents: []config.SubscribedEvent{
+						{
+							Identifier: "bridgeOps",
+							Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
+						},
+					},
+				},
+				OutGoingBridge: config.OutGoingBridge{
+					Hasher: "sha256",
+				},
+			},
+		},
+		AccountsDB:        accountsDb,
+		ForkDetector:      nil,
+		NodesCoordinator:  tpn.NodesCoordinator,
+		FeeHandler:        tpn.FeeAccumulator,
+		RequestHandler:    tpn.RequestHandler,
+		BlockChainHook:    &testscommon.BlockChainHookStub{},
+		EpochStartTrigger: &mock.EpochStartTriggerStub{},
+		HeaderValidator:   tpn.HeaderValidator,
 		BootStorer: &mock.BoostrapStorerMock{
 			PutCalled: func(round int64, bootData bootstrapStorage.BootstrapData) error {
 				return nil
@@ -1114,6 +1163,8 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 		ManagedPeersHolder:           &testscommon.ManagedPeersHolderStub{},
 		SentSignaturesTracker:        &testscommon.SentSignatureTrackerStub{},
 		RunTypeComponents:            tpn.RunTypeComponents,
+		VmContainer:                  tpn.VMContainer,
+		ValidatorStatisticsProcessor: tpn.ValidatorStatisticsProcessor,
 	}
 
 	if tpn.ShardCoordinator.SelfId() == core.MetachainShardId {
@@ -1141,11 +1192,21 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 		argumentsBase.BlockChainHook = tpn.BlockchainHook
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
-		arguments := block.ArgShardProcessor{
-			ArgBaseProcessor: argumentsBase,
+
+		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
+			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
+
+			return &block.ExtraArgsMetaBlockProcessor{
+				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
+				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
+				EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
+				EpochSystemSCProcessor:    argsMetaProcessor.EpochSystemSCProcessor,
+				SCToProtocol:              argsMetaProcessor.SCToProtocol,
+				EpochEconomics:            argsMetaProcessor.EpochEconomics,
+			}, nil
 		}
 
-		tpn.BlockProcessor, err = block.NewShardProcessor(arguments)
+		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 	}
 
 	if err != nil {
@@ -1179,7 +1240,7 @@ func (tpn *TestFullNode) initBlockTracker(
 			ArgBaseTracker: argBaseTracker,
 		}
 
-		tpn.BlockTracker, err = track.NewShardBlockTrack(arguments)
+		tpn.BlockTracker, err = tpn.RunTypeComponents.BlockTrackerCreator().CreateBlockTracker(arguments)
 		if err != nil {
 			log.Error("NewShardBlockTrack", "error", err)
 		}

@@ -347,7 +347,7 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		EnableEpochs:         ccf.epochConfig.EnableEpochs,
 	}
 
-	nodesShuffler, err := nodesCoordinator.NewHashValidatorsShuffler(argsNodesShuffler)
+	nodesShuffler, err := ccf.runTypeCoreComponents.HashValidatorShufflerFactory().CreateHashValidatorShuffler(argsNodesShuffler)
 	if err != nil {
 		return nil, err
 	}

@@ -13,12 +13,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/sharding/mock"
 	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -1116,14 +1117,21 @@ func Test_removeLeavingNodesFromValidatorMaps(t *testing.T) {
 func TestNewHashValidatorsShuffler(t *testing.T) {
 	t.Parallel()
 
-	shufflerArgs := &NodesShufflerArgs{
-		ShuffleBetweenShards: shuffleBetweenShards,
-		MaxNodesEnableConfig: nil,
-		EnableEpochsHandler:  &mock.EnableEpochsHandlerMock{},
-	}
-	shuffler, err := NewHashValidatorsShuffler(shufflerArgs)
-	assert.Nil(t, err)
-	assert.NotNil(t, shuffler)
+	t.Run("nil args, should error", func(t *testing.T) {
+		shuffler, err := NewHashValidatorsShuffler(nil)
+		require.Nil(t, shuffler)
+		require.ErrorIs(t, err, ErrNilNodeShufflerArguments)
+	})
+	t.Run("should work", func(t *testing.T) {
+		shufflerArgs := &NodesShufflerArgs{
+			ShuffleBetweenShards: shuffleBetweenShards,
+			MaxNodesEnableConfig: nil,
+			EnableEpochsHandler:  &mock.EnableEpochsHandlerMock{},
+		}
+		shuffler, err := NewHashValidatorsShuffler(shufflerArgs)
+		assert.Nil(t, err)
+		assert.NotNil(t, shuffler)
+	})
 }
 
 func TestRandHashShuffler_computeNewShardsNotChanging(t *testing.T) {

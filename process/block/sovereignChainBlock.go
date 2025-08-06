@@ -107,6 +107,9 @@ func NewSovereignChainBlockProcessor(args ArgsSovereignChainBlockProcessor) (*so
 	if check.IfNil(args.EpochSystemSCProcessor) {
 		return nil, process.ErrNilEpochStartSystemSCProcessor
 	}
+	if check.IfNil(args.SCToProtocol) {
+		return nil, process.ErrNilSCToProtocol
+	}
 	if check.IfNil(args.EpochEconomics) {
 		return nil, process.ErrNilEpochEconomics
 	}
