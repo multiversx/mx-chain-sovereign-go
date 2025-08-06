@@ -14,12 +14,7 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
-
-	runType "github.com/multiversx/mx-chain-go/factory"
-	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
-	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/enablers"
@@ -34,6 +29,7 @@ import (
 	"github.com/multiversx/mx-chain-go/epochStart/metachain"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/multiversx/mx-chain-go/epochStart/shardchain"
+	runType "github.com/multiversx/mx-chain-go/factory"
 	cryptoFactory "github.com/multiversx/mx-chain-go/factory/crypto"
 	"github.com/multiversx/mx-chain-go/factory/peerSignatureHandler"
 	"github.com/multiversx/mx-chain-go/integrationTests/mock"
@@ -59,6 +55,7 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/state/blockInfoProviders"
+	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
@@ -75,6 +72,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/outport"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	vic "github.com/multiversx/mx-chain-go/testscommon/validatorInfoCacher"
 	"github.com/multiversx/mx-chain-go/vm"
@@ -1069,19 +1067,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
 
-		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
-			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
-
-			return &block.ExtraArgsMetaBlockProcessor{
-				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
-				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
-				EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
-				EpochSystemSCProcessor:    argsMetaProcessor.EpochSystemSCProcessor,
-				SCToProtocol:              argsMetaProcessor.SCToProtocol,
-				EpochEconomics:            argsMetaProcessor.EpochEconomics,
-			}, nil
-		}
-
+		funcCreateExtraArgs := tpn.createExtraArgsFunc(argumentsBase, coreComponents)
 		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 		if err != nil {
 			log.Error("error creating shard blockprocessor", "error", err)
@@ -1193,19 +1179,7 @@ func (tpn *TestFullNode) initBlockProcessorWithSync(
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
 
-		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
-			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
-
-			return &block.ExtraArgsMetaBlockProcessor{
-				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
-				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
-				EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
-				EpochSystemSCProcessor:    argsMetaProcessor.EpochSystemSCProcessor,
-				SCToProtocol:              argsMetaProcessor.SCToProtocol,
-				EpochEconomics:            argsMetaProcessor.EpochEconomics,
-			}, nil
-		}
-
+		funcCreateExtraArgs := tpn.createExtraArgsFunc(argumentsBase, coreComponents)
 		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-go/factory"
 	coreComp "github.com/multiversx/mx-chain-go/factory/core"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
 	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/multiversx/mx-chain-go/testscommon/genesisMocks"
@@ -60,13 +61,33 @@ func TestNewCoreComponentsFactory(t *testing.T) {
 		require.Nil(t, ccf)
 		require.Equal(t, enablers.ErrNilEnableEpochsFactory, err)
 	})
+	t.Run("nil chain parameters factory, should return error", func(t *testing.T) {
+		args := componentsMock.GetCoreArgs()
+		rtCoreMock := getRunTypeCoreComponentsMock(componentsMock.GetRunTypeCoreComponents())
+		rtCoreMock.ChainParametersFactory = nil
+		args.RunTypeCoreComponents = rtCoreMock
+		ccf, err := coreComp.NewCoreComponentsFactory(args)
+		require.Nil(t, ccf)
+		require.Equal(t, errorsMx.ErrNilChainParametersHolderFactory, err)
+	})
+	t.Run("nil hash validator shuffler factory, should return error", func(t *testing.T) {
+		args := componentsMock.GetCoreArgs()
+		rtCoreMock := getRunTypeCoreComponentsMock(componentsMock.GetRunTypeCoreComponents())
+		rtCoreMock.HashValidatorShufflerFactory = nil
+		args.RunTypeCoreComponents = rtCoreMock
+		ccf, err := coreComp.NewCoreComponentsFactory(args)
+		require.Nil(t, ccf)
+		require.Equal(t, nodesCoordinator.ErrNilHashValidatorShufflerFactory, err)
+	})
 }
 
 func getRunTypeCoreComponentsMock(rtc factory.RunTypeCoreComponentsHolder) *genesisMocks.RunTypeCoreComponentsStub {
 	return &genesisMocks.RunTypeCoreComponentsStub{
-		GenesisNodesSetupFactory: rtc.GenesisNodesSetupFactoryCreator(),
-		RatingsDataFactory:       rtc.RatingsDataFactoryCreator(),
-		EnableEpochsFactory:      rtc.EnableEpochsFactoryCreator(),
+		GenesisNodesSetupFactory:     rtc.GenesisNodesSetupFactoryCreator(),
+		RatingsDataFactory:           rtc.RatingsDataFactoryCreator(),
+		EnableEpochsFactory:          rtc.EnableEpochsFactoryCreator(),
+		ChainParametersFactory:       rtc.ChainParametersHolderFactory(),
+		HashValidatorShufflerFactory: rtc.HashValidatorShufflerFactoryCreator(),
 	}
 }
 

@@ -7,34 +7,38 @@ import (
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
+	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/testscommon"
 )
 
 // RunTypeCoreComponentsStub -
 type RunTypeCoreComponentsStub struct {
-	GenesisNodesSetupFactory sharding.GenesisNodesSetupFactory
-	RatingsDataFactory       rating.RatingsDataFactory
-	EnableEpochsFactory      enablers.EnableEpochsFactory
-	ChainParametersFactory   chainParamFactory.ChainParametersHolderFactory
+	GenesisNodesSetupFactory     sharding.GenesisNodesSetupFactory
+	RatingsDataFactory           rating.RatingsDataFactory
+	EnableEpochsFactory          enablers.EnableEpochsFactory
+	ChainParametersFactory       chainParamFactory.ChainParametersHolderFactory
+	HashValidatorShufflerFactory nodesCoordinator.HashValidatorShufflerFactory
 }
 
 // NewRunTypeCoreComponentsStub -
 func NewRunTypeCoreComponentsStub() *RunTypeCoreComponentsStub {
 	return &RunTypeCoreComponentsStub{
-		GenesisNodesSetupFactory: &genesisMocks.GenesisNodesSetupFactoryMock{},
-		RatingsDataFactory:       &testscommon.RatingsDataFactoryMock{},
-		EnableEpochsFactory:      enablers.NewEnableEpochsFactory(),
-		ChainParametersFactory:   chainParamFactory.NewChainParametersHolderFactory(),
+		GenesisNodesSetupFactory:     &genesisMocks.GenesisNodesSetupFactoryMock{},
+		RatingsDataFactory:           &testscommon.RatingsDataFactoryMock{},
+		EnableEpochsFactory:          enablers.NewEnableEpochsFactory(),
+		ChainParametersFactory:       chainParamFactory.NewChainParametersHolderFactory(),
+		HashValidatorShufflerFactory: nodesCoordinator.NewHashValidatorShufflerFactory(),
 	}
 }
 
 // NewSovereignRunTypeCoreComponentsStub -
 func NewSovereignRunTypeCoreComponentsStub() *RunTypeCoreComponentsStub {
 	return &RunTypeCoreComponentsStub{
-		GenesisNodesSetupFactory: &genesisMocks.GenesisNodesSetupFactoryMock{},
-		RatingsDataFactory:       &testscommon.RatingsDataFactoryMock{},
-		EnableEpochsFactory:      enablers.NewSovereignEnableEpochsFactory(config.SovereignEpochConfig{}),
-		ChainParametersFactory:   chainParamFactory.NewSovereignChainParametersHolderFactory(),
+		GenesisNodesSetupFactory:     &genesisMocks.GenesisNodesSetupFactoryMock{},
+		RatingsDataFactory:           &testscommon.RatingsDataFactoryMock{},
+		EnableEpochsFactory:          enablers.NewSovereignEnableEpochsFactory(config.SovereignEpochConfig{}),
+		ChainParametersFactory:       chainParamFactory.NewSovereignChainParametersHolderFactory(),
+		HashValidatorShufflerFactory: nodesCoordinator.NewSovereignHashValidatorShufflerFactory(),
 	}
 }
 
@@ -76,6 +80,11 @@ func (r *RunTypeCoreComponentsStub) EnableEpochsFactoryCreator() enablers.Enable
 // ChainParametersHolderFactory -
 func (r *RunTypeCoreComponentsStub) ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory {
 	return r.ChainParametersFactory
+}
+
+// HashValidatorShufflerFactoryCreator -
+func (r *RunTypeCoreComponentsStub) HashValidatorShufflerFactoryCreator() nodesCoordinator.HashValidatorShufflerFactory {
+	return r.HashValidatorShufflerFactory
 }
 
 // IsInterfaceNil -

@@ -229,7 +229,7 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 		return nil, err
 	}
 
-	instance.nodesShuffler, err = args.RunTypeCoreComponents.HashValidatorShufflerFactory().CreateHashValidatorShuffler(&nodesCoordinator.NodesShufflerArgs{
+	instance.nodesShuffler, err = args.RunTypeCoreComponents.HashValidatorShufflerFactoryCreator().CreateHashValidatorShuffler(&nodesCoordinator.NodesShufflerArgs{
 		ShuffleBetweenShards: true,
 		MaxNodesEnableConfig: args.EnableEpochsConfig.MaxNodesChangeEnableEpoch,
 		EnableEpochsHandler:  instance.enableEpochsHandler,

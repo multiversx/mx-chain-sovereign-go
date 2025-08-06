@@ -2423,20 +2423,30 @@ func (tpn *TestProcessorNode) initBlockProcessor() {
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
 
-		funcCreateExtraArgs := func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
-			argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
-
-			return &block.ExtraArgsMetaBlockProcessor{
-				EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
-				EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
-				EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
-			}, nil
-		}
+		funcCreateExtraArgs := tpn.createExtraArgsFunc(argumentsBase, coreComponents)
 		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 	}
 
 	if err != nil {
 		panic(fmt.Sprintf("error creating blockprocessor: %s", err.Error()))
+	}
+}
+
+func (tpn *TestProcessorNode) createExtraArgsFunc(
+	argumentsBase block.ArgBaseProcessor,
+	coreComponents *mock.CoreComponentsStub,
+) func(vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
+	return func(systemVM vmcommon.VMExecutionHandler) (*block.ExtraArgsMetaBlockProcessor, error) {
+		argsMetaProcessor := tpn.createMetaBlockProcessorArgs(argumentsBase, coreComponents)
+
+		return &block.ExtraArgsMetaBlockProcessor{
+			EpochStartDataCreator:     argsMetaProcessor.EpochStartDataCreator,
+			EpochValidatorInfoCreator: argsMetaProcessor.EpochValidatorInfoCreator,
+			EpochRewardsCreator:       argsMetaProcessor.EpochRewardsCreator,
+			EpochSystemSCProcessor:    argsMetaProcessor.EpochSystemSCProcessor,
+			SCToProtocol:              argsMetaProcessor.SCToProtocol,
+			EpochEconomics:            argsMetaProcessor.EpochEconomics,
+		}, nil
 	}
 }
 

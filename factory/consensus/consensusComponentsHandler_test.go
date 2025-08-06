@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	mxFactory "github.com/multiversx/mx-chain-go/factory"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
@@ -12,8 +15,6 @@ import (
 	componentsMock "github.com/multiversx/mx-chain-go/testscommon/components"
 	factoryMocks "github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // ------------ Test ManagedConsensusComponentsFactory --------------------

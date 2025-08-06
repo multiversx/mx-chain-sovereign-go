@@ -137,8 +137,8 @@ func (mrcc *managedRunTypeCoreComponents) ChainParametersHolderFactory() chainPa
 	return mrcc.runTypeCoreComponents.chainParametersFactory
 }
 
-// HashValidatorShufflerFactory returns the hash validator shuffler factory
-func (mrcc *managedRunTypeCoreComponents) HashValidatorShufflerFactory() nodesCoordinator.HashValidatorShufflerFactory {
+// HashValidatorShufflerFactoryCreator returns the hash validator shuffler factory creator
+func (mrcc *managedRunTypeCoreComponents) HashValidatorShufflerFactoryCreator() nodesCoordinator.HashValidatorShufflerFactory {
 	mrcc.mutRunTypeCoreComponents.RLock()
 	defer mrcc.mutRunTypeCoreComponents.RUnlock()
 
