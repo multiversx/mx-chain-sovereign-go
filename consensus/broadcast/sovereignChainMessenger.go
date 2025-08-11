@@ -119,7 +119,7 @@ func (scm *sovereignChainMessenger) BroadcastHeader(header data.HeaderHandler, p
 	return scm.broadcastHeader(header, pkBytes, shardIdentifier)
 }
 
-// BroadcastEquivalentProof will broadcast the proof for a header on the shard metachain common topic
+// BroadcastEquivalentProof will broadcast the proof for a header on the sovereign shard common topic
 func (scm *sovereignChainMessenger) BroadcastEquivalentProof(proof data.HeaderProofHandler, pkBytes []byte) error {
 	return scm.baseBroadcastEquivalentProof(core.SovereignChainShardId, proof, pkBytes)
 }
