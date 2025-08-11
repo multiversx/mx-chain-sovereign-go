@@ -222,20 +222,21 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetRunTypeComponents(),
-		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetRunTypeComponents(),
+		ExtraSignersHolder:      &subRoundsHolder.ExtraSignersHolderMock{},
+		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
 
@@ -270,20 +271,21 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetSovereignRunTypeComponents(),
-		ExtraSignersHolder:   &subRoundsHolder.ExtraSignersHolderMock{},
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetSovereignRunTypeComponents(),
+		ExtraSignersHolder:      &subRoundsHolder.ExtraSignersHolderMock{},
+		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
 
