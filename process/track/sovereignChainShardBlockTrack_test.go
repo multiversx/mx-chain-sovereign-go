@@ -878,11 +878,7 @@ func TestSovereignChainShardBlockTrack_doReceivedHeaderJobWithAndromedaNoProof(t
 
 	args.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
 		IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
-			if flag == common.AndromedaFlag {
-				return true
-			}
-
-			return false
+			return flag == common.AndromedaFlag
 		},
 	}
 
