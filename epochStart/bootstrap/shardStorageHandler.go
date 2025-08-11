@@ -66,6 +66,8 @@ func NewShardStorageHandler(args StorageHandlerArgs) (*shardStorageHandler, erro
 		currentEpoch:                    args.CurrentEpoch,
 		uint64Converter:                 args.Uint64Converter,
 		nodesCoordinatorRegistryFactory: args.NodesCoordinatorRegistryFactory,
+		proofsPool:                      args.ProofsPool,
+		enableEpochsHandler:             args.EnableEpochsHandler,
 	}
 
 	return &shardStorageHandler{baseStorageHandler: base}, nil
@@ -87,6 +89,11 @@ func (ssh *shardStorageHandler) SaveDataToStorage(components *ComponentsNeededFo
 	}
 
 	err = ssh.saveEpochStartMetaHdrs(components, dataRetriever.MetaBlockUnit)
+	if err != nil {
+		return err
+	}
+
+	err = ssh.saveEpochStartShardHdrs(components)
 	if err != nil {
 		return err
 	}
@@ -162,6 +169,26 @@ func (ssh *shardStorageHandler) saveBootStrapData(
 	err = bootStorer.Put(key, bootStrapDataBytes)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (ssh *shardStorageHandler) saveEpochStartShardHdrs(components *ComponentsNeededForBootstrap) error {
+	for _, hdr := range components.Headers {
+		if !hdr.IsStartOfEpochBlock() {
+			continue
+		}
+
+		isForCurrentShard := hdr.GetShardID() == ssh.shardCoordinator.SelfId()
+		if !isForCurrentShard {
+			continue
+		}
+
+		_, err := ssh.saveShardHdrToStorage(hdr)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

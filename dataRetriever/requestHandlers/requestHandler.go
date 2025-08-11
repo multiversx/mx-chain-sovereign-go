@@ -2,6 +2,7 @@ package requestHandlers
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"runtime/debug"
 	"sync"
@@ -32,6 +33,7 @@ const uniqueHeadersSuffix = "hdr"
 const uniqueMetaHeadersSuffix = "mhdr"
 const uniqueTrieNodesSuffix = "tn"
 const uniqueValidatorInfoSuffix = "vi"
+const uniqueEquivalentProofSuffix = "eqp"
 
 // TODO move the keys definitions that are whitelisted in core and use them in InterceptedData implementations, Identifiers() function
 
@@ -306,9 +308,11 @@ func (rrh *resolverRequestHandler) RequestShardHeader(shardID uint32, hash []byt
 		return
 	}
 
+	epoch := rrh.getEpoch()
 	log.Debug("requesting shard header from network",
 		"shard", shardID,
 		"hash", hash,
+		"epoch", epoch,
 	)
 
 	headerRequester, err := rrh.baseRequestHandler.getShardHeaderRequester(shardID)
@@ -322,7 +326,6 @@ func (rrh *resolverRequestHandler) RequestShardHeader(shardID uint32, hash []byt
 
 	rrh.whiteList.Add([][]byte{hash})
 
-	epoch := rrh.getEpoch()
 	err = headerRequester.RequestDataFromHash(hash, epoch)
 	if err != nil {
 		log.Debug("RequestShardHeader.RequestDataFromHash",
@@ -816,4 +819,90 @@ func (rrh *resolverRequestHandler) RequestPeerAuthenticationsByHashes(destShardI
 			"epoch", epoch,
 		)
 	}
+}
+
+// RequestEquivalentProofByHash asks for equivalent proof for the provided header hash
+func (rrh *resolverRequestHandler) RequestEquivalentProofByHash(headerShard uint32, headerHash []byte) {
+	if !rrh.testIfRequestIsNeeded(headerHash, uniqueEquivalentProofSuffix) {
+		return
+	}
+
+	epoch := rrh.getEpoch()
+	encodedHash := hex.EncodeToString(headerHash)
+	log.Debug("requesting equivalent proof from network",
+		"headerHash", encodedHash,
+		"shard", headerShard,
+		"epoch", epoch,
+	)
+
+	requester, err := rrh.baseRequestHandler.getEquivalentProofsRequester(headerShard)
+	if err != nil {
+		log.Error("RequestEquivalentProofByHash.getEquivalentProofsRequester",
+			"error", err.Error(),
+			"headerHash", encodedHash,
+			"epoch", epoch,
+		)
+		return
+	}
+
+	rrh.whiteList.Add([][]byte{headerHash})
+
+	requestKey := fmt.Sprintf("%s-%d", encodedHash, headerShard)
+	err = requester.RequestDataFromHash([]byte(requestKey), epoch)
+	if err != nil {
+		log.Debug("RequestEquivalentProofByHash.RequestDataFromHash",
+			"error", err.Error(),
+			"headerHash", encodedHash,
+			"headerShard", headerShard,
+			"epoch", epoch,
+		)
+		return
+	}
+
+	rrh.addRequestedItems([][]byte{headerHash}, uniqueEquivalentProofSuffix)
+}
+
+// RequestEquivalentProofByNonce asks for equivalent proof for the provided header nonce
+func (rrh *resolverRequestHandler) RequestEquivalentProofByNonce(headerShard uint32, headerNonce uint64) {
+	key := common.GetEquivalentProofNonceShardKey(headerNonce, headerShard)
+	if !rrh.testIfRequestIsNeeded([]byte(key), uniqueEquivalentProofSuffix) {
+		return
+	}
+
+	epoch := rrh.getEpoch()
+	log.Debug("requesting equivalent proof by nonce from network",
+		"headerNonce", headerNonce,
+		"headerShard", headerShard,
+		"epoch", epoch,
+	)
+
+	requester, err := rrh.baseRequestHandler.getEquivalentProofsRequester(headerShard)
+	if err != nil {
+		log.Error("RequestEquivalentProofByNonce.getEquivalentProofsRequester",
+			"error", err.Error(),
+			"headerNonce", headerNonce,
+		)
+		return
+	}
+
+	proofsRequester, ok := requester.(EquivalentProofsRequester)
+	if !ok {
+		log.Warn("wrong assertion type when creating equivalent proofs requester")
+		return
+	}
+
+	rrh.whiteList.Add([][]byte{[]byte(key)})
+
+	err = proofsRequester.RequestDataFromNonce([]byte(key), epoch)
+	if err != nil {
+		log.Debug("RequestEquivalentProofByNonce.RequestDataFromNonce",
+			"error", err.Error(),
+			"headerNonce", headerNonce,
+			"headerShard", headerShard,
+			"epoch", epoch,
+		)
+		return
+	}
+
+	rrh.addRequestedItems([][]byte{[]byte(key)}, uniqueEquivalentProofSuffix)
 }

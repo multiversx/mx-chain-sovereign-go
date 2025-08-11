@@ -402,6 +402,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedCoreComponents.EnableEpochsHandler(),
 		managedDataComponents.Datapool().CurrentEpochValidatorInfo(),
 		managedBootstrapComponents.NodesCoordinatorRegistryFactory(),
+		managedCoreComponents.ChainParametersHandler(),
 		managedRunTypeComponents.NodesCoordinatorWithRaterCreator(),
 	)
 	if err != nil {
@@ -982,28 +983,23 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 
-	sovSubRoundEndCreator, err := bls.NewSovereignSubRoundEndCreator(runTypeComponents.OutGoingOperationsPoolHandler(), outGoingBridgeOpHandler)
-	if err != nil {
-		return nil, err
-	}
-
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                *snr.configs.GeneralConfig,
-		BootstrapRoundIndex:   snr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:        coreComponents,
-		NetworkComponents:     networkComponents,
-		CryptoComponents:      cryptoComponents,
-		DataComponents:        dataComponents,
-		ProcessComponents:     processComponents,
-		StateComponents:       stateComponents,
-		StatusComponents:      statusComponents,
-		StatusCoreComponents:  statusCoreComponents,
-		ScheduledProcessor:    scheduledProcessor,
-		IsInImportMode:        snr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog: snr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    extraSignersHolder,
-		SubRoundEndV2Creator:  sovSubRoundEndCreator,
+		Config:                  *snr.configs.GeneralConfig,
+		BootstrapRoundIndex:     snr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    statusCoreComponents,
+		ScheduledProcessor:      scheduledProcessor,
+		IsInImportMode:          snr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog:   snr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:       runTypeComponents,
+		ExtraSignersHolder:      extraSignersHolder,
+		OutGoingBridgeOpHandler: outGoingBridgeOpHandler,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -1605,7 +1601,7 @@ func (snr *sovereignNodeRunner) CreateManagedCoreComponents(
 		ImportDbConfig:        *snr.configs.ImportDbConfig,
 		RatingsConfig:         *snr.configs.RatingsConfig,
 		EconomicsConfig:       *snr.configs.EconomicsConfig,
-		NodesFilename:         snr.configs.ConfigurationPathsHolder.Nodes,
+		NodesConfig:           *snr.configs.NodesConfig,
 		WorkingDirectory:      snr.configs.FlagsConfig.DbDir,
 		ChanStopNodeProcess:   chanStopNodeProcess,
 		RunTypeCoreComponents: runTypeCoreComponents,

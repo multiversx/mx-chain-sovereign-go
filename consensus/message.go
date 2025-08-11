@@ -1,7 +1,9 @@
 //go:generate protoc -I=. -I=$GOPATH/src -I=$GOPATH/src/github.com/multiversx/protobuf/protobuf  --gogoslick_out=. message.proto
 package consensus
 
-import "github.com/multiversx/mx-chain-core-go/core"
+import (
+	"github.com/multiversx/mx-chain-core-go/core"
+)
 
 // MessageType specifies what type of message was received
 type MessageType int
@@ -25,7 +27,7 @@ func NewConsensusMessage(
 	processedHeaderHash []byte,
 ) *Message {
 	return &Message{
-		HeaderHash:          headerHash,
+		BlockHeaderHash:     headerHash,
 		SignatureShare:      signatureShare,
 		Body:                body,
 		Header:              header,

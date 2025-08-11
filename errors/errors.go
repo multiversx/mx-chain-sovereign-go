@@ -490,6 +490,9 @@ var ErrNilESDTDataStorage = errors.New("nil esdt data storage")
 // ErrNilEnableEpochsHandler signals that a nil enable epochs handler was provided
 var ErrNilEnableEpochsHandler = errors.New("nil enable epochs handler")
 
+// ErrNilChainParametersHandler signals that a nil chain parameters handler was provided
+var ErrNilChainParametersHandler = errors.New("nil chain parameters handler")
+
 // ErrSignerNotSupported signals that a not supported signer was provided
 var ErrSignerNotSupported = errors.New("signer not supported")
 
@@ -704,9 +707,6 @@ var ErrNilConsensusMessage = errors.New("nil consensus message has been provided
 // ErrNilExtraSignersHolder signals that a nil extra signers holder has been provided
 var ErrNilExtraSignersHolder = errors.New("nil extra signer holder has been provided")
 
-// ErrNilSubRoundEndV2Creator signals that a nil sub round end v2 creator has been provided
-var ErrNilSubRoundEndV2Creator = errors.New("nil sub round end v2 creator has been provided")
-
 // ErrNilBridgeOpHandler signals that a nil bridge operation handler has been provided
 var ErrNilBridgeOpHandler = errors.New("nil bridge operation handler has been provided")
 
@@ -803,6 +803,12 @@ var ErrNilOperationsHasher = errors.New("nil outgoing operations hasher")
 // ErrNilEpochSystemSCProcessor defines the error for setting a nil EpochSystemSCProcessor
 var ErrNilEpochSystemSCProcessor = errors.New("nil epoch system SC processor")
 
+// ErrNilFieldsSizeChecker signals tat a nil fields size checker has been provided
+var ErrNilFieldsSizeChecker = errors.New("nil fields size checker")
+
+// ErrNilTrieLeavesRetriever defines the error for setting a nil TrieLeavesRetriever
+var ErrNilTrieLeavesRetriever = errors.New("nil trie leaves retriever")
+
 // ErrInvalidTokenPrefix signals that an invalid token prefix has been provided
 var ErrInvalidTokenPrefix = errors.New("invalid token prefix, should have max 4 (lowercase/alphanumeric) characters")
 
@@ -880,3 +886,6 @@ var ErrNilCrawlerAddressGetter = errors.New("nil crawler address getter has been
 
 // ErrReceivedSovereignEpochStartBlockWithExtendedHeaders signals that an invalid epoch start sovereign block has been received
 var ErrReceivedSovereignEpochStartBlockWithExtendedHeaders = errors.New("received invalid epoch start sovereign block, should not contain any extended headers")
+
+// ErrNilChainParametersHolderFactory signals that a nil chain parameters holder factory has been provided
+var ErrNilChainParametersHolderFactory = errors.New("nil chain parameters holder factory has been provided")

@@ -20,7 +20,7 @@ import (
 func TestNewSovereignChainShardStorageBootstrapper(t *testing.T) {
 	t.Parallel()
 
-	baseArgs := createMockShardStorageBoostrapperArgs()
+	baseArgs := createMockShardStorageBootstrapperArgs()
 	args := ArgsShardStorageBootstrapper{
 		ArgsBaseStorageBootstrapper: baseArgs,
 	}
@@ -48,7 +48,7 @@ func TestNewSovereignChainShardStorageBootstrapper(t *testing.T) {
 func TestSovereignShardBootstrapFactory_applyCrossNotarizedHeaders(t *testing.T) {
 	t.Parallel()
 
-	baseArgs := createMockShardStorageBoostrapperArgs()
+	baseArgs := createMockShardStorageBootstrapperArgs()
 
 	extendedHdrhash := []byte("hash")
 	extendedHdr := &block.ShardHeaderExtended{
@@ -122,7 +122,7 @@ func TestSovereignShardBootstrapFactory_cleanupNotarizedStorageForHigherNoncesIf
 func TestSovereignShardBootstrapFactory_cleanupNotarizedStorage(t *testing.T) {
 	t.Parallel()
 
-	baseArgs := createMockShardStorageBoostrapperArgs()
+	baseArgs := createMockShardStorageBootstrapperArgs()
 	extendedHdr := &block.ShardHeaderExtended{
 		Header: &block.HeaderV2{
 			Header: &block.Header{

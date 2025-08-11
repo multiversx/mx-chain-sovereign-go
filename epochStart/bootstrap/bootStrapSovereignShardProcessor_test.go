@@ -9,6 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -29,6 +31,14 @@ func createSovBootStrapProc() *sovereignBootStrapShardProcessor {
 	args.RunTypeComponents = mock.NewSovereignRunTypeComponentsStub()
 	epochStartProvider, _ := NewEpochStartBootstrap(args)
 	epochStartProvider.requestHandler = &testscommon.RequestHandlerStub{}
+	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
+		TrieNodesCalled: func() storage.Cacher {
+			return nil
+		},
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
+		},
+	}
 	return &sovereignBootStrapShardProcessor{
 		&sovereignChainEpochStartBootstrap{
 			epochStartProvider,
@@ -74,7 +84,7 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 	}
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		TrieNodesCalled: func() storage.Cacher {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				GetCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, true
 				},
@@ -88,6 +98,11 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 	sovProc := &sovereignBootStrapShardProcessor{
 		&sovereignChainEpochStartBootstrap{
 			epochStartProvider,
+		},
+	}
+	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
 
@@ -251,21 +266,22 @@ func TestBootStrapSovereignShardProcessor_createEpochStartInterceptorsContainers
 	sovProc.dataPool = dataRetrieverMock.NewPoolsHolderMock()
 
 	args := factoryInterceptors.ArgsEpochStartInterceptorContainer{
-		CoreComponents:          sovProc.coreComponentsHolder,
-		CryptoComponents:        sovProc.cryptoComponentsHolder,
-		Config:                  sovProc.generalConfig,
-		ShardCoordinator:        sovProc.shardCoordinator,
-		MainMessenger:           sovProc.mainMessenger,
-		FullArchiveMessenger:    sovProc.fullArchiveMessenger,
-		DataPool:                dataRetrieverMock.NewPoolsHolderMock(),
-		WhiteListHandler:        sovProc.whiteListHandler,
-		WhiteListerVerifiedTxs:  sovProc.whiteListerVerifiedTxs,
-		ArgumentsParser:         sovProc.argumentsParser,
-		HeaderIntegrityVerifier: sovProc.headerIntegrityVerifier,
-		RequestHandler:          sovProc.requestHandler,
-		SignaturesHandler:       sovProc.mainMessenger,
-		NodeOperationMode:       sovProc.nodeOperationMode,
-		AccountFactory:          sovProc.runTypeComponents.AccountsCreator(),
+		CoreComponents:                 sovProc.coreComponentsHolder,
+		CryptoComponents:               sovProc.cryptoComponentsHolder,
+		Config:                         sovProc.generalConfig,
+		ShardCoordinator:               sovProc.shardCoordinator,
+		MainMessenger:                  sovProc.mainMessenger,
+		FullArchiveMessenger:           sovProc.fullArchiveMessenger,
+		DataPool:                       dataRetrieverMock.NewPoolsHolderMock(),
+		WhiteListHandler:               sovProc.whiteListHandler,
+		WhiteListerVerifiedTxs:         sovProc.whiteListerVerifiedTxs,
+		ArgumentsParser:                sovProc.argumentsParser,
+		HeaderIntegrityVerifier:        sovProc.headerIntegrityVerifier,
+		RequestHandler:                 sovProc.requestHandler,
+		SignaturesHandler:              sovProc.mainMessenger,
+		NodeOperationMode:              sovProc.nodeOperationMode,
+		AccountFactory:                 sovProc.runTypeComponents.AccountsCreator(),
+		InterceptedDataVerifierFactory: sovProc.interceptedDataVerifierFactory,
 	}
 	mainContainer, fullContainer, err := sovProc.createEpochStartInterceptorsContainers(args)
 	require.Nil(t, err)

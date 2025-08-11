@@ -187,17 +187,23 @@ func (sicf *sovereignShardInterceptorsContainerFactory) generateSovereignExtende
 
 	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardC.SelfId())
 
+	interceptedDataVerifier, err := sicf.interceptedDataVerifierFactory.Create(identifierHdr)
+	if err != nil {
+		return err
+	}
+
 	// only one intra shard header topic
 	interceptor, err := interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
-			Topic:                identifierHdr,
-			DataFactory:          hdrFactory,
-			Processor:            hdrProcessor,
-			Throttler:            sicf.globalThrottler,
-			AntifloodHandler:     sicf.antifloodHandler,
-			WhiteListRequest:     sicf.whiteListHandler,
-			CurrentPeerId:        sicf.mainMessenger.ID(),
-			PreferredPeersHolder: sicf.preferredPeersHolder,
+			Topic:                   identifierHdr,
+			DataFactory:             hdrFactory,
+			Processor:               hdrProcessor,
+			Throttler:               sicf.globalThrottler,
+			AntifloodHandler:        sicf.antifloodHandler,
+			WhiteListRequest:        sicf.whiteListHandler,
+			CurrentPeerId:           sicf.mainMessenger.ID(),
+			PreferredPeersHolder:    sicf.preferredPeersHolder,
+			InterceptedDataVerifier: interceptedDataVerifier,
 		},
 	)
 	if err != nil {

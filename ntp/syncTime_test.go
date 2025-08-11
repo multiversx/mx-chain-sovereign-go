@@ -179,7 +179,7 @@ func TestNtpHostIsChange(t *testing.T) {
 	t.Parallel()
 
 	ntpConfig := config.NTPConfig{Hosts: []string{"host1", "host2", "host3"}, SyncPeriodSeconds: 1}
-	st := ntp.NewSyncTime(ntpConfig, queryMock5, time.Second*6)
+	st := ntp.NewSyncTime(ntpConfig, queryMock5, time.Second*10)
 	st.Sync()
 
 	//HostIndex will be equal with 1 and time offset will be a second

@@ -22,7 +22,7 @@ type sovereignChainMessenger struct {
 
 // ArgsSovereignShardChainMessenger defines a struct placeholder for args needed to create a sovereign shard chain messenger
 type ArgsSovereignShardChainMessenger struct {
-	DelayedBroadcaster   delayedBroadcaster
+	DelayedBroadcaster   DelayedBroadcaster
 	Marshaller           marshal.Marshalizer
 	Hasher               hashing.Hasher
 	ShardCoordinator     sharding.Coordinator
@@ -56,7 +56,12 @@ func NewSovereignShardChainMessenger(
 
 	scm.broadcasterFilterHandler = scm
 
-	err = scm.delayedBlockBroadcaster.SetBroadcastHandlers(scm.BroadcastMiniBlocks, scm.BroadcastTransactions, scm.BroadcastHeader)
+	err = scm.delayedBlockBroadcaster.SetBroadcastHandlers(
+		scm.BroadcastMiniBlocks,
+		scm.BroadcastTransactions,
+		scm.BroadcastHeader,
+		scm.BroadcastConsensusMessage,
+	)
 	if err != nil {
 		return nil, err
 	}

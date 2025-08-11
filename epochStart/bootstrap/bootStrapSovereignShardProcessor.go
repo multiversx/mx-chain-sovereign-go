@@ -19,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
+	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/trie/factory"
@@ -30,6 +31,20 @@ type sovereignBootStrapShardProcessor struct {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*block.MiniBlock) error {
+	// TODO: MARIUS C MX-16955
+	// THIS CODE WAS ADDED IN BARNARD AND SHOULD BE ADAPTED FOR SOVEREIGN AS WELL, check: requestAndProcessForShard from
+	// bootStrapShardProcessor.go
+	/*
+		ctx, cancel = context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+		epochStartShardBlock, epochStartShardBlockHash, err := bp.syncLatestEpochStartShardBlock(epochStartData.GetEpoch(), ctx)
+		cancel()
+		if err != nil {
+			return err
+		}
+
+		bp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
+	*/
+
 	argsStorageHandler := StorageHandlerArgs{
 		GeneralConfig:                   sbp.generalConfig,
 		PreferencesConfig:               sbp.prefsConfig,
@@ -45,6 +60,8 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 		NodeProcessingMode:              sbp.nodeProcessingMode,
 		StateStatsHandler:               sbp.stateStatsHandler,
 		AdditionalStorageServiceCreator: sbp.runTypeComponents.AdditionalStorageServiceCreator(),
+		ProofsPool:                      sbp.dataPool.Proofs(),
+		EnableEpochsHandler:             sbp.enableEpochsHandler,
 	}
 	storageHandlerComponent, err := NewShardStorageHandler(argsStorageHandler)
 	if err != nil {
@@ -113,6 +130,7 @@ func (sbp *sovereignBootStrapShardProcessor) createRequestHandler() (process.Req
 		FullArchivePreferredPeersHolder: disabled.NewPreferredPeersHolder(),
 		PeersRatingHandler:              disabled.NewDisabledPeersRatingHandler(),
 		SizeCheckDelta:                  0,
+		EnableEpochsHandler:             sbp.enableEpochsHandler,
 	}
 	requestersFactory, err := sbp.runTypeComponents.RequestersContainerFactoryCreator().CreateRequesterContainerFactory(requestersContainerArgs)
 	if err != nil {
@@ -146,6 +164,22 @@ func (sbp *sovereignBootStrapShardProcessor) createResolversContainer() error {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
+	// TODO: MARIUS C MX-16955
+
+	// TAKE FROM ORIGINAL BARNARD CODE: bootStrapShardProcessor.go -> syncHeadersFrom
+	// THIS CODE BELOW TO ALSO SYNC PROOF
+	/*
+		epochStartMetaHash, err := core.CalculateHash(bp.coreComponentsHolder.InternalMarshalizer(), bp.coreComponentsHolder.Hasher(), meta)
+		if err != nil {
+			return nil, err
+		}
+
+		// add the epoch start meta hash to the list to sync its proof
+		// TODO: this can be removed when the proof will be loaded from storage
+		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+		shardIds = append(shardIds, core.MetachainShardId)
+	*/
+
 	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData)
 }
 
@@ -212,6 +246,7 @@ func (sbp *sovereignBootStrapShardProcessor) processNodesConfigFromStorage(pubKe
 		EnableEpochsHandler:              sbp.coreComponentsHolder.EnableEpochsHandler(),
 		NodesCoordinatorRegistryFactory:  sbp.nodesCoordinatorRegistryFactory,
 		NodesCoordinatorWithRaterFactory: sbp.runTypeComponents.NodesCoordinatorWithRaterCreator(),
+		ChainParametersHandler:           sbp.coreComponentsHolder.ChainParametersHandler(),
 	}
 	sbp.nodesConfigHandler, err = NewSyncValidatorStatus(argsNewValidatorStatusSyncers)
 	if err != nil {
@@ -233,22 +268,27 @@ func (sbp *sovereignBootStrapShardProcessor) createEpochStartMetaSyncer() (epoch
 		thresholdForConsideringMetaBlockCorrect,
 		epochStartConfig.MinNumConnectedPeersToStart,
 		epochStartConfig.MinNumOfPeersToConsiderBlockValid,
+		sbp.enableEpochsHandler,
+		sbp.dataPool.Proofs(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	argsEpochStartSyncer := ArgsNewEpochStartMetaSyncer{
-		CoreComponentsHolder:    sbp.coreComponentsHolder,
-		CryptoComponentsHolder:  sbp.cryptoComponentsHolder,
-		RequestHandler:          sbp.requestHandler,
-		Messenger:               sbp.mainMessenger,
-		ShardCoordinator:        sbp.shardCoordinator,
-		EconomicsData:           sbp.economicsData,
-		WhitelistHandler:        sbp.whiteListHandler,
-		StartInEpochConfig:      epochStartConfig,
-		HeaderIntegrityVerifier: sbp.headerIntegrityVerifier,
-		MetaBlockProcessor:      newEpochStartSovereignBlockProcessor(metaBlockProcessor),
+		CoreComponentsHolder:           sbp.coreComponentsHolder,
+		CryptoComponentsHolder:         sbp.cryptoComponentsHolder,
+		RequestHandler:                 sbp.requestHandler,
+		Messenger:                      sbp.mainMessenger,
+		ShardCoordinator:               sbp.shardCoordinator,
+		EconomicsData:                  sbp.economicsData,
+		WhitelistHandler:               sbp.whiteListHandler,
+		StartInEpochConfig:             epochStartConfig,
+		HeaderIntegrityVerifier:        sbp.headerIntegrityVerifier,
+		MetaBlockProcessor:             newEpochStartSovereignBlockProcessor(metaBlockProcessor),
+		InterceptedDataVerifierFactory: sbp.interceptedDataVerifierFactory,
+		ProofsPool:                     sbp.dataPool.Proofs(),
+		ProofsInterceptorProcessor:     processor.NewEquivalentProofsInterceptorProcessor(),
 	}
 
 	return newEpochStartSovereignSyncer(argsEpochStartSyncer)

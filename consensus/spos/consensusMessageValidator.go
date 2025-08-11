@@ -7,10 +7,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/p2p"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/sharding"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -18,6 +21,9 @@ type consensusMessageValidator struct {
 	consensusState       *ConsensusState
 	consensusService     ConsensusService
 	peerSignatureHandler crypto.PeerSignatureHandler
+	enableEpochsHandler  common.EnableEpochsHandler
+	marshaller           marshal.Marshalizer
+	shardCoordinator     sharding.Coordinator
 
 	signatureSize       int
 	publicKeySize       int
@@ -27,7 +33,6 @@ type consensusMessageValidator struct {
 
 	mutPkConsensusMessages sync.RWMutex
 	mapPkConsensusMessages map[string]map[consensus.MessageType]uint32
-	enableEpochHandler     common.EnableEpochsHandler
 }
 
 // ArgsConsensusMessageValidator holds the consensus message validator arguments
@@ -35,11 +40,13 @@ type ArgsConsensusMessageValidator struct {
 	ConsensusState       *ConsensusState
 	ConsensusService     ConsensusService
 	PeerSignatureHandler crypto.PeerSignatureHandler
+	EnableEpochsHandler  common.EnableEpochsHandler
+	Marshaller           marshal.Marshalizer
+	ShardCoordinator     sharding.Coordinator
 	SignatureSize        int
 	PublicKeySize        int
 	HeaderHashSize       int
 	ChainID              []byte
-	EnableEpochHandler   common.EnableEpochsHandler
 }
 
 // NewConsensusMessageValidator creates a new consensusMessageValidator object
@@ -53,11 +60,13 @@ func NewConsensusMessageValidator(args ArgsConsensusMessageValidator) (*consensu
 		consensusState:       args.ConsensusState,
 		consensusService:     args.ConsensusService,
 		peerSignatureHandler: args.PeerSignatureHandler,
+		enableEpochsHandler:  args.EnableEpochsHandler,
+		marshaller:           args.Marshaller,
+		shardCoordinator:     args.ShardCoordinator,
 		signatureSize:        args.SignatureSize,
 		publicKeySize:        args.PublicKeySize,
 		chainID:              args.ChainID,
 		headerHashSize:       args.HeaderHashSize,
-		enableEpochHandler:   args.EnableEpochHandler,
 	}
 
 	cmv.publicKeyBitmapSize = cmv.getPublicKeyBitmapSize()
@@ -73,6 +82,15 @@ func checkArgsConsensusMessageValidator(args ArgsConsensusMessageValidator) erro
 	if check.IfNil(args.PeerSignatureHandler) {
 		return ErrNilPeerSignatureHandler
 	}
+	if check.IfNil(args.EnableEpochsHandler) {
+		return ErrNilEnableEpochsHandler
+	}
+	if check.IfNil(args.Marshaller) {
+		return ErrNilMarshalizer
+	}
+	if check.IfNil(args.ShardCoordinator) {
+		return ErrNilShardCoordinator
+	}
 	if args.ConsensusState == nil {
 		return ErrNilConsensusState
 	}
@@ -87,9 +105,6 @@ func checkArgsConsensusMessageValidator(args ArgsConsensusMessageValidator) erro
 	}
 	if args.SignatureSize == 0 {
 		return ErrInvalidSignatureSize
-	}
-	if check.IfNil(args.EnableEpochHandler) {
-		return ErrNilEnableEpochHandler
 	}
 
 	return nil
@@ -120,7 +135,7 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 	if !cmv.isHeaderHashSizeValid(cnsMsg) {
 		return fmt.Errorf("%w : received header hash from consensus topic has an invalid size: %d",
 			ErrInvalidHeaderHashSize,
-			len(cnsMsg.HeaderHash))
+			len(cnsMsg.BlockHeaderHash))
 	}
 
 	if !cmv.isProcessedHeaderHashSizeValid(cnsMsg) {
@@ -150,13 +165,13 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 
 	msgType := consensus.MessageType(cnsMsg.MsgType)
 
-	if cmv.consensusState.RoundIndex+1 < cnsMsg.RoundIndex {
+	if cmv.consensusState.GetRoundIndex()+1 < cnsMsg.RoundIndex {
 		log.Trace("received message from consensus topic has a future round",
 			"msg type", cmv.consensusService.GetStringValue(msgType),
 			"from", cnsMsg.PubKey,
-			"header hash", cnsMsg.HeaderHash,
+			"header hash", cnsMsg.BlockHeaderHash,
 			"msg round", cnsMsg.RoundIndex,
-			"round", cmv.consensusState.RoundIndex,
+			"round", cmv.consensusState.GetRoundIndex(),
 		)
 
 		return fmt.Errorf("%w : received message from consensus topic has a future round: %d",
@@ -164,13 +179,13 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidity(cnsMsg *cons
 			cnsMsg.RoundIndex)
 	}
 
-	if cmv.consensusState.RoundIndex > cnsMsg.RoundIndex {
+	if cmv.consensusState.GetRoundIndex() > cnsMsg.RoundIndex {
 		log.Trace("received message from consensus topic has a past round",
 			"msg type", cmv.consensusService.GetStringValue(msgType),
 			"from", cnsMsg.PubKey,
-			"header hash", cnsMsg.HeaderHash,
+			"header hash", cnsMsg.BlockHeaderHash,
 			"msg round", cnsMsg.RoundIndex,
-			"round", cmv.consensusState.RoundIndex,
+			"round", cmv.consensusState.GetRoundIndex(),
 		)
 
 		return fmt.Errorf("%w : received message from consensus topic has a past round: %d",
@@ -213,14 +228,14 @@ func (cmv *consensusMessageValidator) isHeaderHashSizeValid(cnsMsg *consensus.Me
 	isMessageWithBlockBody := cmv.consensusService.IsMessageWithBlockBody(msgType)
 
 	if isMessageWithBlockBody {
-		return cnsMsg.HeaderHash == nil
+		return cnsMsg.BlockHeaderHash == nil
 	}
 
-	return len(cnsMsg.HeaderHash) == cmv.headerHashSize
+	return len(cnsMsg.BlockHeaderHash) == cmv.headerHashSize
 }
 
 func (cmv *consensusMessageValidator) isProcessedHeaderHashSizeValid(cnsMsg *consensus.Message) bool {
-	if !cmv.enableEpochHandler.IsFlagEnabled(common.ConsensusModelV2Flag) {
+	if !cmv.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return true
 	}
 
@@ -269,7 +284,19 @@ func (cmv *consensusMessageValidator) checkConsensusMessageValidityForMessageTyp
 }
 
 func (cmv *consensusMessageValidator) checkMessageWithBlockBodyAndHeaderValidity(cnsMsg *consensus.Message) error {
-	isMessageInvalid := cnsMsg.SignatureShare != nil ||
+	// TODO[cleanup cns finality]: remove this
+	isInvalidSigShare := cnsMsg.SignatureShare != nil
+
+	header, err := process.UnmarshalHeader(cmv.shardCoordinator.SelfId(), cmv.marshaller, cnsMsg.Header)
+	if err != nil {
+		return err
+	}
+
+	if cmv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
+		isInvalidSigShare = cnsMsg.SignatureShare == nil
+	}
+
+	isMessageInvalid := isInvalidSigShare ||
 		cnsMsg.PubKeysBitmap != nil ||
 		cnsMsg.AggregateSignature != nil ||
 		cnsMsg.LeaderSignature != nil ||
@@ -340,8 +367,19 @@ func (cmv *consensusMessageValidator) checkMessageWithBlockBodyValidity(cnsMsg *
 }
 
 func (cmv *consensusMessageValidator) checkMessageWithBlockHeaderValidity(cnsMsg *consensus.Message) error {
+	// TODO[cleanup cns finality]: remove this
+	isInvalidSigShare := cnsMsg.SignatureShare != nil
+
+	header, err := process.UnmarshalHeader(cmv.shardCoordinator.SelfId(), cmv.marshaller, cnsMsg.Header)
+	if err != nil {
+		return err
+	}
+
+	if cmv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
+		isInvalidSigShare = cnsMsg.SignatureShare == nil
+	}
 	isMessageInvalid := cnsMsg.Body != nil ||
-		cnsMsg.SignatureShare != nil ||
+		isInvalidSigShare ||
 		cnsMsg.PubKeysBitmap != nil ||
 		cnsMsg.AggregateSignature != nil ||
 		cnsMsg.LeaderSignature != nil ||
@@ -434,6 +472,11 @@ func (cmv *consensusMessageValidator) checkMessageWithFinalInfoValidity(cnsMsg *
 			len(cnsMsg.AggregateSignature))
 	}
 
+	// TODO[cleanup cns finality]: remove this
+	if cmv.shouldNotVerifyLeaderSignature() {
+		return nil
+	}
+
 	if len(cnsMsg.LeaderSignature) != cmv.signatureSize {
 		return fmt.Errorf("%w : received leader signature from consensus topic has an invalid size: %d",
 			ErrInvalidSignatureSize,
@@ -441,6 +484,16 @@ func (cmv *consensusMessageValidator) checkMessageWithFinalInfoValidity(cnsMsg *
 	}
 
 	return nil
+}
+
+func (cmv *consensusMessageValidator) shouldNotVerifyLeaderSignature() bool {
+	// TODO: this check needs to be removed when equivalent messages are sent separately from the final info
+	if check.IfNil(cmv.consensusState.GetHeader()) {
+		return true
+	}
+
+	return cmv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, cmv.consensusState.GetHeader().GetEpoch())
+
 }
 
 func (cmv *consensusMessageValidator) checkMessageWithInvalidSingersValidity(cnsMsg *consensus.Message) error {
