@@ -652,6 +652,7 @@ func (sr *subroundEndRound) computeAggSigOnValidNodes() ([]byte, []byte, error) 
 }
 
 // TODO: MX-17040 Check if we can make this work including getMessageToVerifySigFunc
+/*
 func (sr *subroundEndRound) generateBitmap() []byte {
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		processedHeaderHash := sr.getMessageToVerifySigFunc()
@@ -660,6 +661,7 @@ func (sr *subroundEndRound) generateBitmap() []byte {
 
 	return sr.GenerateBitmap(bls.SrSignature)
 }
+*/
 
 func (sr *subroundEndRound) createAndBroadcastProof(
 	signature []byte,

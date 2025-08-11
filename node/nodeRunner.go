@@ -20,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	disabledGRPC "github.com/multiversx/mx-chain-sovereign-bridge-go/client/disabled"
 
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
@@ -923,22 +924,23 @@ func (nr *nodeRunner) CreateManagedConsensusComponents(
 	}
 
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                *nr.configs.GeneralConfig,
-		FlagsConfig:           *nr.configs.FlagsConfig,
-		BootstrapRoundIndex:   nr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:        coreComponents,
-		NetworkComponents:     networkComponents,
-		CryptoComponents:      cryptoComponents,
-		DataComponents:        dataComponents,
-		ProcessComponents:     processComponents,
-		StateComponents:       stateComponents,
-		StatusComponents:      statusComponents,
-		StatusCoreComponents:  statusCoreComponents,
-		ScheduledProcessor:    scheduledProcessor,
-		IsInImportMode:        nr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog: nr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    holders.NewEmptyExtraSignersHolder(),
+		Config:                  *nr.configs.GeneralConfig,
+		FlagsConfig:             *nr.configs.FlagsConfig,
+		BootstrapRoundIndex:     nr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    statusCoreComponents,
+		ScheduledProcessor:      scheduledProcessor,
+		IsInImportMode:          nr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog:   nr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:       runTypeComponents,
+		ExtraSignersHolder:      holders.NewEmptyExtraSignersHolder(),
+		OutGoingBridgeOpHandler: disabledGRPC.NewDisabledClient(),
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
