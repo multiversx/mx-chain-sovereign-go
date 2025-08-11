@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -116,6 +117,11 @@ func (scm *sovereignChainMessenger) BroadcastBlock(blockBody data.BodyHandler, h
 func (scm *sovereignChainMessenger) BroadcastHeader(header data.HeaderHandler, pkBytes []byte) error {
 	shardIdentifier := scm.shardCoordinator.CommunicationIdentifier(core.SovereignChainShardId)
 	return scm.broadcastHeader(header, pkBytes, shardIdentifier)
+}
+
+// BroadcastEquivalentProof will broadcast the proof for a header on the sovereign shard common topic
+func (scm *sovereignChainMessenger) BroadcastEquivalentProof(proof data.HeaderProofHandler, pkBytes []byte) error {
+	return scm.baseBroadcastEquivalentProof(core.SovereignChainShardId, proof, pkBytes)
 }
 
 func (scm *sovereignChainMessenger) shouldSkipShard(shardID uint32) bool {

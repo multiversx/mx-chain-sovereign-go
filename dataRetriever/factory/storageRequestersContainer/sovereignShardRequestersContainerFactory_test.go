@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	storagerequesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/storageRequestersContainer"
 	errorsMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSovereignShardRequestersContainerFactory(t *testing.T) {
@@ -51,8 +52,10 @@ func TestSovereignShardRequestersContainerFactory_Create(t *testing.T) {
 	numRequesterPeerAuth := 1
 	numRequesterValidatorInfo := 1
 	numRequesterExtendedHeader := 1
+	numRequesterEqProofs := 1
 	numRequesters := numRequesterTxs + numRequesterHeaders + numRequesterMiniBlocks + numRequesterMetaBlockHeaders +
-		numRequesterSCRs + numRequesterRewardTxs + numRequesterPeerAuth + numRequesterValidatorInfo + numRequesterExtendedHeader
+		numRequesterSCRs + numRequesterRewardTxs + numRequesterPeerAuth + numRequesterValidatorInfo + numRequesterExtendedHeader +
+		numRequesterEqProofs
 
 	require.Equal(t, numRequesters, container.Len())
 
@@ -65,6 +68,7 @@ func TestSovereignShardRequestersContainerFactory_Create(t *testing.T) {
 		common.PeerAuthenticationTopic:                   {},
 		common.ValidatorInfoTopic + sovShardIDStr:        {},
 		factory.ExtendedHeaderProofTopic + sovShardIDStr: {},
+		common.EquivalentProofsTopic + sovShardIDStr:     {},
 	}
 	iterateFunc := func(key string, requester dataRetriever.Requester) bool {
 		require.False(t, strings.Contains(strings.ToLower(key), "meta"))

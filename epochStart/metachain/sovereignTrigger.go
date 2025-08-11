@@ -166,7 +166,7 @@ func (st *sovereignTrigger) updateTrigger(header data.MetaHeaderHandler) {
 	st.epochStartNotifier.NotifyEpochChangeConfirmed(header.GetEpoch())
 }
 
-func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.HeaderHandler) bool {
+func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.MetaHeaderHandler) bool {
 	missingMiniBlocksHashes, blockBody, err := st.validatorInfoSyncer.SyncMiniBlocks(hdr)
 	if err != nil {
 		log.Error("sovereignTrigger.checkIfTriggerCanBeActivated.SyncMiniBlocks", "num missing mini blocks", len(missingMiniBlocksHashes), "error", err)
@@ -185,6 +185,41 @@ func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.HeaderHandler)
 
 	st.epochStartNotifier.NotifyAllPrepare(hdr, blockBody)
 	return true
+}
+
+// LastCommitedEpochStartHdr returns the header of the epoch start block
+func (t *sovereignTrigger) LastCommitedEpochStartHdr() (data.HeaderHandler, error) {
+	t.mutTrigger.RLock()
+	defer t.mutTrigger.RUnlock()
+
+	// marshal + unmarshal deep copy
+	headerBytes, err := t.marshaller.Marshal(t.epochStartMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return process.UnmarshalSovereignChainHeader(t.marshaller, headerBytes)
+}
+
+// GetEpochStartHdrFromStorage returns the header of the epoch start block from storage
+func (t *sovereignTrigger) GetEpochStartHdrFromStorage(epoch uint32) (data.HeaderHandler, error) {
+	t.mutTrigger.RLock()
+	defer t.mutTrigger.RUnlock()
+
+	epochStartIdentifier := core.EpochStartIdentifier(epoch)
+	epochStartMetaBuff, err := t.metaHeaderStorage.SearchFirst([]byte(epochStartIdentifier))
+	if err != nil {
+		log.Warn("GetEpochStartHdrFromStorage search first", "epoch", epoch, "identifier", epochStartIdentifier, "error", err)
+		return nil, err
+	}
+
+	metaHdr := &block.SovereignChainHeader{}
+	err = t.marshaller.Unmarshal(metaHdr, epochStartMetaBuff)
+	if err != nil {
+		return nil, err
+	}
+
+	return metaHdr, nil
 }
 
 // ForceEpochStart does nothing
