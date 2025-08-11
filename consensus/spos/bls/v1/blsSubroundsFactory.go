@@ -161,6 +161,7 @@ func (fct *factory) generateStartRoundSubroundV1() error {
 	return nil
 }
 
+// GenerateStartRoundSubround will generate the start sub round
 func (fct *factory) GenerateStartRoundSubround() (bls.SubRoundStartHandler, error) {
 	subround, err := spos.NewSubround(
 		-1,
@@ -208,6 +209,7 @@ func (fct *factory) generateBlockSubroundV1() error {
 	return nil
 }
 
+// GenerateBlockSubround will generate the block sub round
 func (fct *factory) GenerateBlockSubround() (bls.SubRoundBlockHandler, error) {
 	subround, err := spos.NewSubround(
 		bls.SrStartRound,
@@ -256,6 +258,7 @@ func (fct *factory) generateSignatureSubroundV1() error {
 	return nil
 }
 
+// GenerateSignatureSubround will generate the signature sub round
 func (fct *factory) GenerateSignatureSubround() (bls.SubRoundSignatureHandler, error) {
 	subround, err := spos.NewSubround(
 		bls.SrBlock,
@@ -303,6 +306,7 @@ func (fct *factory) generateEndRoundSubroundV1() error {
 	return nil
 }
 
+// GenerateEndRoundSubround will generate the end sub round
 func (fct *factory) GenerateEndRoundSubround() (bls.SubRoundEndHandler, error) {
 	subround, err := spos.NewSubround(
 		bls.SrSignature,

@@ -87,6 +87,7 @@ func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
 	return true
 }
 
+// DoBlockComputation will do the block job computation
 func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundBlockProcessRes, func()) {
 	shouldProcess := sr.shouldProcess()
 	if !shouldProcess {
