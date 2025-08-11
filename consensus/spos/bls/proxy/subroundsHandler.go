@@ -5,16 +5,16 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
-	errMx "github.com/multiversx/mx-chain-go/errors"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/outport"
 )
@@ -189,6 +189,7 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 			s.sentSignatureTracker,
 			s.signatureThrottler,
 			s.outportHandler,
+			s.extraSignersHolder,
 		)
 	} else {
 		if s.currentConsensusType == consensusV1 {
@@ -214,6 +215,10 @@ func (s *SubroundsHandler) initSubroundsForEpoch(epoch uint32) error {
 		if !castOK {
 			return fmt.Errorf("%w when trying to create sovereign sub rounds factory", errMx.ErrWrongTypeAssertion)
 		}
+
+		log.Debug("proxy sub rounds factory: changing base consensus model in sovereign",
+			"base consensus model", fmt.Sprintf("%T", baseFactory),
+		)
 
 		fct, err = sovereign.NewSubroundsFactory(sovereign.ArgsSovereignSubRoundsFactory{
 			ConsensusDataContainer: s.consensusCoreHandler,

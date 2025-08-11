@@ -260,6 +260,8 @@ func (scbp *sovereignChainBlockProcessor) CreateBlock(initialHdr data.HeaderHand
 			return nil, nil, err
 		}
 
+		// TODO: MX-17040- check if/how possible to create block with validator mbs
+
 		err = scbp.blockChainHook.SetCurrentHeader(initialHdr)
 		if err != nil {
 			return nil, nil, err
@@ -1131,14 +1133,19 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 		return err
 	}
 
-	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(sovHdr, body)
+	finalMiniBlocks := make([]*block.MiniBlock, 0)
+	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
+	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
+
+	outGoingMbChangeValidatorSet, err := scbp.computeAndVerifyEpochChangeOutGoingOperations(
+		sovHdr,
+		&block.Body{
+			MiniBlocks: append(body.MiniBlocks, finalMiniBlocks...),
+		})
 	if err != nil {
 		return err
 	}
 
-	finalMiniBlocks := make([]*block.MiniBlock, 0)
-	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
-	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
 	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet)
 	body.MiniBlocks = finalMiniBlocks
 

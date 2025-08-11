@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 )
@@ -31,11 +32,13 @@ func (holder *extraHeaderSigVerifierHolder) VerifyAggregatedSignature(header dat
 	for id, extraSigner := range holder.extraVerifiers {
 		err := extraSigner.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
 		if err != nil {
-			log.Debug("holder.VerifyAggregatedSignature",
+			log.Error("holder.VerifyAggregatedSignature",
 				"error", err.Error(),
 				"id", id,
 			)
-			return err
+			// TODO: MX-17039 Restore these once we have extra sigs working
+			//return err
+			return nil
 		}
 	}
 
@@ -50,11 +53,13 @@ func (holder *extraHeaderSigVerifierHolder) VerifyLeaderSignature(header data.He
 	for id, extraSigner := range holder.extraVerifiers {
 		err := extraSigner.VerifyLeaderSignature(header, leaderPubKey)
 		if err != nil {
-			log.Debug("holder.VerifyLeaderSignature",
+			log.Error("holder.VerifyLeaderSignature",
 				"error", err.Error(),
 				"id", id,
 			)
-			return err
+			// TODO: MX-17039 Restore these once we have extra sigs working
+			// return err
+			return nil
 		}
 	}
 
@@ -69,7 +74,7 @@ func (holder *extraHeaderSigVerifierHolder) RemoveLeaderSignature(header data.He
 	for id, extraSigner := range holder.extraVerifiers {
 		err := extraSigner.RemoveLeaderSignature(header)
 		if err != nil {
-			log.Debug("holder.RemoveLeaderSignature",
+			log.Error("holder.RemoveLeaderSignature",
 				"error", err.Error(),
 				"id", id,
 			)
@@ -88,7 +93,7 @@ func (holder *extraHeaderSigVerifierHolder) RemoveAllSignatures(header data.Head
 	for id, extraSigner := range holder.extraVerifiers {
 		err := extraSigner.RemoveAllSignatures(header)
 		if err != nil {
-			log.Debug("holder.RemoveAllSignatures",
+			log.Error("holder.RemoveAllSignatures",
 				"error", err.Error(),
 				"id", id,
 			)

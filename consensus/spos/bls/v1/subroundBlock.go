@@ -66,8 +66,8 @@ func checkNewSubroundBlockParams(
 }
 
 // doBlockJob method does the job of the subround Block
-func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
-	args, deferFunc := sr.DoBlockComputation()
+func (sr *subroundBlock) doBlockJob(ctx context.Context) bool {
+	args, deferFunc := sr.DoBlockComputation(ctx)
 	defer deferFunc()
 
 	if args == nil {
@@ -87,7 +87,8 @@ func (sr *subroundBlock) doBlockJob(_ context.Context) bool {
 	return true
 }
 
-func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessRes, func()) {
+// DoBlockComputation will do the block job computation
+func (sr *subroundBlock) DoBlockComputation(ctx context.Context) (*bls.SubRoundBlockProcessRes, func()) {
 	shouldProcess := sr.shouldProcess()
 	if !shouldProcess {
 		return nil, func() {}
@@ -98,7 +99,7 @@ func (sr *subroundBlock) DoBlockComputation() (*bls.SubRoundBlockProcessRes, fun
 		sr.computeSubroundProcessingMetric(metricStatTime, common.MetricCreatedProposedBlock)
 	}
 
-	header, body := sr.doBlockCreationJob(context.Background())
+	header, body := sr.doBlockCreationJob(ctx)
 	if check.IfNil(header) {
 		return nil, deferFunc
 	}

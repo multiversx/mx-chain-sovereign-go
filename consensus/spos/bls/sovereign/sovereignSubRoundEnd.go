@@ -17,7 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C MX-16954 , this should be merged with subroundEndV2 in a sovereign specific file
+// TODO: Marius C MX-17040 , this should be merged with subroundEndV2 in a sovereign specific file
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2
@@ -60,6 +60,20 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 	// TODO: MX-15502 once we have ZKProofs included in blocks for leaders which have resent the unconfirmed
 	// outgoing operation we should also call resetOutGoingOpTimer here for consensus participants
 	return sr.updateOutGoingPoolIfNeeded(cnsDta) == nil
+}
+
+func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
+	// TODO: MX-17039 add received message in factory for this func
+
+	sr.subroundEndRoundV2.ReceivedProof(proof)
+
+	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
+		PubKeysBitmap:   proof.GetPubKeysBitmap(),
+		ExtraSignatures: nil, // TODO: MX-17039 integrate this in proofs
+	})
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
+	}
 }
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {
@@ -119,6 +133,7 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool {
 	success := sr.subroundEndRoundV2.DoEndRoundJob(ctx)
 	if !success {
+		log.Error("sovereignSubRoundEnd.subroundEndRoundV2.DoEndRoundJob failed")
 		return false
 	}
 

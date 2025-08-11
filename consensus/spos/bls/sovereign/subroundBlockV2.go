@@ -29,7 +29,7 @@ func NewSubroundBlockV2(subroundBlock bls.SubRoundBlockHandler) (*subroundBlockV
 
 // doBlockJob method does the job of the subround Block
 func (sr *subroundBlockV2) doBlockJob(ctx context.Context) bool {
-	args, deferFunc := sr.DoBlockComputation()
+	args, deferFunc := sr.DoBlockComputation(ctx)
 	defer deferFunc()
 
 	if args == nil {

@@ -1024,7 +1024,8 @@ func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.E
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
 
-	mbTypes := []block.OutGoingMBType{block.OutGoingMbTx, block.OutGoingMbChangeValidatorSet}
+	// TODO: MX-17039 Restore these once outgoing operations are functional
+	mbTypes := []block.OutGoingMBType{ /*block.OutGoingMbTx, block.OutGoingMbChangeValidatorSet*/ }
 
 	for _, mbType := range mbTypes {
 		extraSignerHandler := signingHandler.ShallowClone()
