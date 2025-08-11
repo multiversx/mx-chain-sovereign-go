@@ -10,6 +10,7 @@ type sovereignChainParametersHolder struct {
 	*chainParametersHolder
 }
 
+// NewSovereignChainParametersHolder creates a sovereign chain parameters holder
 func NewSovereignChainParametersHolder(args ArgsChainParametersHolder) (*sovereignChainParametersHolder, error) {
 	err := validateSovereignArgs(args)
 	if err != nil {
