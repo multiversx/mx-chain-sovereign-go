@@ -20,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	v2 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v2"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
@@ -28,6 +29,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
+	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 )
 
 var expectedErr = errors.New("expected error")
@@ -71,6 +73,7 @@ func defaultSubroundBlockFromSubround(sr *spos.Subround) (v2.SubroundBlock, erro
 		sr,
 		v2.ProcessingThresholdPercent,
 		&consensusMocks.SposWorkerMock{},
+		&subRounds.SubRoundEndExtraSignersHolderMock{},
 	)
 
 	return srBlock, err
@@ -81,6 +84,7 @@ func defaultSubroundBlockWithoutErrorFromSubround(sr *spos.Subround) v2.Subround
 		sr,
 		v2.ProcessingThresholdPercent,
 		&consensusMocks.SposWorkerMock{},
+		&subRounds.SubRoundEndExtraSignersHolderMock{},
 	)
 
 	return srBlock
@@ -162,9 +166,27 @@ func TestSubroundBlock_NewSubroundBlockNilSubroundShouldFail(t *testing.T) {
 		nil,
 		v2.ProcessingThresholdPercent,
 		&consensusMocks.SposWorkerMock{},
+		&subRounds.SubRoundEndExtraSignersHolderMock{},
 	)
 	assert.Nil(t, srBlock)
 	assert.Equal(t, spos.ErrNilSubround, err)
+}
+
+func TestSubroundBlock_NewSubroundBlockNilExtraSignerHolderShouldFail(t *testing.T) {
+	t.Parallel()
+
+	container := consensusMocks.InitConsensusCore()
+	consensusState := initializers.InitConsensusState()
+	ch := make(chan bool, 1)
+	sr, _ := defaultSubroundForSRBlock(consensusState, ch, container, &statusHandler.AppStatusHandlerStub{})
+	srBlock, err := v2.NewSubroundBlock(
+		sr,
+		v2.ProcessingThresholdPercent,
+		&consensusMocks.SposWorkerMock{},
+		nil,
+	)
+	require.Nil(t, srBlock)
+	require.Equal(t, errMx.ErrNilEndRoundExtraSignersHolder, err)
 }
 
 func TestSubroundBlock_NewSubroundBlockNilBlockchainShouldFail(t *testing.T) {
@@ -316,6 +338,7 @@ func TestSubroundBlock_NewSubroundBlockNilWorkerShouldFail(t *testing.T) {
 		sr,
 		v2.ProcessingThresholdPercent,
 		nil,
+		&subRounds.SubRoundEndExtraSignersHolderMock{},
 	)
 	assert.Nil(t, srBlock)
 	assert.Equal(t, spos.ErrNilWorker, err)
@@ -569,6 +592,7 @@ func TestSubroundBlock_DoBlockJob(t *testing.T) {
 			baseSr,
 			v2.ProcessingThresholdPercent,
 			&consensusMocks.SposWorkerMock{},
+			&subRounds.SubRoundEndExtraSignersHolderMock{},
 		)
 
 		providedLeaderSignature := []byte("leader signature")

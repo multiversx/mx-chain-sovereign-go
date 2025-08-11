@@ -189,7 +189,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 
 	expiryTime := time.Second * time.Duration(rcf.sovConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds)
 
-	sovHeaderSigVerifier, err := headerCheck.NewSovereignHeaderSigVerifier(rcf.cryptoComponents.BlockSigner())
+	sovHeaderSigVerifier, err := headerCheck.NewSovereignHeaderSigVerifier(rcf.cryptoComponents.BlockSigner(), rcf.coreComponents.EnableEpochsHandler())
 	if err != nil {
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignHeaderSigVerifier failed: %w", err)
 	}

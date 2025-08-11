@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -256,7 +257,6 @@ func getPubKeySigners(consensusPubKeys []string, pubKeysBitmap []byte) [][]byte 
 
 // VerifySignature will check if signature is correct
 func (hsv *HeaderSigVerifier) VerifySignature(header data.HeaderHandler) error {
-	// TODO: MARIUS C: MX-17039 This is not ok for sovereign, we still need to check signatures for outgoing ops
 	if hsv.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
 		return nil
 	}
@@ -306,7 +306,7 @@ func (hsv *HeaderSigVerifier) VerifySignatureForHash(header data.HeaderHandler, 
 		return err
 	}
 
-	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(header, multiSigVerifier, pubKeysSigners)
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(nil, header, multiSigVerifier, pubKeysSigners)
 }
 
 func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
@@ -314,7 +314,9 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	var err error
 
 	for {
-		header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
+		// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage
+		// header, err = process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
+		header, err = hsv.getHeaderForProof(proof)
 		if err == nil {
 			break
 		}
@@ -328,6 +330,24 @@ func (hsv *HeaderSigVerifier) getHeaderForProofAtTransition(proof data.HeaderPro
 	}
 
 	return header, nil
+}
+
+func (hsv *HeaderSigVerifier) getHeaderForProof(proof data.HeaderProofHandler) (data.HeaderHandler, error) {
+	hdr, err := process.GetHeader(proof.GetHeaderHash(), hsv.headersPool, hsv.storageService, hsv.marshalizer, proof.GetHeaderShardId())
+	if err == nil {
+		return hdr, nil
+	}
+
+	hdr, _, err = process.GetShardHeaderWithNonce(
+		proof.GetHeaderNonce(),
+		proof.GetHeaderShardId(),
+		hsv.headersPool,
+		hsv.marshalizer,
+		hsv.storageService,
+		// TODO: MX-17040: This shall be either injected from constructor, or totally replaced if we use processed header hash
+		uint64ByteSlice.NewBigEndianConverter(),
+	)
+	return hdr, err
 }
 
 func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderProofHandler) error {
@@ -356,10 +376,13 @@ func (hsv *HeaderSigVerifier) verifyHeaderProofAtTransition(proof data.HeaderPro
 		return err
 	}
 
-	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
-}
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proof.GetHeaderHash(), proof.GetAggregatedSignature())
+	if err != nil {
+		return err
+	}
 
-// TODO: MX-17039- verify extra signers
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(proof, header, multiSigVerifier, consensusPubKeys)
+}
 
 // VerifyHeaderProof checks if the proof is correct for the header
 func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHandler) error {
@@ -384,7 +407,17 @@ func (hsv *HeaderSigVerifier) VerifyHeaderProof(proofHandler data.HeaderProofHan
 		return err
 	}
 
-	return multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	err = multiSigVerifier.VerifyAggregatedSig(consensusPubKeys, proofHandler.GetHeaderHash(), proofHandler.GetAggregatedSignature())
+	if err != nil {
+		return err
+	}
+
+	header, err := hsv.getHeaderForProof(proofHandler)
+	if err != nil {
+		return err
+	}
+
+	return hsv.extraSigVerifierHolder.VerifyAggregatedSignature(proofHandler, header, multiSigVerifier, consensusPubKeys)
 }
 
 // VerifyRandSeed will check if rand seed is correct

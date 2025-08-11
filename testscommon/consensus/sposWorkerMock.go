@@ -36,6 +36,7 @@ type SposWorkerMock struct {
 	ReceivedProofCalled                    func(proofHandler consensus.ProofHandler)
 	ResetConsensusRoundStateCalled         func()
 	ResetInvalidSignersCacheCalled         func()
+	ResetReceivedProofHandlerCalled        func()
 }
 
 // ResetConsensusRoundState -
@@ -74,9 +75,17 @@ func (sposWorkerMock *SposWorkerMock) RemoveAllReceivedHeaderHandlers() {
 	}
 }
 
+// AddReceivedProofHandler -
 func (sposWorkerMock *SposWorkerMock) AddReceivedProofHandler(handler func(proofHandler consensus.ProofHandler)) {
 	if sposWorkerMock.AddReceivedProofHandlerCalled != nil {
 		sposWorkerMock.AddReceivedProofHandlerCalled(handler)
+	}
+}
+
+// ResetReceivedProofHandler -
+func (sposWorkerMock *SposWorkerMock) ResetReceivedProofHandler() {
+	if sposWorkerMock.ResetReceivedProofHandlerCalled != nil {
+		sposWorkerMock.ResetReceivedProofHandlerCalled()
 	}
 }
 

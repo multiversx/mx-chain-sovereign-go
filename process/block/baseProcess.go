@@ -508,9 +508,52 @@ func displayHeader(
 				"IsStartOfEpoch",
 				fmt.Sprintf("%t", isStartOfEpoch)}),
 		)
+
+		logLines = displayProofsExtraSignatures(logLines, headerProof.GetExtraSignatureHandlers())
 	}
 
 	return logLines
+}
+
+func displayProofsExtraSignatures(
+	lines []*display.LineData,
+	proofExtraSignatures map[string]data.ExtraSignatureDataHandler,
+) []*display.LineData {
+	for id, proofData := range proofExtraSignatures {
+		lines = displayProofExtraSignatures(lines, id, proofData)
+	}
+
+	return lines
+}
+
+func displayProofExtraSignatures(
+	lines []*display.LineData,
+	id string,
+	extraSigData data.ExtraSignatureDataHandler,
+) []*display.LineData {
+	if check.IfNil(extraSigData) {
+		return lines
+	}
+
+	lines = append(lines, display.NewLineData(false, []string{
+		"Header proof extra signature",
+		"ID",
+		id}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Aggregated Signature",
+		logger.DisplayByteSlice(extraSigData.GetAggregatedSignature())}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Leader Signature",
+		logger.DisplayByteSlice(extraSigData.GetLeaderSignature())}),
+	)
+
+	lines[len(lines)-1].HorizontalRuleAfter = true
+
+	return lines
 }
 
 // checkProcessorParameters will check the input parameters values
@@ -1592,8 +1635,10 @@ func (bp *baseProcessor) saveProof(
 	if !common.IsProofsFlagEnabledForHeader(bp.enableEpochsHandler, header) {
 		return
 	}
+	// TODO: MX-17040: If we would send the processed header hash, this might work as previous usage:
+	// proof, err := bp.proofsPool.GetProof(header.GetShardID(), hash)
 
-	proof, err := bp.proofsPool.GetProof(header.GetShardID(), hash)
+	proof, err := bp.proofsPool.GetProofByNonce(header.GetNonce(), header.GetShardID())
 	if err != nil {
 		log.Error("could not find proof for header",
 			"hash", hex.EncodeToString(hash),

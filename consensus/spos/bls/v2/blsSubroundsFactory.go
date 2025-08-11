@@ -221,6 +221,7 @@ func (fct *factory) GenerateBlockSubround() (bls.SubRoundBlockHandler, error) {
 		subround,
 		processingThresholdPercent,
 		fct.worker,
+		fct.extraSignersHolder.GetSubRoundEndExtraSignersHolder(),
 	)
 	if err != nil {
 		return nil, err

@@ -25,3 +25,5 @@ var ErrProofHeaderHashMismatch = errors.New("proof header hash mismatch")
 
 // ErrProofNotExpected signals that the proof is not expected
 var ErrProofNotExpected = errors.New("proof not expected")
+
+var errNoExtraSignatureDataFoundInProof = errors.New("no extra signature data found in proof")

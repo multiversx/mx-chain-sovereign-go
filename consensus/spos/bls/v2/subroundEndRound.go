@@ -400,14 +400,8 @@ func (sr *subroundEndRound) sendProof() (bool, error) {
 		return false, ErrTimeOut
 	}
 
-	// TODO: MX-17039-this signature should be added in proof in createAndBroadcastProof, instead of being added in header
-	err = sr.extraSignersHolder.SetAggregatedSignatureInHeader(sr.GetHeader(), aggSigsRes.extraAggregatedSigs)
-	if err != nil {
-		return false, err
-	}
-
 	// broadcast header proof
-	err = sr.createAndBroadcastProof(aggSigsRes.aggregatedSig, bitmap, currentSender)
+	err = sr.createAndBroadcastProof(aggSigsRes.aggregatedSig, bitmap, currentSender, aggSigsRes.extraAggregatedSigs)
 	if err != nil && !errors.Is(err, ErrProofAlreadyPropagated) {
 		log.Warn("sendProof.createAndBroadcastProof", "error", err.Error())
 	}
@@ -673,25 +667,31 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 	signature []byte,
 	bitmap []byte,
 	sender string,
+	extraAggregatedSigs map[string][]byte,
 ) error {
 	if sr.EquivalentProofsPool().HasProof(sr.ShardCoordinator().SelfId(), sr.getMessageToVerifySig()) {
 		// no need to broadcast a proof if already received and verified one
 		return ErrProofAlreadyPropagated
 	}
 
+	extraSigs, err := sr.prepareExtraSignaturesForProof(extraAggregatedSigs)
+	if err != nil {
+		return err
+	}
+
 	headerProof := &block.HeaderProof{
 		PubKeysBitmap:       bitmap,
 		AggregatedSignature: signature,
-		HeaderHash:          sr.getMessageToVerifySig(),
+		HeaderHash:          sr.getMessageToVerifySig(), // MX-17040: THIS ACTUALLY NEEDS TO USE THE CORRECT HASH
 		HeaderEpoch:         sr.GetHeader().GetEpoch(),
 		HeaderNonce:         sr.GetHeader().GetNonce(),
 		HeaderShardId:       sr.GetHeader().GetShardID(),
 		HeaderRound:         sr.GetHeader().GetRound(),
 		IsStartOfEpoch:      sr.GetHeader().IsStartOfEpochBlock(),
-		// TODO: MX-17039- add extra aggregated sigs in proof
+		ExtraSignatures:     extraSigs,
 	}
 
-	err := sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
+	err = sr.BroadcastMessenger().BroadcastEquivalentProof(headerProof, []byte(sender))
 	if err != nil {
 		return err
 	}
@@ -702,6 +702,27 @@ func (sr *subroundEndRound) createAndBroadcastProof(
 		"proof sender", hex.EncodeToString([]byte(sender)))
 
 	return nil
+}
+
+func (sr *subroundEndRound) prepareExtraSignaturesForProof(extraAggregatedSigs map[string][]byte) (map[string]*block.ExtraSignatureData, error) {
+	extraSigs := make(map[string]*block.ExtraSignatureData)
+	for id, aggSig := range extraAggregatedSigs {
+		if len(aggSig) == 0 {
+			continue
+		}
+
+		leaderSig, err := sr.extraSignersHolder.GetLeaderExtraSig(sr.GetHeader(), id)
+		if err != nil {
+			return nil, err
+		}
+
+		extraSigs[id] = &block.ExtraSignatureData{
+			AggregatedSignature: aggSig,
+			LeaderSignature:     leaderSig,
+		}
+	}
+
+	return extraSigs, nil
 }
 
 func (sr *subroundEndRound) getEquivalentProofSender() string {
