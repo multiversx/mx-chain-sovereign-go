@@ -17,6 +17,7 @@ type HeaderProofHandlerStub struct {
 	GetExtraSignatureHandlersCalled func() map[string]data.ExtraSignatureDataHandler
 }
 
+// GetExtraSignatureHandlers -
 func (h *HeaderProofHandlerStub) GetExtraSignatureHandlers() map[string]data.ExtraSignatureDataHandler {
 	if h.GetExtraSignatureHandlersCalled != nil {
 		return h.GetExtraSignatureHandlersCalled()
