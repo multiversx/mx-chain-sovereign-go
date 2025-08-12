@@ -168,7 +168,7 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 func (sr *sovereignSubRoundEndOutGoingTxData) GetLeaderExtraSig(header data.HeaderHandler) ([]byte, error) {
 	sovHeader, castOk := header.(data.SovereignChainHeaderHandler)
 	if !castOk {
-		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetConsensusDataInHeader", errors.ErrWrongTypeAssertion)
+		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.GetLeaderExtraSig", errors.ErrWrongTypeAssertion)
 	}
 
 	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
