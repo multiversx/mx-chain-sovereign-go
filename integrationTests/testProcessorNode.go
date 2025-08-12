@@ -3837,6 +3837,7 @@ func GetDefaultEnableEpochsConfig() *config.EnableEpochs {
 		StakingV4Step2EnableEpoch:                       UnreachableEpoch,
 		StakingV4Step3EnableEpoch:                       UnreachableEpoch,
 		AndromedaEnableEpoch:                            UnreachableEpoch,
+		ConsensusModelV2EnableEpoch:                     UnreachableEpoch,
 	}
 }
 
