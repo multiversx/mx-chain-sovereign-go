@@ -232,8 +232,6 @@ func (tfn *TestFullNode) initNodesCoordinator(
 		ChanceComputer:      &mock.RaterMock{},
 	}
 	tfn.NodesCoordinator, _ = tfn.RunTypeComponents.NodesCoordinatorWithRaterCreator().CreateNodesCoordinatorWithRater(argumentsNodesCoordinatorWithRater)
-	//tfn.NodesCoordinator = nc
-	//_ = err
 }
 
 func (tpn *TestFullNode) initTestNodeWithArgs(args ArgTestProcessorNode, fullArgs ArgsTestFullNode) {

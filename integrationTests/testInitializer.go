@@ -1618,6 +1618,7 @@ func CreateNodesWithFullGenesis(
 	enableEpochsConfig.StakingV4Step1EnableEpoch = UnreachableEpoch
 	enableEpochsConfig.StakingV4Step2EnableEpoch = UnreachableEpoch
 	enableEpochsConfig.StakingV4Step3EnableEpoch = UnreachableEpoch
+	enableEpochsConfig.ConsensusModelV2EnableEpoch = UnreachableEpoch
 	return CreateNodesWithFullGenesisCustomEnableEpochs(numOfShards, nodesPerShard, numMetaChainNodes, genesisFile, enableEpochsConfig)
 }
 

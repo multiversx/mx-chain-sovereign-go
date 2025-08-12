@@ -116,6 +116,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks"
 	cacheMocks "github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
+	"github.com/multiversx/mx-chain-go/testscommon/components"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
@@ -462,6 +463,28 @@ func CreatePkBytes(numShards uint32) map[uint32][]byte {
 }
 
 func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
+	genericEpochNotifier := forking.NewGenericEpochNotifier()
+
+	epochsConfig := args.EpochsConfig
+	if epochsConfig == nil {
+		epochsConfig = GetDefaultEnableEpochsConfig()
+	}
+	enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(*epochsConfig, genericEpochNotifier)
+
+	if check.IfNil(args.RunTypeComponents) {
+		rtc := components.GetRunTypeComponentsWithCoreComp(&mock.CoreComponentsStub{
+			HasherField:                 TestHasher,
+			InternalMarshalizerField:    TestMarshalizer,
+			EnableEpochsHandlerField:    enableEpochsHandler,
+			AddressPubKeyConverterField: &testscommon.PubkeyConverterStub{},
+		})
+
+		var runTypeComponents factory.RunTypeComponentsHolder
+		runTypeComponents = components.GetRunTypeComponentsStub(rtc)
+		runTypeComponents.(*mainFactoryMocks.RunTypeComponentsStub).AccountParser = &genesisMocks.AccountsParserStub{}
+		args.RunTypeComponents = runTypeComponents
+	}
+
 	shardCoordinator, _ := args.RunTypeComponents.ShardCoordinatorCreator().CreateShardCoordinator(args.MaxShards, args.NodeShardId)
 
 	pksBytes := CreatePkBytes(args.MaxShards)
@@ -506,13 +529,6 @@ func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
 	p2pKey := mock.NewPrivateKeyMock()
 	messenger := CreateMessengerWithNoDiscoveryAndPeersRatingHandler(peersRatingHandler, p2pKey)
 	fullArchiveMessenger := CreateMessengerWithNoDiscoveryAndPeersRatingHandler(peersRatingHandler, p2pKey)
-
-	genericEpochNotifier := forking.NewGenericEpochNotifier()
-	epochsConfig := args.EpochsConfig
-	if epochsConfig == nil {
-		epochsConfig = GetDefaultEnableEpochsConfig()
-	}
-	enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(*epochsConfig, genericEpochNotifier)
 
 	nodeOperationMode := common.NormalOperation
 	if len(args.NodeOperationMode) != 0 {
@@ -3284,7 +3300,7 @@ func (tpn *TestProcessorNode) initBlockTracker() {
 			ArgBaseTracker: argBaseTracker,
 		}
 
-		tpn.BlockTracker, err = track.NewShardBlockTrack(arguments)
+		tpn.BlockTracker, err = tpn.RunTypeComponents.BlockTrackerCreator().CreateBlockTracker(arguments)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -3298,12 +3314,6 @@ func (tpn *TestProcessorNode) initBlockTracker() {
 			panic(err.Error())
 		}
 	}
-
-	arguments := track.ArgShardTracker{
-		ArgBaseTracker: argBaseTracker,
-	}
-
-	tpn.BlockTracker, _ = tpn.RunTypeComponents.BlockTrackerCreator().CreateBlockTracker(arguments)
 }
 
 func (tpn *TestProcessorNode) initHeaderValidator() {
