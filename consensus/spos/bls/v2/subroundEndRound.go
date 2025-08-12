@@ -659,7 +659,6 @@ func (sr *subroundEndRound) generateBitmap() []byte {
 
 	return sr.GenerateBitmap(bls.SrSignature)
 }
-*/
 
 func (sr *subroundEndRound) createAndBroadcastProof(
 	signature []byte,
