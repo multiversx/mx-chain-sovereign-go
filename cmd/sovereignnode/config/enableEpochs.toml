@@ -343,7 +343,7 @@
     ConsensusModelV2EnableEpoch = 0
 
     # AndromedaEnableEpoch represents the epoch when the equivalent messages and fix order for consensus features are enabled
-    AndromedaEnableEpoch = 2
+    AndromedaEnableEpoch = 0
 
     # BLSMultiSignerEnableEpoch represents the activation epoch for different types of BLS multi-signers
     BLSMultiSignerEnableEpoch = [
