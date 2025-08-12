@@ -886,6 +886,15 @@ func (wrk *Worker) removeConsensusHeaderFromPool() {
 	if check.IfNil(header) {
 		return
 	}
+	originalHeaderhash := headerHash
+	headerHash, err := core.CalculateHash(wrk.marshalizer, wrk.hasher, header)
+	if err != nil {
+		log.Error("removeConsensusHeaderFromPool failed to calculate header hash", "err", err)
+	}
+
+	log.Error("removeConsensusHeaderFromPool calculated header hash", "headerHash", headerHash,
+		"original header Hash", originalHeaderhash,
+	)
 
 	if !wrk.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, header.GetEpoch()) {
 		return
