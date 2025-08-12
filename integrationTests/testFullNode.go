@@ -174,8 +174,7 @@ type TestFullNode struct {
 func NewTestFullNode(args ArgsTestFullNode) *TestFullNode {
 	tpn := newBaseTestProcessorNode(*args.ArgTestProcessorNode)
 
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShards, args.ShardID)
-	_ = err
+	shardCoordinator, _ := sharding.NewMultiShardCoordinator(maxShards, args.ShardID)
 
 	tfn := &TestFullNode{
 		TestProcessorNode: tpn,

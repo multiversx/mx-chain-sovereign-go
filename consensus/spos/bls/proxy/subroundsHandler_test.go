@@ -424,8 +424,8 @@ func TestSubroundsHandler_initSubroundsForEpoch(t *testing.T) {
 
 		err = sh.initSubroundsForEpoch(0)
 		require.Nil(t, err)
-		require.Equal(t, consensusSovereign, sh.currentConsensusType)
-		require.Equal(t, int32(2), startCalled.Load())
+		require.Equal(t, consensusV1, sh.currentConsensusType)
+		require.Equal(t, int32(1), startCalled.Load())
 	})
 }
 
