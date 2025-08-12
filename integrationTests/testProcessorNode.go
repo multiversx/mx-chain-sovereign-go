@@ -469,6 +469,10 @@ func newBaseTestProcessorNode(args ArgTestProcessorNode) *TestProcessorNode {
 	if epochsConfig == nil {
 		epochsConfig = GetDefaultEnableEpochsConfig()
 	}
+	if check.IfNil(args.RunTypeComponents) || args.RunTypeComponents.ConsensusModel() != consensus.ConsensusModelSovereign {
+		epochsConfig.ConsensusModelV2EnableEpoch = 1000000
+	}
+
 	enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(*epochsConfig, genericEpochNotifier)
 
 	if check.IfNil(args.RunTypeComponents) {
@@ -3837,7 +3841,6 @@ func GetDefaultEnableEpochsConfig() *config.EnableEpochs {
 		StakingV4Step2EnableEpoch:                       UnreachableEpoch,
 		StakingV4Step3EnableEpoch:                       UnreachableEpoch,
 		AndromedaEnableEpoch:                            UnreachableEpoch,
-		ConsensusModelV2EnableEpoch:                     UnreachableEpoch,
 	}
 }
 
