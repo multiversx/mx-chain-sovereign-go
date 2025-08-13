@@ -309,7 +309,7 @@ func (pcf *processComponentsFactory) Create() (*processComponents, error) {
 		StorageService:               pcf.data.StorageService(),
 		ExtraHeaderSigVerifierHolder: pcf.runTypeComponents.ExtraHeaderSigVerifierHolder(),
 	}
-	headerSigVerifier, err := headerCheck.NewHeaderSigVerifier(argsHeaderSig)
+	headerSigVerifier, err := pcf.runTypeComponents.HeaderSigVerifierFactory().CreateHeaderSignatureVerifier(argsHeaderSig)
 	if err != nil {
 		return nil, err
 	}
@@ -2165,6 +2165,9 @@ func checkProcessComponentsArgs(args ProcessComponentsFactoryArgs) error {
 	}
 	if check.IfNil(args.RunTypeComponents.OutportDataProviderFactory()) {
 		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilOutportDataProviderFactory)
+	}
+	if check.IfNil(args.RunTypeComponents.HeaderSigVerifierFactory()) {
+		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilHeaderSigVerifierFactory)
 	}
 	if check.IfNil(args.IncomingHeaderSubscriber) {
 		return fmt.Errorf("%s: %w", baseErrMessage, errorsMx.ErrNilIncomingHeaderSubscriber)

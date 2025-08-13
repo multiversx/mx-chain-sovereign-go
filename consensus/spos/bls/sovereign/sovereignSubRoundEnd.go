@@ -17,7 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C MX-17040 , this should be merged with subroundEndV2 in a sovereign specific file
+// TODO: Marius C MX-17085 , this should be merged with subroundEndV2 in a sovereign specific file
 
 type sovereignSubRoundEnd struct {
 	*subroundEndRoundV2
@@ -144,7 +144,6 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool {
 	success := sr.subroundEndRoundV2.DoEndRoundJob(ctx)
 	if !success {
-		log.Error("sovereignSubRoundEnd.subroundEndRoundV2.DoEndRoundJob failed")
 		return false
 	}
 

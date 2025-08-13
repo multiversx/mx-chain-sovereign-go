@@ -33,7 +33,6 @@ import (
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -924,22 +923,21 @@ func (nr *nodeRunner) CreateManagedConsensusComponents(
 	}
 
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                  *nr.configs.GeneralConfig,
-		FlagsConfig:             *nr.configs.FlagsConfig,
-		BootstrapRoundIndex:     nr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:          coreComponents,
-		NetworkComponents:       networkComponents,
-		CryptoComponents:        cryptoComponents,
-		DataComponents:          dataComponents,
-		ProcessComponents:       processComponents,
-		StateComponents:         stateComponents,
-		StatusComponents:        statusComponents,
-		StatusCoreComponents:    statusCoreComponents,
-		ScheduledProcessor:      scheduledProcessor,
-		IsInImportMode:          nr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog:   nr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:       runTypeComponents,
-		ExtraSignersHolder:      holders.NewEmptyExtraSignersHolder(),
+		Config:                *nr.configs.GeneralConfig,
+		FlagsConfig:           *nr.configs.FlagsConfig,
+		BootstrapRoundIndex:   nr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:        coreComponents,
+		NetworkComponents:     networkComponents,
+		CryptoComponents:      cryptoComponents,
+		DataComponents:        dataComponents,
+		ProcessComponents:     processComponents,
+		StateComponents:       stateComponents,
+		StatusComponents:      statusComponents,
+		StatusCoreComponents:  statusCoreComponents,
+		ScheduledProcessor:    scheduledProcessor,
+		IsInImportMode:        nr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog: nr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:     runTypeComponents,
 		OutGoingBridgeOpHandler: disabledGRPC.NewDisabledClient(),
 	}
 

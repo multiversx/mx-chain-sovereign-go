@@ -4,6 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,4 +31,41 @@ func TestReadInitialAccounts(t *testing.T) {
 		require.Equal(t, "00000000000000000500f080f48551abf03e12e27e20d9f077abedffdccc0102", accounts[2].GetDelegationHandler().GetAddress())
 		require.Equal(t, big.NewInt(10000), accounts[2].GetDelegationHandler().GetValue())
 	})
+}
+
+func TestCreateSovereignProposedInitialHeader(t *testing.T) {
+	t.Parallel()
+
+	initialHdr := &block.SovereignChainHeader{
+		IsStartOfEpoch: true,
+		Header: &block.Header{
+			Nonce:        4,
+			PrevHash:     []byte("prevHash"),
+			PrevRandSeed: []byte("prevRandHash"),
+			RandSeed:     []byte("randSeed"),
+			ShardID:      core.SovereignChainShardId,
+			TimeStamp:    123,
+			Round:        4,
+			Epoch:        3,
+			ChainID:      []byte("chainID"),
+			Reserved:     []byte("reserved"),
+			RootHash:     []byte("rootHash"),
+		},
+	}
+
+	res := CreateSovereignProposedInitialHeader(initialHdr)
+	require.Equal(t, &block.SovereignChainHeader{
+		IsStartOfEpoch: true,
+		Header: &block.Header{
+			Nonce:        4,
+			PrevHash:     []byte("prevHash"),
+			PrevRandSeed: []byte("prevRandHash"),
+			RandSeed:     []byte("randSeed"),
+			ShardID:      core.SovereignChainShardId,
+			TimeStamp:    123,
+			Round:        4,
+			Epoch:        3,
+			ChainID:      []byte("chainID"),
+		},
+	}, res)
 }

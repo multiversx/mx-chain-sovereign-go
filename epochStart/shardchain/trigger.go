@@ -562,7 +562,6 @@ func (t *trigger) changeEpochFinalityAttestingRoundIfNeeded(
 	t.epochFinalityAttestingRound = metaHdr.GetRound()
 }
 
-// TODO: MX-17040 integrate this in sovereign
 func (t *trigger) receivedProof(headerProof data.HeaderProofHandler) {
 	if check.IfNil(headerProof) {
 		return

@@ -145,9 +145,17 @@ type epochStartTopicProviderHandler interface {
 	getTopic() string
 }
 
+type syncEpochStartMetaHelperHandler interface {
+	epochStartTopicProviderHandler
+	getProofsTopic(shardId1 uint32, shardId2 uint32) string
+}
+
 type epochStartPeerHandler interface {
 	epochStartTopicProviderHandler
 	setNumPeers(requestHandler RequestHandler, intra int, cross int) error
+	getMetaChainShardID() uint32
+	requestProofForMetaBlock(metablockHash []byte) error
+	hashMatches(hash string, proof data.HeaderProofHandler) bool
 }
 
 type shardTriggerRegistryHandler interface {

@@ -16,3 +16,12 @@ type ExtraHeaderSigVerifierHolder interface {
 	RegisterExtraHeaderSigVerifier(extraVerifier process.ExtraHeaderSigVerifierHandler) error
 	IsInterfaceNil() bool
 }
+
+type headerSigVerifierHelper interface {
+	verifyProofAggregatedSignature(
+		multiSigVerifier crypto.MultiSigner,
+		pubKeysSigners [][]byte,
+		proof data.HeaderProofHandler,
+	) error
+	getLeaderSignedHeader(header data.HeaderHandler) data.HeaderHandler
+}

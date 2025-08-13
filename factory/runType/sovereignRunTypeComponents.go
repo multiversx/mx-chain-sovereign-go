@@ -5,9 +5,14 @@ import (
 	"math/big"
 	"time"
 
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	sovereignFactory "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
@@ -34,6 +39,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	procSovereign "github.com/multiversx/mx-chain-go/process/factory/sovereign"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
@@ -212,6 +218,11 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		return nil, fmt.Errorf("runTypeComponentsFactory - NewSovereignShardHeaderFactory failed: %w", err)
 	}
 
+	extraSignersHolder, err := rcf.createOutGoingTxDataSigners()
+	if err != nil {
+		return nil, fmt.Errorf("runTypeComponentsFactory - createOutGoingTxDataSigners failed: %w", err)
+	}
+
 	return &runTypeComponents{
 		blockChainHookHandlerCreator:            hooks.NewSovereignBlockChainHookFactory(),
 		epochStartBootstrapperCreator:           bootstrap.NewSovereignEpochStartBootstrapperFactory(),
@@ -268,5 +279,50 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewSovereignTotalStakedValueProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
 		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
+		headerSigVerifierFactory:                headerSigVerifierFactory.NewSovereignHeaderSignatureVerifyFactory(),
+		extraSignersHolder:                      extraSignersHolder,
 	}, nil
+}
+
+func (rcf *sovereignRunTypeComponentsFactory) createOutGoingTxDataSigners() (bls.ExtraSignersHolder, error) {
+	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
+	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
+	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
+
+	mbTypes := []dataBlock.OutGoingMBType{dataBlock.OutGoingMbTx, dataBlock.OutGoingMbChangeValidatorSet}
+	for _, mbType := range mbTypes {
+		extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()
+
+		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType, rcf.coreComponents.EnableEpochsHandler())
+		if err != nil {
+			return nil, err
+		}
+		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return holders.NewExtraSignersHolder(
+		startRoundExtraSignersHolder,
+		signRoundExtraSignersHolder,
+		endRoundExtraSignersHolder)
 }

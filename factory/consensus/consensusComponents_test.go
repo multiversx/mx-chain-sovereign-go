@@ -182,7 +182,6 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 		ScheduledProcessor:    &consensusMocks.ScheduledProcessorStub{},
 		IsInImportMode:        false,
 		ShouldDisableWatchdog: false,
-		ExtraSignersHolder:    &subRoundsHolder.ExtraSignersHolderMock{},
 		RunTypeComponents: &mainFactoryMocks.RunTypeComponentsStub{
 			BootstrapperFromStorageFactory: &factoryMocks.BootstrapperFromStorageFactoryMock{
 				CreateBootstrapperFromStorageCalled: func(args storageBootstrap.ArgsShardStorageBootstrapper) (process.BootstrapperFromStorage, error) {
@@ -198,6 +197,7 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 			ValidatorAccountsSyncerFactoryHandlerField: &factoryMocks.ValidatorAccountsSyncerFactoryMock{},
 			OutGoingOperationsPool:                     &sovereign.OutGoingOperationsPoolMock{},
 			ConsensusModelType:                         consensus.ConsensusModelV1,
+			ExtraSignersHolderField:                    &subRoundsHolder.ExtraSignersHolderMock{},
 		},
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
@@ -444,16 +444,6 @@ func TestNewConsensusComponentsFactory(t *testing.T) {
 		require.Nil(t, ccf)
 		require.Equal(t, errorsMx.ErrNilStatusCoreComponents, err)
 	})
-	t.Run("nil extraSignersHolder, should error", func(t *testing.T) {
-		t.Parallel()
-
-		args := createMockConsensusComponentsFactoryArgs()
-		args.ExtraSignersHolder = nil
-		ccf, err := consensusComp.NewConsensusComponentsFactory(args)
-
-		require.Nil(t, ccf)
-		require.Equal(t, errorsMx.ErrNilExtraSignersHolder, err)
-	})
 	t.Run("nil RunTypeComponents should error", func(t *testing.T) {
 		t.Parallel()
 
@@ -501,6 +491,18 @@ func TestNewConsensusComponentsFactory(t *testing.T) {
 
 		require.Nil(t, ccf)
 		require.Equal(t, errorsMx.ErrNilBroadCastShardMessengerFactoryHandler, err)
+	})
+	t.Run("nil ExtraSignersHolder should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockConsensusComponentsFactoryArgs()
+		runTypeComps := mainFactoryMocks.NewRunTypeComponentsStub()
+		runTypeComps.ExtraSignersHolderField = nil
+		args.RunTypeComponents = runTypeComps
+		ccf, err := consensusComp.NewConsensusComponentsFactory(args)
+
+		require.Nil(t, ccf)
+		require.Equal(t, errorsMx.ErrNilExtraSignersHolder, err)
 	})
 }
 
@@ -650,6 +652,7 @@ func TestConsensusComponentsFactory_Create(t *testing.T) {
 			},
 			ShardMessengerFactoryField: &factoryMocks.ShardChainMessengerFactoryMock{},
 			ConsensusModelType:         consensus.ConsensusModelV1,
+			ExtraSignersHolderField:    &subRoundsHolder.ExtraSignersHolderMock{},
 		}
 		ccf, _ := consensusComp.NewConsensusComponentsFactory(args)
 		require.NotNil(t, ccf)
