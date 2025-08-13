@@ -3,6 +3,7 @@ package block
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/process"
@@ -30,8 +31,9 @@ func TestShardHeaderValidatorFactory_CreateHeaderValidator(t *testing.T) {
 	require.NotNil(t, err)
 
 	hv, err = shvf.CreateHeaderValidator(ArgsHeaderValidator{
-		Hasher:      &testscommon.HasherStub{},
-		Marshalizer: &testscommon.ProtoMarshalizerMock{},
+		Hasher:              &testscommon.HasherStub{},
+		Marshalizer:         &testscommon.ProtoMarshalizerMock{},
+		EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	})
 	require.NotNil(t, hv)
 	require.Nil(t, err)

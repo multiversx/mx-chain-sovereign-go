@@ -1,6 +1,9 @@
 package rating
 
 import (
+	"github.com/multiversx/mx-chain-go/statusHandler"
+	"golang.org/x/exp/slices"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/process"
 )
@@ -25,33 +28,49 @@ func NewSovereignRatingsData(args RatingsDataArg) (*sovereignRatingsData, error)
 		})
 	}
 
-	arg := computeRatingStepArg{
-		shardSize:                       args.ShardMinNodes,
-		consensusSize:                   args.ShardConsensusSize,
-		roundTimeMilis:                  args.RoundDurationMiliseconds,
-		startRating:                     ratingsConfig.General.StartRating,
-		maxRating:                       ratingsConfig.General.MaxRating,
-		hoursToMaxRatingFromStartRating: ratingsConfig.ShardChain.HoursToMaxRatingFromStartRating,
-		proposerDecreaseFactor:          ratingsConfig.ShardChain.ProposerDecreaseFactor,
-		validatorDecreaseFactor:         ratingsConfig.ShardChain.ValidatorDecreaseFactor,
-		consecutiveMissedBlocksPenalty:  ratingsConfig.ShardChain.ConsecutiveMissedBlocksPenalty,
-		proposerValidatorImportance:     ratingsConfig.ShardChain.ProposerValidatorImportance,
+	// avoid any invalid configuration where ratings are not sorted by epoch
+	slices.SortFunc(ratingsConfig.ShardChain.RatingStepsByEpoch, func(a, b config.RatingSteps) int {
+		return int(a.EnableEpoch) - int(b.EnableEpoch)
+	})
+
+	if !checkForEpochZeroConfigurationInSovereign(args) {
+		return nil, process.ErrMissingConfigurationForEpochZero
 	}
-	shardRatingStep, err := computeRatingStep(arg)
+
+	currentChainParameters := args.ChainParametersHolder.CurrentChainParameters()
+	shardRatingStep, err := createShardRatingStep(args, currentChainParameters)
 	if err != nil {
 		return nil, err
 	}
 
+	ratingsConfigValue := ratingsStepsData{
+		enableEpoch:          args.EpochNotifier.CurrentEpoch(),
+		shardRatingsStepData: shardRatingStep,
+		metaRatingsStepData:  shardRatingStep, // filling it so that no nil pointer is used further in code
+	}
+
+	ratingData := &RatingsData{
+		startRating:                 ratingsConfig.General.StartRating,
+		maxRating:                   ratingsConfig.General.MaxRating,
+		minRating:                   ratingsConfig.General.MinRating,
+		signedBlocksThreshold:       ratingsConfig.General.SignedBlocksThreshold,
+		currentRatingsStepData:      ratingsConfigValue,
+		selectionChances:            chances,
+		chainParametersHandler:      args.ChainParametersHolder,
+		ratingsSetup:                ratingsConfig,
+		roundDurationInMilliseconds: args.RoundDurationMilliseconds,
+		statusHandler:               statusHandler.NewNilStatusHandler(),
+	}
+
+	err = ratingData.computeRatingStepsConfig(args.ChainParametersHolder.AllChainParameters(), false)
+	if err != nil {
+		return nil, err
+	}
+
+	args.EpochNotifier.RegisterNotifyHandler(ratingData)
+
 	return &sovereignRatingsData{
-		RatingsData: &RatingsData{
-			startRating:           ratingsConfig.General.StartRating,
-			maxRating:             ratingsConfig.General.MaxRating,
-			minRating:             ratingsConfig.General.MinRating,
-			signedBlocksThreshold: ratingsConfig.General.SignedBlocksThreshold,
-			metaRatingsStepData:   shardRatingStep, // filling it so that no nil pointer is used further in code
-			shardRatingsStepData:  shardRatingStep,
-			selectionChances:      chances,
-		},
+		ratingData,
 	}, nil
 }
 
@@ -61,5 +80,12 @@ func verifySovereignRatingsConfig(settings config.RatingsConfig) error {
 		return err
 	}
 
-	return verifyShardConfig(settings.ShardChain)
+	return checkRatingStepsByEpochConfigForDest(settings.ShardChain.RatingStepsByEpoch, "sovereignShardChain")
+}
+
+func checkForEpochZeroConfigurationInSovereign(args RatingsDataArg) bool {
+	_, foundShardChainRatingSteps := getRatingStepsForEpoch(0, args.Config.ShardChain.RatingStepsByEpoch)
+	_, foundChainParams := getChainParamsForEpoch(0, args.ChainParametersHolder.AllChainParameters())
+
+	return foundShardChainRatingSteps && foundChainParams
 }

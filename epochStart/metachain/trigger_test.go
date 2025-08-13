@@ -14,8 +14,8 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/mock"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage"
-	"github.com/multiversx/mx-chain-go/testscommon"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
@@ -60,7 +60,7 @@ func createMockEpochStartTriggerArguments() *ArgsNewMetaEpochStartTrigger {
 				return &vic.ValidatorInfoCacherStub{}
 			},
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{}
+				return &processMock.HeadersCacherStub{}
 			},
 		},
 	}
@@ -264,6 +264,47 @@ func TestTrigger_ForceEpochStartShouldOk(t *testing.T) {
 
 	isEpochStart := epochStartTrigger.IsEpochStart()
 	assert.True(t, isEpochStart)
+}
+
+func TestTrigger_LastCommitedMetaEpochStartBlock(t *testing.T) {
+	t.Parallel()
+
+	args := createMockEpochStartTriggerArguments()
+	et, _ := NewEpochStartTrigger(args)
+
+	epoch := uint32(37)
+
+	epochStartNonce := uint64(100)
+	epochStartRound := uint64(101)
+	ecpohStartTimeStamp := uint64(102)
+
+	epochStartMetaHdr := &block.MetaBlock{
+		Epoch:     epoch,
+		Nonce:     epochStartNonce,
+		Round:     epochStartRound,
+		TimeStamp: ecpohStartTimeStamp,
+		EpochStart: block.EpochStart{
+			LastFinalizedHeaders: []block.EpochStartShardData{{RootHash: []byte("root")}},
+		},
+	}
+
+	nonce := uint64(200)
+	round := uint64(201)
+	timeStamp := uint64(202)
+
+	metaHdr := &block.MetaBlock{
+		Epoch:     epoch,
+		Nonce:     nonce,
+		Round:     round,
+		TimeStamp: timeStamp,
+	}
+
+	et.SetProcessed(epochStartMetaHdr, nil)
+	et.SetProcessed(metaHdr, nil)
+
+	lastCommitedEpochStartBlock, err := et.LastCommitedEpochStartHdr()
+	require.Nil(t, err)
+	require.Equal(t, epochStartMetaHdr, lastCommitedEpochStartBlock)
 }
 
 func TestTrigger_RevertStateToBlock(t *testing.T) {

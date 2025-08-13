@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 )
 
 type runTypeCoreComponentsFactory struct {
@@ -20,6 +21,7 @@ func (rccf *runTypeCoreComponentsFactory) Create() *runTypeCoreComponents {
 		genesisNodesSetupFactory: sharding.NewGenesisNodesSetupFactory(),
 		ratingsDataFactory:       rating.NewRatingsDataFactory(),
 		enableEpochsFactory:      enablers.NewEnableEpochsFactory(),
+		chainParametersFactory:   chainParamFactory.NewChainParametersHolderFactory(),
 	}
 }
 

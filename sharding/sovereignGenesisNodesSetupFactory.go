@@ -11,7 +11,8 @@ func NewSovereignGenesisNodesSetupFactory() GenesisNodesSetupFactory {
 // CreateNodesSetup creates a genesis nodes setup handler for sovereign chain
 func (gns *sovereignGenesisNodesSetupFactory) CreateNodesSetup(args *NodesSetupArgs) (GenesisNodesSetupHandler, error) {
 	return NewSovereignNodesSetup(&SovereignNodesSetupArgs{
-		NodesFilePath:            args.NodesFilePath,
+		ChainParametersProvider:  args.ChainParametersProvider,
+		NodesConfig:              args.NodesConfig,
 		AddressPubKeyConverter:   args.AddressPubKeyConverter,
 		ValidatorPubKeyConverter: args.ValidatorPubKeyConverter,
 	})

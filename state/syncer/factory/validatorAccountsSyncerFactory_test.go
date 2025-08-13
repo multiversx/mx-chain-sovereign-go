@@ -7,6 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/state/syncer"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
@@ -23,7 +24,7 @@ func getArgs() syncer.ArgsNewValidatorAccountsSyncer {
 			TrieStorageManager:                &storageManager.StorageManagerStub{},
 			RequestHandler:                    &testscommon.RequestHandlerStub{},
 			Timeout:                           time.Second,
-			Cacher:                            testscommon.NewCacherMock(),
+			Cacher:                            cache.NewCacherMock(),
 			UserAccountsSyncStatisticsHandler: &testscommon.SizeSyncStatisticsHandlerStub{},
 			AppStatusHandler:                  &statusHandler.AppStatusHandlerStub{},
 			EnableEpochsHandler:               &enableEpochsHandlerMock.EnableEpochsHandlerStub{},

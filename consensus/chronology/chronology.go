@@ -105,6 +105,7 @@ func (chr *chronology) RemoveAllSubrounds() {
 
 	chr.subrounds = make(map[int]int)
 	chr.subroundHandlers = make([]consensus.SubroundHandler, 0)
+	chr.subroundId = srBeforeStartRound
 
 	chr.mutSubrounds.Unlock()
 }
@@ -120,6 +121,9 @@ func (chr *chronology) StartRounds() {
 }
 
 func (chr *chronology) startRounds(ctx context.Context) {
+	// force a round update to initialize the round
+	roundHandlerWithRevert := chr.roundHandler.(consensus.RoundHandlerConsensusSwitch)
+	roundHandlerWithRevert.RevertOneRound()
 	for {
 		select {
 		case <-ctx.Done():

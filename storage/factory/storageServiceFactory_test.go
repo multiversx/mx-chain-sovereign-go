@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const numShardStoreres = 23
+const numShardStoreres = 24
 
 func createMockArgument(t *testing.T) StorageServiceFactoryArgs {
 	pathMan, err := CreatePathManagerFromSinglePathString(t.TempDir())
@@ -50,6 +50,7 @@ func createMockArgument(t *testing.T) StorageServiceFactoryArgs {
 			StatusMetricsStorage:       createMockStorageConfig("StatusMetricsStorage"),
 			PeerBlockBodyStorage:       createMockStorageConfig("PeerBlockBodyStorage"),
 			TrieEpochRootHashStorage:   createMockStorageConfig("TrieEpochRootHashStorage"),
+			ProofsStorage:              createMockStorageConfig("ProofsStorage"),
 			SovereignConfig: config.SovereignConfig{
 				ExtendedShardHdrNonceHashStorage: createMockStorageConfig("ExtendedShardHdrNonceHashStorage"),
 				ExtendedShardHeaderStorage:       createMockStorageConfig("ExtendedShardHeaderStorage"),
@@ -474,7 +475,7 @@ func TestStorageServiceFactory_CreateForShard(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, check.IfNil(storageService))
 		allStorers := storageService.GetAllStorers()
-		expectedStorers := 23
+		expectedStorers := 24
 		assert.Equal(t, expectedStorers, len(allStorers))
 
 		storer, _ := storageService.GetStorer(dataRetriever.UserAccountsUnit)
@@ -621,7 +622,7 @@ func TestStorageServiceFactory_CreateForMeta(t *testing.T) {
 		allStorers := storageService.GetAllStorers()
 		missingStorers := 2 // PeerChangesUnit and ShardHdrNonceHashDataUnit
 		numShardHdrStorage := 3
-		expectedStorers := 23 - missingStorers + numShardHdrStorage
+		expectedStorers := 24 - missingStorers + numShardHdrStorage
 		assert.Equal(t, expectedStorers, len(allStorers))
 
 		storer, _ := storageService.GetStorer(dataRetriever.UserAccountsUnit)

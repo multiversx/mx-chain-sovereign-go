@@ -135,10 +135,11 @@ func (txc *transactionCounter) displayLogInfo(
 	headerHash []byte,
 	numShards uint32,
 	selfId uint32,
-	_ dataRetriever.PoolsHolder,
+	dataPool dataRetriever.PoolsHolder,
 	blockTracker process.BlockTracker,
 ) {
-	dispHeader, dispLines := txc.createDisplayableShardHeaderAndBlockBody(header, body)
+	headerProof, _ := dataPool.Proofs().GetProof(selfId, headerHash)
+	dispHeader, dispLines := txc.createDisplayableShardHeaderAndBlockBody(header, body, headerProof)
 
 	tblString, err := display.CreateTableString(dispHeader, dispLines)
 	if err != nil {
@@ -163,6 +164,7 @@ func (txc *transactionCounter) displayLogInfo(
 func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 	header data.HeaderHandler,
 	body *block.Body,
+	headerProof data.HeaderProofHandler,
 ) ([]string, []*display.LineData) {
 
 	tableHeader := []string{"Part", "Parameter", "Value"}
@@ -178,7 +180,7 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 			getShardName(header.GetShardID())}),
 	}
 
-	lines := displayHeader(header)
+	lines := displayHeader(header, headerProof)
 
 	shardLines := make([]*display.LineData, 0, len(lines)+len(headerLines))
 	shardLines = append(shardLines, headerLines...)
@@ -415,7 +417,7 @@ func (txc *transactionCounter) displayTxBlockBody(
 			senderShardStr,
 			receiverShardStr)
 
-		if miniBlock.TxHashes == nil || len(miniBlock.TxHashes) == 0 {
+		if len(miniBlock.TxHashes) == 0 {
 			lines = append(lines, display.NewLineData(false, []string{
 				part, "", "<EMPTY>"}))
 		}

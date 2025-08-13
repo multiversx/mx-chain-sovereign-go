@@ -19,7 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/state/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
@@ -120,7 +120,7 @@ func createHeaderVersionHandler(version string) nodeFactory.HeaderVersionHandler
 			},
 		},
 		version,
-		&testscommon.CacherStub{},
+		&cache.CacherStub{},
 	)
 	return hdrVersionHandler
 }

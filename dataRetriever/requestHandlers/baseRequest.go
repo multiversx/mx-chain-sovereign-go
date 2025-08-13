@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -108,4 +109,59 @@ func (br *baseRequest) getValidatorsInfoRequester() (dataRetriever.Requester, er
 
 func (br *baseRequest) getMiniBlocksRequester(destShardID uint32) (dataRetriever.Requester, error) {
 	return br.requestersFinder.CrossShardRequester(factory.MiniBlocksTopic, destShardID)
+}
+
+func (br *baseRequest) getEquivalentProofsRequester(headerShard uint32) (dataRetriever.Requester, error) {
+	// there are multiple scenarios for equivalent proofs:
+	// 1. self meta  requesting meta proof  -> should request on equivalentProofs_ALL
+	// 2. self meta  requesting shard proof -> should request on equivalentProofs_shard_META
+	// 3. self shard requesting intra proof -> should request on equivalentProofs_self_META
+	// 4. self shard requesting meta proof  -> should request on equivalentProofs_ALL
+	// 4. self shard requesting cross proof -> should never happen!
+
+	isSelfMeta := br.shardID == core.MetachainShardId
+	isRequestForMeta := headerShard == core.MetachainShardId
+	shardIdMissmatch := br.shardID != headerShard && !isRequestForMeta && !isSelfMeta
+	isRequestInvalid := !isSelfMeta && shardIdMissmatch
+	if isRequestInvalid {
+		return nil, dataRetriever.ErrBadRequest
+	}
+
+	if isRequestForMeta {
+		topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+		requester, err := br.requestersFinder.MetaChainRequester(topic)
+		if err != nil {
+			err = fmt.Errorf("%w, topic: %s, current shard ID: %d, requested header shard ID: %d",
+				err, topic, br.shardID, headerShard)
+
+			log.Warn("available requesters in container",
+				"requesters", br.requestersFinder.RequesterKeys(),
+			)
+			return nil, err
+		}
+
+		return requester, nil
+	}
+
+	crossShardID := core.MetachainShardId
+	if isSelfMeta {
+		crossShardID = headerShard
+	}
+
+	requester, err := br.requestersFinder.CrossShardRequester(common.EquivalentProofsTopic, crossShardID)
+	if err != nil {
+		err = fmt.Errorf("%w, base topic: %s, current shard ID: %d, cross shard ID: %d",
+			err, common.EquivalentProofsTopic, br.shardID, crossShardID)
+
+		log.Warn("available requesters in container",
+			"requesters", br.requestersFinder.RequesterKeys(),
+		)
+		return nil, err
+	}
+
+	return requester, nil
+}
+
+func (br *baseRequest) getCrossRequesterForHashes(destShardID uint32, topic string) (dataRetriever.Requester, error) {
+	return br.requestersFinder.CrossShardRequester(topic, destShardID)
 }

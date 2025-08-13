@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
@@ -13,7 +15,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	"github.com/stretchr/testify/require"
 )
 
 func createSovInterceptorsContainerArgs() interceptorscontainer.ArgsSovereignShardInterceptorsContainerFactory {
@@ -74,10 +75,11 @@ func TestSovereignShardInterceptorsContainerFactory_Create(t *testing.T) {
 	numInterceptorsShardValidatorInfo := 1
 	numInterceptorValidatorInfo := 1
 	numInterceptorExtendedHeader := 1
+	numInterceptorEqProofs := 1
 	totalInterceptors := numInterceptorTxs + numInterceptorsUnsignedTxs + numInterceptorsRewardTxs +
 		numInterceptorHeaders + numInterceptorMiniBlocks + numInterceptorMetachainHeaders + numInterceptorTrieNodes +
 		numInterceptorPeerAuth + numInterceptorHeartbeat + numInterceptorsShardValidatorInfo + numInterceptorValidatorInfo +
-		numInterceptorExtendedHeader
+		numInterceptorExtendedHeader + numInterceptorEqProofs
 
 	require.Equal(t, totalInterceptors, mainContainer.Len())
 	require.Equal(t, 0, fullArchiveContainer.Len())
@@ -95,6 +97,7 @@ func TestSovereignShardInterceptorsContainerFactory_Create(t *testing.T) {
 		common.ConnectionTopic:                           {},
 		common.ValidatorInfoTopic + sovShardIDStr:        {},
 		factory.ExtendedHeaderProofTopic + sovShardIDStr: {},
+		common.EquivalentProofsTopic + sovShardIDStr:     {},
 	}
 
 	iterateFunc := func(key string, interceptor process.Interceptor) bool {

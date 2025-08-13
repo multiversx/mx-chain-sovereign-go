@@ -43,6 +43,7 @@ func TestManagedRunTypeCoreComponents_Create(t *testing.T) {
 		require.Nil(t, managedRunTypeCoreComponents.GenesisNodesSetupFactoryCreator())
 		require.Nil(t, managedRunTypeCoreComponents.RatingsDataFactoryCreator())
 		require.Nil(t, managedRunTypeCoreComponents.EnableEpochsFactoryCreator())
+		require.Nil(t, managedRunTypeCoreComponents.ChainParametersHolderFactory())
 
 		err = managedRunTypeCoreComponents.Create()
 		require.NoError(t, err)
@@ -50,6 +51,7 @@ func TestManagedRunTypeCoreComponents_Create(t *testing.T) {
 		require.NotNil(t, managedRunTypeCoreComponents.GenesisNodesSetupFactoryCreator())
 		require.NotNil(t, managedRunTypeCoreComponents.RatingsDataFactoryCreator())
 		require.NotNil(t, managedRunTypeCoreComponents.EnableEpochsFactoryCreator())
+		require.NotNil(t, managedRunTypeCoreComponents.ChainParametersHolderFactory())
 
 		require.Equal(t, factory.RunTypeCoreComponentsName, managedRunTypeCoreComponents.String())
 		require.NoError(t, managedRunTypeCoreComponents.Close())
@@ -68,6 +70,8 @@ func TestManagedRunTypeCoreComponents_Close(t *testing.T) {
 	require.NoError(t, managedRunTypeCoreComponents.Close())
 	require.Nil(t, managedRunTypeCoreComponents.GenesisNodesSetupFactoryCreator())
 	require.Nil(t, managedRunTypeCoreComponents.RatingsDataFactoryCreator())
+	require.Nil(t, managedRunTypeCoreComponents.EnableEpochsFactoryCreator())
+	require.Nil(t, managedRunTypeCoreComponents.ChainParametersHolderFactory())
 }
 
 func TestManagedRunTypeCoreComponents_CheckSubcomponents(t *testing.T) {

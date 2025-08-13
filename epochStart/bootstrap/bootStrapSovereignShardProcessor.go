@@ -19,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
+	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/trie/factory"
@@ -45,6 +46,8 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 		NodeProcessingMode:              sbp.nodeProcessingMode,
 		StateStatsHandler:               sbp.stateStatsHandler,
 		AdditionalStorageServiceCreator: sbp.runTypeComponents.AdditionalStorageServiceCreator(),
+		ProofsPool:                      sbp.dataPool.Proofs(),
+		EnableEpochsHandler:             sbp.enableEpochsHandler,
 	}
 	storageHandlerComponent, err := NewShardStorageHandler(argsStorageHandler)
 	if err != nil {
@@ -95,6 +98,26 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 	return sovStorageHandler.SaveDataToStorage(components, sbp.epochStartMeta, false, make(map[string]*block.MiniBlock))
 }
 
+func (sbp *sovereignBootStrapShardProcessor) syncLatestEpochStartShardBlock(targetEpoch uint32, ctx context.Context) (data.HeaderHandler, []byte, error) {
+	prevEpochLatestFinalizedBlock := sbp.prevEpochStartMeta
+	if prevEpochLatestFinalizedBlock == nil {
+		return nil, nil, epochStart.ErrEpochStartDataForShardNotFound
+	}
+
+	sbp.epochStartShardHeaderSyncer.ClearFields()
+	err := sbp.epochStartShardHeaderSyncer.SyncEpochStartShardHeader(sbp.shardCoordinator.SelfId(), targetEpoch, prevEpochLatestFinalizedBlock.GetNonce(), ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	epochStartShardBlock, epochStartShardBlockHash, err := sbp.epochStartShardHeaderSyncer.GetEpochStartHeader()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return epochStartShardBlock, epochStartShardBlockHash, nil
+}
+
 func (sbp *sovereignBootStrapShardProcessor) computeNumShards(_ data.MetaHeaderHandler) uint32 {
 	return 1
 }
@@ -113,6 +136,7 @@ func (sbp *sovereignBootStrapShardProcessor) createRequestHandler() (process.Req
 		FullArchivePreferredPeersHolder: disabled.NewPreferredPeersHolder(),
 		PeersRatingHandler:              disabled.NewDisabledPeersRatingHandler(),
 		SizeCheckDelta:                  0,
+		EnableEpochsHandler:             sbp.enableEpochsHandler,
 	}
 	requestersFactory, err := sbp.runTypeComponents.RequestersContainerFactoryCreator().CreateRequesterContainerFactory(requestersContainerArgs)
 	if err != nil {
@@ -146,7 +170,7 @@ func (sbp *sovereignBootStrapShardProcessor) createResolversContainer() error {
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
-	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, DefaultTimeToWaitForRequestedData, true)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
@@ -155,15 +179,27 @@ func (sbp *sovereignBootStrapShardProcessor) syncHeadersFromStorage(
 	_ uint32,
 	timeToWaitForRequestedData time.Duration,
 ) (map[string]data.HeaderHandler, error) {
-	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData)
+	return sbp.baseSyncHeaders(meta, timeToWaitForRequestedData, false)
 }
 
 func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 	meta data.MetaHeaderHandler,
 	timeToWaitForRequestedData time.Duration,
+	withCurrentHeader bool,
 ) (map[string]data.HeaderHandler, error) {
 	hashesToRequest := make([][]byte, 0, 2)
 	shardIds := make([]uint32, 0, 2)
+
+	if withCurrentHeader {
+		epochStartMetaHash, err := core.CalculateHash(sbp.coreComponentsHolder.InternalMarshalizer(), sbp.coreComponentsHolder.Hasher(), meta)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: this can be removed when the proof will be loaded from storage
+		hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+		shardIds = append(shardIds, core.SovereignChainShardId)
+	}
 
 	for _, epochStartData := range meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
 		hashesToRequest = append(hashesToRequest, epochStartData.GetHeaderHash())
@@ -212,6 +248,7 @@ func (sbp *sovereignBootStrapShardProcessor) processNodesConfigFromStorage(pubKe
 		EnableEpochsHandler:              sbp.coreComponentsHolder.EnableEpochsHandler(),
 		NodesCoordinatorRegistryFactory:  sbp.nodesCoordinatorRegistryFactory,
 		NodesCoordinatorWithRaterFactory: sbp.runTypeComponents.NodesCoordinatorWithRaterCreator(),
+		ChainParametersHandler:           sbp.coreComponentsHolder.ChainParametersHandler(),
 	}
 	sbp.nodesConfigHandler, err = NewSyncValidatorStatus(argsNewValidatorStatusSyncers)
 	if err != nil {
@@ -233,22 +270,27 @@ func (sbp *sovereignBootStrapShardProcessor) createEpochStartMetaSyncer() (epoch
 		thresholdForConsideringMetaBlockCorrect,
 		epochStartConfig.MinNumConnectedPeersToStart,
 		epochStartConfig.MinNumOfPeersToConsiderBlockValid,
+		sbp.enableEpochsHandler,
+		sbp.dataPool.Proofs(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	argsEpochStartSyncer := ArgsNewEpochStartMetaSyncer{
-		CoreComponentsHolder:    sbp.coreComponentsHolder,
-		CryptoComponentsHolder:  sbp.cryptoComponentsHolder,
-		RequestHandler:          sbp.requestHandler,
-		Messenger:               sbp.mainMessenger,
-		ShardCoordinator:        sbp.shardCoordinator,
-		EconomicsData:           sbp.economicsData,
-		WhitelistHandler:        sbp.whiteListHandler,
-		StartInEpochConfig:      epochStartConfig,
-		HeaderIntegrityVerifier: sbp.headerIntegrityVerifier,
-		MetaBlockProcessor:      newEpochStartSovereignBlockProcessor(metaBlockProcessor),
+		CoreComponentsHolder:           sbp.coreComponentsHolder,
+		CryptoComponentsHolder:         sbp.cryptoComponentsHolder,
+		RequestHandler:                 sbp.requestHandler,
+		Messenger:                      sbp.mainMessenger,
+		ShardCoordinator:               sbp.shardCoordinator,
+		EconomicsData:                  sbp.economicsData,
+		WhitelistHandler:               sbp.whiteListHandler,
+		StartInEpochConfig:             epochStartConfig,
+		HeaderIntegrityVerifier:        sbp.headerIntegrityVerifier,
+		MetaBlockProcessor:             newEpochStartSovereignBlockProcessor(metaBlockProcessor),
+		InterceptedDataVerifierFactory: sbp.interceptedDataVerifierFactory,
+		ProofsPool:                     sbp.dataPool.Proofs(),
+		ProofsInterceptorProcessor:     processor.NewEquivalentProofsInterceptorProcessor(),
 	}
 
 	return newEpochStartSovereignSyncer(argsEpochStartSyncer)

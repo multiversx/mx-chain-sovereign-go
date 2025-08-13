@@ -70,7 +70,7 @@ func main() {
 
 	baseVersion := fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 	app.Version = fmt.Sprintf("%s/%s", baseVersion, machineID)
-	app.Usage = "This is the entry point for starting a new MultiversX sovereign node - the app will start after the genesis timestamp"
+	app.Usage = "This is the entry point for starting a new Multiversx sovereign node - the app will start after the genesis timestamp"
 	app.Flags = getFlags()
 	app.Authors = []cli.Author{
 		{
@@ -236,6 +236,14 @@ func readConfigs(ctx *cli.Context, log logger.Logger) (*sovereignConfig.Sovereig
 	}
 	log.Debug("config", "file", configurationPaths.RoundActivation)
 
+	var nodesSetup config.NodesConfig
+	configurationPaths.Nodes = ctx.GlobalString(nodesFile.Name)
+	err = core.LoadJsonFile(&nodesSetup, configurationPaths.Nodes)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("config", "file", configurationPaths.Nodes)
+
 	sovereignExtraConfigPath := ctx.GlobalString(sovereignConfigFile.Name)
 	sovereignExtraConfig, err := sovereignConfig.LoadSovereignGeneralConfig(sovereignExtraConfigPath)
 	if err != nil {
@@ -286,6 +294,7 @@ func readConfigs(ctx *cli.Context, log logger.Logger) (*sovereignConfig.Sovereig
 			ConfigurationPathsHolder: configurationPaths,
 			EpochConfig:              epochConfig,
 			RoundConfig:              roundConfig,
+			NodesConfig:              &nodesSetup,
 		},
 		SovereignExtraConfig: sovereignExtraConfig,
 		SovereignEpochConfig: sovereignEpochConfig,
