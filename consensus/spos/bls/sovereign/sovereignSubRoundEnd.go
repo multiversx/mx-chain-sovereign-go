@@ -5,33 +5,31 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/errors"
-
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 )
 
-// TODO: Marius C MX-17085 , this should be merged with subroundEndV2 in a sovereign specific file
-
 type sovereignSubRoundEnd struct {
-	*subroundEndRoundV2
+	bls.SubRoundEndHandler
 	outGoingOperationsPool bls.OutGoingOperationsPool
 	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndRound creates a new sovereign end subround
 func NewSovereignSubRoundEndRound(
-	subRoundEnd *subroundEndRoundV2,
+	subroundBlock bls.SubRoundEndHandler,
 	outGoingOperationsPool bls.OutGoingOperationsPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
 ) (*sovereignSubRoundEnd, error) {
-	if check.IfNil(subRoundEnd) {
+	if check.IfNil(subroundBlock) {
 		return nil, spos.ErrNilSubround
 	}
 	if check.IfNil(outGoingOperationsPool) {
@@ -42,17 +40,29 @@ func NewSovereignSubRoundEndRound(
 	}
 
 	sr := &sovereignSubRoundEnd{
-		subroundEndRoundV2:     subRoundEnd,
 		outGoingOperationsPool: outGoingOperationsPool,
 		bridgeOpHandler:        bridgeOpHandler,
+		SubRoundEndHandler:     subroundBlock,
 	}
 
+	sr.SetMessageToVerifySigFunc(sr.getMessageToVerifySig)
 	sr.SetBlockJob(sr.doSovereignEndRoundJob)
+
 	return sr, nil
 }
 
+func (sr *sovereignSubRoundEnd) getMessageToVerifySig() []byte {
+	headerHash, err := core.CalculateHash(sr.Marshalizer(), sr.Hasher(), sr.GetHeader())
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.getMessageToVerifySig", "error", err.Error())
+		return nil
+	}
+
+	return headerHash
+}
+
 func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context, cnsDta *consensus.Message) bool {
-	success := sr.subroundEndRoundV2.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
+	success := sr.SubRoundEndHandler.ReceivedBlockHeaderFinalInfo(ctx, cnsDta)
 	if !success {
 		return false
 	}
@@ -63,7 +73,7 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 }
 
 func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
-	sr.subroundEndRoundV2.ReceivedProof(proof)
+	sr.SubRoundEndHandler.ReceivedProof(proof)
 
 	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
 		PubKeysBitmap:   proof.GetPubKeysBitmap(),
@@ -142,7 +152,7 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 }
 
 func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool {
-	success := sr.subroundEndRoundV2.DoEndRoundJob(ctx)
+	success := sr.SubRoundEndHandler.DoEndRoundJob(ctx)
 	if !success {
 		return false
 	}

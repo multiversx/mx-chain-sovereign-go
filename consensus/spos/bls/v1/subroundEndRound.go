@@ -734,7 +734,6 @@ func (sr *subroundEndRound) createAndBroadcastInvalidSigners(invalidSigners []by
 }
 
 func (sr *subroundEndRound) getProcessedHeaderHash() []byte {
-	// TODO: Marius C: MX-17085 here and everywhere, instead of having this flag, better just use injected runType interfaces
 	if sr.EnableEpochHandler().IsFlagEnabled(common.ConsensusModelSovereignFlag) {
 		return sr.getMessageToVerifySigFunc()
 	}

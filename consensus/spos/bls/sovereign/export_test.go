@@ -21,7 +21,7 @@ func (sr *sovereignSubRoundEnd) ReceivedBlockHeaderFinalInfo(cnsDta *consensus.M
 }
 
 // GetMessageToVerifySig gets the message on which the signature should be verified
-func (sr *subroundEndRoundV2) GetMessageToVerifySig() []byte {
+func (sr *sovereignSubRoundEnd) GetMessageToVerifySig() []byte {
 	return sr.getMessageToVerifySig()
 }
 
