@@ -98,26 +98,6 @@ func (sbp *sovereignBootStrapShardProcessor) requestAndProcessForShard(peerMiniB
 	return sovStorageHandler.SaveDataToStorage(components, sbp.epochStartMeta, false, make(map[string]*block.MiniBlock))
 }
 
-func (sbp *sovereignBootStrapShardProcessor) syncLatestEpochStartShardBlock(targetEpoch uint32, ctx context.Context) (data.HeaderHandler, []byte, error) {
-	prevEpochLatestFinalizedBlock := sbp.prevEpochStartMeta
-	if prevEpochLatestFinalizedBlock == nil {
-		return nil, nil, epochStart.ErrEpochStartDataForShardNotFound
-	}
-
-	sbp.epochStartShardHeaderSyncer.ClearFields()
-	err := sbp.epochStartShardHeaderSyncer.SyncEpochStartShardHeader(sbp.shardCoordinator.SelfId(), targetEpoch, prevEpochLatestFinalizedBlock.GetNonce(), ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	epochStartShardBlock, epochStartShardBlockHash, err := sbp.epochStartShardHeaderSyncer.GetEpochStartHeader()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return epochStartShardBlock, epochStartShardBlockHash, nil
-}
-
 func (sbp *sovereignBootStrapShardProcessor) computeNumShards(_ data.MetaHeaderHandler) uint32 {
 	return 1
 }
