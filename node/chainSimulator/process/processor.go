@@ -422,7 +422,7 @@ func (creator *blocksCreator) generateAggregatedSignature(header data.HeaderHand
 		return nil, nil, err
 	}
 
-	extraSigners.GetSubRoundStartExtraSignersHolder().Reset(pubKeys)
+	err = extraSigners.GetSubRoundStartExtraSignersHolder().Reset(pubKeys)
 	if err != nil {
 		return nil, nil, err
 	}
