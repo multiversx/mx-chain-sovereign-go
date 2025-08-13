@@ -3,6 +3,7 @@ package sync
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -29,6 +30,11 @@ func (ehr *extendedHeaderRequester) ShouldRequestHeader(shardId uint32) bool {
 // RequestHeader requests extended shard header by hash
 func (ehr *extendedHeaderRequester) RequestHeader(hash []byte) {
 	ehr.requestHandler.RequestExtendedShardHeader(hash)
+}
+
+// ShouldSkipProofCheck returns true if the shard id is main chain
+func (ehr *extendedHeaderRequester) ShouldSkipProofCheck(shardId uint32) bool {
+	return shardId == core.MainChainShardId
 }
 
 // IsInterfaceNil checks if underlying pointer is nil
