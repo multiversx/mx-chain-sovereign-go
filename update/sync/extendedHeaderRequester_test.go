@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewExtendedHeaderRequester(t *testing.T) {
@@ -47,4 +48,12 @@ func TestExtendedHeaderRequester_RequestHeader(t *testing.T) {
 	headerRequester, _ := NewExtendedHeaderRequester(requester)
 	headerRequester.RequestHeader(headerHash)
 	require.True(t, wasHeaderRequested)
+}
+
+func TestExtendedHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
+	t.Parallel()
+
+	headerRequester, _ := NewExtendedHeaderRequester(&testscommon.ExtendedShardHeaderRequestHandlerStub{})
+	require.False(t, headerRequester.ShouldSkipProofCheck(0))
+	require.True(t, headerRequester.ShouldSkipProofCheck(core.MainChainShardId))
 }
