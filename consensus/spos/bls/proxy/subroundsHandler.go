@@ -154,6 +154,12 @@ func checkArgs(args *SubroundsHandlerArgs) error {
 	if check.IfNil(args.RunTypeComponents.OutGoingOperationsPoolHandler()) {
 		return errMx.ErrNilOutGoingOperationsPool
 	}
+	if check.IfNil(args.ExtraSignersHolder) {
+		return errMx.ErrNilExtraSignersHolder
+	}
+	if check.IfNil(args.OutGoingBridgeOpHandler) {
+		return errMx.ErrNilBridgeOpHandler
+	}
 
 	// outport handler can be nil if not configured so no need to check it
 	return nil
