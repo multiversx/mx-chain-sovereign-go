@@ -2,9 +2,8 @@
 
 echo "Installing software prerequisites..."
 sudo apt update
-sudo apt install -y python3-pip pipx screen ca-certificates curl wget
+sudo apt install -y pipx screen ca-certificates curl wget
 pipx ensurepath
-pip install multiversx-sdk
 pipx install multiversx-sdk-cli --force
 
 source config/configs.cfg
