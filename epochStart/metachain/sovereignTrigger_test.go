@@ -184,11 +184,13 @@ func TestSovereignTrigger_receivedBlock(t *testing.T) {
 	}
 
 	sovTrigger, _ := NewSovereignTrigger(args)
+	sovTrigger.currentRound = 3
 
 	// header is for current epoch, will not notify
 	sovHdr := &block.SovereignChainHeader{
 		Header: &block.Header{
 			Epoch: 4,
+			Round: 4,
 		},
 		IsStartOfEpoch: true,
 	}
@@ -201,6 +203,7 @@ func TestSovereignTrigger_receivedBlock(t *testing.T) {
 	require.False(t, wereValidatorsAdded)
 
 	sovTrigger.epoch = 3
+	_ = sovHdr.SetRound(3)
 	sovTrigger.receivedBlock(sovHdr, nil)
 	require.True(t, wasNotifyPrepareCalled)
 	require.True(t, wasNotifyEpochChangeCalled)

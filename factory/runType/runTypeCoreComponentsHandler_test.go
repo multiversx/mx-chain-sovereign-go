@@ -70,6 +70,8 @@ func TestManagedRunTypeCoreComponents_Close(t *testing.T) {
 	require.NoError(t, managedRunTypeCoreComponents.Close())
 	require.Nil(t, managedRunTypeCoreComponents.GenesisNodesSetupFactoryCreator())
 	require.Nil(t, managedRunTypeCoreComponents.RatingsDataFactoryCreator())
+	require.Nil(t, managedRunTypeCoreComponents.EnableEpochsFactoryCreator())
+	require.Nil(t, managedRunTypeCoreComponents.ChainParametersHolderFactory())
 }
 
 func TestManagedRunTypeCoreComponents_CheckSubcomponents(t *testing.T) {
