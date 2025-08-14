@@ -39,7 +39,9 @@ func (fdm *ForkDetectorStub) AddHeader(header data.HeaderHandler, hash []byte, s
 
 // RemoveHeader -
 func (fdm *ForkDetectorStub) RemoveHeader(nonce uint64, hash []byte) {
-	fdm.RemoveHeaderCalled(nonce, hash)
+	if fdm.RemoveHeaderCalled != nil {
+		fdm.RemoveHeaderCalled(nonce, hash)
+	}
 }
 
 // CheckFork -

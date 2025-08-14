@@ -235,6 +235,7 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 		StatusCoreComponents: GetStatusCoreComponents(),
 		ScheduledProcessor:   scheduledProcessor,
 		RunTypeComponents:    GetRunTypeComponents(),
+		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
 

@@ -218,6 +218,24 @@ func TestNewSubroundsHandler(t *testing.T) {
 		require.Equal(t, errMx.ErrNilOutGoingOperationsPool, err)
 		require.Nil(t, sh)
 	})
+	t.Run("nil extra signers, should error", func(t *testing.T) {
+		t.Parallel()
+
+		handlerArgs, _ := getDefaultArgumentsSubroundHandler()
+		handlerArgs.ExtraSignersHolder = nil
+		sh, err := NewSubroundsHandler(handlerArgs)
+		require.Equal(t, errMx.ErrNilExtraSignersHolder, err)
+		require.Nil(t, sh)
+	})
+	t.Run("nil outgoing bridge op handle, should error", func(t *testing.T) {
+		t.Parallel()
+
+		handlerArgs, _ := getDefaultArgumentsSubroundHandler()
+		handlerArgs.OutGoingBridgeOpHandler = nil
+		sh, err := NewSubroundsHandler(handlerArgs)
+		require.Equal(t, errMx.ErrNilBridgeOpHandler, err)
+		require.Nil(t, sh)
+	})
 	t.Run("OK", func(t *testing.T) {
 		t.Parallel()
 

@@ -1260,9 +1260,6 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 		[][]byte{outGoingOperationChangeValidatorSet},
 		block.OutGoingMbChangeValidatorSet,
 	)
-	if err != nil {
-		return nil, nil, err
-	}
 
 	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbChangeValidatorSet)
 	if err != nil {
