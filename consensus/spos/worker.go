@@ -908,6 +908,8 @@ func (wrk *Worker) removeConsensusHeaderFromPool() {
 
 	blockProcessorWithPoolAccess.RemoveHeaderFromPool(headerHash)
 	wrk.forkDetector.RemoveHeader(header.GetNonce(), headerHash)
+	blockProcessorWithPoolAccess.RemoveHeaderFromPool(originalHeaderhash)
+	wrk.forkDetector.RemoveHeader(header.GetNonce(), originalHeaderhash)
 }
 
 // DisplayStatistics logs the consensus messages split on proposed headers
