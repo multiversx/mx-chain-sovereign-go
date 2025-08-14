@@ -24,6 +24,7 @@ type BlockProcessorStub struct {
 	CreateNewHeaderCalled            func(round uint64, nonce uint64) (data.HeaderHandler, error)
 	RevertStateToBlockCalled         func(header data.HeaderHandler, rootHash []byte) error
 	NonceOfFirstCommittedBlockCalled func() core.OptionalUint64
+	RemoveHeaderFromPoolCalled       func(headerHash []byte)
 	CloseCalled                      func() error
 }
 
@@ -155,6 +156,13 @@ func (bps *BlockProcessorStub) NonceOfFirstCommittedBlock() core.OptionalUint64 
 
 	return core.OptionalUint64{
 		HasValue: false,
+	}
+}
+
+// RemoveHeaderFromPool -
+func (bps *BlockProcessorStub) RemoveHeaderFromPool(headerHash []byte) {
+	if bps.RemoveHeaderFromPoolCalled != nil {
+		bps.RemoveHeaderFromPoolCalled(headerHash)
 	}
 }
 
