@@ -7,22 +7,18 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-var log = logger.GetOrCreate("outgoing-operations")
+const topicIDDeposit = "deposit"
 
-const (
-	numTransferTopics = 3
-	tokensIndex       = 2
-	receiverIndex     = 1
-)
+var log = logger.GetOrCreate("outgoing-operations")
 
 // SubscribedEvent contains a subscribed event from the sovereign chain needed to be transferred to the main chain
 type SubscribedEvent struct {
@@ -42,6 +38,8 @@ type outgoingOperations struct {
 	dataCodec        DataCodecHandler
 	topicsChecker    TopicsCheckerHandler
 	peerAccountsDB   state.AccountsAdapter
+
+	opFormatters map[string]OperationFormatter
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -59,11 +57,20 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		return nil, err
 	}
 
+	depositOutGoingOpFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec)
+	if err != nil {
+		return nil, err
+	}
+	opFormatters := map[string]OperationFormatter{
+		topicIDDeposit: depositOutGoingOpFormatter,
+	}
+
 	return &outgoingOperations{
 		subscribedEvents: args.SubscribedEvents,
 		dataCodec:        args.DataCodec,
 		topicsChecker:    args.TopicsChecker,
 		peerAccountsDB:   args.PeerAccountsDB,
+		opFormatters:     opFormatters,
 	}, nil
 }
 
@@ -203,45 +210,13 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte,
 		return nil, err
 	}
 
-	operation, err := op.createOperationData(topics, evData)
-	if err != nil {
-		return nil, err
+	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
+	if !found {
+		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
+		return nil, errEventIDNotFound
 	}
 
-	operationBytes, err := op.dataCodec.SerializeOperation(*operation)
-	if err != nil {
-		return nil, err
-	}
-
-	return operationBytes, nil
-}
-
-func (op *outgoingOperations) createOperationData(topics [][]byte, eventData *sovereign.EventData) (*sovereign.Operation, error) {
-	tokens := make([]sovereign.EsdtToken, 0)
-	for i := tokensIndex; i < len(topics); i += numTransferTopics {
-		tokenIdentifier := topics[i]
-		tokenNonce, err := common.ByteSliceToUint64(topics[i+1])
-		if err != nil {
-			return nil, err
-		}
-		tokenData, err := op.dataCodec.DeserializeTokenData(topics[i+2])
-		if err != nil {
-			return nil, err
-		}
-
-		payment := sovereign.EsdtToken{
-			Identifier: tokenIdentifier,
-			Nonce:      tokenNonce,
-			Data:       *tokenData,
-		}
-		tokens = append(tokens, payment)
-	}
-
-	return &sovereign.Operation{
-		Address: topics[receiverIndex],
-		Tokens:  tokens,
-		Data:    eventData,
-	}, nil
+	return opFormatter.CreateOperationData(event, evData)
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change

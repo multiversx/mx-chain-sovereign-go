@@ -73,7 +73,7 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 	})
 }
 
-func createOutgoingOpsFormatter() *outgoingOperations {
+func createArgsOutGoingOpsFormatterWithEvents() ArgsOutgoingOperations {
 	events := []SubscribedEvent{
 		{
 			Identifier: []byte("deposit"),
@@ -84,12 +84,16 @@ func createOutgoingOpsFormatter() *outgoingOperations {
 		},
 	}
 
-	args := ArgsOutgoingOperations{
+	return ArgsOutgoingOperations{
 		SubscribedEvents: events,
 		DataCodec:        &sovTests.DataCodecMock{},
 		TopicsChecker:    &sovTests.TopicsCheckerMock{},
 		PeerAccountsDB:   &state.AccountsStub{},
 	}
+}
+
+func createOutgoingOpsFormatter() *outgoingOperations {
+	args := createArgsOutGoingOpsFormatterWithEvents()
 	opFormatter, _ := NewOutgoingOperationsFormatter(args)
 	return opFormatter
 }
@@ -179,13 +183,15 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 	t.Run("deserialize token error", func(t *testing.T) {
 		t.Parallel()
 
-		outgoingOpsFormatter := createOutgoingOpsFormatter()
+		args := createArgsOutGoingOpsFormatterWithEvents()
+
 		errDeserializeTokenData := fmt.Errorf("deserialize token data error")
-		outgoingOpsFormatter.dataCodec = &sovTests.DataCodecMock{
+		args.DataCodec = &sovTests.DataCodecMock{
 			DeserializeTokenDataCalled: func(_ []byte) (*sovereign.EsdtTokenData, error) {
 				return nil, errDeserializeTokenData
 			},
 		}
+		outgoingOpsFormatter, _ := NewOutgoingOperationsFormatter(args)
 
 		outgoingTxData, err := outgoingOpsFormatter.CreateOutgoingTxsData(logs)
 		require.Nil(t, outgoingTxData)
@@ -209,13 +215,15 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 	t.Run("serialize operation error", func(t *testing.T) {
 		t.Parallel()
 
-		outgoingOpsFormatter := createOutgoingOpsFormatter()
+		args := createArgsOutGoingOpsFormatterWithEvents()
+
 		errSerializeOperation := fmt.Errorf("serialize operation error")
-		outgoingOpsFormatter.dataCodec = &sovTests.DataCodecMock{
+		args.DataCodec = &sovTests.DataCodecMock{
 			SerializeOperationCalled: func(operation sovereign.Operation) ([]byte, error) {
 				return nil, errSerializeOperation
 			},
 		}
+		outgoingOpsFormatter, _ := NewOutgoingOperationsFormatter(args)
 
 		outgoingTxData, err := outgoingOpsFormatter.CreateOutgoingTxsData(logs)
 		require.Nil(t, outgoingTxData)

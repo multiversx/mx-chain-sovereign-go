@@ -4,7 +4,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovereign2 "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign"
 )
 
 const (
@@ -14,9 +13,13 @@ const (
 )
 
 type depositOpFormatter struct {
-	subscribedEvents []sovereign.SubscribedEvent
-	topicsChecker    sovereign.TopicsCheckerHandler
-	dataCodec        sovereign.DataCodecHandler
+	dataCodec DataCodecHandler
+}
+
+func NewDepositOpFormatter(dataCodec DataCodecHandler) (*depositOpFormatter, error) {
+	return &depositOpFormatter{
+		dataCodec: dataCodec,
+	}, nil
 }
 
 func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evData *sovereign2.EventData) ([]byte, error) {
