@@ -1,9 +1,11 @@
 package operationFormatters
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	sovereign2 "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/common"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 )
 
 const (
@@ -16,13 +18,19 @@ type depositOpFormatter struct {
 	dataCodec DataCodecHandler
 }
 
+// NewDepositOpFormatter creates a new deposit token operation formatter
 func NewDepositOpFormatter(dataCodec DataCodecHandler) (*depositOpFormatter, error) {
+	if check.IfNil(dataCodec) {
+		return nil, errMx.ErrNilDataCodec
+	}
+
 	return &depositOpFormatter{
 		dataCodec: dataCodec,
 	}, nil
 }
 
-func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evData *sovereign2.EventData) ([]byte, error) {
+// CreateOperationData creates a deposit token operation data bytes
+func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
 	operation, err := op.createOperationData(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err
@@ -36,8 +44,8 @@ func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evDat
 	return operationBytes, nil
 }
 
-func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *sovereign2.EventData) (*sovereign2.Operation, error) {
-	tokens := make([]sovereign2.EsdtToken, 0)
+func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *sovData.EventData) (*sovData.Operation, error) {
+	tokens := make([]sovData.EsdtToken, 0)
 	for i := tokensIndex; i < len(topics); i += numTransferTopics {
 		tokenIdentifier := topics[i]
 		tokenNonce, err := common.ByteSliceToUint64(topics[i+1])
@@ -49,7 +57,7 @@ func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *so
 			return nil, err
 		}
 
-		payment := sovereign2.EsdtToken{
+		payment := sovData.EsdtToken{
 			Identifier: tokenIdentifier,
 			Nonce:      tokenNonce,
 			Data:       *tokenData,
@@ -57,9 +65,14 @@ func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *so
 		tokens = append(tokens, payment)
 	}
 
-	return &sovereign2.Operation{
+	return &sovData.Operation{
 		Address: topics[receiverIndex],
 		Tokens:  tokens,
 		Data:    eventData,
 	}, nil
+}
+
+// IsInterfaceNil checks if the underlying pointer is nil
+func (op *depositOpFormatter) IsInterfaceNil() bool {
+	return op == nil
 }

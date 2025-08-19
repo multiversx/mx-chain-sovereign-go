@@ -32,4 +32,5 @@ type TopicsCheckerHandler interface {
 // OperationFormatter defines an operation formatter(like deposit tokens)
 type OperationFormatter interface {
 	CreateOperationData(event data.EventHandler, evData *sovereign.EventData) ([]byte, error)
+	IsInterfaceNil() bool
 }
