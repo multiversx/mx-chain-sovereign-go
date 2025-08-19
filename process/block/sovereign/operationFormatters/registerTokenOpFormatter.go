@@ -1,10 +1,14 @@
 package operationFormatters
 
 import (
+	"errors"
+
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/common"
+	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 )
 
@@ -20,6 +24,17 @@ type registerTokenOpFormatter struct {
 	dataCodec DataCodecHandler
 }
 
+// NewRegisterTokenOpFormatter will create a register token op formatter
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
+	if check.IfNil(dataCodec) {
+		return nil, errMx.ErrNilDataCodec
+	}
+
+	return &registerTokenOpFormatter{
+		dataCodec: dataCodec,
+	}, nil
+}
+
 func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
@@ -30,6 +45,10 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler,
 }
 
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {
+	if len(topics) != 6 {
+		return nil, errors.New("topics length must be 5")
+	}
+
 	tokenType, err := common.ByteSliceToUint64(topics[topicIdxTokenType])
 	if err != nil {
 		return nil, err

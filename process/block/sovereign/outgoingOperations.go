@@ -16,7 +16,10 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-const topicIDDeposit = "deposit"
+const (
+	topicIDDeposit       = "deposit"
+	topicIDRegisterToken = "registerToken"
+)
 
 var log = logger.GetOrCreate("outgoing-operations")
 
@@ -61,8 +64,14 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 	if err != nil {
 		return nil, err
 	}
+	registerTokenOpFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+	if err != nil {
+		return nil, err
+	}
+
 	opFormatters := map[string]OperationFormatter{
-		topicIDDeposit: depositOutGoingOpFormatter,
+		topicIDDeposit:       depositOutGoingOpFormatter,
+		topicIDRegisterToken: registerTokenOpFormatter,
 	}
 
 	return &outgoingOperations{
