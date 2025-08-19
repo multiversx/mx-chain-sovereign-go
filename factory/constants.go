@@ -86,7 +86,6 @@ type ArgsExporter struct {
 	CheckNodesOnDisk                 bool
 	NodeOperationMode                common.NodeOperation
 
-	ShardCoordinatorFactory sharding.ShardCoordinatorFactory
-
+	ShardCoordinatorFactory        sharding.ShardCoordinatorFactory
 	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
 }
