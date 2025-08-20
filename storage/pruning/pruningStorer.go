@@ -101,7 +101,6 @@ type PruningStorer struct {
 	epochForPutOperation   uint32
 	pruningEnabled         bool
 	stateStatsHandler      common.StateStatisticsHandler
-	enableEpochsHandler    common.EnableEpochsHandler
 }
 
 // NewPruningStorer will return a new instance of PruningStorer without sharded directories' naming scheme
@@ -199,9 +198,6 @@ func checkArgs(args StorerArgs) error {
 	}
 	if check.IfNil(args.StateStatsHandler) {
 		return statistics.ErrNilStateStatsHandler
-	}
-	if check.IfNil(args.EnableEpochsHandler) {
-		return core.ErrNilEnableEpochsHandler
 	}
 
 	return nil
@@ -925,7 +921,7 @@ func (ps *PruningStorer) changeEpochWithExisting(epoch uint32) error {
 	if oldestEpochActive < 0 {
 		oldestEpochActive = 0
 	}
-	log.Debug("PruningStorer.changeEpochWithExisting",
+	log.Trace("PruningStorer.changeEpochWithExisting",
 		"oldestEpochActive", oldestEpochActive, "epoch", epoch, "numActivePersisters", numActivePersisters)
 
 	if len(ps.activePersisters) > 0 {
