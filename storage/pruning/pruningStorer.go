@@ -12,13 +12,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/clean"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ storage.Storer = (*PruningStorer)(nil)
@@ -225,7 +226,11 @@ func initPersistersInEpoch(
 	var persisters []*persisterData
 	persistersMapByEpoch := make(map[uint32]*persisterData)
 
-	for epoch := int64(args.EpochsData.StartingEpoch); epoch >= 0; epoch-- {
+	startingEpoch := int64(args.EpochsData.StartingEpoch)
+	if startingEpoch == 0 {
+		startingEpoch = 1
+	}
+	for epoch := startingEpoch; epoch >= 0; epoch-- {
 		if args.PersistersTracker.HasInitializedEnoughPersisters(epoch) {
 			break
 		}
@@ -793,9 +798,30 @@ func (ps *PruningStorer) changeEpoch(header data.HeaderHandler) error {
 		}
 		log.Debug("change epoch pruning storer success", "persister", ps.identifier, "epoch", epoch)
 
+		go func() {
+			if err := ps.createAndAddPersister(epoch + 1); err != nil {
+				log.Warn("failed to create and add persister for epoch", "epoch", epoch+1, "error", err)
+			}
+		}()
+
 		return ps.removeOldPersistersIfNeeded(header)
 	}
 
+	err := ps.createAndAddPersister(epoch)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		if err := ps.createAndAddPersister(epoch + 1); err != nil {
+			log.Warn("failed to create and add persister for epoch", "epoch", epoch+1, "error", err)
+		}
+	}()
+
+	return ps.removeOldPersistersIfNeeded(header)
+}
+
+func (ps *PruningStorer) createAndAddPersister(epoch uint32) error {
 	shardID := core.GetShardIDString(ps.shardCoordinator.SelfId())
 	filePath := ps.pathManager.PathForEpoch(shardID, epoch, ps.identifier)
 	db, err := ps.persisterFactory.Create(filePath)
@@ -816,7 +842,7 @@ func (ps *PruningStorer) changeEpoch(header data.HeaderHandler) error {
 	ps.activePersisters = append(singleItemPersisters, ps.activePersisters...)
 	ps.persistersMapByEpoch[epoch] = newPersister
 
-	return ps.removeOldPersistersIfNeeded(header)
+	return nil
 }
 
 func (ps *PruningStorer) removeOldPersistersIfNeeded(header data.HeaderHandler) error {
