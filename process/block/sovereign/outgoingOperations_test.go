@@ -49,6 +49,21 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 		require.Equal(t, errNoSubscribedEvent, err)
 	})
 
+	t.Run("invalid subscribed event, should return error", func(t *testing.T) {
+		args := createArgs()
+		args.SubscribedEvents = []SubscribedEvent{
+			{
+				Identifier: []byte("invalid"),
+				Addresses: map[string]string{
+					"decodedAddr": "encodedAddr",
+				},
+			},
+		}
+		creator, err := NewOutgoingOperationsFormatter(args)
+		require.Nil(t, creator)
+		require.ErrorIs(t, err, errUnsupportedEventType)
+	})
+
 	t.Run("nil data codec, should return error", func(t *testing.T) {
 		args := createArgs()
 		args.DataCodec = nil
@@ -65,11 +80,29 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 		require.Equal(t, errors.ErrNilTopicsChecker, err)
 	})
 
-	t.Run("should work", func(t *testing.T) {
+	t.Run("should work with deposit tokens formatter", func(t *testing.T) {
 		args := createArgs()
 		creator, err := NewOutgoingOperationsFormatter(args)
 		require.Nil(t, err)
 		require.False(t, creator.IsInterfaceNil())
+		require.Len(t, creator.opFormatters, 1)
+		require.Contains(t, creator.opFormatters, topicIDDeposit)
+	})
+
+	t.Run("should work with deposit tokens and register token formatters", func(t *testing.T) {
+		args := createArgs()
+		args.SubscribedEvents = append(args.SubscribedEvents, SubscribedEvent{
+			Identifier: []byte("registerToken"),
+			Addresses: map[string]string{
+				"decodedAddr": "encodedAddr",
+			},
+		})
+		creator, err := NewOutgoingOperationsFormatter(args)
+		require.Nil(t, err)
+		require.False(t, creator.IsInterfaceNil())
+		require.Len(t, creator.opFormatters, 2)
+		require.Contains(t, creator.opFormatters, topicIDDeposit)
+		require.Contains(t, creator.opFormatters, topicIDRegisterToken)
 	})
 }
 

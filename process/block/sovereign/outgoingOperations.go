@@ -135,30 +135,26 @@ func checkEmptyAddresses(addresses map[string]string) error {
 func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]OperationFormatter, error) {
 	handlers := make(map[string]OperationFormatter)
 
-	err := addHandlerIfSubscribed(
-		topicIDDeposit,
-		subscribedEvents,
-		handlers,
-		func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+	availableHandlers := map[string]createOpFormatterHandler{
+		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
 			return operationFormatters.NewDepositOpFormatter(args.DataCodec)
 		},
-		args,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = addHandlerIfSubscribed(
-		topicIDRegisterToken,
-		subscribedEvents,
-		handlers,
-		func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
 			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
 		},
-		args,
-	)
-	if err != nil {
-		return nil, err
+	}
+
+	for handlerID, handlerCreator := range availableHandlers {
+		err := addHandlerIfSubscribed(
+			handlerID,
+			subscribedEvents,
+			handlers,
+			handlerCreator,
+			args,
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(subscribedEvents) != 0 {
