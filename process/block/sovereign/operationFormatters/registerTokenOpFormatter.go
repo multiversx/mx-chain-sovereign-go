@@ -1,7 +1,7 @@
 package operationFormatters
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -13,6 +13,8 @@ import (
 )
 
 const (
+	numExpectedTopicsInRegisterToken = 6
+
 	topicIdxTokenID     = 1
 	topicIdxTokenType   = 2
 	topicIdxName        = 3
@@ -45,8 +47,9 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler,
 }
 
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {
-	if len(topics) != 6 {
-		return nil, errors.New("topics length must be 5")
+	numTopics := len(topics)
+	if numTopics != numExpectedTopicsInRegisterToken {
+		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterTopic, numExpectedTopicsInRegisterToken, numTopics)
 	}
 
 	tokenType, err := common.ByteSliceToUint64(topics[topicIdxTokenType])

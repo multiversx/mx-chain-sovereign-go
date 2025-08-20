@@ -63,3 +63,41 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, formattedData, serializedData)
 }
+
+func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
+	t.Parallel()
+
+	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
+
+	eventData := &sovData.EventData{
+		Nonce: 4,
+	}
+	topics := [][]byte{
+		[]byte("registerToken"),
+		[]byte("tokenID"),
+		{byte(core.NonFungible)},
+		[]byte("name"),
+		[]byte("ticker"),
+		{18},
+	}
+
+	t.Run("invalid num topics", func(t *testing.T) {
+		formattedData, err := opFormatter.CreateOperationData(&transaction.Event{Topics: topics[1:]}, eventData)
+		require.Nil(t, formattedData)
+		require.ErrorIs(t, err, errInvalidNumTopicsInRegisterTopic)
+	})
+	t.Run("invalid token type", func(t *testing.T) {
+		txEvent := &transaction.Event{Topics: topics}
+		txEvent.Topics[topicIdxTokenType] = []byte("invalid number of bytes for a number")
+		formattedData, err := opFormatter.CreateOperationData(txEvent, eventData)
+		require.Nil(t, formattedData)
+		require.NotNil(t, err)
+	})
+	t.Run("invalid num decimals", func(t *testing.T) {
+		txEvent := &transaction.Event{Topics: topics}
+		txEvent.Topics[topicIdxNumDecimals] = []byte("invalid number of bytes for a number")
+		formattedData, err := opFormatter.CreateOperationData(txEvent, eventData)
+		require.Nil(t, formattedData)
+		require.NotNil(t, err)
+	})
+}
