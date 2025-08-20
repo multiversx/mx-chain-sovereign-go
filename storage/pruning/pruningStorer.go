@@ -841,6 +841,11 @@ func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 }
 
 func (ps *PruningStorer) createPersisterForNextEpoch(epoch uint32) {
+	// create next epoch persister one epoch before Supernova
+	//if !enableEpochsHandler.IsFlagEnabledInEpoch(common.Supernova, epoch-1) {
+	//	return
+	//}
+
 	if _, err := ps.createPersister(epoch); err != nil {
 		log.Warn("failed to create persister for epoch", "epoch", epoch, "error", err)
 	}
