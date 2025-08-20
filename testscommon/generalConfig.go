@@ -460,7 +460,7 @@ func GetGeneralConfig() config.Config {
 			NotifierConfig: config.NotifierConfig{
 				SubscribedEvents: []config.SubscribedEvent{
 					{
-						Identifier: "bridgeOps",
+						Identifier: "deposit",
 						Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
 					},
 				},
@@ -472,7 +472,7 @@ func GetGeneralConfig() config.Config {
 			OutgoingSubscribedEvents: config.OutgoingSubscribedEvents{
 				SubscribedEvents: []config.SubscribedEvent{
 					{
-						Identifier: "bridgeOps",
+						Identifier: "deposit",
 						Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
 					},
 				},

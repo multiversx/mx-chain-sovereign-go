@@ -21,7 +21,7 @@ import (
 func createEvents() []SubscribedEvent {
 	return []SubscribedEvent{
 		{
-			Identifier: []byte("id"),
+			Identifier: []byte("deposit"),
 			Addresses: map[string]string{
 				"decodedAddr": "encodedAddr",
 			},
@@ -251,7 +251,6 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	addr1 := []byte("addr1")
 	addr2 := []byte("addr2")
-	addr3 := []byte("addr3")
 
 	identifier1 := []byte("deposit")
 	identifier2 := []byte("send")
@@ -309,12 +308,6 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 			Addresses: map[string]string{
 				string(addr1): string(addr1),
 				string(addr2): string(addr2),
-			},
-		},
-		{
-			Identifier: identifier2,
-			Addresses: map[string]string{
-				string(addr3): string(addr3),
 			},
 		},
 	}
