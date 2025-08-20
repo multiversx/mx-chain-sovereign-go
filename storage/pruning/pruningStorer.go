@@ -101,6 +101,7 @@ type PruningStorer struct {
 	epochForPutOperation   uint32
 	pruningEnabled         bool
 	stateStatsHandler      common.StateStatisticsHandler
+	enableEpochsHandler    common.EnableEpochsHandler
 }
 
 // NewPruningStorer will return a new instance of PruningStorer without sharded directories' naming scheme
@@ -198,6 +199,9 @@ func checkArgs(args StorerArgs) error {
 	}
 	if check.IfNil(args.StateStatsHandler) {
 		return statistics.ErrNilStateStatsHandler
+	}
+	if check.IfNil(args.EnableEpochsHandler) {
+		return core.ErrNilEnableEpochsHandler
 	}
 
 	return nil
@@ -798,36 +802,31 @@ func (ps *PruningStorer) changeEpoch(header data.HeaderHandler) error {
 		}
 		log.Debug("change epoch pruning storer success", "persister", ps.identifier, "epoch", epoch)
 
-		go func() {
-			if err := ps.createAndAddPersister(epoch + 1); err != nil {
-				log.Warn("failed to create and add persister for epoch", "epoch", epoch+1, "error", err)
-			}
-		}()
+		go ps.createPersisterForNextEpoch(epoch + 1)
 
 		return ps.removeOldPersistersIfNeeded(header)
 	}
 
-	err := ps.createAndAddPersister(epoch)
+	persister, err := ps.createPersister(epoch)
 	if err != nil {
 		return err
 	}
 
-	go func() {
-		if err := ps.createAndAddPersister(epoch + 1); err != nil {
-			log.Warn("failed to create and add persister for epoch", "epoch", epoch+1, "error", err)
-		}
-	}()
+	singleItemPersisters := []*persisterData{persister}
+	ps.activePersisters = append(singleItemPersisters, ps.activePersisters...)
+
+	go ps.createPersisterForNextEpoch(epoch + 1)
 
 	return ps.removeOldPersistersIfNeeded(header)
 }
 
-func (ps *PruningStorer) createAndAddPersister(epoch uint32) error {
+func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 	shardID := core.GetShardIDString(ps.shardCoordinator.SelfId())
 	filePath := ps.pathManager.PathForEpoch(shardID, epoch, ps.identifier)
 	db, err := ps.persisterFactory.Create(filePath)
 	if err != nil {
 		log.Warn("change epoch", "persister", ps.identifier, "error", err.Error())
-		return err
+		return nil, err
 	}
 
 	newPersister := &persisterData{
@@ -836,13 +835,15 @@ func (ps *PruningStorer) createAndAddPersister(epoch uint32) error {
 		path:      filePath,
 		isClosed:  false,
 	}
-
-	singleItemPersisters := []*persisterData{newPersister}
-
-	ps.activePersisters = append(singleItemPersisters, ps.activePersisters...)
 	ps.persistersMapByEpoch[epoch] = newPersister
 
-	return nil
+	return newPersister, nil
+}
+
+func (ps *PruningStorer) createPersisterForNextEpoch(epoch uint32) {
+	if _, err := ps.createPersister(epoch); err != nil {
+		log.Warn("failed to create persister for epoch", "epoch", epoch, "error", err)
+	}
 }
 
 func (ps *PruningStorer) removeOldPersistersIfNeeded(header data.HeaderHandler) error {
@@ -919,7 +920,7 @@ func (ps *PruningStorer) changeEpochWithExisting(epoch uint32) error {
 	if oldestEpochActive < 0 {
 		oldestEpochActive = 0
 	}
-	log.Trace("PruningStorer.changeEpochWithExisting",
+	log.Debug("PruningStorer.changeEpochWithExisting",
 		"oldestEpochActive", oldestEpochActive, "epoch", epoch, "numActivePersisters", numActivePersisters)
 
 	if len(ps.activePersisters) > 0 {
