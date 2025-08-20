@@ -37,6 +37,7 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFo
 	}, nil
 }
 
+// CreateOperationData will create register token operation data
 func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
