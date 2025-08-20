@@ -7,6 +7,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
+	sovMocks "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 
@@ -322,4 +324,60 @@ func TestDataCodec_SerializeOperation(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "c0c0739e0cf6232a934d2e56cfcd10881eb1c7336f128fc155a4a84292cfe7f6000000010000000a53564e2d3132333435360000000000000000000000000906aaf7c8516d0c00000000000004686173680000000453564e3100000004617474720000000000000000000000000000000000000000000000000000000000000000000000021b58000000010000000475726c31000000000000000a000000000000000000000000000000000000000000000000000000000000000000", hex.EncodeToString(serialized))
 	})
+}
+
+func TestDataCodec_SerializeTokenProperties(t *testing.T) {
+	t.Parallel()
+
+	tokenProperties := dto.TokenProperties{
+		TokenIdentifier: []byte("id"),
+		TokenType:       core.NonFungible,
+		Name:            []byte("name"),
+		Ticker:          []byte("ticker"),
+		NumDecimals:     18,
+		EventData: &sovereign.EventData{
+			Nonce: 4,
+		},
+	}
+	expectedABIStruct := &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "token_id",
+				Value: &abi.BytesValue{Value: tokenProperties.TokenIdentifier},
+			},
+			{
+				Name:  "type",
+				Value: &abi.EnumValue{Discriminant: uint8(tokenProperties.TokenType)},
+			},
+			{
+				Name:  "name",
+				Value: &abi.BytesValue{Value: tokenProperties.Name},
+			},
+			{
+				Name:  "ticker",
+				Value: &abi.BytesValue{Value: tokenProperties.Ticker},
+			},
+			{
+				Name:  "num_decimals",
+				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+			},
+			{
+				Name:  "event_data",
+				Value: getOperationData(*tokenProperties.EventData),
+			},
+		},
+	}
+
+	serializedData := []byte("serialize data")
+	serializer := &sovMocks.AbiSerializerMock{
+		SerializeCalled: func(inputValues []any) (string, error) {
+			require.Equal(t, []any{expectedABIStruct}, inputValues)
+			return hex.EncodeToString(serializedData), nil
+		},
+	}
+
+	codec, _ := NewDataCodec(serializer)
+	data, err := codec.SerializeTokenProperties(tokenProperties)
+	require.Nil(t, err)
+	require.Equal(t, serializedData, data)
 }
