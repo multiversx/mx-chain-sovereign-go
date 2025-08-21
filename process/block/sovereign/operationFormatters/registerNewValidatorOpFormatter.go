@@ -2,12 +2,12 @@ package operationFormatters
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/epochStart"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/vm"
 )
@@ -19,6 +19,7 @@ const (
 
 type registerNewValidatorOpFormatter struct {
 	peerAccountsDB state.AccountsAdapter
+	dataCodec      DataCodecHandler
 }
 
 // CreateOperationData creates a register new validator operation data
@@ -37,7 +38,10 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 		return nil, err
 	}
 
-	return "@" + hex.EncodeToString(peerAcc.GetBLSPublicKey()) + "@" + hex.EncodeToString(peerAcc.GetMainChainID())
+	return op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
+		ID:  peerAcc.GetMainChainID(),
+		Key: peerAcc.GetBLSPublicKey(),
+	})
 }
 
 // todo: Here do not duplicate
