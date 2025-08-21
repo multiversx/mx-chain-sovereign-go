@@ -566,6 +566,13 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 
 func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
+
+		s.eei.AddLogEntry(&vmcommon.LogEntry{
+			Identifier: []byte("stakeNewNode"),
+			Topics:     [][]byte{blsKey},
+			Address:    vm.StakingSCAddress,
+		})
+
 		return s.processStakeV2(registrationData)
 	}
 

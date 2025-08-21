@@ -50,7 +50,7 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler,
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {
 	numTopics := len(topics)
 	if numTopics != numExpectedTopicsInRegisterToken {
-		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterTopic, numExpectedTopicsInRegisterToken, numTopics)
+		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterToken, numExpectedTopicsInRegisterToken, numTopics)
 	}
 
 	tokenType, err := common.ByteSliceToUint64(topics[topicIdxTokenType])

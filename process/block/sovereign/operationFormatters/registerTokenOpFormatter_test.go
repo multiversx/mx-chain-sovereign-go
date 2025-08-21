@@ -84,7 +84,7 @@ func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
 	t.Run("invalid num topics", func(t *testing.T) {
 		formattedData, err := opFormatter.CreateOperationData(&transaction.Event{Topics: topics[1:]}, eventData)
 		require.Nil(t, formattedData)
-		require.ErrorIs(t, err, errInvalidNumTopicsInRegisterTopic)
+		require.ErrorIs(t, err, errInvalidNumTopicsInRegisterToken)
 	})
 	t.Run("invalid token type", func(t *testing.T) {
 		txEvent := &transaction.Event{Topics: topics}
