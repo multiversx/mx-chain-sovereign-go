@@ -1366,17 +1366,6 @@ func TestPruningStorer_ChangeEpoch(t *testing.T) {
 			wasCreateCalledCt++
 			return &mock.PersisterStub{}, nil
 		},
-		//CreateCalled: func(path string) (storage.Persister, error) {
-		//	wasCreateCalledCt++
-		//
-		//	if _, ok := persistersByPath[path]; ok {
-		//		return persistersByPath[path], nil
-		//	}
-		//	newPers := database.NewMemDB()
-		//	persistersByPath[path] = newPers
-		//
-		//	return newPers, nil
-		//},
 	}
 	args.EpochsData.NumOfActivePersisters = uint32(maxNumOfActivePersisters)
 	args.EpochsData.NumOfEpochsToKeep = 4
