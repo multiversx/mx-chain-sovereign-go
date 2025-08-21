@@ -17,6 +17,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/random"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -28,9 +33,6 @@ import (
 	"github.com/multiversx/mx-chain-go/storage/pruning"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var log = logger.GetOrCreate("storage/pruning_test")
@@ -1327,4 +1329,67 @@ func TestPruningStorer_IsInterfaceNil(t *testing.T) {
 	args := getDefaultArgs()
 	ps, _ = pruning.NewPruningStorer(args)
 	require.False(t, ps.IsInterfaceNil())
+}
+
+func TestNewPruningStorer_InitPersisters(t *testing.T) {
+	t.Parallel()
+
+	runType.SetShouldCreatePersisterForNextEpoch(true)
+
+	t.Run("should init an additional persister in epoch 0", func(t *testing.T) {
+		args := getDefaultArgs()
+		args.EpochsData.StartingEpoch = 0
+		ps, _ := pruning.NewPruningStorer(args)
+		require.Equal(t, 2, ps.GetNumActivePersisters())
+	})
+	t.Run("should not init an additional persister in epoch >0", func(t *testing.T) {
+		args := getDefaultArgs()
+		args.EpochsData.StartingEpoch = 2
+		ps, _ := pruning.NewPruningStorer(args)
+		require.Equal(t, 3, ps.GetNumActivePersisters())
+	})
+}
+
+func TestPruningStorer_ChangeEpoch(t *testing.T) {
+	t.Parallel()
+
+	runType.SetShouldCreatePersisterForNextEpoch(true)
+
+	maxNumOfActivePersisters := 3
+	persistersByPath := make(map[string]storage.Persister)
+	persistersByPath["Epoch_0"] = database.NewMemDB()
+	args := getDefaultArgs()
+	args.DbPath = "Epoch_0"
+	wasCreateCalledCt := -1
+	args.PersisterFactory = &mock.PersisterFactoryStub{
+		CreateCalled: func(path string) (storage.Persister, error) {
+			wasCreateCalledCt++
+			return &mock.PersisterStub{}, nil
+		},
+		//CreateCalled: func(path string) (storage.Persister, error) {
+		//	wasCreateCalledCt++
+		//
+		//	if _, ok := persistersByPath[path]; ok {
+		//		return persistersByPath[path], nil
+		//	}
+		//	newPers := database.NewMemDB()
+		//	persistersByPath[path] = newPers
+		//
+		//	return newPers, nil
+		//},
+	}
+	args.EpochsData.NumOfActivePersisters = uint32(maxNumOfActivePersisters)
+	args.EpochsData.NumOfEpochsToKeep = 4
+
+	ps, _ := pruning.NewPruningStorer(args)
+	require.Equal(t, 1, wasCreateCalledCt)
+
+	for epoch := 1; epoch <= 3; epoch++ {
+		// when changing epoch will create persister for epoch+1
+		_ = ps.ChangeEpochSimple(uint32(epoch))
+		time.Sleep(1 * time.Second)
+		require.Equal(t, epoch+1, wasCreateCalledCt)
+	}
+
+	require.Equal(t, maxNumOfActivePersisters, ps.GetNumActivePersisters())
 }

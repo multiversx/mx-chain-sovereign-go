@@ -140,6 +140,7 @@ func startNodeRunner(c *cli.Context, log logger.Logger, baseVersion string, vers
 	}
 
 	runType.ConfigureUnixTime(runType.Milliseconds)
+	runType.SetShouldCreatePersisterForNextEpoch(true)
 
 	err = nodeRunner.Start()
 	if err != nil {

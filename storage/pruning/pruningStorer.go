@@ -15,6 +15,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -227,7 +228,7 @@ func initPersistersInEpoch(
 	persistersMapByEpoch := make(map[uint32]*persisterData)
 
 	startingEpoch := int64(args.EpochsData.StartingEpoch)
-	if startingEpoch == 0 {
+	if runType.ShouldCreatePersister() && startingEpoch == 0 {
 		startingEpoch = 1
 	}
 	for epoch := startingEpoch; epoch >= 0; epoch-- {
@@ -837,10 +838,9 @@ func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 }
 
 func (ps *PruningStorer) createPersisterForNextEpoch(epoch uint32) {
-	// create next epoch persister one epoch before Supernova
-	//if !enableEpochsHandler.IsFlagEnabledInEpoch(common.Supernova, epoch-1) {
-	//	return
-	//}
+	if !runType.ShouldCreatePersister() {
+		return
+	}
 
 	if _, err := ps.createPersister(epoch); err != nil {
 		log.Warn("failed to create persister for epoch", "epoch", epoch, "error", err)
