@@ -1332,21 +1332,21 @@ func TestPruningStorer_IsInterfaceNil(t *testing.T) {
 	require.False(t, ps.IsInterfaceNil())
 }
 
-func TestNewPruningStorer_InitPersisters(t *testing.T) {
+func TestNewPruningStorer_InitPersistersInEpochZero(t *testing.T) {
 	t.Parallel()
 
-	t.Run("should init an additional persister in epoch 0", func(t *testing.T) {
-		args := getDefaultArgs()
-		args.EpochsData.StartingEpoch = 0
-		ps, _ := pruning.NewPruningStorer(args)
-		require.Equal(t, 1, ps.GetNumActivePersisters())
-	})
-	t.Run("should not init an additional persister in epoch >0", func(t *testing.T) {
-		args := getDefaultArgs()
-		args.EpochsData.StartingEpoch = 2
-		ps, _ := pruning.NewPruningStorer(args)
-		require.Equal(t, 3, ps.GetNumActivePersisters())
-	})
+	wasCreateCalledCt := 0
+	args := getDefaultArgs()
+	args.PersisterFactory = &mock.PersisterFactoryStub{
+		CreateCalled: func(path string) (storage.Persister, error) {
+			wasCreateCalledCt++
+			return &mock.PersisterStub{}, nil
+		},
+	}
+
+	ps, _ := pruning.NewPruningStorer(args)
+	require.Equal(t, 2, wasCreateCalledCt)           // persisters for epoch 0 and epoch 1
+	require.Equal(t, 1, ps.GetNumActivePersisters()) // only epoch 0 is active
 }
 
 func TestPruningStorer_ChangeEpoch(t *testing.T) {
