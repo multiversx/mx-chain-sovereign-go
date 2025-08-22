@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -1334,7 +1333,7 @@ func TestPruningStorer_IsInterfaceNil(t *testing.T) {
 }
 
 func TestNewPruningStorer_InitPersisters(t *testing.T) {
-	runType.SetShouldCreatePersisterForNextEpoch(true)
+	t.Parallel()
 
 	t.Run("should init an additional persister in epoch 0", func(t *testing.T) {
 		args := getDefaultArgs()
@@ -1348,12 +1347,10 @@ func TestNewPruningStorer_InitPersisters(t *testing.T) {
 		ps, _ := pruning.NewPruningStorer(args)
 		require.Equal(t, 3, ps.GetNumActivePersisters())
 	})
-
-	runType.SetShouldCreatePersisterForNextEpoch(false)
 }
 
 func TestPruningStorer_ChangeEpoch(t *testing.T) {
-	runType.SetShouldCreatePersisterForNextEpoch(true)
+	t.Parallel()
 
 	maxNumOfActivePersisters := 3
 	persistersByPath := make(map[string]storage.Persister)
@@ -1381,6 +1378,4 @@ func TestPruningStorer_ChangeEpoch(t *testing.T) {
 	}
 
 	require.Equal(t, maxNumOfActivePersisters, ps.GetNumActivePersisters())
-
-	runType.SetShouldCreatePersisterForNextEpoch(false)
 }

@@ -15,7 +15,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -60,7 +59,7 @@ func (pd *persisterData) setIsClosed(closed bool) {
 // Close closes the underlying persister
 func (pd *persisterData) Close() error {
 	pd.setIsClosed(true)
-	err := pd.persister.Close()
+	err := pd.getPersister().Close()
 	return err
 }
 
@@ -254,16 +253,32 @@ func initPersistersInEpoch(
 		}
 	}
 
-	if runType.ShouldCreatePersister() && args.EpochsData.StartingEpoch == 0 {
-		epoch := args.EpochsData.StartingEpoch + 1
-		p, err := createPersisterDataForEpoch(args, epoch, shardIDStr)
-		if err != nil {
-			return nil, nil, err
-		}
-		persistersMapByEpoch[epoch] = p
-	}
+	initNextEpochPersisterIfNeeded(args, shardIDStr, persistersMapByEpoch)
 
 	return persisters, persistersMapByEpoch, nil
+}
+
+func initNextEpochPersisterIfNeeded(
+	args StorerArgs,
+	shardIDStr string,
+	persistersMapByEpoch map[uint32]*persisterData,
+) {
+	epoch := args.EpochsData.StartingEpoch
+	epoch++
+
+	_, ok := persistersMapByEpoch[epoch]
+	if ok {
+		log.Warn("createNextEpochPersisterIsNeeded: persister already in map", "epoch", epoch)
+		return
+	}
+
+	p, err := createPersisterDataForEpoch(args, epoch, shardIDStr)
+	if err != nil {
+		log.Warn("createNextEpochPersisterIsNeeded", "epoch", epoch, "error", err.Error())
+		return
+	}
+
+	persistersMapByEpoch[epoch] = p
 }
 
 func createPersisterIfPruningDisabled(
@@ -843,7 +858,12 @@ func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 }
 
 func (ps *PruningStorer) createPersisterForNextEpochIfNeeded(epoch uint32) {
-	if !runType.ShouldCreatePersister() {
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
+
+	_, ok := ps.persistersMapByEpoch[epoch]
+	if ok {
+		log.Warn("createNextEpochPersisterIsNeeded: persister already in map", "persister", ps.identifier, "epoch", epoch)
 		return
 	}
 
