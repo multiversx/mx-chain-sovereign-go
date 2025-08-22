@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/data"
-	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/state"
@@ -22,8 +21,18 @@ type registerNewValidatorOpFormatter struct {
 	dataCodec      DataCodecHandler
 }
 
+func NewRegisterValidatorOpFormatter(
+	peerAccountsDB state.AccountsAdapter,
+	dataCodec DataCodecHandler,
+) (*registerNewValidatorOpFormatter, error) {
+	return &registerNewValidatorOpFormatter{
+		peerAccountsDB: peerAccountsDB,
+		dataCodec:      dataCodec,
+	}, nil
+}
+
 // CreateOperationData creates a register new validator operation data
-func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventHandler, _ *sovData.EventData) ([]byte, error) {
+func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
 	numTopics := len(event.GetTopics())
 	if numTopics != numExpectedTopicsInRegisterNewValidator {
 		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterNewValidator, numTopics)

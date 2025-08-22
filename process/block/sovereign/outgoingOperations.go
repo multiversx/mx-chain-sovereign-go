@@ -19,8 +19,9 @@ import (
 type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
 
 const (
-	topicIDDeposit       = "deposit"
-	topicIDRegisterToken = "registerToken"
+	topicIDDeposit        = "deposit"
+	topicIDRegisterToken  = "registerToken"
+	topicIDRegisterBlsKey = "registerBlsKey"
 )
 
 var log = logger.GetOrCreate("outgoing-operations")
@@ -137,10 +138,13 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewDepositOpFormatter(args.DataCodec)
+			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, args.TopicsChecker)
+		},
+		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
 		},
 	}
 
@@ -259,24 +263,13 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 }
 
 func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, error) {
-	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
-	if err != nil {
-		return nil, err
-	}
-
-	topics := event.GetTopics()
-	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
-	if err != nil {
-		return nil, err
-	}
-
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
 		return nil, errEventIDNotFound
 	}
 
-	return opFormatter.CreateOperationData(event, evData)
+	return opFormatter.CreateOperationData(event)
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change

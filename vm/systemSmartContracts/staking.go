@@ -568,7 +568,7 @@ func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
 
 		s.eei.AddLogEntry(&vmcommon.LogEntry{
-			Identifier: []byte("stakeNewNode"),
+			Identifier: []byte("registerBlsKey"),
 			Topics:     [][]byte{blsKey},
 			Address:    vm.StakingSCAddress,
 		})

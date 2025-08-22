@@ -23,22 +23,35 @@ const (
 )
 
 type registerTokenOpFormatter struct {
+	*opFormatterHelper
 	dataCodec DataCodecHandler
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
-func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*registerTokenOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(topicsChecker) {
+		return nil, errMx.ErrNilTopicsChecker
+	}
 
 	return &registerTokenOpFormatter{
+		opFormatterHelper: &opFormatterHelper{
+			dataCodec:     dataCodec,
+			topicsChecker: topicsChecker,
+		},
 		dataCodec: dataCodec,
 	}, nil
 }
 
 // CreateOperationData will create register token operation data
-func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
+func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+	evData, err := op.getAndCheckEventData(event)
+	if err != nil {
+		return nil, err
+	}
+
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err
