@@ -12,7 +12,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -99,7 +102,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 					},
 				}
 
-				newCfg.AndromedaEnableEpoch = 2
+				newCfg.AndromedaEnableEpoch = 0
 				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
@@ -127,8 +130,14 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	nonce := uint64(0)
 	require.Nil(t, err)
 
-	err = cs.GenerateBlocks(1)
+	err = cs.GenerateBlocksUntilEpochIsReached(1)
 	require.Nil(t, err)
+
+	logger.SetLogLevel("*:DEBUG")
+
+	staking.StakeNodes(t, cs, nodeHandler, 1)
+
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler)
 
 	protocolSustainabilityAddrBalance, _, err := nodeHandler.GetFacadeHandler().GetBalance(protocolSustainabilityAddress, apiData.AccountQueryOptions{})
 	require.Nil(t, err)
@@ -281,6 +290,53 @@ func checkEpochChangeRewardsMB(
 	}
 
 	require.Empty(t, owners)
+}
+
+func checkOutGoingMiniBlockRegisterValidator(
+	t *testing.T,
+	nodeHandler process.NodeHandler,
+) {
+	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
+
+	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
+	require.Nil(t, err)
+
+	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
+	require.Len(t, outGoingMBHdrs, 1)
+
+	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
+	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
+	require.Len(t, bridgeData.OutGoingOperations, 1)
+
+	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
+	deserializeRegisteredBlsKeyData(t, serializer, bridgeData.OutGoingOperations[0].Data)
+}
+
+func deserializeRegisteredBlsKeyData(t *testing.T, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
+	id := &abi.BytesValue{}
+	blsKey := &abi.BytesValue{}
+
+	abiStruct := &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "id",
+				Value: id,
+			},
+			{
+				Name:  "key",
+				Value: blsKey,
+			},
+		},
+	}
+
+	err := serializer.Deserialize(hex.EncodeToString(data), []any{abiStruct})
+	require.Nil(t, err)
+	require.NotNil(t, blsKey)
+	require.NotZero(t, id)
+	return &dto.RegisteredBlsKey{
+		ID:  id.Value,
+		Key: blsKey.Value,
+	}
 }
 
 func checkOutGoingMiniBlockChangeValidatorSet(
