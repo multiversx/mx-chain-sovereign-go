@@ -253,7 +253,10 @@ func initPersistersInEpoch(
 		}
 	}
 
-	initNextEpochPersisterIfNeeded(args, shardIDStr, persistersMapByEpoch)
+	err := initNextEpochPersisterIfNeeded(args, shardIDStr, persistersMapByEpoch)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return persisters, persistersMapByEpoch, nil
 }
@@ -262,23 +265,23 @@ func initNextEpochPersisterIfNeeded(
 	args StorerArgs,
 	shardIDStr string,
 	persistersMapByEpoch map[uint32]*persisterData,
-) {
-	epoch := args.EpochsData.StartingEpoch
-	epoch++
+) error {
+	epoch := args.EpochsData.StartingEpoch + 1
 
 	_, ok := persistersMapByEpoch[epoch]
 	if ok {
 		log.Warn("createNextEpochPersisterIsNeeded: persister already in map", "epoch", epoch)
-		return
+		return nil
 	}
 
 	p, err := createPersisterDataForEpoch(args, epoch, shardIDStr)
 	if err != nil {
-		log.Warn("createNextEpochPersisterIsNeeded", "epoch", epoch, "error", err.Error())
-		return
+		log.Error("initNextEpochPersisterIfNeeded", "epoch", epoch, "error", err.Error())
+		return err
 	}
 
 	persistersMapByEpoch[epoch] = p
+	return nil
 }
 
 func createPersisterIfPruningDisabled(

@@ -1193,6 +1193,8 @@ func TestPruningStorer_GetOldestEpoch(t *testing.T) {
 		args.PersistersTracker = pruning.NewPersistersTracker(epochsData)
 		ps, _ := pruning.NewPruningStorer(args)
 
+		// on init, it will create persister for next epoch in advance so
+		// we have to clear all persisters from map for this test
 		ps.ClearPersisters()
 
 		epoch, err := ps.GetOldestEpoch()
