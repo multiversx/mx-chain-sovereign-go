@@ -227,11 +227,7 @@ func initPersistersInEpoch(
 	var persisters []*persisterData
 	persistersMapByEpoch := make(map[uint32]*persisterData)
 
-	startingEpoch := int64(args.EpochsData.StartingEpoch)
-	if runType.ShouldCreatePersister() && startingEpoch == 0 {
-		startingEpoch = 1
-	}
-	for epoch := startingEpoch; epoch >= 0; epoch-- {
+	for epoch := int64(args.EpochsData.StartingEpoch); epoch >= 0; epoch-- {
 		if args.PersistersTracker.HasInitializedEnoughPersisters(epoch) {
 			break
 		}
@@ -256,6 +252,15 @@ func initPersistersInEpoch(
 			persisters = append(persisters, p)
 			log.Debug("appended a pruning active persister", "epoch", epoch, "identifier", args.Identifier)
 		}
+	}
+
+	if runType.ShouldCreatePersister() && args.EpochsData.StartingEpoch == 0 {
+		epoch := args.EpochsData.StartingEpoch + 1
+		p, err := createPersisterDataForEpoch(args, epoch, shardIDStr)
+		if err != nil {
+			return nil, nil, err
+		}
+		persistersMapByEpoch[epoch] = p
 	}
 
 	return persisters, persistersMapByEpoch, nil
@@ -799,7 +804,7 @@ func (ps *PruningStorer) changeEpoch(header data.HeaderHandler) error {
 		}
 		log.Debug("change epoch pruning storer success", "persister", ps.identifier, "epoch", epoch)
 
-		go ps.createPersisterForNextEpoch(epoch + 1)
+		go ps.createPersisterForNextEpochIfNeeded(epoch + 1)
 
 		return ps.removeOldPersistersIfNeeded(header)
 	}
@@ -812,7 +817,7 @@ func (ps *PruningStorer) changeEpoch(header data.HeaderHandler) error {
 	singleItemPersisters := []*persisterData{persister}
 	ps.activePersisters = append(singleItemPersisters, ps.activePersisters...)
 
-	go ps.createPersisterForNextEpoch(epoch + 1)
+	go ps.createPersisterForNextEpochIfNeeded(epoch + 1)
 
 	return ps.removeOldPersistersIfNeeded(header)
 }
@@ -822,7 +827,7 @@ func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 	filePath := ps.pathManager.PathForEpoch(shardID, epoch, ps.identifier)
 	db, err := ps.persisterFactory.Create(filePath)
 	if err != nil {
-		log.Warn("change epoch", "persister", ps.identifier, "error", err.Error())
+		log.Warn("PruningStorer.createPersister", "persister", ps.identifier, "epoch", epoch, "error", err.Error())
 		return nil, err
 	}
 
@@ -837,7 +842,7 @@ func (ps *PruningStorer) createPersister(epoch uint32) (*persisterData, error) {
 	return newPersister, nil
 }
 
-func (ps *PruningStorer) createPersisterForNextEpoch(epoch uint32) {
+func (ps *PruningStorer) createPersisterForNextEpochIfNeeded(epoch uint32) {
 	if !runType.ShouldCreatePersister() {
 		return
 	}

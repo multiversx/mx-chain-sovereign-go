@@ -1194,6 +1194,8 @@ func TestPruningStorer_GetOldestEpoch(t *testing.T) {
 		args.PersistersTracker = pruning.NewPersistersTracker(epochsData)
 		ps, _ := pruning.NewPruningStorer(args)
 
+		ps.ClearPersisters()
+
 		epoch, err := ps.GetOldestEpoch()
 		assert.NotNil(t, err)
 		assert.Zero(t, epoch)
@@ -1332,15 +1334,13 @@ func TestPruningStorer_IsInterfaceNil(t *testing.T) {
 }
 
 func TestNewPruningStorer_InitPersisters(t *testing.T) {
-	t.Parallel()
-
 	runType.SetShouldCreatePersisterForNextEpoch(true)
 
 	t.Run("should init an additional persister in epoch 0", func(t *testing.T) {
 		args := getDefaultArgs()
 		args.EpochsData.StartingEpoch = 0
 		ps, _ := pruning.NewPruningStorer(args)
-		require.Equal(t, 2, ps.GetNumActivePersisters())
+		require.Equal(t, 1, ps.GetNumActivePersisters())
 	})
 	t.Run("should not init an additional persister in epoch >0", func(t *testing.T) {
 		args := getDefaultArgs()
@@ -1348,11 +1348,11 @@ func TestNewPruningStorer_InitPersisters(t *testing.T) {
 		ps, _ := pruning.NewPruningStorer(args)
 		require.Equal(t, 3, ps.GetNumActivePersisters())
 	})
+
+	runType.SetShouldCreatePersisterForNextEpoch(false)
 }
 
 func TestPruningStorer_ChangeEpoch(t *testing.T) {
-	t.Parallel()
-
 	runType.SetShouldCreatePersisterForNextEpoch(true)
 
 	maxNumOfActivePersisters := 3
@@ -1381,4 +1381,6 @@ func TestPruningStorer_ChangeEpoch(t *testing.T) {
 	}
 
 	require.Equal(t, maxNumOfActivePersisters, ps.GetNumActivePersisters())
+
+	runType.SetShouldCreatePersisterForNextEpoch(false)
 }
