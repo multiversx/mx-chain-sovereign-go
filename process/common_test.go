@@ -12,6 +12,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
+	"github.com/multiversx/mx-chain-go/testscommon/state"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -2461,5 +2463,52 @@ func TestGetExtendedHeaderFromStorageWithNonce(t *testing.T) {
 		require.Equal(t, process.ErrUnmarshalWithoutSuccess, err)
 		require.Nil(t, headerHash)
 		require.Nil(t, header)
+	})
+}
+
+func TestGetPeerAccount(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil acc db", func(t *testing.T) {
+		peerAcc, err := process.GetPeerAccount([]byte("key"), nil)
+		require.Nil(t, peerAcc)
+		require.Equal(t, process.ErrNilPeerAccountsAdapter, err)
+	})
+	t.Run("load account fails", func(t *testing.T) {
+		expectedErr := errors.New("load account fails")
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				return nil, expectedErr
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount([]byte("key"), peerAccDB)
+		require.Nil(t, peerAcc)
+		require.Equal(t, expectedErr, err)
+	})
+	t.Run("account is not peer account", func(t *testing.T) {
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				return &state.AccountWrapMock{}, nil
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount([]byte("key"), peerAccDB)
+		require.Nil(t, peerAcc)
+		require.Equal(t, process.ErrWrongTypeAssertion, err)
+	})
+	t.Run("should work", func(t *testing.T) {
+		blsKey := []byte("blsKey")
+		peerAccMock := &state.PeerAccountHandlerMock{BLSKey: blsKey}
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				require.Equal(t, blsKey, container)
+				return peerAccMock, nil
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount(blsKey, peerAccDB)
+		require.Nil(t, err)
+		require.Equal(t, peerAccMock, peerAcc)
 	})
 }

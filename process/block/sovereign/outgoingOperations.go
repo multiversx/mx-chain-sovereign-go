@@ -7,11 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/state"
 )
@@ -277,7 +277,7 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 	validatorsID := make([][]byte, len(pubKeys))
 
 	for idx, pubKey := range pubKeys {
-		peerAcc, err := op.getPeerAccount([]byte(pubKey))
+		peerAcc, err := process.GetPeerAccount([]byte(pubKey), op.peerAccountsDB)
 		if err != nil {
 			return nil, err
 		}
@@ -289,20 +289,6 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
-}
-
-func (op *outgoingOperations) getPeerAccount(key []byte) (state.PeerAccountHandler, error) {
-	account, err := op.peerAccountsDB.LoadAccount(key)
-	if err != nil {
-		return nil, err
-	}
-
-	peerAcc, ok := account.(state.PeerAccountHandler)
-	if !ok {
-		return nil, epochStart.ErrWrongTypeAssertion
-	}
-
-	return peerAcc, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

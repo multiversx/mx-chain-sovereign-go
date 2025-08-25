@@ -1139,3 +1139,21 @@ func CheckIfIndexesAreOutOfBound(
 
 	return nil
 }
+
+func GetPeerAccount(key []byte, peerAccountsDB state.AccountsAdapter) (state.PeerAccountHandler, error) {
+	if check.IfNil(peerAccountsDB) {
+		return nil, ErrNilPeerAccountsAdapter
+	}
+
+	account, err := peerAccountsDB.LoadAccount(key)
+	if err != nil {
+		return nil, err
+	}
+
+	peerAcc, ok := account.(state.PeerAccountHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
+	}
+
+	return peerAcc, nil
+}

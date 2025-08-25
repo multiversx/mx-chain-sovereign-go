@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/epochStart"
+	errMx "github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/vm"
@@ -25,6 +27,13 @@ func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
 ) (*registerNewValidatorOpFormatter, error) {
+	if check.IfNil(peerAccountsDB) {
+		return nil, errMx.ErrNilPeerAccounts
+	}
+	if check.IfNil(dataCodec) {
+		return nil, errMx.ErrNilDataCodec
+	}
+
 	return &registerNewValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,
 		dataCodec:      dataCodec,
@@ -42,7 +51,7 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 		return nil, fmt.Errorf("%w in registerNewValidatorOpFormatter, expected StakingSCAddress", vm.ErrInvalidAddress)
 	}
 
-	peerAcc, err := op.getPeerAccount(event.GetTopics()[topicIdxBlsKey])
+	peerAcc, err := process.GetPeerAccount(event.GetTopics()[topicIdxBlsKey], op.peerAccountsDB)
 	if err != nil {
 		return nil, err
 	}
@@ -51,21 +60,6 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 		ID:  peerAcc.GetMainChainID(),
 		Key: peerAcc.GetBLSPublicKey(),
 	})
-}
-
-// todo: Here do not duplicate
-func (op *registerNewValidatorOpFormatter) getPeerAccount(key []byte) (state.PeerAccountHandler, error) {
-	account, err := op.peerAccountsDB.LoadAccount(key)
-	if err != nil {
-		return nil, err
-	}
-
-	peerAcc, ok := account.(state.PeerAccountHandler)
-	if !ok {
-		return nil, epochStart.ErrWrongTypeAssertion
-	}
-
-	return peerAcc, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil
