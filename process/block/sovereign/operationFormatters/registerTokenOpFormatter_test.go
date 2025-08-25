@@ -16,12 +16,17 @@ func TestNewRegisterTokenOpFormatter(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil data codec, should return error", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(nil)
+		opFormatter, err := NewRegisterTokenOpFormatter(nil, &sovereign.TopicsCheckerMock{})
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
+	t.Run("nil topics checker, should return error", func(t *testing.T) {
+		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, nil)
+		require.Nil(t, opFormatter)
+		require.Equal(t, errMx.ErrNilTopicsChecker, err)
+	})
 	t.Run("should work", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
+		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{})
 		require.Nil(t, err)
 		require.False(t, opFormatter.IsInterfaceNil())
 	})
@@ -42,6 +47,11 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 		{18},
 	}
 
+	txEvent := &transaction.Event{
+		Topics: topics,
+		Data:   []byte("dataEvent"),
+	}
+
 	serializedData := []byte("serialized token data")
 	dataCodec := &sovereign.DataCodecMock{
 		SerializeTokenPropertiesCalled: func(properties dto.TokenProperties) ([]byte, error) {
@@ -56,10 +66,14 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 
 			return serializedData, nil
 		},
+		DeserializeEventDataCalled: func(data []byte) (*sovData.EventData, error) {
+			require.Equal(t, txEvent.Data, data)
+			return eventData, nil
+		},
 	}
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec)
-	formattedData, err := opFormatter.CreateOperationData(&transaction.Event{Topics: topics}, eventData)
+	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec, &sovereign.TopicsCheckerMock{})
+	formattedData, err := opFormatter.CreateOperationData(txEvent)
 	require.Nil(t, err)
 	require.Equal(t, formattedData, serializedData)
 }
@@ -67,11 +81,7 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
 	t.Parallel()
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
-
-	eventData := &sovData.EventData{
-		Nonce: 4,
-	}
+	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{})
 	topics := [][]byte{
 		[]byte("registerToken"),
 		[]byte("tokenID"),
@@ -82,21 +92,21 @@ func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
 	}
 
 	t.Run("invalid num topics", func(t *testing.T) {
-		formattedData, err := opFormatter.CreateOperationData(&transaction.Event{Topics: topics[1:]}, eventData)
+		formattedData, err := opFormatter.CreateOperationData(&transaction.Event{Topics: topics[1:]})
 		require.Nil(t, formattedData)
 		require.ErrorIs(t, err, errInvalidNumTopicsInRegisterToken)
 	})
 	t.Run("invalid token type", func(t *testing.T) {
 		txEvent := &transaction.Event{Topics: topics}
 		txEvent.Topics[topicIdxTokenType] = []byte("invalid number of bytes for a number")
-		formattedData, err := opFormatter.CreateOperationData(txEvent, eventData)
+		formattedData, err := opFormatter.CreateOperationData(txEvent)
 		require.Nil(t, formattedData)
 		require.NotNil(t, err)
 	})
 	t.Run("invalid num decimals", func(t *testing.T) {
 		txEvent := &transaction.Event{Topics: topics}
 		txEvent.Topics[topicIdxNumDecimals] = []byte("invalid number of bytes for a number")
-		formattedData, err := opFormatter.CreateOperationData(txEvent, eventData)
+		formattedData, err := opFormatter.CreateOperationData(txEvent)
 		require.Nil(t, formattedData)
 		require.NotNil(t, err)
 	})

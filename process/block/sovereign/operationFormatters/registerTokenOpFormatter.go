@@ -47,7 +47,7 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, topicsChecker Topic
 
 // CreateOperationData will create register token operation data
 func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
-	evData, err := op.getAndCheckEventData(event)
+	evData, err := op.checkAndGetEventData(event)
 	if err != nil {
 		return nil, err
 	}

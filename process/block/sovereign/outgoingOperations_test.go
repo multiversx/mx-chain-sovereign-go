@@ -233,14 +233,15 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 	t.Run("deserialize event error", func(t *testing.T) {
 		t.Parallel()
 
-		outgoingOpsFormatter := createOutgoingOpsFormatter()
+		args := createArgsOutGoingOpsFormatterWithEvents()
 		errDeserializeEventData := fmt.Errorf("deserialize event data error")
-		outgoingOpsFormatter.dataCodec = &sovTests.DataCodecMock{
+		args.DataCodec = &sovTests.DataCodecMock{
 			DeserializeEventDataCalled: func(data []byte) (*sovereign.EventData, error) {
 				return nil, errDeserializeEventData
 			},
 		}
 
+		outgoingOpsFormatter, _ := NewOutgoingOperationsFormatter(args)
 		outgoingTxData, err := outgoingOpsFormatter.CreateOutgoingTxsData(logs)
 		require.Nil(t, outgoingTxData)
 		require.Equal(t, errDeserializeEventData, err)
@@ -265,14 +266,15 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 	t.Run("check validity error", func(t *testing.T) {
 		t.Parallel()
 
-		outgoingOpsFormatter := createOutgoingOpsFormatter()
+		args := createArgsOutGoingOpsFormatterWithEvents()
 		errInvalidTopics := fmt.Errorf("check topics error")
-		outgoingOpsFormatter.topicsChecker = &sovTests.TopicsCheckerMock{
+		args.TopicsChecker = &sovTests.TopicsCheckerMock{
 			CheckValidityCalled: func(_ [][]byte, _ *sovereign.TransferData) error {
 				return errInvalidTopics
 			},
 		}
 
+		outgoingOpsFormatter, _ := NewOutgoingOperationsFormatter(args)
 		outgoingTxData, err := outgoingOpsFormatter.CreateOutgoingTxsData(logs)
 		require.Nil(t, outgoingTxData)
 		require.Equal(t, errInvalidTopics, err)

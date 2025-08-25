@@ -39,7 +39,7 @@ func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheck
 
 // CreateOperationData creates a deposit token operation data bytes
 func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
-	evData, err := op.getAndCheckEventData(event)
+	evData, err := op.checkAndGetEventData(event)
 	if err != nil {
 		return nil, err
 	}

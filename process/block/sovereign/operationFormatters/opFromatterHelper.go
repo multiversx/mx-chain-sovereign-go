@@ -10,7 +10,7 @@ type opFormatterHelper struct {
 	topicsChecker TopicsCheckerHandler
 }
 
-func (op *opFormatterHelper) getAndCheckEventData(event data.EventHandler) (*sovereign.EventData, error) {
+func (op *opFormatterHelper) checkAndGetEventData(event data.EventHandler) (*sovereign.EventData, error) {
 	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err

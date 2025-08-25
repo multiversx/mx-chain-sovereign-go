@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"math"
-	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -12,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
@@ -318,7 +318,7 @@ func (stp *stakingToPeer) updatePeerState(
 	}
 
 	if isNew {
-		account.SetMainChainID(intToBytes(int(stakingData.MainChainID)))
+		account.SetMainChainID(runType.UIntToBytes(stakingData.MainChainID))
 		log.Debug("new node", "blsKey", blsPubKey)
 	}
 
@@ -377,13 +377,6 @@ func (stp *stakingToPeer) updatePeerState(
 	}
 
 	return nil
-}
-
-func intToBytes(n int) []byte {
-	if n == 0 {
-		return []byte{0x0}
-	}
-	return big.NewInt(int64(n)).Bytes()
 }
 
 func (stp *stakingToPeer) getAllModifiedStates(body *block.Body) ([]string, error) {

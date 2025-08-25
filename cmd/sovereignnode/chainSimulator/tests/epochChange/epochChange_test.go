@@ -102,7 +102,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 					},
 				}
 
-				newCfg.AndromedaEnableEpoch = 0
+				newCfg.AndromedaEnableEpoch = 1
 				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
@@ -180,8 +180,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.NotEmpty(t, accFeesInEpoch)
 	require.NotEmpty(t, devFeesInEpoch)
 
-	// we currently do not have any implemented mechanism to assign a new ID for a newly staked pub key,
-	// so the new value is empty. Assignment should come in a future implementation and this test should fail.
+	// Add newly assigned IDs from the 10 staked nodes
 	for idx := 8; idx <= 18; idx++ {
 		allPubKeyIDs = append(allPubKeyIDs, []byte{byte(idx)})
 	}

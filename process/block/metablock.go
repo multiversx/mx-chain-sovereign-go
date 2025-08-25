@@ -805,14 +805,6 @@ func (mp *metaProcessor) CreateBlock(
 
 	mp.requestHandler.SetEpoch(metaHdr.GetEpoch())
 
-	logs := mp.txCoordinator.GetAllCurrentLogs()
-
-	for _, currLog := range logs {
-		for _, logEvent := range currLog.GetLogEvents() {
-			log.Error("dsada", "dsa", string(logEvent.GetIdentifier()), "currLog", currLog.GetAddress())
-		}
-	}
-
 	return metaHdr, body, nil
 }
 

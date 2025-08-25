@@ -381,3 +381,37 @@ func TestDataCodec_SerializeTokenProperties(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, serializedData, data)
 }
+
+func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
+	t.Parallel()
+
+	blsKeyData := dto.RegisteredBlsKey{
+		ID:  []byte{0xf1},
+		Key: []byte("blsKey"),
+	}
+	expectedABIStruct := &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "id",
+				Value: &abi.BytesValue{Value: blsKeyData.ID},
+			},
+			{
+				Name:  "key",
+				Value: &abi.BytesValue{Value: blsKeyData.Key},
+			},
+		},
+	}
+
+	serializedData := []byte("serialize data")
+	serializer := &sovMocks.AbiSerializerMock{
+		SerializeCalled: func(inputValues []any) (string, error) {
+			require.Equal(t, []any{expectedABIStruct}, inputValues)
+			return hex.EncodeToString(serializedData), nil
+		},
+	}
+
+	codec, _ := NewDataCodec(serializer)
+	data, err := codec.SerializeNewlyRegisteredKey(blsKeyData)
+	require.Nil(t, err)
+	require.Equal(t, serializedData, data)
+}
