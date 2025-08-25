@@ -1347,8 +1347,8 @@ func TestNewPruningStorer_InitPersistersInEpochZero(t *testing.T) {
 	}
 
 	ps, _ := pruning.NewPruningStorer(args)
-	require.Equal(t, 2, wasCreateCalledCt)           // persisters for epoch 0 and epoch 1
-	require.Equal(t, 1, ps.GetNumActivePersisters()) // only epoch 0 is active
+	require.Equal(t, 2, wasCreateCalledCt)
+	require.Equal(t, 1, ps.GetNumActivePersisters())
 }
 
 func TestPruningStorer_ChangeEpoch(t *testing.T) {
