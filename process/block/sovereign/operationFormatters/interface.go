@@ -5,8 +5,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 )
 
-// TODO: Here, move these in dto
-
 // DataCodecHandler is the interface for serializing/deserializing data
 type DataCodecHandler interface {
 	DeserializeTokenData(data []byte) (*sovereign.EsdtTokenData, error)
