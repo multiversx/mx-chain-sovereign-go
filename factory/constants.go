@@ -87,5 +87,6 @@ type ArgsExporter struct {
 	NodeOperationMode                common.NodeOperation
 	InterceptedDataVerifierFactory   process.InterceptedDataVerifierFactory
 
-	ShardCoordinatorFactory sharding.ShardCoordinatorFactory
+	ShardCoordinatorFactory        sharding.ShardCoordinatorFactory
+	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
 }

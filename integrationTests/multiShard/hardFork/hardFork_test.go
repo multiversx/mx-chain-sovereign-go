@@ -671,8 +671,8 @@ func createHardForkExporter(
 			TrieSyncerVersion:              2,
 			CheckNodesOnDisk:               false,
 			NodeOperationMode:              node.NodeOperationMode,
-			InterceptedDataVerifierFactory: interceptorFactory.NewInterceptedDataVerifierFactory(interceptorDataVerifierFactoryArgs),
 			ShardCoordinatorFactory:        sharding.NewMultiShardCoordinatorFactory(),
+			InterceptedDataVerifierFactory: interceptorFactory.NewInterceptedDataVerifierFactory(interceptorDataVerifierFactoryArgs),
 		}
 
 		exportHandler, err := factory.NewExportHandlerFactory(argsExportHandler)
