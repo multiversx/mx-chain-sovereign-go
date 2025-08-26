@@ -826,7 +826,13 @@ func (scbp *sovereignChainBlockProcessor) ProcessBlock(headerHandler data.Header
 
 	scbp.blockChainHook.SetCurrentHeader(headerHandler)
 
-	scbp.txCoordinator.RequestBlockTransactions(body)
+	// At the start of an epoch, there should be no "unknown" operations present in the block.
+	// All operations (e.g., rewards, outgoing miniblocks for validator set changes, etc.) added to the epoch start block
+	// are deterministic and must be computed independently by all participants, without requiring additional data fetches.
+	if !sovChainHeader.IsStartOfEpochBlock() {
+		scbp.txCoordinator.RequestBlockTransactions(body)
+	}
+
 	requestedExtendedShardHdrs := scbp.requestExtendedShardHeaders(sovChainHeader)
 
 	if haveTime() < 0 {
@@ -1064,25 +1070,25 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 
 	scbp.nodesCoordinator.EpochStartPrepare(header, body)
 
-	pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	err = scbp.createAndSetOutGoingMiniBlock(
-		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
-		body,
-		block.OutGoingMbChangeValidatorSet,
-	)
-	if err != nil {
-		return err
-	}
+	//pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = scbp.createAndSetOutGoingMiniBlock(
+	//	header,
+	//	[][]byte{outGoingOperationChangeValidatorSet},
+	//	body,
+	//	block.OutGoingMbChangeValidatorSet,
+	//)
+	//if err != nil {
+	//	return err
+	//}
 
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
