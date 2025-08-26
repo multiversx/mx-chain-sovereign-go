@@ -85,7 +85,6 @@ type ArgsExporter struct {
 	TrieSyncerVersion                int
 	CheckNodesOnDisk                 bool
 	NodeOperationMode                common.NodeOperation
-	InterceptedDataVerifierFactory   process.InterceptedDataVerifierFactory
 
 	ShardCoordinatorFactory        sharding.ShardCoordinatorFactory
 	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
