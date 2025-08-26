@@ -147,11 +147,9 @@ func (tpn *TestProcessorNode) initBlockProcessorWithSync() {
 		argumentsBase.BlockChainHook = tpn.BlockchainHook
 		argumentsBase.TxCoordinator = tpn.TxCoordinator
 		argumentsBase.ScheduledTxsExecutionHandler = &testscommon.ScheduledTxsExecutionStub{}
-		arguments := block.ArgShardProcessor{
-			ArgBaseProcessor: argumentsBase,
-		}
 
-		tpn.BlockProcessor, err = block.NewShardProcessor(arguments)
+		funcCreateExtraArgs := tpn.createExtraArgsFunc(argumentsBase, coreComponents)
+		tpn.BlockProcessor, err = tpn.RunTypeComponents.BlockProcessorCreator().CreateBlockProcessor(argumentsBase, funcCreateExtraArgs)
 	}
 
 	if err != nil {

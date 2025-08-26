@@ -743,7 +743,7 @@ func (tpn *TestProcessorNode) initValidatorStatistics() {
 		EnableEpochsHandler:                  tpn.EnableEpochsHandler,
 	}
 
-	tpn.ValidatorStatisticsProcessor, _ = peer.NewValidatorStatisticsProcessor(arguments)
+	tpn.ValidatorStatisticsProcessor, _ = tpn.RunTypeComponents.ValidatorStatisticsProcessorCreator().CreateValidatorStatisticsProcessor(arguments)
 }
 
 func (tpn *TestProcessorNode) initGenesisBlocks(args ArgTestProcessorNode) {
@@ -2236,7 +2236,7 @@ func (tpn *TestProcessorNode) initMetaInnerProcessors(gasMap map[string]map[stri
 		ProcessedMiniBlocksTracker:   processedMiniBlocksTracker,
 		TxExecutionOrderHandler:      tpn.TxExecutionOrderHandler,
 	}
-	tpn.TxCoordinator, _ = coordinator.NewTransactionCoordinator(argsTransactionCoordinator)
+	tpn.TxCoordinator, _ = tpn.RunTypeComponents.TransactionCoordinatorCreator().CreateTransactionCoordinator(argsTransactionCoordinator)
 	scheduledTxsExecutionHandler.SetTransactionCoordinator(tpn.TxCoordinator)
 }
 

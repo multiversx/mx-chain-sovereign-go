@@ -55,7 +55,6 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/state/blockInfoProviders"
-	stateFactory "github.com/multiversx/mx-chain-go/state/factory"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
@@ -715,13 +714,7 @@ func (tcn *TestFullNode) initInterceptors(
 		CacheExpiry: time.Second * 10,
 	}
 
-	argsAccFactory := stateFactory.ArgsAccountCreator{
-		Hasher:              coreComponents.Hasher(),
-		Marshaller:          coreComponents.InternalMarshalizer(),
-		EnableEpochsHandler: coreComponents.EnableEpochsHandler(),
-	}
-	accFactory, err := stateFactory.NewAccountCreator(argsAccFactory)
-	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountCreator")
+	accFactory := tcn.RunTypeComponents.AccountsCreator()
 	accountsAdapter, err := epochStartDisabled.NewAccountsAdapter(accFactory)
 	log.LogIfError(err, "in TestConsensusNode.initInterceptors.NewAccountsAdapter")
 
@@ -1037,7 +1030,7 @@ func (tpn *TestFullNode) initBlockProcessor(
 			AuctionListSelector:          auctionListSelector,
 			MaxNodesChangeConfigProvider: maxNodesChangeConfigProvider,
 		}
-		epochStartSystemSCProcessor, _ := metachain.NewSystemSCProcessor(argsEpochSystemSC)
+		epochStartSystemSCProcessor, _ := tpn.RunTypeComponents.SystemSCProcessorFactory().CreateSystemSCProcessor(argsEpochSystemSC)
 		tpn.EpochStartSystemSCProcessor = epochStartSystemSCProcessor
 
 		arguments := block.ArgMetaProcessor{

@@ -762,7 +762,7 @@ func CreateFullGenesisBlocks(
 		EnableEpochsFactory:     enablers.NewEnableEpochsFactory(),
 	}
 
-	genesisProcessor, _ := genesisProcess.NewGenesisBlockCreator(argsGenesis)
+	genesisProcessor, _ := runTypeComp.GenesisBlockCreatorFactory().CreateGenesisBlockCreator(argsGenesis)
 	genesisBlocks, _ := genesisProcessor.CreateGenesisBlocks()
 
 	return genesisBlocks
