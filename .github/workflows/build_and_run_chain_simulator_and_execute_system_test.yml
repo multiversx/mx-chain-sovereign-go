@@ -53,7 +53,7 @@ jobs:
           echo "CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" >> $GITHUB_ENV
 
           # Default target branches based on the PR base branch
-          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=MX-16890-merge-barnard-sovereign" >> $GITHUB_ENV
+          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
           echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
 
           # Always set MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH based on the PR base branch
