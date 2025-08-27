@@ -162,7 +162,8 @@ func (st *sovereignTrigger) shouldUpdateTrigger(headerHandler data.HeaderHandler
 		return false
 	}
 
-	isMetaStartOfEpochForCurrentOrOlderEpoch := headerHandler.GetEpoch() <= st.epoch
+	isMetaStartOfEpochForCurrentOrOlderEpoch := (headerHandler.GetEpoch() <= st.epoch+1) &&
+		(headerHandler.GetRound()-1 == st.currentRound)
 	return !isMetaStartOfEpochForCurrentOrOlderEpoch
 }
 

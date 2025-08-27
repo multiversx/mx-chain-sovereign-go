@@ -1139,3 +1139,22 @@ func CheckIfIndexesAreOutOfBound(
 
 	return nil
 }
+
+// GetPeerAccount returns the peer account from the db that is found for the given key
+func GetPeerAccount(key []byte, peerAccountsDB state.AccountsAdapter) (state.PeerAccountHandler, error) {
+	if check.IfNil(peerAccountsDB) {
+		return nil, ErrNilPeerAccountsAdapter
+	}
+
+	account, err := peerAccountsDB.LoadAccount(key)
+	if err != nil {
+		return nil, err
+	}
+
+	peerAcc, ok := account.(state.PeerAccountHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
+	}
+
+	return peerAcc, nil
+}

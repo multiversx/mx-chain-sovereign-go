@@ -407,6 +407,7 @@ func (boot *baseBootstrap) waitForHeaderAndProofByNonce() error {
 	case <-boot.chRcvHdrNonce:
 		return nil
 	case <-time.After(boot.waitTime):
+		log.Error("waitForHeaderAndProofByNonce timeout")
 		return process.ErrTimeIsOut
 	}
 }
@@ -417,6 +418,7 @@ func (boot *baseBootstrap) waitForHeaderAndProofByHash() error {
 	case <-boot.chRcvHdrHash:
 		return nil
 	case <-time.After(boot.waitTime):
+		log.Error("waitForHeaderAndProofByHash timeout")
 		return process.ErrTimeIsOut
 	}
 }
@@ -1527,6 +1529,7 @@ func (boot *baseBootstrap) waitForMiniBlocks() error {
 	case <-boot.chRcvMiniBlocks:
 		return nil
 	case <-time.After(boot.waitTime):
+		log.Error("waitForMiniBlocks timeout")
 		return process.ErrTimeIsOut
 	}
 }
