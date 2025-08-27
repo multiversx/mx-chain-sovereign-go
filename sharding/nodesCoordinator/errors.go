@@ -40,9 +40,6 @@ var ErrNilPreviousEpochConfig = errors.New("nil previous epoch config")
 // ErrEpochNodesConfigDoesNotExist signals that the epoch nodes configuration is missing
 var ErrEpochNodesConfigDoesNotExist = errors.New("epoch nodes configuration does not exist")
 
-// ErrInvalidConsensusGroupSize signals that the consensus size is invalid (e.g. value is negative)
-var ErrInvalidConsensusGroupSize = errors.New("invalid consensus group size")
-
 // ErrNilRandomness signals that a nil randomness source has been provided
 var ErrNilRandomness = errors.New("nil randomness source")
 
@@ -124,8 +121,16 @@ var ErrReceivedAuctionValidatorsBeforeStakingV4 = errors.New("should not have re
 // ErrNilEpochNotifier signals that a nil EpochNotifier has been provided
 var ErrNilEpochNotifier = errors.New("nil epoch notifier provided")
 
+// ErrNilChainParametersHandler signals that a nil chain parameters handler has been provided
+var ErrNilChainParametersHandler = errors.New("nil chain parameters handler")
+
+// ErrEmptyValidatorsList signals that the validators list is empty
+var ErrEmptyValidatorsList = errors.New("empty validators list")
+
 // ErrInvalidSovereignChainShardId signals that an invalid shard id was provided for sovereign shard id
 var ErrInvalidSovereignChainShardId = errors.New("shard id does not match core.SovereignChainShardId")
 
 // ErrMetachainShardIdNotFound signals that the MetachainShardId was not found
 var ErrMetachainShardIdNotFound = errors.New("core.MetachainShardId was not found")
+
+var errInvalidConsensusGroupSize = errors.New("invalid consensus group size")

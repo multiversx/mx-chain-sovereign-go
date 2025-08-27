@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -31,10 +33,46 @@ import (
 	"github.com/multiversx/mx-chain-go/update/genesis"
 	"github.com/multiversx/mx-chain-go/update/storing"
 	"github.com/multiversx/mx-chain-go/update/sync"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("update/factory")
+
+// ArgsExporter is the argument structure to create a new exporter
+type ArgsExporter struct {
+	CoreComponents                   process.CoreComponentsHolder
+	CryptoComponents                 process.CryptoComponentsHolder
+	StatusCoreComponents             process.StatusCoreComponentsHolder
+	NetworkComponents                mxFactory.NetworkComponentsHolder
+	HeaderValidator                  epochStart.HeaderValidator
+	DataPool                         dataRetriever.PoolsHolder
+	StorageService                   dataRetriever.StorageService
+	RequestHandler                   process.RequestHandler
+	ShardCoordinator                 sharding.Coordinator
+	ActiveAccountsDBs                map[state.AccountsDbIdentifier]state.AccountsAdapter
+	ExistingResolvers                dataRetriever.ResolversContainer
+	ExistingRequesters               dataRetriever.RequestersContainer
+	ExportFolder                     string
+	ExportTriesStorageConfig         config.StorageConfig
+	ExportStateStorageConfig         config.StorageConfig
+	ExportStateKeysConfig            config.StorageConfig
+	MaxTrieLevelInMemory             uint
+	WhiteListHandler                 process.WhiteListHandler
+	WhiteListerVerifiedTxs           process.WhiteListHandler
+	MainInterceptorsContainer        process.InterceptorsContainer
+	FullArchiveInterceptorsContainer process.InterceptorsContainer
+	NodesCoordinator                 nodesCoordinator.NodesCoordinator
+	HeaderSigVerifier                process.InterceptedHeaderSigVerifier
+	HeaderIntegrityVerifier          process.HeaderIntegrityVerifier
+	ValidityAttester                 process.ValidityAttester
+	RoundHandler                     process.RoundHandler
+	InterceptorDebugConfig           config.InterceptorResolverDebugConfig
+	MaxHardCapForMissingNodes        int
+	NumConcurrentTrieSyncers         int
+	TrieSyncerVersion                int
+	CheckNodesOnDisk                 bool
+	NodeOperationMode                common.NodeOperation
+	InterceptedDataVerifierFactory   process.InterceptedDataVerifierFactory
+}
 
 type exportHandlerFactory struct {
 	coreComponents                   process.CoreComponentsHolder
@@ -73,6 +111,7 @@ type exportHandlerFactory struct {
 	trieSyncerVersion                int
 	checkNodesOnDisk                 bool
 	nodeOperationMode                common.NodeOperation
+	interceptedDataVerifierFactory   process.InterceptedDataVerifierFactory
 
 	shardCoordinatorFactory sharding.ShardCoordinatorFactory
 }
@@ -560,6 +599,7 @@ func (e *exportHandlerFactory) createInterceptors() error {
 		FullArchiveInterceptorsContainer: e.fullArchiveInterceptorsContainer,
 		AntifloodHandler:                 e.networkComponents.InputAntiFloodHandler(),
 		NodeOperationMode:                e.nodeOperationMode,
+		InterceptedDataVerifierFactory:   e.interceptedDataVerifierFactory,
 		ShardCoordinatorFactory:          e.shardCoordinatorFactory,
 	}
 	fullSyncInterceptors, err := NewFullSyncInterceptorsContainerFactory(argsInterceptors)

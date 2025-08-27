@@ -7,7 +7,7 @@ import (
 
 // ExtraHeaderSigVerifierHandlerMock -
 type ExtraHeaderSigVerifierHandlerMock struct {
-	VerifyAggregatedSignatureCalled func(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error
+	VerifyAggregatedSignatureCalled func(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error
 	VerifyLeaderSignatureCalled     func(header data.HeaderHandler, leaderPubKey crypto.PublicKey) error
 	RemoveLeaderSignatureCalled     func(header data.HeaderHandler) error
 	RemoveAllSignaturesCalled       func(header data.HeaderHandler) error
@@ -15,9 +15,9 @@ type ExtraHeaderSigVerifierHandlerMock struct {
 }
 
 // VerifyAggregatedSignature -
-func (mock *ExtraHeaderSigVerifierHandlerMock) VerifyAggregatedSignature(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+func (mock *ExtraHeaderSigVerifierHandlerMock) VerifyAggregatedSignature(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 	if mock.VerifyAggregatedSignatureCalled != nil {
-		return mock.VerifyAggregatedSignatureCalled(header, multiSigVerifier, pubKeysSigners)
+		return mock.VerifyAggregatedSignatureCalled(proof, header, multiSigVerifier, pubKeysSigners)
 	}
 	return nil
 }

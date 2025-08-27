@@ -7,6 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/container"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 )
 

@@ -40,6 +40,11 @@ func (f *sovereignChainMessengerFactory) CreateShardChainMessenger(args broadcas
 	return broadcast.NewSovereignShardChainMessenger(argsSovereignShardChainMessenger)
 }
 
+// CreateDelayedBlockBroadcaster creates a delayed block broadcaster for sovereign chain run type
+func (f *sovereignChainMessengerFactory) CreateDelayedBlockBroadcaster(args *broadcast.ArgsDelayedBlockBroadcaster) (broadcast.DelayedBroadcaster, error) {
+	return broadcast.NewSovereignDelayedBlockBroadcaster(args)
+}
+
 // IsInterfaceNil checks if the underlying pointer is nil
 func (f *sovereignChainMessengerFactory) IsInterfaceNil() bool {
 	return f == nil

@@ -100,6 +100,8 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 					},
 				}
 
+				newCfg.AndromedaEnableEpoch = 2
+				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
 				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
@@ -149,7 +151,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	// all pub key ids from genesis are in ascending order
 	allPubKeyIDs := make([][]byte, 8)
 	for idx := 0; idx < 8; idx++ {
-		allPubKeyIDs[idx] = []byte{0x0, byte(idx)}
+		allPubKeyIDs[idx] = []byte{byte(idx)}
 	}
 
 	for epoch := 41; epoch <= 45; epoch++ {
@@ -321,7 +323,7 @@ func getCurrentValidatorIDs(
 	nodeHandler process.NodeHandler,
 	currentHeader data.HeaderHandler,
 ) [][]byte {
-	valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
+	_, valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
 		currentHeader.GetRandSeed(),
 		currentHeader.GetRound(),
 		core.SovereignChainShardId,
@@ -357,9 +359,9 @@ func getConsensusOwnersBalances(t *testing.T, nodeHandler process.NodeHandler) m
 	currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
 	nodesCoordinator := nodeHandler.GetProcessComponents().NodesCoordinator()
 
-	validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
+	_, validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
 	require.Nil(t, err)
-	require.Len(t, validators, nodesCoordinator.ConsensusGroupSize(core.SovereignChainShardId))
+	require.Len(t, validators, nodesCoordinator.ConsensusGroupSizeForShardAndEpoch(core.SovereignChainShardId, currentHeader.GetEpoch()))
 
 	allOwnersBalance := make(map[string]*big.Int)
 	for _, validator := range validators {

@@ -7,6 +7,8 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,6 +28,8 @@ func TestNewSovereignChainShardForkDetector_ShouldWork(t *testing.T) {
 		&testscommon.TimeCacheStub{},
 		&mock.BlockTrackerMock{},
 		0,
+		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		&dataRetrieverMock.ProofsPoolMock{},
 	)
 
 	scsfd, err := NewSovereignChainShardForkDetector(sfd)
@@ -41,6 +45,8 @@ func TestSovereignChainShardForkDetector_DoJobOnBHProcessedShouldWork(t *testing
 		&testscommon.TimeCacheStub{},
 		&mock.BlockTrackerMock{},
 		0,
+		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		&dataRetrieverMock.ProofsPoolMock{},
 	)
 
 	scsfd, _ := NewSovereignChainShardForkDetector(sfd)

@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -22,7 +23,7 @@ type sovereignChainMessenger struct {
 
 // ArgsSovereignShardChainMessenger defines a struct placeholder for args needed to create a sovereign shard chain messenger
 type ArgsSovereignShardChainMessenger struct {
-	DelayedBroadcaster   delayedBroadcaster
+	DelayedBroadcaster   DelayedBroadcaster
 	Marshaller           marshal.Marshalizer
 	Hasher               hashing.Hasher
 	ShardCoordinator     sharding.Coordinator
@@ -56,7 +57,12 @@ func NewSovereignShardChainMessenger(
 
 	scm.broadcasterFilterHandler = scm
 
-	err = scm.delayedBlockBroadcaster.SetBroadcastHandlers(scm.BroadcastMiniBlocks, scm.BroadcastTransactions, scm.BroadcastHeader)
+	err = scm.delayedBlockBroadcaster.SetBroadcastHandlers(
+		scm.BroadcastMiniBlocks,
+		scm.BroadcastTransactions,
+		scm.BroadcastHeader,
+		scm.BroadcastConsensusMessage,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +117,11 @@ func (scm *sovereignChainMessenger) BroadcastBlock(blockBody data.BodyHandler, h
 func (scm *sovereignChainMessenger) BroadcastHeader(header data.HeaderHandler, pkBytes []byte) error {
 	shardIdentifier := scm.shardCoordinator.CommunicationIdentifier(core.SovereignChainShardId)
 	return scm.broadcastHeader(header, pkBytes, shardIdentifier)
+}
+
+// BroadcastEquivalentProof will broadcast the proof for a header on the sovereign shard common topic
+func (scm *sovereignChainMessenger) BroadcastEquivalentProof(proof data.HeaderProofHandler, pkBytes []byte) error {
+	return scm.baseBroadcastEquivalentProof(core.SovereignChainShardId, proof, pkBytes)
 }
 
 func (scm *sovereignChainMessenger) shouldSkipShard(shardID uint32) bool {
