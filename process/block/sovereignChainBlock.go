@@ -1181,8 +1181,7 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet...)
 	body.MiniBlocks = finalMiniBlocks
 
-	// TODO: Here, MariusC , check this after merge:
-	// scbp.txCoordinator.AddTxsFromMiniBlocks([]*block.MiniBlock{outGoingMbChangeValidatorSet})
+	scbp.txCoordinator.AddTxsFromMiniBlocks(outGoingMbChangeValidatorSet)
 
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
