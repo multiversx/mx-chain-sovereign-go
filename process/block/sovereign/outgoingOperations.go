@@ -273,8 +273,13 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.Cha
 		return 0, nil, errEventIDNotFound
 	}
 
+	opData, err := opFormatter.CreateOperationData(event)
+	if err != nil {
+		return 0, nil, err
+	}
+
 	// TODO: MX-16831 Here, we should have contracts emitting chain id
-	return dto.MVX, opFormatter.CreateOperationData(event)
+	return dto.MVX, opData, err
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change

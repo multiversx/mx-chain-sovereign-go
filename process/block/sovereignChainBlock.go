@@ -383,7 +383,7 @@ func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperatio
 	// The rest of the mini-blocks, will be created and processed by all participants on ProcessBlock
 	return scbp.createAndSetOutGoingMiniBlock(
 		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
+		outGoingOperationChangeValidatorSet,
 		body,
 		block.OutGoingMbChangeValidatorSet,
 	)
@@ -1186,7 +1186,7 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 
 	scbp.nodesCoordinator.EpochStartPrepare(header, body)
 
-	pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
+	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
 	if err != nil {
 		return err
 	}
