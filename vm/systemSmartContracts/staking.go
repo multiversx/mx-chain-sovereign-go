@@ -222,6 +222,15 @@ func (s *stakingSC) addToStakedNodes(value int64) {
 	s.setConfig(stakeConfig)
 }
 
+func (s *stakingSC) addToStakedNodesAndMainChainID(value int64) *StakingNodesConfig {
+	stakeConfig := s.getConfig()
+	stakeConfig.StakedNodes += value
+	stakeConfig.LatestMainChainID += uint32(value)
+	s.setConfig(stakeConfig)
+
+	return stakeConfig
+}
+
 func (s *stakingSC) removeFromStakedNodes() {
 	stakeConfig := s.getConfig()
 	if stakeConfig.StakedNodes > 0 {
@@ -566,6 +575,13 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 
 func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
+
+		s.eei.AddLogEntry(&vmcommon.LogEntry{
+			Identifier: []byte("registerBlsKey"),
+			Topics:     [][]byte{blsKey},
+			Address:    vm.StakingSCAddress,
+		})
+
 		return s.processStakeV2(registrationData)
 	}
 
@@ -578,8 +594,9 @@ func (s *stakingSC) processStakeV2(registrationData *StakedDataV2_0) error {
 	}
 
 	registrationData.RegisterNonce = s.eei.BlockChainHook().CurrentNonce()
-	s.addToStakedNodes(1)
+	stakingConfig := s.addToStakedNodesAndMainChainID(1)
 	s.activeStakingFor(registrationData)
+	registrationData.MainChainID = stakingConfig.LatestMainChainID
 
 	return nil
 }

@@ -3,6 +3,7 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 )
 
 // OutgoingOperationsFormatter collects relevant outgoing events for bridge from the logs and creates outgoing data
@@ -20,11 +21,19 @@ type DataCodecHandler interface {
 	SerializeTokenData(tokenData sovereign.EsdtTokenData) ([]byte, error)
 	DeserializeTokenData(data []byte) (*sovereign.EsdtTokenData, error)
 	SerializeOperation(operation sovereign.Operation) ([]byte, error)
+	SerializeTokenProperties(properties dto.TokenProperties) ([]byte, error)
+	SerializeNewlyRegisteredKey(keyData dto.RegisteredBlsKey) ([]byte, error)
 	IsInterfaceNil() bool
 }
 
 // TopicsCheckerHandler should be able to check the topics validity
 type TopicsCheckerHandler interface {
 	CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error
+	IsInterfaceNil() bool
+}
+
+// OperationFormatter defines an operation formatter(like deposit tokens)
+type OperationFormatter interface {
+	CreateOperationData(event data.EventHandler) ([]byte, error)
 	IsInterfaceNil() bool
 }
