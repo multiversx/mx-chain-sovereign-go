@@ -6,15 +6,18 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/mock"
 	"github.com/multiversx/mx-chain-go/process"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/state"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/storage"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	vic "github.com/multiversx/mx-chain-go/testscommon/validatorInfoCacher"
-	"github.com/stretchr/testify/require"
 )
 
 func createArgsSovereignTrigger() ArgsSovereignTrigger {
@@ -64,7 +67,7 @@ func TestNewSovereignTrigger(t *testing.T) {
 				return &vic.ValidatorInfoCacherStub{}
 			},
 			HeadersCalled: func() dataRetriever.HeadersPool {
-				return &testscommon.HeadersCacherStub{
+				return &processMock.HeadersCacherStub{
 					RegisterHandlerCalled: func(handler func(header data.HeaderHandler, shardHeaderHash []byte)) {
 						wasRegisterCalled = true
 					},
@@ -82,6 +85,8 @@ func TestNewSovereignTrigger(t *testing.T) {
 }
 
 func TestSovereignTrigger_SetProcessed(t *testing.T) {
+	t.Parallel()
+
 	args := createArgsSovereignTrigger()
 	sovTrigger, _ := NewSovereignTrigger(args)
 
@@ -127,6 +132,8 @@ func TestSovereignTrigger_RevertStateToBlock(t *testing.T) {
 }
 
 func TestSovereignTrigger_receivedBlock(t *testing.T) {
+	t.Parallel()
+
 	args := createArgsSovereignTrigger()
 
 	wasNotifyPrepareCalled := false
@@ -172,7 +179,7 @@ func TestSovereignTrigger_receivedBlock(t *testing.T) {
 			return valInfoCacher
 		},
 		HeadersCalled: func() dataRetriever.HeadersPool {
-			return &testscommon.HeadersCacherStub{}
+			return &processMock.HeadersCacherStub{}
 		},
 	}
 
@@ -200,4 +207,68 @@ func TestSovereignTrigger_receivedBlock(t *testing.T) {
 	require.True(t, wasSyncValidatorsCalled)
 	require.True(t, wasSyncMBCalled)
 	require.True(t, wereValidatorsAdded)
+}
+
+func TestSovereignTrigger_LastCommitedEpochStartHdr(t *testing.T) {
+	t.Parallel()
+
+	args := createArgsSovereignTrigger()
+	sovTrigger, _ := NewSovereignTrigger(args)
+
+	t.Run("invalid epoch start block, should return error", func(t *testing.T) {
+		sovTrigger.epochStartMeta = &block.MetaBlock{}
+		retrievedHdr, err := sovTrigger.LastCommitedEpochStartHdr()
+		require.Nil(t, retrievedHdr)
+		require.NotNil(t, err)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		epochStartSovHdr := &block.SovereignChainHeader{
+			Header: &block.Header{
+				SoftwareVersion: process.SovereignHeaderVersion,
+			},
+			IsStartOfEpoch: true,
+		}
+		sovTrigger.epochStartMeta = epochStartSovHdr
+		retrievedHdr, err := sovTrigger.LastCommitedEpochStartHdr()
+		require.Nil(t, err)
+		require.Equal(t, epochStartSovHdr, retrievedHdr)
+	})
+}
+
+func TestSovereignTrigger_GetEpochStartHdrFromStorage(t *testing.T) {
+	t.Parallel()
+
+	args := createArgsSovereignTrigger()
+
+	epochStartSovHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			SoftwareVersion: process.SovereignHeaderVersion,
+		},
+		IsStartOfEpoch: true,
+	}
+	epochStartSovHdrBytes, _ := args.Marshalizer.Marshal(epochStartSovHdr)
+
+	args.Storage = &storageStubs.ChainStorerStub{
+		GetStorerCalled: func(unitType dataRetriever.UnitType) (storage.Storer, error) {
+			return &storageStubs.StorerStub{
+				GetCalled: func(key []byte) (bytes []byte, err error) {
+					return epochStartSovHdrBytes, nil
+				},
+				PutCalled: func(key, data []byte) error {
+					return nil
+				},
+				RemoveCalled: func(key []byte) error {
+					return nil
+				},
+				SearchFirstCalled: func(key []byte) (bytes []byte, err error) {
+					return epochStartSovHdrBytes, nil
+				},
+			}, nil
+		},
+	}
+	sovTrigger, _ := NewSovereignTrigger(args)
+	retrievedHdr, err := sovTrigger.GetEpochStartHdrFromStorage(1)
+	require.Nil(t, err)
+	require.Equal(t, epochStartSovHdr, retrievedHdr)
 }

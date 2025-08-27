@@ -40,7 +40,30 @@ var ErrNilOwnPublicKey = errors.New("nil own public key")
 // ErrNilEndOfProcessingHandler signals that a nil end of processing handler has been provided
 var ErrNilEndOfProcessingHandler = errors.New("nil end of processing handler")
 
-var errSovereignInvalidMetaConsensusSize = errors.New("invalid metachain config for sovereign")
+// ErrNilChainParametersProvider signals that a nil chain parameters provider has been given
+var ErrNilChainParametersProvider = errors.New("nil chain parameters provider")
+
+// ErrNilEpochStartEventNotifier signals that a nil epoch start event notifier has been provided
+var ErrNilEpochStartEventNotifier = errors.New("nil epoch start event notifier")
+
+// ErrMissingChainParameters signals that a nil chain parameters array has been provided
+var ErrMissingChainParameters = errors.New("empty chain parameters array")
+
+// ErrMissingConfigurationForEpochZero signals that no configuration for epoch 0 exists
+var ErrMissingConfigurationForEpochZero = errors.New("missing configuration for epoch 0")
+
+// ErrNoMatchingConfigurationFound signals that no matching configuration is found
+var ErrNoMatchingConfigurationFound = errors.New("no matching configuration found")
+
+// ErrNilChainParametersNotifier signals that a nil chain parameters notifier has been provided
+var ErrNilChainParametersNotifier = errors.New("nil chain parameters notifier")
+
+// ErrInvalidChainParametersForEpoch signals that an invalid chain parameters for epoch has been provided
+var ErrInvalidChainParametersForEpoch = errors.New("invalid chain parameters for epoch")
+
+var errSovereignInvalidMetaConsensusSize = errors.New("invalid metachain consensus size config for sovereign, should be zero")
+
+var errSovereignInvalidMetaNumNodes = errors.New("invalid metachain num nodes config for sovereign, should be zero")
 
 // ErrNilGenesisNodesSetupFactory signals that a nil genesis nodes setup factory has been provided
 var ErrNilGenesisNodesSetupFactory = errors.New("nil genesis nodes setup factory")

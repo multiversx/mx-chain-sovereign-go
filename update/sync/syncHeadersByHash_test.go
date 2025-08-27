@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -10,7 +11,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/process"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	dataRetrieverMocks "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/multiversx/mx-chain-go/update"
@@ -41,6 +46,14 @@ func TestNewMissingheadersByHashSyncer_NilParamsShouldErr(t *testing.T) {
 	nilRequestHandlerArgs.RequestHandler = nil
 	testInput[nilRequestHandlerArgs] = update.ErrNilRequestHandler
 
+	nilProofsPoolArgs := okArgs
+	nilProofsPoolArgs.ProofsPool = nil
+	testInput[nilProofsPoolArgs] = dataRetriever.ErrNilProofsPool
+
+	nilEnableEpochsHandlerArgs := okArgs
+	nilEnableEpochsHandlerArgs.EnableEpochsHandler = nil
+	testInput[nilEnableEpochsHandlerArgs] = process.ErrNilEnableEpochsHandler
+
 	nilCrossHeaderRequesterArgs := okArgs
 	nilCrossHeaderRequesterArgs.CrossHeaderRequester = nil
 	testInput[nilCrossHeaderRequesterArgs] = errNilCrossHeaderRequester
@@ -65,7 +78,7 @@ func TestSyncHeadersByHash_SyncMissingHeadersByHashHeaderFoundInCacheShouldWork(
 	t.Parallel()
 
 	args := getMisingHeadersByHashSyncerArgs()
-	args.Cache = &testscommon.HeadersCacherStub{
+	args.Cache = &processMock.HeadersCacherStub{
 		GetHeaderByHashCalled: func(_ []byte) (data.HeaderHandler, error) {
 			return &block.MetaBlock{Nonce: 37}, nil
 		},
@@ -80,7 +93,7 @@ func TestSyncHeadersByHash_SyncMissingHeadersByHashHeaderFoundInStorageShouldWor
 	t.Parallel()
 
 	args := getMisingHeadersByHashSyncerArgs()
-	args.Cache = &testscommon.HeadersCacherStub{
+	args.Cache = &processMock.HeadersCacherStub{
 		GetHeaderByHashCalled: func(_ []byte) (data.HeaderHandler, error) {
 			return nil, errors.New("not found")
 		},
@@ -103,7 +116,7 @@ func TestSyncHeadersByHash_SyncMissingHeadersByHashHeaderNotFoundShouldTimeout(t
 
 	var errNotFound = errors.New("not found")
 	args := getMisingHeadersByHashSyncerArgs()
-	args.Cache = &testscommon.HeadersCacherStub{
+	args.Cache = &processMock.HeadersCacherStub{
 		GetHeaderByHashCalled: func(_ []byte) (data.HeaderHandler, error) {
 			return nil, errNotFound
 		},
@@ -145,7 +158,7 @@ func TestSyncHeadersByHash_GetHeadersShouldReceiveAndReturnOkMb(t *testing.T) {
 			return nil, errNotFound
 		},
 	}
-	args.Cache = &testscommon.HeadersCacherStub{
+	args.Cache = &processMock.HeadersCacherStub{
 		GetHeaderByHashCalled: func(_ []byte) (data.HeaderHandler, error) {
 			return nil, errNotFound
 		},
@@ -153,19 +166,26 @@ func TestSyncHeadersByHash_GetHeadersShouldReceiveAndReturnOkMb(t *testing.T) {
 			handlerToNotify = handler
 		},
 	}
+
+	var wg sync.WaitGroup
+	expectedHash := []byte("hash")
+	expectedMB := &block.MetaBlock{Nonce: 37}
+	args.RequestHandler = &testscommon.RequestHandlerStub{
+		RequestShardHeaderCalled: func(shardID uint32, hash []byte) {
+			wg.Add(1)
+			go func() {
+				handlerToNotify(expectedMB, expectedHash)
+				wg.Done()
+			}()
+		},
+	}
+
 	mhhs, _ := NewMissingheadersByHashSyncer(args)
 	require.NotNil(t, mhhs)
 
-	expectedHash := []byte("hash")
-	expectedMB := &block.MetaBlock{Nonce: 37}
-	go func() {
-		time.Sleep(10 * time.Millisecond)
-		handlerToNotify(expectedMB, expectedHash)
-	}()
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	err := mhhs.SyncMissingHeadersByHash([]uint32{0}, [][]byte{[]byte("hash")}, ctx)
+	err := mhhs.SyncMissingHeadersByHash([]uint32{0}, [][]byte{[]byte("hash")}, context.Background())
 	require.NoError(t, err)
-	cancel()
+	wg.Wait()
 
 	res, err := mhhs.GetHeaders()
 	require.NoError(t, err)
@@ -180,10 +200,11 @@ func getMisingHeadersByHashSyncerArgs() ArgsNewMissingHeadersByHashSyncer {
 	requestHandler := &testscommon.RequestHandlerStub{}
 	metaHdrRequester, _ := NewMetaHeaderRequester(requestHandler)
 	return ArgsNewMissingHeadersByHashSyncer{
-		Storage:              genericMocks.NewStorerMock(),
-		Cache:                &testscommon.HeadersCacherStub{},
-		Marshalizer:          &mock.MarshalizerMock{},
+		Storage:    genericMocks.NewStorerMock(),
+		Cache:      &processMock.HeadersCacherStub{},
+		ProofsPool: &dataRetrieverMocks.ProofsPoolMock{}, Marshalizer: &mock.MarshalizerMock{},
 		RequestHandler:       requestHandler,
 		CrossHeaderRequester: metaHdrRequester,
+		EnableEpochsHandler:  &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 }

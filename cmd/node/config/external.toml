@@ -12,8 +12,8 @@
     Username          = ""
     Password          = ""
     # EnabledIndexes represents a slice of indexes that will be enabled for indexing. Full list is:
-    # ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts"]
-    EnabledIndexes    = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts"]
+    # ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts", "events"]
+    EnabledIndexes    = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "esdts", "events"]
 
 # MainChainElasticSearchConnector defines settings related to ElasticSearch such as login information or URL.
 # This enabled instance is used by sovereign observer nodes to request and index new incoming token data coming from other chains.

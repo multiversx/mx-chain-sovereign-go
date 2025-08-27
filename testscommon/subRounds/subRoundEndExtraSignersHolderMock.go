@@ -2,6 +2,7 @@ package subRounds
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 )
 
@@ -13,6 +14,7 @@ type SubRoundEndExtraSignersHolderMock struct {
 	SetAggregatedSignatureInHeaderCalled            func(header data.HeaderHandler, aggregatedSigs map[string][]byte) error
 	VerifyAggregatedSignaturesCalled                func(bitmap []byte, header data.HeaderHandler) error
 	HaveConsensusHeaderWithFullInfoCalled           func(header data.HeaderHandler, cnsMsg *consensus.Message) error
+	GetLeaderExtraSigCalled                         func(header data.HeaderHandler, id string) ([]byte, error)
 	RegisterExtraEndRoundSigAggregatorHandlerCalled func(extraSigner consensus.SubRoundEndExtraSignatureHandler) error
 }
 
@@ -62,6 +64,15 @@ func (mock *SubRoundEndExtraSignersHolderMock) HaveConsensusHeaderWithFullInfo(h
 		return mock.HaveConsensusHeaderWithFullInfoCalled(header, cnsMsg)
 	}
 	return nil
+}
+
+// GetLeaderExtraSig -
+func (mock *SubRoundEndExtraSignersHolderMock) GetLeaderExtraSig(header data.HeaderHandler, id string) ([]byte, error) {
+	if mock.GetLeaderExtraSigCalled != nil {
+		return mock.GetLeaderExtraSigCalled(header, id)
+	}
+
+	return nil, nil
 }
 
 // RegisterExtraSigningHandler -

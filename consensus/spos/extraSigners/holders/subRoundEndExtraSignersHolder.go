@@ -149,6 +149,19 @@ func (holder *subRoundEndExtraSignersHolder) HaveConsensusHeaderWithFullInfo(hea
 	return nil
 }
 
+// GetLeaderExtraSig calls GetLeaderExtraSig for the specified registered signer
+func (holder *subRoundEndExtraSignersHolder) GetLeaderExtraSig(header data.HeaderHandler, id string) ([]byte, error) {
+	holder.mutExtraSigners.RLock()
+	defer holder.mutExtraSigners.RUnlock()
+
+	extraSigner, found := holder.extraSigners[id]
+	if !found {
+		return nil, fmt.Errorf("%w for id: %s", errExtraSignerDoesNotExist, id)
+	}
+
+	return extraSigner.GetLeaderExtraSig(header)
+}
+
 // RegisterExtraSigningHandler calls RegisterExtraSigningHandler for all registered signers
 func (holder *subRoundEndExtraSignersHolder) RegisterExtraSigningHandler(extraSigner consensus.SubRoundEndExtraSignatureHandler) error {
 	if check.IfNil(extraSigner) {

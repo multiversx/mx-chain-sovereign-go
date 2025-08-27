@@ -6,6 +6,7 @@ import (
 	genesisMocks "github.com/multiversx/mx-chain-go/genesis/mock"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 	"github.com/multiversx/mx-chain-go/testscommon"
 )
 
@@ -14,6 +15,7 @@ type RunTypeCoreComponentsStub struct {
 	GenesisNodesSetupFactory sharding.GenesisNodesSetupFactory
 	RatingsDataFactory       rating.RatingsDataFactory
 	EnableEpochsFactory      enablers.EnableEpochsFactory
+	ChainParametersFactory   chainParamFactory.ChainParametersHolderFactory
 }
 
 // NewRunTypeCoreComponentsStub -
@@ -22,6 +24,7 @@ func NewRunTypeCoreComponentsStub() *RunTypeCoreComponentsStub {
 		GenesisNodesSetupFactory: &genesisMocks.GenesisNodesSetupFactoryMock{},
 		RatingsDataFactory:       &testscommon.RatingsDataFactoryMock{},
 		EnableEpochsFactory:      enablers.NewEnableEpochsFactory(),
+		ChainParametersFactory:   chainParamFactory.NewChainParametersHolderFactory(),
 	}
 }
 
@@ -31,6 +34,7 @@ func NewSovereignRunTypeCoreComponentsStub() *RunTypeCoreComponentsStub {
 		GenesisNodesSetupFactory: &genesisMocks.GenesisNodesSetupFactoryMock{},
 		RatingsDataFactory:       &testscommon.RatingsDataFactoryMock{},
 		EnableEpochsFactory:      enablers.NewSovereignEnableEpochsFactory(config.SovereignEpochConfig{}),
+		ChainParametersFactory:   chainParamFactory.NewSovereignChainParametersHolderFactory(),
 	}
 }
 
@@ -67,6 +71,11 @@ func (r *RunTypeCoreComponentsStub) RatingsDataFactoryCreator() rating.RatingsDa
 // EnableEpochsFactoryCreator -
 func (r *RunTypeCoreComponentsStub) EnableEpochsFactoryCreator() enablers.EnableEpochsFactory {
 	return r.EnableEpochsFactory
+}
+
+// ChainParametersHolderFactory -
+func (r *RunTypeCoreComponentsStub) ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory {
+	return r.ChainParametersFactory
 }
 
 // IsInterfaceNil -

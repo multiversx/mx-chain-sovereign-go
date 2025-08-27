@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
@@ -12,11 +17,6 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/trie/factory"
-
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 )
 
 func (e *epochStartBootstrap) initializeFromLocalStorage() {
@@ -131,6 +131,7 @@ func (e *epochStartBootstrap) prepareEpochFromStorage() (Parameters, error) {
 	if err != nil {
 		return Parameters{}, err
 	}
+	e.requestHandler.SetEpoch(e.epochStartMeta.GetEpoch())
 
 	err = e.createSyncers()
 	if err != nil {

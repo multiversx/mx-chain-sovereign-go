@@ -194,6 +194,8 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counter,
 		MissingTrieNodesNotifier: missingTrieNodesNotifier,
+		EpochStartTrigger:        epochStartTrigger,
+		RoundHandler:             pcf.coreData.RoundHandler(),
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -612,6 +614,8 @@ func (pcf *processComponentsFactory) createArgsMetaBlockProcessor(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		EpochStartTrigger:        epochStartTrigger,
+		RoundHandler:             pcf.coreData.RoundHandler(),
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -903,22 +907,22 @@ func (pcf *processComponentsFactory) createArgsMetaBlockProcessor(
 
 	argsEpochRewards := metachainEpochStart.RewardsCreatorProxyArgs{
 		BaseRewardsCreatorArgs: metachainEpochStart.BaseRewardsCreatorArgs{
-			ShardCoordinator:              pcf.bootstrapComponents.ShardCoordinator(),
-			PubkeyConverter:               pcf.coreData.AddressPubKeyConverter(),
-			RewardsStorage:                rewardsStorage,
-			MiniBlockStorage:              miniBlockStorage,
-			Hasher:                        pcf.coreData.Hasher(),
-			Marshalizer:                   pcf.coreData.InternalMarshalizer(),
-			DataPool:                      pcf.data.Datapool(),
-			ProtocolSustainabilityAddress: pcf.coreData.EconomicsData().ProtocolSustainabilityAddress(),
-			NodesConfigProvider:           pcf.nodesCoordinator,
-			UserAccountsDB:                pcf.state.AccountsAdapter(),
-			EnableEpochsHandler:           pcf.coreData.EnableEpochsHandler(),
-			ExecutionOrderHandler:         pcf.txExecutionOrderHandler,
+			ShardCoordinator:      pcf.bootstrapComponents.ShardCoordinator(),
+			PubkeyConverter:       pcf.coreData.AddressPubKeyConverter(),
+			RewardsStorage:        rewardsStorage,
+			MiniBlockStorage:      miniBlockStorage,
+			Hasher:                pcf.coreData.Hasher(),
+			Marshalizer:           pcf.coreData.InternalMarshalizer(),
+			DataPool:              pcf.data.Datapool(),
+			NodesConfigProvider:   pcf.nodesCoordinator,
+			UserAccountsDB:        pcf.state.AccountsAdapter(),
+			EnableEpochsHandler:   pcf.coreData.EnableEpochsHandler(),
+			ExecutionOrderHandler: pcf.txExecutionOrderHandler,
+			RewardsHandler:        pcf.coreData.EconomicsData(),
 		},
 		StakingDataProvider:   stakingDataProvider,
-		RewardsHandler:        pcf.coreData.EconomicsData(),
 		EconomicsDataProvider: economicsDataProvider,
+		RewardsHandler:        pcf.coreData.EconomicsData(),
 	}
 	epochRewards, err := pcf.runTypeComponents.RewardsCreatorFactory().CreateRewardsCreator(argsEpochRewards)
 	if err != nil {
@@ -1157,18 +1161,18 @@ func (pcf *processComponentsFactory) createExtraMetaBlockProcessorArgs(
 
 		argsEpochRewards := metachainEpochStart.RewardsCreatorProxyArgs{
 			BaseRewardsCreatorArgs: metachainEpochStart.BaseRewardsCreatorArgs{
-				ShardCoordinator:              pcf.bootstrapComponents.ShardCoordinator(),
-				PubkeyConverter:               pcf.coreData.AddressPubKeyConverter(),
-				RewardsStorage:                rewardsStorage,
-				MiniBlockStorage:              miniBlockStorage,
-				Hasher:                        pcf.coreData.Hasher(),
-				Marshalizer:                   pcf.coreData.InternalMarshalizer(),
-				DataPool:                      pcf.data.Datapool(),
-				ProtocolSustainabilityAddress: pcf.coreData.EconomicsData().ProtocolSustainabilityAddress(),
-				NodesConfigProvider:           pcf.nodesCoordinator,
-				UserAccountsDB:                pcf.state.AccountsAdapter(),
-				EnableEpochsHandler:           pcf.coreData.EnableEpochsHandler(),
-				ExecutionOrderHandler:         pcf.txExecutionOrderHandler,
+				ShardCoordinator:      pcf.bootstrapComponents.ShardCoordinator(),
+				PubkeyConverter:       pcf.coreData.AddressPubKeyConverter(),
+				RewardsStorage:        rewardsStorage,
+				MiniBlockStorage:      miniBlockStorage,
+				Hasher:                pcf.coreData.Hasher(),
+				Marshalizer:           pcf.coreData.InternalMarshalizer(),
+				DataPool:              pcf.data.Datapool(),
+				RewardsHandler:        pcf.coreData.EconomicsData(),
+				NodesConfigProvider:   pcf.nodesCoordinator,
+				UserAccountsDB:        pcf.state.AccountsAdapter(),
+				EnableEpochsHandler:   pcf.coreData.EnableEpochsHandler(),
+				ExecutionOrderHandler: pcf.txExecutionOrderHandler,
 			},
 			StakingDataProvider:   stakingDataProvider,
 			RewardsHandler:        pcf.coreData.EconomicsData(),
@@ -1319,6 +1323,7 @@ func (pcf *processComponentsFactory) createOutportDataProvider(
 		MbsStorer:              mbsStorer,
 		EnableEpochsHandler:    pcf.coreData.EnableEpochsHandler(),
 		ExecutionOrderGetter:   pcf.txExecutionOrderHandler,
+		ProofsPool:             pcf.data.Datapool().Proofs(),
 	})
 }
 

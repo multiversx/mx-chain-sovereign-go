@@ -2,6 +2,7 @@ package vm_test
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -32,9 +33,13 @@ func makeGasSchedule() core.GasScheduleNotifier {
 
 func createVmContainerMockArgument(gasSchedule core.GasScheduleNotifier) metachain.ArgsNewVMContainerFactory {
 	return metachain.ArgsNewVMContainerFactory{
-		BlockChainHook:      &testscommon.BlockChainHookStub{},
-		PubkeyConv:          testscommon.NewPubkeyConverterMock(32),
-		Economics:           &economicsmocks.EconomicsHandlerStub{},
+		BlockChainHook: &testscommon.BlockChainHookStub{},
+		PubkeyConv:     testscommon.NewPubkeyConverterMock(32),
+		Economics: &economicsmocks.EconomicsHandlerMock{
+			GenesisTotalSupplyCalled: func() *big.Int {
+				return big.NewInt(10)
+			},
+		},
 		MessageSignVerifier: &mock.MessageSignVerifierMock{},
 		GasSchedule:         gasSchedule,
 		NodesConfigProvider: &mock.NodesConfigProviderStub{},

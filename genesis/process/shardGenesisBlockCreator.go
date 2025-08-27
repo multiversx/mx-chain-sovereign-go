@@ -21,6 +21,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/holders"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever/blockchain"
+	epochStart "github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/factory/vm"
 	"github.com/multiversx/mx-chain-go/genesis"
 	"github.com/multiversx/mx-chain-go/genesis/process/disabled"
@@ -413,6 +414,8 @@ func createProcessorsForShardGenesisBlock(arg ArgsGenesisBlockCreator, enableEpo
 		GasSchedule:              arg.GasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		EpochStartTrigger:        epochStart.NewEpochStartTrigger(),
+		RoundHandler:             &disabled.RoundHandler{},
 	}
 	esdtTransferParser, err := parsers.NewESDTTransferParser(arg.Core.InternalMarshalizer())
 	if err != nil {

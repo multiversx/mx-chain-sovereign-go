@@ -207,6 +207,10 @@ updateNodeConfig() {
 	  sed -i '/^\[MainChainElasticSearchConnector\]/,/^\[/ s/Enabled *= *false/Enabled = true/' external_observer.toml
 	fi
 
+	if [ $SHARD_OBSERVERCOUNT -gt 0 ]; then
+	  sed -i '/^\[\[HostDriversConfig\]\]/,/^\[/ s/Enabled *= *true/Enabled = false/' external_validator.toml
+	fi
+
   sed -i '/^\[DbLookupExtensions\]/,/^\[/ s/Enabled *= *false/Enabled = true/' config_observer.toml
 
   cp nodesSetup_edit.json nodesSetup.json
@@ -222,8 +226,23 @@ updateNodeConfig() {
   updateTOMLValue config_validator.toml "Hrp" "\"$ADDRESS_HRP"\"
   updateTOMLValue config_observer.toml "Hrp" "\"$ADDRESS_HRP"\"
 
+  # Update chain parameters
+  updateChainParameters config_observer.toml
+  updateChainParameters config_validator.toml
+
   echo "Updated configuration for Nodes."
   popd
+}
+
+updateChainParameters() {
+  tomlFile=$1
+
+  sed -i "s,ShardConsensusGroupSize\([^,]*\),ShardConsensusGroupSize = $SHARD_CONSENSUS_SIZE," $tomlFile
+  sed -i "s,ShardMinNumNodes\([^,]*\),ShardMinNumNodes = $SHARD_CONSENSUS_SIZE," $tomlFile
+  sed -i "s,MetachainConsensusGroupSize\([^,]*\),MetachainConsensusGroupSize = $META_CONSENSUS_SIZE," $tomlFile
+  sed -i "s,MetachainMinNumNodes\([^,]*\),MetachainMinNumNodes = $META_CONSENSUS_SIZE," $tomlFile
+  sed -i "s,RoundDuration\([^,]*\),RoundDuration = $ROUND_DURATION_IN_MS," $tomlFile
+  sed -i "s,Hysteresis\([^,]*\),Hysteresis = $HYSTERESIS," $tomlFile
 }
 
 updateConfigsForStakingV4() {
