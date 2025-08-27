@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	blsSov "github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -113,7 +114,7 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{})
 	sovEndRound, _ := blsSov.NewSovereignSubRoundEndRound(
 		sr,
-		&sovereign.OutGoingOperationsPoolMock{},
+		&sovereign.ShardedOutGoingOperationsPoolMock{},
 		&sovereign.BridgeOperationsHandlerMock{},
 	)
 

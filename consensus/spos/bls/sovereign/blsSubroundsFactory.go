@@ -3,6 +3,7 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	sovData "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -17,7 +18,7 @@ type ArgsSovereignSubRoundsFactory struct {
 	Worker                 spos.WorkerHandler
 	OutportHandler         outport.OutportHandler
 	BaseSubRoundsFactory   SubRoundsFactoryHandler
-	OutGoingOperationsPool bls.OutGoingOperationsPool
+	OutGoingOperationsPool sovData.ShardedOutGoingOperationPool
 	BridgeOpHandler        bls.BridgeOperationsHandler
 }
 
@@ -31,7 +32,7 @@ type factory struct {
 	outportHandler       outport.OutportHandler
 	baseSubRoundsFactory SubRoundsFactoryHandler
 
-	outGoingOperationsPool bls.OutGoingOperationsPool
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool
 	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
@@ -68,7 +69,7 @@ func checkNewFactoryParams(
 	state spos.ConsensusStateHandler,
 	worker spos.WorkerHandler,
 	baseSubRoundsFactory SubRoundsFactoryHandler,
-	outGoingOperationsPool bls.OutGoingOperationsPool,
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
 ) error {
 	err := spos.ValidateConsensusCore(container)

@@ -22,14 +22,14 @@ import (
 type sovereignSubRoundEnd struct {
 	bls.SubRoundEndHandler
 	outGoingOperationsPool sovData.ShardedOutGoingOperationPool
-	bridgeOpHandler        BridgeOperationsHandler
+	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndRound creates a new sovereign end subround
 func NewSovereignSubRoundEndRound(
 	subroundBlock bls.SubRoundEndHandler,
 	outGoingOperationsPool sovData.ShardedOutGoingOperationPool,
-	bridgeOpHandler BridgeOperationsHandler,
+	bridgeOpHandler bls.BridgeOperationsHandler,
 ) (*sovereignSubRoundEnd, error) {
 	if check.IfNil(subroundBlock) {
 		return nil, spos.ErrNilSubround
