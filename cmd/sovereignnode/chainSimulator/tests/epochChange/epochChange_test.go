@@ -11,7 +11,7 @@ import (
 	apiData "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	coreDTO "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -108,8 +108,8 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
 				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
-					dto.MVX.String(): {StartRound: 4},
-					dto.ETH.String(): {StartRound: 5},
+					coreDTO.MVX.String(): {StartRound: 4},
+					coreDTO.ETH.String(): {StartRound: 5},
 				}
 
 				sovConfig = cfg.GeneralConfig.SovereignConfig

@@ -1184,28 +1184,6 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	// TODO: Here, MariusC , check this after merge:
 	// scbp.txCoordinator.AddTxsFromMiniBlocks([]*block.MiniBlock{outGoingMbChangeValidatorSet})
 
-	scbp.nodesCoordinator.EpochStartPrepare(header, body)
-
-	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(header.GetRandSeed(), header.GetRound(), core.SovereignChainShardId, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
-	if err != nil {
-		return err
-	}
-
-	err = scbp.createAndSetOutGoingMiniBlock(
-		header,
-		outGoingOperationChangeValidatorSet,
-		body,
-		block.OutGoingMbChangeValidatorSet,
-	)
-	if err != nil {
-		return err
-	}
-
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
 

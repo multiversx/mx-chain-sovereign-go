@@ -862,9 +862,11 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		}
 
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
-		outGoingOp := []byte("outGoingOp")
+		outGoingOp := map[dto.ChainID][][]byte{
+			dto.MVX: {[]byte("outGoingOp")},
+		}
 		sovArgs.OutgoingOperationsFormatter = &sovereign.OutgoingOperationsFormatterMock{
-			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) ([]byte, error) {
+			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error) {
 				require.Equal(t, expectedPubKeys, pubKeys)
 				require.Equal(t, epoch, nextEpoch)
 				return outGoingOp, nil
@@ -880,7 +882,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 
 				switch hasherCalledCt {
 				case 1:
-					require.Equal(t, string(outGoingOp), s)
+					require.Equal(t, string(outGoingOp[dto.MVX][0]), s)
 					return outGoingOpHash
 				case 2:
 					require.Equal(t, string(outGoingOpHash), s)
@@ -1274,9 +1276,11 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		}
 
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
-		outGoingOp := []byte("outGoingOp")
+		outGoingOp := map[dto.ChainID][][]byte{
+			dto.MVX: {[]byte("outGoingOp")},
+		}
 		sovArgs.OutgoingOperationsFormatter = &sovereign.OutgoingOperationsFormatterMock{
-			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) ([]byte, error) {
+			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error) {
 				require.Equal(t, expectedPubKeys, pubKeys)
 				require.Equal(t, epoch, sovHeader.GetEpoch())
 				return outGoingOp, nil
@@ -1292,7 +1296,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 
 				switch hasherCalledCt {
 				case 1:
-					require.Equal(t, string(outGoingOp), s)
+					require.Equal(t, string(outGoingOp[dto.MVX][0]), s)
 					return outGoingOpHash
 				case 2:
 					require.Equal(t, string(outGoingOpHash), s)
