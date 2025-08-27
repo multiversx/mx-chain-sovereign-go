@@ -685,7 +685,7 @@
 [StateTriesConfig]
     SnapshotsEnabled = true
     AccountsStatePruningEnabled = false
-    PeerStatePruningEnabled = true
+    PeerStatePruningEnabled = false
     MaxStateTrieLevelInMemory = 5
     MaxPeerTrieLevelInMemory = 5
     StateStatisticsEnabled = false
