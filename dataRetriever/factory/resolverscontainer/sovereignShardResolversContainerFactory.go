@@ -3,6 +3,7 @@ package resolverscontainer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/resolvers"
@@ -72,6 +73,11 @@ func (srcf *sovereignShardResolversContainerFactory) Create() (dataRetriever.Res
 	}
 
 	err = srcf.generateSovereignExtendedHeaderResolvers()
+	if err != nil {
+		return nil, err
+	}
+
+	err = srcf.generateEquivalentProofsResolvers()
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +164,21 @@ func (srcf *sovereignShardResolversContainerFactory) generateMiniBlocksResolvers
 	}
 
 	return srcf.container.Add(identifierMiniBlocks, resolver)
+}
+
+func (srcf *sovereignShardResolversContainerFactory) generateEquivalentProofsResolvers() error {
+	shardC := srcf.shardCoordinator
+
+	identifier := common.EquivalentProofsTopic + shardC.CommunicationIdentifier(core.SovereignChainShardId)
+	resolver, err := srcf.createEquivalentProofsResolver(
+		identifier,
+		shardC.SelfId(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return srcf.container.Add(identifier, resolver)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

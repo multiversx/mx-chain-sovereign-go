@@ -15,7 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-type fillBaseRewardsPerBlockPerNodeFunc func(baseRewardsPerNode *big.Int)
+type fillBaseRewardsPerBlockPerNodeFunc func(baseRewardsPerNode *big.Int, epoch uint32)
 
 type sovereignRewards struct {
 	*rewardsCreatorV2
@@ -75,7 +75,7 @@ func (rc *sovereignRewards) CreateRewardsMiniBlocks(
 		return nil, err
 	}
 
-	nodesRewardInfo, dustFromRewardsPerNode := rc.computeRewardsPerNode(validatorsInfo)
+	nodesRewardInfo, dustFromRewardsPerNode := rc.computeRewardsPerNode(validatorsInfo, metaBlock.GetEpoch())
 	log.Debug("arithmetic difference from dust rewards per node", "value", dustFromRewardsPerNode)
 
 	dust, err := rc.addValidatorRewardsToMiniBlocks(metaBlock, miniBlocks, nodesRewardInfo)
@@ -171,9 +171,9 @@ func (rc *sovereignRewards) finalizeMiniBlocks(miniBlocks block.MiniBlockSlice) 
 	return finalMiniBlocks
 }
 
-func (rc *sovereignRewards) fillBaseRewardsPerBlockPerNode(baseRewardsPerNode *big.Int) {
+func (rc *sovereignRewards) fillBaseRewardsPerBlockPerNode(baseRewardsPerNode *big.Int, epoch uint32) {
 	shardID := core.SovereignChainShardId
-	consensusSize := big.NewInt(int64(rc.nodesConfigProvider.ConsensusGroupSize(shardID)))
+	consensusSize := big.NewInt(int64(rc.getConsensusGroupSizeForShardAndEpoch(shardID, epoch)))
 
 	rc.mapBaseRewardsPerBlockPerValidator = make(map[uint32]*big.Int)
 	rc.mapBaseRewardsPerBlockPerValidator[shardID] = big.NewInt(0).Div(baseRewardsPerNode, consensusSize)

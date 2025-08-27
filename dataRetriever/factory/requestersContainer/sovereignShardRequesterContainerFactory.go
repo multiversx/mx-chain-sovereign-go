@@ -3,6 +3,7 @@ package requesterscontainer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers/requesters"
@@ -48,6 +49,11 @@ func (srcf *sovereignShardRequestersContainerFactory) Create() (dataRetriever.Re
 	}
 
 	err = srcf.generateExtendedShardHeaderRequesters()
+	if err != nil {
+		return nil, err
+	}
+
+	err = srcf.generateEquivalentProofsRequesters()
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +138,23 @@ func (srcf *sovereignShardRequestersContainerFactory) generateExtendedShardHeade
 	}
 
 	return srcf.container.Add(identifierHdr, requester)
+}
+
+func (srcf *sovereignShardRequestersContainerFactory) generateEquivalentProofsRequesters() error {
+	shardC := srcf.shardCoordinator
+
+	identifier := common.EquivalentProofsTopic + shardC.CommunicationIdentifier(core.SovereignChainShardId)
+	requester, err := srcf.createEquivalentProofsRequester(
+		identifier,
+		0,
+		srcf.numIntraShardPeers,
+		shardC.SelfId(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return srcf.container.Add(identifier, requester)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

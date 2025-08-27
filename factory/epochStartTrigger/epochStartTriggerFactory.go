@@ -48,8 +48,9 @@ func (f *epochStartTriggerFactory) CreateEpochStartTrigger(args factory.ArgsEpoc
 
 func createShardEpochStartTrigger(args factory.ArgsEpochStartTrigger) (epochStart.TriggerHandler, error) {
 	argsHeaderValidator := block.ArgsHeaderValidator{
-		Hasher:      args.CoreData.Hasher(),
-		Marshalizer: args.CoreData.InternalMarshalizer(),
+		Hasher:              args.CoreData.Hasher(),
+		Marshalizer:         args.CoreData.InternalMarshalizer(),
+		EnableEpochsHandler: args.CoreData.EnableEpochsHandler(),
 	}
 	headerValidator, err := args.RunTypeComponentsHolder.HeaderValidatorCreator().CreateHeaderValidator(argsHeaderValidator)
 	if err != nil {

@@ -342,6 +342,9 @@
     # ConsensusModelV2EnableEpoch represents the epoch when the consensus model V2 is enabled
     ConsensusModelV2EnableEpoch = 0
 
+    # AndromedaEnableEpoch represents the epoch when the equivalent messages and fix order for consensus features are enabled
+    AndromedaEnableEpoch = 0
+
     # BLSMultiSignerEnableEpoch represents the activation epoch for different types of BLS multi-signers
     BLSMultiSignerEnableEpoch = [
         { EnableEpoch = 0, Type = "KOSK"}

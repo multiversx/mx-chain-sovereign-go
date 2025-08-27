@@ -13,12 +13,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/multiversx/mx-chain-go/common"
+	retriever "github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	processBlock "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/process/track"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
+	"github.com/multiversx/mx-chain-go/testscommon/pool"
 )
 
 // CreateSovereignChainShardTrackerMockArguments -
@@ -28,8 +33,9 @@ func CreateSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 	shardBlockTrackArguments.RequestHandler = &testscommon.ExtendedShardHeaderRequestHandlerStub{}
 
 	argsHeaderValidator := processBlock.ArgsHeaderValidator{
-		Hasher:      &hashingMocks.HasherMock{},
-		Marshalizer: &mock.MarshalizerMock{},
+		Hasher:              &hashingMocks.HasherMock{},
+		Marshalizer:         &mock.MarshalizerMock{},
+		EnableEpochsHandler: shardBlockTrackArguments.EnableEpochsHandler,
 	}
 	headerValidator, _ := processBlock.NewHeaderValidator(argsHeaderValidator)
 	sovereignChainHeaderValidator, _ := processBlock.NewSovereignChainHeaderValidator(headerValidator)
@@ -836,4 +842,55 @@ func TestSovereignChainShardBlockTrack_InitCrossNotarizedStartHeadersShouldWork(
 		assert.Equal(t, extendedSelfStartHeader, lastCrossNotarizedHeader)
 		assert.Equal(t, extendedSelfStartHeaderHash, lastCrossNotarizedHeaderHash)
 	})
+}
+
+func TestSovereignChainShardBlockTrack_doReceivedHeaderJobWithAndromedaNoProof(t *testing.T) {
+	t.Parallel()
+
+	args := CreateSovereignChainShardTrackerMockArguments()
+
+	hdrHash := []byte("hash")
+
+	wasProofsPoolQueried := false
+
+	args.PoolsHolder = &dataRetriever.PoolsHolderStub{
+		ProofsCalled: func() retriever.ProofsPool {
+			return &dataRetriever.ProofsPoolMock{
+				HasProofCalled: func(shardID uint32, headerHash []byte) bool {
+					require.Equal(t, core.SovereignChainShardId, shardID)
+					require.Equal(t, hdrHash, headerHash)
+					wasProofsPoolQueried = true
+
+					return false
+				},
+			}
+		},
+		HeadersCalled: func() retriever.HeadersPool {
+			return &pool.HeadersPoolStub{}
+		},
+	}
+	wasHdrAdded := false
+	args.WhitelistHandler = &testscommon.WhiteListHandlerStub{
+		AddCalled: func(keys [][]byte) {
+			wasHdrAdded = true
+		},
+	}
+
+	args.EnableEpochsHandler = &enableEpochsHandlerMock.EnableEpochsHandlerStub{
+		IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+			return flag == common.AndromedaFlag
+		},
+	}
+
+	sbt, _ := track.NewShardBlockTrack(args)
+	scsbt, _ := track.NewSovereignChainShardBlockTrack(sbt)
+
+	sovHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			Nonce: 1,
+		},
+	}
+	scsbt.DoReceivedHeaderJob(sovHdr, hdrHash)
+	require.False(t, wasHdrAdded)
+	require.True(t, wasProofsPoolQueried)
 }

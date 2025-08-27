@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
@@ -14,7 +16,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSovereignShardResolversContainerFactory(t *testing.T) {
@@ -70,8 +71,10 @@ func TestSovereignShardResolversContainerFactory_Create(t *testing.T) {
 	numResolverPeerAuth := 1
 	numResolverValidatorInfo := 1
 	numResolverExtendedHeader := 1
+	numResolverEqProofs := 1
 	totalResolvers := numResolverTxs + numResolverHeaders + numResolverMiniBlocks + numResolverMetaBlockHeaders +
-		numResolverSCRs + numResolverRewardTxs + numResolverTrieNodes + numResolverPeerAuth + numResolverValidatorInfo + numResolverExtendedHeader
+		numResolverSCRs + numResolverRewardTxs + numResolverTrieNodes + numResolverPeerAuth + numResolverValidatorInfo +
+		numResolverExtendedHeader + numResolverEqProofs
 
 	require.Equal(t, totalResolvers, container.Len())
 	require.Equal(t, totalResolvers, registerMainCnt)
@@ -88,6 +91,7 @@ func TestSovereignShardResolversContainerFactory_Create(t *testing.T) {
 		common.PeerAuthenticationTopic:                   {},
 		common.ValidatorInfoTopic + sovShardIDStr:        {},
 		factory.ExtendedHeaderProofTopic + sovShardIDStr: {},
+		common.EquivalentProofsTopic + sovShardIDStr:     {},
 	}
 
 	iterateFunc := func(key string, resolver dataRetriever.Resolver) bool {

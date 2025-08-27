@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-go/config"
 
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
@@ -16,29 +17,36 @@ type SovereignNodesSetup struct {
 
 // SovereignNodesSetupArgs is a struct placeholder for sovereign nodes setup args
 type SovereignNodesSetupArgs struct {
-	NodesFilePath            string
+	NodesConfig              config.NodesConfig
 	AddressPubKeyConverter   core.PubkeyConverter
 	ValidatorPubKeyConverter core.PubkeyConverter
+	ChainParametersProvider  ChainParametersHandler
 }
 
 // NewSovereignNodesSetup  creates a new decoded sovereign nodes structure from json config file
 func NewSovereignNodesSetup(args *SovereignNodesSetupArgs) (*SovereignNodesSetup, error) {
 	if check.IfNil(args.AddressPubKeyConverter) {
-		return nil, fmt.Errorf("%w for addressPubKeyConverter", ErrNilPubkeyConverter)
+		return nil, fmt.Errorf("%w for addressPubkeyConverter in NewSovereignNodesSetup", ErrNilPubkeyConverter)
 	}
 	if check.IfNil(args.ValidatorPubKeyConverter) {
-		return nil, fmt.Errorf("%w for validatorPubKeyConverter", ErrNilPubkeyConverter)
+		return nil, fmt.Errorf("%w for validatorPubkeyConverter in NewSovereignNodesSetup", ErrNilPubkeyConverter)
+	}
+	if check.IfNil(args.ChainParametersProvider) {
+		return nil, fmt.Errorf("%w in NewSovereignNodesSetup", ErrNilChainParametersProvider)
+	}
+
+	genesisParams, err := args.ChainParametersProvider.ChainParametersForEpoch(0)
+	if err != nil {
+		return nil, fmt.Errorf("NewSovereignNodesSetup: %w while fetching parameters for epoch 0", err)
 	}
 
 	nodes := &NodesSetup{
 		addressPubkeyConverter:   args.AddressPubKeyConverter,
 		validatorPubkeyConverter: args.ValidatorPubKeyConverter,
+		genesisChainParameters:   genesisParams,
 	}
 
-	err := core.LoadJsonFile(nodes, args.NodesFilePath)
-	if err != nil {
-		return nil, err
-	}
+	initNodesSetup(nodes, args.NodesConfig)
 
 	sovereignNodes := &SovereignNodesSetup{
 		NodesSetup: nodes,
@@ -61,24 +69,24 @@ func (ns *SovereignNodesSetup) processSovereignConfig() error {
 
 	ns.nrOfNodes = 0
 	ns.nrOfMetaChainNodes = 0
-	ns.nrOfShards = 1
+	ns.numberOfShards = 1
 	err = ns.processInitialNodes()
 	if err != nil {
 		return err
 	}
 
-	if ns.ConsensusGroupSize < 1 {
+	if ns.genesisChainParameters.ShardConsensusGroupSize < 1 {
 		return ErrNegativeOrZeroConsensusGroupSize
 	}
-	if ns.MinNodesPerShard < ns.ConsensusGroupSize {
+	if ns.genesisChainParameters.ShardMinNumNodes < ns.genesisChainParameters.ShardConsensusGroupSize {
 		return ErrMinNodesPerShardSmallerThanConsensusSize
 	}
-	if ns.nrOfNodes < ns.MinNodesPerShard {
+	if ns.nrOfNodes < ns.genesisChainParameters.ShardMinNumNodes {
 		return ErrNodesSizeSmallerThanMinNoOfNodes
 	}
 
-	if ns.MetaChainMinNodes != 0 || ns.MetaChainConsensusGroupSize != 0 {
-		return fmt.Errorf("%w, min nodes and consensus size should be set to", errSovereignInvalidMetaConsensusSize)
+	if ns.genesisChainParameters.MetachainMinNumNodes != 0 || ns.genesisChainParameters.MetachainConsensusGroupSize != 0 {
+		return fmt.Errorf("%w, min nodes and consensus size should be set to zero", errSovereignInvalidMetaConsensusSize)
 	}
 
 	return nil
@@ -95,7 +103,7 @@ func (ns *SovereignNodesSetup) processSovereignShardAssignment() {
 }
 
 func (ns *SovereignNodesSetup) createSovereignInitialNodesInfo() {
-	ns.eligible = make(map[uint32][]nodesCoordinator.GenesisNodeInfoHandler, ns.nrOfShards)
+	ns.eligible = make(map[uint32][]nodesCoordinator.GenesisNodeInfoHandler, ns.numberOfShards)
 	ns.waiting = make(map[uint32][]nodesCoordinator.GenesisNodeInfoHandler, 0)
 	for _, in := range ns.InitialNodes {
 		if in.pubKey != nil && in.address != nil {

@@ -5,40 +5,55 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/sharding/mock"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
+	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func createSovereignMockNodesSetup() SovereignNodesSetup {
+func createSovereignMockNodesSetup(args argsTestNodesSetup) SovereignNodesSetup {
+	nodesSetup := &NodesSetup{
+		genesisChainParameters: config.ChainParametersByEpochConfig{
+			EnableEpoch:                 0,
+			ShardMinNumNodes:            args.shardMinNodes,
+			ShardConsensusGroupSize:     args.shardConsensusSize,
+			MetachainMinNumNodes:        args.metaMinNodes,
+			MetachainConsensusGroupSize: args.metaConsensusSize,
+		},
+		addressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
+		validatorPubkeyConverter: mock.NewPubkeyConverterMock(96),
+	}
+
+	initNodesSetup(nodesSetup, config.NodesConfig{InitialNodes: createInitialNodes()})
+
 	return SovereignNodesSetup{
-		NodesSetup: &NodesSetup{
-			ConsensusGroupSize:          2,
-			MinNodesPerShard:            2,
-			MetaChainMinNodes:           0,
-			MetaChainConsensusGroupSize: 0,
-			addressPubkeyConverter:      mock.NewPubkeyConverterMock(32),
-			validatorPubkeyConverter:    mock.NewPubkeyConverterMock(96),
-			InitialNodes: []*InitialNode{
-				{
-					PubKey:  pubKeys[0],
-					Address: address[0],
-				},
-				{
-					PubKey:  pubKeys[1],
-					Address: address[1],
-				},
-			},
+		NodesSetup: nodesSetup,
+	}
+}
+
+func createInitialNodes() []*config.InitialNodeConfig {
+	return []*config.InitialNodeConfig{
+		{
+			PubKey:  pubKeys[0],
+			Address: address[0],
+		},
+		{
+			PubKey:  pubKeys[1],
+			Address: address[1],
 		},
 	}
 }
 
 func createSovereignNodesSetupArgs() *SovereignNodesSetupArgs {
 	return &SovereignNodesSetupArgs{
-		NodesFilePath:            "mock/testdata/sovereignNodesSetupMock.json",
+		NodesConfig: config.NodesConfig{
+			InitialNodes: createInitialNodes(),
+		},
 		AddressPubKeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubKeyConverter: mock.NewPubkeyConverterMock(32),
+		ChainParametersProvider:  &chainParameters.ChainParametersHolderMock{},
 	}
 }
 
@@ -54,7 +69,7 @@ func TestNewSovereignNodesSetupErrorCases(t *testing.T) {
 		ns, err := NewSovereignNodesSetup(args)
 		require.Nil(t, ns)
 		require.ErrorIs(t, err, ErrNilPubkeyConverter)
-		require.True(t, strings.Contains(err.Error(), "addressPubKeyConverter"))
+		require.True(t, strings.Contains(err.Error(), "addressPubkeyConverter"))
 	})
 
 	t.Run("nil validator converter", func(t *testing.T) {
@@ -66,18 +81,18 @@ func TestNewSovereignNodesSetupErrorCases(t *testing.T) {
 		ns, err := NewSovereignNodesSetup(args)
 		require.Nil(t, ns)
 		require.ErrorIs(t, err, ErrNilPubkeyConverter)
-		require.True(t, strings.Contains(err.Error(), "validatorPubKeyConverter"))
+		require.True(t, strings.Contains(err.Error(), "validatorPubkeyConverter"))
 	})
 
-	t.Run("invalid nodes file path", func(t *testing.T) {
+	t.Run("nil chain parameters provider", func(t *testing.T) {
 		t.Parallel()
 
 		args := createSovereignNodesSetupArgs()
-		args.NodesFilePath = ""
+		args.ChainParametersProvider = nil
 
 		ns, err := NewSovereignNodesSetup(args)
 		require.Nil(t, ns)
-		require.NotNil(t, err)
+		require.ErrorIs(t, err, ErrNilChainParametersProvider)
 	})
 }
 
@@ -88,17 +103,31 @@ func TestNewSovereignNodesSetupShouldWork(t *testing.T) {
 	validatorPubKeyConverter := mock.NewPubkeyConverterMock(96)
 	ns, err := NewSovereignNodesSetup(
 		&SovereignNodesSetupArgs{
-			NodesFilePath:            "mock/testdata/sovereignNodesSetupMock.json",
+			NodesConfig: config.NodesConfig{
+				StartTime:    1689935785,
+				InitialNodes: createInitialNodes(),
+			},
 			AddressPubKeyConverter:   addrPubKeyConverter,
 			ValidatorPubKeyConverter: validatorPubKeyConverter,
+			ChainParametersProvider: &chainParameters.ChainParametersHandlerStub{
+				ChainParametersForEpochCalled: func(epoch uint32) (config.ChainParametersByEpochConfig, error) {
+					return config.ChainParametersByEpochConfig{
+						RoundDuration:               5000,
+						ShardConsensusGroupSize:     1,
+						ShardMinNumNodes:            1,
+						MetachainConsensusGroupSize: 0,
+						MetachainMinNumNodes:        0,
+					}, nil
+				},
+			},
 		},
 	)
 	require.Nil(t, err)
 	require.NotNil(t, ns)
 
 	encodedPubKeys := []string{
-		"cbba7cf4ad9d443b8535b7dd94ee79e0ec7d17a2f8367983e7a1ab8e9ee66736be85e6ae0576194b2dafc2265ce2530d43421239a41fae8d75a1c6689d78089efce6a5f2883d7089da73448f3e9413f4e90023015474d681c15cdfe221733306",
-		"c274c4aa1eb936f8e707f69eb865104fb6facb7e320229113fed709c5f6b533f6946aaa3943780b655382838b52fc20181120ef2893ab8aa0183f206a36b3812b92bac8636ed95c2bc40d9978f4b3ba06f77458823ece42e686fc4355e573396",
+		"41378f754e2c7b2745208c3ed21b151d297acdc84c3aca00b9e292cf28ec2d444771070157ea7760ed83c26f4fed387d0077e00b563a95825dac2cbc349fc0025ccf774e37b0a98ad9724d30e90f8c29b4091ccb738ed9ffc0573df776ee9ea30b3c038b55e532760ea4a8f152f2a52848020e5cee1cc537f2c2323399723081",
+		"52f3bf5c01771f601ec2137e267319ab6716ef6ff5dfddaea48b42d955f631167f2ce19296a202bb8fd174f4e94f8c85f619df85a7f9f8de0f3768e5e6d8c48187b767deccf9829be246aa331aa86d182eb8fa28ea8a3e45d357ed1647a9be020a5569d686253a6f89e9123c7f21f302e82f67d3e3cd69cf267b9910a663ef32",
 	}
 	encodedAddresses := []string{
 		"9e95a4e46da335a96845b4316251fc1bb197e1b8136d96ecc62bf6604eca9e49",
@@ -176,9 +205,14 @@ func TestProcessSovereignConfigErrorCases(t *testing.T) {
 	t.Run("invalid consensus size", func(t *testing.T) {
 		t.Parallel()
 
-		ns := createSovereignMockNodesSetup()
-		ns.ConsensusGroupSize = 0
-
+		ns := createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 0,
+			shardMinNodes:      0,
+			metaConsensusSize:  0,
+			metaMinNodes:       0,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 		err := ns.processSovereignConfig()
 		assert.Equal(t, ErrNegativeOrZeroConsensusGroupSize, err)
 	})
@@ -186,9 +220,14 @@ func TestProcessSovereignConfigErrorCases(t *testing.T) {
 	t.Run("invalid min nodes vs consensus size", func(t *testing.T) {
 		t.Parallel()
 
-		ns := createSovereignMockNodesSetup()
-		ns.ConsensusGroupSize = 4
-		ns.MinNodesPerShard = 3
+		ns := createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 4,
+			shardMinNodes:      3,
+			metaConsensusSize:  0,
+			metaMinNodes:       0,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 
 		err := ns.processSovereignConfig()
 		assert.Equal(t, ErrMinNodesPerShardSmallerThanConsensusSize, err)
@@ -197,8 +236,14 @@ func TestProcessSovereignConfigErrorCases(t *testing.T) {
 	t.Run("invalid min nodes vs num of actual nodes", func(t *testing.T) {
 		t.Parallel()
 
-		ns := createSovereignMockNodesSetup()
-		ns.MinNodesPerShard = 9999
+		ns := createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 4,
+			shardMinNodes:      999,
+			metaConsensusSize:  0,
+			metaMinNodes:       0,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 
 		err := ns.processSovereignConfig()
 		assert.Equal(t, ErrNodesSizeSmallerThanMinNoOfNodes, err)
@@ -207,20 +252,36 @@ func TestProcessSovereignConfigErrorCases(t *testing.T) {
 	t.Run("invalid meta chain num nodes", func(t *testing.T) {
 		t.Parallel()
 
-		ns := createSovereignMockNodesSetup()
-
-		ns.MetaChainMinNodes = 1
-		ns.MetaChainConsensusGroupSize = 0
+		ns := createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 2,
+			shardMinNodes:      2,
+			metaConsensusSize:  1,
+			metaMinNodes:       0,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 		err := ns.processSovereignConfig()
 		require.ErrorIs(t, err, errSovereignInvalidMetaConsensusSize)
 
-		ns.MetaChainMinNodes = 0
-		ns.MetaChainConsensusGroupSize = 1
+		ns = createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 2,
+			shardMinNodes:      2,
+			metaConsensusSize:  0,
+			metaMinNodes:       1,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 		err = ns.processSovereignConfig()
 		require.ErrorIs(t, err, errSovereignInvalidMetaConsensusSize)
 
-		ns.MetaChainMinNodes = 1
-		ns.MetaChainConsensusGroupSize = 1
+		ns = createSovereignMockNodesSetup(argsTestNodesSetup{
+			shardConsensusSize: 2,
+			shardMinNodes:      2,
+			metaConsensusSize:  1,
+			metaMinNodes:       1,
+			numInitialNodes:    2,
+			genesisMaxShards:   1,
+		})
 		err = ns.processSovereignConfig()
 		require.ErrorIs(t, err, errSovereignInvalidMetaConsensusSize)
 	})

@@ -45,6 +45,11 @@ func (n *nodesCoordinator) GetAllEligibleValidatorsPublicKeys(_ uint32) (map[uin
 	return nil, nil
 }
 
+// GetAllEligibleValidatorsPublicKeysForShard -
+func (n *nodesCoordinator) GetAllEligibleValidatorsPublicKeysForShard(_ uint32, _ uint32) ([]string, error) {
+	return nil, nil
+}
+
 // GetAllWaitingValidatorsPublicKeys -
 func (n *nodesCoordinator) GetAllWaitingValidatorsPublicKeys(_ uint32) (map[uint32][][]byte, error) {
 	return nil, nil
@@ -61,8 +66,8 @@ func (n *nodesCoordinator) GetShuffledOutToAuctionValidatorsPublicKeys(_ uint32)
 }
 
 // GetConsensusValidatorsPublicKeys -
-func (n *nodesCoordinator) GetConsensusValidatorsPublicKeys(_ []byte, _ uint64, _ uint32, _ uint32) ([]string, error) {
-	return nil, nil
+func (n *nodesCoordinator) GetConsensusValidatorsPublicKeys(_ []byte, _ uint64, _ uint32, _ uint32) (string, []string, error) {
+	return "", nil, nil
 }
 
 // GetOwnPublicKey -
@@ -71,8 +76,8 @@ func (n *nodesCoordinator) GetOwnPublicKey() []byte {
 }
 
 // ComputeConsensusGroup -
-func (n *nodesCoordinator) ComputeConsensusGroup(_ []byte, _ uint64, _ uint32, _ uint32) (validatorsGroup []nodesCoord.Validator, err error) {
-	return nil, nil
+func (n *nodesCoordinator) ComputeConsensusGroup(_ []byte, _ uint64, _ uint32, _ uint32) (leader nodesCoord.Validator, validatorsGroup []nodesCoord.Validator, err error) {
+	return nil, nil, nil
 }
 
 // GetValidatorWithPublicKey -
@@ -104,8 +109,8 @@ func (n *nodesCoordinator) GetConsensusWhitelistedNodes(_ uint32) (map[string]st
 	return nil, nil
 }
 
-// ConsensusGroupSize -
-func (n *nodesCoordinator) ConsensusGroupSize(uint32) int {
+// ConsensusGroupSizeForShardAndEpoch -
+func (n *nodesCoordinator) ConsensusGroupSizeForShardAndEpoch(uint32, uint32) int {
 	return 0
 }
 
@@ -117,6 +122,11 @@ func (n *nodesCoordinator) GetNumTotalEligible() uint64 {
 // GetWaitingEpochsLeftForPublicKey returns 0
 func (n *nodesCoordinator) GetWaitingEpochsLeftForPublicKey(_ []byte) (uint32, error) {
 	return 0, nil
+}
+
+// GetCachedEpochs returns an empty map
+func (n *nodesCoordinator) GetCachedEpochs() map[uint32]struct{} {
+	return make(map[uint32]struct{})
 }
 
 // EpochStartPrepare -

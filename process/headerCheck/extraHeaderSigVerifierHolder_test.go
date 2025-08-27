@@ -6,11 +6,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/headerSigVerifier"
-	"github.com/stretchr/testify/require"
 )
 
 func TestExtraHeaderSigVerifierHolder_VerifyAggregatedSignature(t *testing.T) {
@@ -24,7 +25,7 @@ func TestExtraHeaderSigVerifierHolder_VerifyAggregatedSignature(t *testing.T) {
 	expectedPubKeys := [][]byte{[]byte("pk1"), []byte("pk2")}
 
 	extraVerifier1 := &headerSigVerifier.ExtraHeaderSigVerifierHandlerMock{
-		VerifyAggregatedSignatureCalled: func(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+		VerifyAggregatedSignatureCalled: func(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 			require.Equal(t, expectedHdr, header)
 			require.Equal(t, expectedVerifier, multiSigVerifier)
 			require.Equal(t, expectedPubKeys, pubKeysSigners)
@@ -37,7 +38,7 @@ func TestExtraHeaderSigVerifierHolder_VerifyAggregatedSignature(t *testing.T) {
 		},
 	}
 	extraVerifier2 := &headerSigVerifier.ExtraHeaderSigVerifierHandlerMock{
-		VerifyAggregatedSignatureCalled: func(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+		VerifyAggregatedSignatureCalled: func(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 			require.Equal(t, expectedHdr, header)
 			require.Equal(t, expectedVerifier, multiSigVerifier)
 			require.Equal(t, expectedPubKeys, pubKeysSigners)
@@ -60,7 +61,7 @@ func TestExtraHeaderSigVerifierHolder_VerifyAggregatedSignature(t *testing.T) {
 	err = holder.RegisterExtraHeaderSigVerifier(extraVerifier1)
 	require.Equal(t, errors.ErrExtraSignerIdAlreadyExists, err)
 
-	err = holder.VerifyAggregatedSignature(expectedHdr, expectedVerifier, expectedPubKeys)
+	err = holder.VerifyAggregatedSignature(nil, expectedHdr, expectedVerifier, expectedPubKeys)
 	require.Nil(t, err)
 	require.True(t, wasVerifyCalled1)
 	require.True(t, wasVerifyCalled2)

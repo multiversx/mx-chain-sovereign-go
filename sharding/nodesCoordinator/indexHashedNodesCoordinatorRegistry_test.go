@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/sharding/mock"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 )
 
@@ -112,6 +113,13 @@ func TestIndexHashedNodesCoordinator_LoadStateAfterSaveWithStakingV4(t *testing.
 	t.Parallel()
 
 	args := createArguments()
+
+	wasCacheCleaned := false
+	args.ConsensusGroupCache = &mock.NodesCoordinatorCacheMock{
+		ClearCalled: func() {
+			wasCacheCleaned = true
+		},
+	}
 	args.Epoch = stakingV4Epoch
 	nodesCoordinator, _ := NewIndexHashedNodesCoordinator(args)
 
@@ -125,7 +133,8 @@ func TestIndexHashedNodesCoordinator_LoadStateAfterSaveWithStakingV4(t *testing.
 
 	delete(nodesCoordinator.nodesConfig, 0)
 	err = nodesCoordinator.LoadState(key)
-	assert.Nil(t, err)
+	require.Nil(t, err)
+	require.True(t, wasCacheCleaned)
 
 	actualConfig := nodesCoordinator.nodesConfig[stakingV4Epoch]
 	assert.Equal(t, expectedConfig.shardID, actualConfig.shardID)
