@@ -816,7 +816,8 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 
 		epoch := uint32(4)
 		unconfirmedBridgeOutGoingData := &sovCore.BridgeOutGoingData{
-			Hash: []byte("hashOfHashes"),
+			ChainID: int32(dto.MVX),
+			Hash:    []byte("hashOfHashes"),
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
 					Hash: []byte("hashOp1"),
@@ -839,7 +840,8 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		bridgeData := &sovCore.BridgeOperations{
 			Data: []*sovCore.BridgeOutGoingData{
 				{
-					Hash: []byte("hashOfHashes"),
+					ChainID: int32(dto.MVX),
+					Hash:    []byte("hashOfHashes"),
 					OutGoingOperations: []*sovCore.OutGoingOperation{
 						{
 							Hash: []byte("hashOp1"),
@@ -875,6 +877,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.MVX,
 					Hash:                                  []byte("hashOfHashes"),
 					OutGoingOperationsHash:                []byte("hashOfHashes"),
 					AggregatedSignatureOutGoingOperations: []byte("aggregatedSig"),
