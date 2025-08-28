@@ -11,7 +11,8 @@ func NewGenesisNodesSetupFactory() GenesisNodesSetupFactory {
 // CreateNodesSetup creates a genesis nodes setup handler for regular chain running(shards + metachain)
 func (gns *genesisNodesSetupFactory) CreateNodesSetup(args *NodesSetupArgs) (GenesisNodesSetupHandler, error) {
 	return NewNodesSetup(
-		args.NodesFilePath,
+		args.NodesConfig,
+		args.ChainParametersProvider,
 		args.AddressPubKeyConverter,
 		args.ValidatorPubKeyConverter,
 		args.GenesisMaxNumShards,

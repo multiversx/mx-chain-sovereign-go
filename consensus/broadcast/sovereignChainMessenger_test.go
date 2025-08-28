@@ -13,53 +13,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
+	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/consensus"
 	consensusMock "github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	cnsTest "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 )
-
-type delayedBlockBroadcasterMock struct {
-	SetBroadcastHandlersCalled func(
-		mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
-		txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
-		headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
-	) error
-}
-
-// SetLeaderData -
-func (mock *delayedBlockBroadcasterMock) SetLeaderData(_ *delayedBroadcastData) error {
-	return nil
-}
-
-// SetHeaderForValidator -
-func (mock *delayedBlockBroadcasterMock) SetHeaderForValidator(_ *validatorHeaderBroadcastData) error {
-	return nil
-}
-
-// SetValidatorData -
-func (mock *delayedBlockBroadcasterMock) SetValidatorData(_ *delayedBroadcastData) error {
-	return nil
-}
-
-// SetBroadcastHandlers -
-func (mock *delayedBlockBroadcasterMock) SetBroadcastHandlers(
-	mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
-	txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
-	headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
-) error {
-	if mock.SetBroadcastHandlersCalled != nil {
-		return mock.SetBroadcastHandlersCalled(mbBroadcast, txBroadcast, headerBroadcast)
-	}
-
-	return nil
-}
-
-// Close -
-func (mock *delayedBlockBroadcasterMock) Close() {
-}
 
 func createSovShardMsgArgs() ArgsSovereignShardChainMessenger {
 	return ArgsSovereignShardChainMessenger{
@@ -71,7 +34,7 @@ func createSovShardMsgArgs() ArgsSovereignShardChainMessenger {
 			Signer: &consensusMock.SingleSignerMock{},
 		},
 		KeysHandler:        &testscommon.KeysHandlerStub{},
-		DelayedBroadcaster: &delayedBlockBroadcasterMock{},
+		DelayedBroadcaster: &cnsTest.DelayedBroadcasterMock{},
 	}
 
 }
@@ -138,11 +101,17 @@ func TestNewSovereignShardChainMessenger(t *testing.T) {
 	t.Parallel()
 
 	wasHandlerSet := false
-	mockBroadcaster := &delayedBlockBroadcasterMock{
-		SetBroadcastHandlersCalled: func(mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error, txBroadcast func(txData map[string][][]byte, pkBytes []byte) error, headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error) error {
+	mockBroadcaster := &cnsTest.DelayedBroadcasterMock{
+		SetBroadcastHandlersCalled: func(
+			mbBroadcast func(mbData map[uint32][]byte, pkBytes []byte) error,
+			txBroadcast func(txData map[string][][]byte, pkBytes []byte) error,
+			headerBroadcast func(header data.HeaderHandler, pkBytes []byte) error,
+			consensusMessageBroadcast func(message *consensus.Message) error) error {
+
 			require.Contains(t, getFunctionName(mbBroadcast), "(*commonMessenger).BroadcastMiniBlocks")
 			require.Contains(t, getFunctionName(txBroadcast), "(*commonMessenger).BroadcastTransactions")
 			require.Contains(t, getFunctionName(headerBroadcast), "(*sovereignChainMessenger).BroadcastHeader")
+			require.Contains(t, getFunctionName(consensusMessageBroadcast), "(*commonMessenger).BroadcastConsensusMessage")
 
 			wasHandlerSet = true
 			return nil
@@ -225,6 +194,30 @@ func TestSovereignChainMessenger_BroadcastHeader(t *testing.T) {
 	args.Messenger = messenger
 	sovMsg, _ := NewSovereignShardChainMessenger(args)
 	err = sovMsg.BroadcastHeader(hdr, []byte("key"))
+	require.Nil(t, err)
+	require.Equal(t, 1, broadCastCt)
+}
+
+func TestSovereignChainMessenger_BroadcastEquivalentProof(t *testing.T) {
+	t.Parallel()
+
+	args := createSovShardMsgArgs()
+	hdrProof := &block.HeaderProof{HeaderHash: []byte("hash")}
+	hdrProofBytes, err := args.Marshaller.Marshal(hdrProof)
+	require.Nil(t, err)
+
+	broadCastCt := 0
+	messenger := &p2pmocks.MessengerStub{
+		BroadcastCalled: func(topic string, buff []byte) {
+			require.Equal(t, fmt.Sprintf("%s_%d", common.EquivalentProofsTopic, core.SovereignChainShardId), topic)
+			require.Equal(t, hdrProofBytes, buff)
+			broadCastCt++
+		},
+	}
+
+	args.Messenger = messenger
+	sovMsg, _ := NewSovereignShardChainMessenger(args)
+	err = sovMsg.BroadcastEquivalentProof(hdrProof, []byte("key"))
 	require.Nil(t, err)
 	require.Equal(t, 1, broadCastCt)
 }

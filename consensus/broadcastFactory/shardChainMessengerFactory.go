@@ -18,6 +18,11 @@ func (f *shardChainMessengerFactory) CreateShardChainMessenger(args broadcast.Sh
 	return broadcast.NewShardChainMessenger(args)
 }
 
+// CreateDelayedBlockBroadcaster creates a delayed block broadcaster for regular chain run type
+func (f *shardChainMessengerFactory) CreateDelayedBlockBroadcaster(args *broadcast.ArgsDelayedBlockBroadcaster) (broadcast.DelayedBroadcaster, error) {
+	return broadcast.NewDelayedBlockBroadcaster(args)
+}
+
 // IsInterfaceNil checks if the underlying pointer is nil
 func (f *shardChainMessengerFactory) IsInterfaceNil() bool {
 	return f == nil

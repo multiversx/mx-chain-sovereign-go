@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -103,6 +104,12 @@ func (scsbt *sovereignChainShardBlockTrack) doReceivedHeaderJob(headerHandler da
 	if isExtendedShardHeaderReceived {
 		scsbt.receivedExtendedShardHeader(extendedShardHeader, headerHash)
 		return
+	}
+
+	if common.IsProofsFlagEnabledForHeader(scsbt.enableEpochsHandler, headerHandler) {
+		if !scsbt.proofsPool.HasProof(headerHandler.GetShardID(), headerHash) {
+			return
+		}
 	}
 
 	scsbt.receivedShardHeader(headerHandler, headerHash)

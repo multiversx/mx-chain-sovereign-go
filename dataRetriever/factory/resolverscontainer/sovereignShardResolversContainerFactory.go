@@ -78,6 +78,11 @@ func (srcf *sovereignShardResolversContainerFactory) Create() (dataRetriever.Res
 		return nil, err
 	}
 
+	err = srcf.generateEquivalentProofsResolvers()
+	if err != nil {
+		return nil, err
+	}
+
 	return srcf.container, nil
 }
 
@@ -178,6 +183,21 @@ func (srcf *sovereignShardResolversContainerFactory) generateMiniBlocksResolvers
 	}
 
 	return srcf.container.Add(identifierMiniBlocks, resolver)
+}
+
+func (srcf *sovereignShardResolversContainerFactory) generateEquivalentProofsResolvers() error {
+	shardC := srcf.shardCoordinator
+
+	identifier := common.EquivalentProofsTopic + shardC.CommunicationIdentifier(core.SovereignChainShardId)
+	resolver, err := srcf.createEquivalentProofsResolver(
+		identifier,
+		shardC.SelfId(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return srcf.container.Add(identifier, resolver)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

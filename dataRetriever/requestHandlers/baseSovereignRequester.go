@@ -94,3 +94,21 @@ func (br *baseSovereignRequest) getValidatorsInfoRequester() (dataRetriever.Requ
 func (br *baseSovereignRequest) getMiniBlocksRequester(_ uint32) (dataRetriever.Requester, error) {
 	return br.requestersFinder.IntraShardRequester(factory.MiniBlocksTopic)
 }
+
+func (br *baseSovereignRequest) getEquivalentProofsRequester(_ uint32) (dataRetriever.Requester, error) {
+	requester, err := br.requestersFinder.IntraShardRequester(common.EquivalentProofsTopic)
+	if err != nil {
+		err = fmt.Errorf("%w, base topic: %s", err, common.EquivalentProofsTopic)
+
+		log.Warn("available requesters in container",
+			"requesters", br.requestersFinder.RequesterKeys(),
+		)
+		return nil, err
+	}
+
+	return requester, nil
+}
+
+func (br *baseSovereignRequest) getCrossRequesterForHashes(_ uint32, topic string) (dataRetriever.Requester, error) {
+	return br.requestersFinder.IntraShardRequester(topic)
+}

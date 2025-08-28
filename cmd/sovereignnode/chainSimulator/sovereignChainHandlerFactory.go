@@ -15,8 +15,8 @@ func NewSovereignChainHandlerFactory() chainSimulator.ChainHandlerFactory {
 }
 
 // CreateChainHandler creates a new chain handler for sovereign chain simulator
-func (spf *sovereignProcessorFactory) CreateChainHandler(nodeHandler process.NodeHandler) (chainSimulator.ChainHandler, error) {
-	return process.NewBlocksCreator(nodeHandler, sovProcess.NewSovereignBlockProcessorFactory())
+func (spf *sovereignProcessorFactory) CreateChainHandler(nodeHandler process.NodeHandler, monitor process.HeartbeatMonitorWithSet) (chainSimulator.ChainHandler, error) {
+	return process.NewBlocksCreator(nodeHandler, sovProcess.NewSovereignBlockProcessorFactory(), monitor)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

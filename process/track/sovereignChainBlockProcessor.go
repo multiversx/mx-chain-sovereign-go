@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -35,6 +36,7 @@ func NewSovereignChainBlockProcessor(blockProcessor *blockProcessor) (*sovereign
 	scbp.doJobOnReceivedCrossNotarizedHeaderFunc = scbp.doJobOnReceivedCrossNotarizedHeader
 	scbp.requestHeaderWithShardAndNonceFunc = scbp.requestHeaderWithShardAndNonce
 	scbp.requestHeadersIfNothingNewIsReceivedFunc = scbp.requestHeadersIfNothingNewIsReceived
+	scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc = scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivation
 	scbp.blockFinality = 0
 
 	extendedShardHeaderRequester, ok := scbp.requestHandler.(extendedShardHeaderRequestHandler)
@@ -96,6 +98,7 @@ func (scbp *sovereignChainBlockProcessor) doJobOnReceivedCrossNotarizedHeader(sh
 func (scbp *sovereignChainBlockProcessor) requestHeaderWithShardAndNonce(shardID uint32, nonce uint64) {
 	if shardID == scbp.shardCoordinator.SelfId() {
 		scbp.requestHandler.RequestShardHeaderByNonce(shardID, nonce)
+		scbp.requestHandler.RequestEquivalentProofByNonce(shardID, nonce)
 	} else if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
 		scbp.extendedShardHeaderRequester.RequestExtendedShardHeaderByNonce(nonce)
 	} else {
@@ -121,5 +124,14 @@ func (scbp *sovereignChainBlockProcessor) requestHeadersIfNothingNewIsReceived(
 		return
 	}
 
-	scbp.baseRequestHeadersIfNothingNewIsReceived(lastNotarizedHeaderNonce, latestValidHeader, highestRoundInReceivedHeaders, shardID)
+	scbp.baseRequestHeadersIfNothingNewIsReceived(lastNotarizedHeaderNonce, latestValidHeader, highestRoundInReceivedHeaders)
+}
+
+func (scbp *sovereignChainBlockProcessor) removeHeaderHashIfStartOfEpochIsAndromedaActivation(fromNonce uint64, shardID uint32) {
+	header, headerHash, err := process.GetSovereignHeaderFromPoolWithNonce(fromNonce, scbp.headersPool)
+	isHeaderStartOfEpochForAndromedaActivation := err == nil && shardID == core.SovereignChainShardId &&
+		common.IsEpochChangeBlockForFlagActivation(header, scbp.enableEpochsHandler, common.AndromedaFlag)
+	if isHeaderStartOfEpochForAndromedaActivation {
+		scbp.headersPool.RemoveHeaderByHash(headerHash)
+	}
 }

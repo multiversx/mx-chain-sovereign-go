@@ -1,7 +1,6 @@
 package process
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -12,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -460,14 +460,8 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 		return err
 	}
 
-	valAcc.SetMainChainID(intTo2Bytes(id))
+	valAcc.SetMainChainID(runType.UIntToBytes(uint32(id)))
 	return peerAccountsDB.SaveAccount(valAcc)
-}
-
-func intTo2Bytes(n int) []byte {
-	b := make([]byte, 2)
-	binary.BigEndian.PutUint16(b, uint16(n)) // Convert only the lower 2 bytes
-	return b
 }
 
 func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {

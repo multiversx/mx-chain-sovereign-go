@@ -8,22 +8,24 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-var log = logger.GetOrCreate("outgoing-operations")
+type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
 
 const (
-	numTransferTopics = 3
-	tokensIndex       = 2
-	receiverIndex     = 1
+	topicIDDeposit        = "deposit"
+	topicIDRegisterToken  = "registerToken"
+	topicIDRegisterBlsKey = "registerBlsKey"
 )
+
+var log = logger.GetOrCreate("outgoing-operations")
 
 // SubscribedEvent contains a subscribed event from the sovereign chain needed to be transferred to the main chain
 type SubscribedEvent struct {
@@ -44,7 +46,9 @@ type outgoingOperations struct {
 	dataCodec        DataCodecHandler
 	topicsChecker    TopicsCheckerHandler
 	peerAccountsDB   state.AccountsAdapter
-	mapChainIDs      map[dto.ChainID]struct{}
+
+	opFormatters map[string]OperationFormatter
+	mapChainIDs  map[dto.ChainID]struct{}
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -53,11 +57,16 @@ type outgoingOperations struct {
 
 // NewOutgoingOperationsFormatter creates an outgoing operations formatter
 func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOperations, error) {
-	err := checkEvents(args.SubscribedEvents)
+	subscribedEvents, err := checkEvents(args.SubscribedEvents)
 	if err != nil {
 		return nil, err
 	}
 	err = checkNilArgs(args)
+	if err != nil {
+		return nil, err
+	}
+
+	opFormatters, err := createOpFormatterHandlers(subscribedEvents, args)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +76,7 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		dataCodec:        args.DataCodec,
 		topicsChecker:    args.TopicsChecker,
 		peerAccountsDB:   args.PeerAccountsDB,
+		opFormatters:     opFormatters,
 		mapChainIDs:      args.MapChainIDs,
 	}, nil
 }
@@ -85,26 +95,30 @@ func checkNilArgs(args ArgsOutgoingOperations) error {
 	return nil
 }
 
-func checkEvents(events []SubscribedEvent) error {
+func checkEvents(events []SubscribedEvent) (map[string]struct{}, error) {
 	if len(events) == 0 {
-		return errNoSubscribedEvent
+		return nil, errNoSubscribedEvent
 	}
+
+	subscribedEvents := make(map[string]struct{})
 
 	log.Debug("sovereign outgoing operations creator: received config", "num subscribed events", len(events))
 	for idx, event := range events {
 		if len(event.Identifier) == 0 {
-			return fmt.Errorf("%w at event index = %d", errNoSubscribedIdentifier, idx)
+			return nil, fmt.Errorf("%w at event index = %d", errNoSubscribedIdentifier, idx)
 		}
 
 		log.Debug("sovereign outgoing operations creator", "subscribed event identifier", string(event.Identifier))
 
 		err := checkEmptyAddresses(event.Addresses)
 		if err != nil {
-			return fmt.Errorf("%w at event index = %d", err, idx)
+			return nil, fmt.Errorf("%w at event index = %d", err, idx)
 		}
+
+		subscribedEvents[string(event.Identifier)] = struct{}{}
 	}
 
-	return nil
+	return subscribedEvents, nil
 }
 
 func checkEmptyAddresses(addresses map[string]string) error {
@@ -120,6 +134,63 @@ func checkEmptyAddresses(addresses map[string]string) error {
 		log.Debug("sovereign outgoing operations creator", "subscribed address", encodedAddr)
 	}
 
+	return nil
+}
+
+func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]OperationFormatter, error) {
+	handlers := make(map[string]OperationFormatter)
+
+	availableHandlers := map[string]createOpFormatterHandler{
+		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
+		},
+		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, args.TopicsChecker)
+		},
+		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+		},
+	}
+
+	for handlerID, handlerCreator := range availableHandlers {
+		err := addHandlerIfSubscribed(
+			handlerID,
+			subscribedEvents,
+			handlers,
+			handlerCreator,
+			args,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(subscribedEvents) != 0 {
+		return nil, fmt.Errorf("%w, event ids: %v", errUnsupportedEventType, subscribedEvents)
+	}
+
+	return handlers, nil
+}
+
+func addHandlerIfSubscribed(
+	id string,
+	subscribedEvents map[string]struct{},
+	allHandlers map[string]OperationFormatter,
+	createOpFormatterHandlerFunc createOpFormatterHandler,
+	args ArgsOutgoingOperations,
+) error {
+	_, found := subscribedEvents[id]
+	if !found {
+		return nil
+	}
+
+	opHandler, err := createOpFormatterHandlerFunc(args)
+	if err != nil {
+		return err
+	}
+
+	allHandlers[id] = opHandler
+	delete(subscribedEvents, id)
 	return nil
 }
 
@@ -196,57 +267,19 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 }
 
 func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.ChainID, []byte, error) {
-	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
+	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
+	if !found {
+		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
+		return 0, nil, errEventIDNotFound
+	}
+
+	opData, err := opFormatter.CreateOperationData(event)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	topics := event.GetTopics()
-	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	operation, err := op.createOperationData(topics, evData)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	operationBytes, err := op.dataCodec.SerializeOperation(*operation)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	// TODO: MX-16831 Here, we should have contracts emitting chain id events
-	return dto.MVX, operationBytes, nil
-}
-
-func (op *outgoingOperations) createOperationData(topics [][]byte, eventData *sovereign.EventData) (*sovereign.Operation, error) {
-	tokens := make([]sovereign.EsdtToken, 0)
-	for i := tokensIndex; i < len(topics); i += numTransferTopics {
-		tokenIdentifier := topics[i]
-		tokenNonce, err := common.ByteSliceToUint64(topics[i+1])
-		if err != nil {
-			return nil, err
-		}
-		tokenData, err := op.dataCodec.DeserializeTokenData(topics[i+2])
-		if err != nil {
-			return nil, err
-		}
-
-		payment := sovereign.EsdtToken{
-			Identifier: tokenIdentifier,
-			Nonce:      tokenNonce,
-			Data:       *tokenData,
-		}
-		tokens = append(tokens, payment)
-	}
-
-	return &sovereign.Operation{
-		Address: topics[receiverIndex],
-		Tokens:  tokens,
-		Data:    eventData,
-	}, nil
+	// TODO: MX-16831 Here, we should have contracts emitting chain id
+	return dto.MVX, opData, err
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change
@@ -254,7 +287,7 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 	validatorsID := make([][]byte, len(pubKeys))
 
 	for idx, pubKey := range pubKeys {
-		peerAcc, err := op.getPeerAccount([]byte(pubKey))
+		peerAcc, err := process.GetPeerAccount([]byte(pubKey), op.peerAccountsDB)
 		if err != nil {
 			return nil, err
 		}
@@ -276,20 +309,6 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 	}
 
 	return ret, nil
-}
-
-func (op *outgoingOperations) getPeerAccount(key []byte) (state.PeerAccountHandler, error) {
-	account, err := op.peerAccountsDB.LoadAccount(key)
-	if err != nil {
-		return nil, err
-	}
-
-	peerAcc, ok := account.(state.PeerAccountHandler)
-	if !ok {
-		return nil, epochStart.ErrWrongTypeAssertion
-	}
-
-	return peerAcc, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

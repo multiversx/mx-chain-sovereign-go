@@ -3,6 +3,7 @@ package broadcast
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-go/consensus/broadcast/shared"
 	"github.com/multiversx/mx-chain-go/process/factory"
 )
 
@@ -60,7 +61,7 @@ func (dbb *sovereignDelayedBroadcastData) registerMiniBlockInterceptorCallback(
 }
 
 // SetValidatorData sets the data for consensus validator delayed broadcast
-func (dbb *sovereignDelayedBroadcastData) SetValidatorData(broadcastData *delayedBroadcastData) error {
+func (dbb *sovereignDelayedBroadcastData) SetValidatorData(broadcastData *shared.DelayedBroadcastData) error {
 	return dbb.setValidatorData(broadcastData, dbb.extractMiniBlockHashesCrossFromMe)
 }
 

@@ -447,6 +447,8 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
 		Accounts:                 accountsAdapterApi,
 		BlockChain:               apiBlockchain,
+		EpochStartTrigger:        args.processComponents.EpochStartTrigger(),
+		RoundHandler:             args.processComponents.RoundHandler(),
 	}
 
 	var vmContainer process.VirtualMachinesContainer
@@ -763,6 +765,8 @@ func createAPIBlockProcessorArgs(args *ApiResolverArgs, apiTransactionHandler ex
 		AccountsRepository:           args.StateComponents.AccountsRepository(),
 		ScheduledTxsExecutionHandler: args.ProcessComponents.ScheduledTxsExecutionHandler(),
 		EnableEpochsHandler:          args.CoreComponents.EnableEpochsHandler(),
+		ProofsPool:                   args.DataComponents.Datapool().Proofs(),
+		BlockChain:                   args.DataComponents.Blockchain(),
 	}
 
 	return blockApiArgs, nil

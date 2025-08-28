@@ -41,7 +41,7 @@ const (
 	TrieEpochRootHashUnit UnitType = 17
 	// ESDTSuppliesUnit is the ESDT supplies storage unit identifier
 	ESDTSuppliesUnit UnitType = 18
-	// RoundHdrHashDataUnit is the round- block header hash storage data unit identifier
+	// RoundHdrHashDataUnit is the round-block header hash storage data unit identifier
 	RoundHdrHashDataUnit UnitType = 19
 	// UserAccountsUnit is the user accounts storage unit identifier
 	UserAccountsUnit UnitType = 20
@@ -49,6 +49,8 @@ const (
 	PeerAccountsUnit UnitType = 21
 	// ScheduledSCRsUnit is the scheduled SCRs storage unit identifier
 	ScheduledSCRsUnit UnitType = 22
+	// ProofsUnit is the header proofs unit identifier
+	ProofsUnit UnitType = 23
 
 	// TODO: Here (MX-16866), for extended headers we need a storer unit similar to ShardHdrNonceHashDataUnit + chainID
 
@@ -117,6 +119,8 @@ func (ut UnitType) String() string {
 		return "PeerAccountsUnit"
 	case ScheduledSCRsUnit:
 		return "ScheduledSCRsUnit"
+	case ProofsUnit:
+		return "ProofsUnit"
 	case ExtendedShardHeadersNonceHashDataUnit:
 		return "ExtendedShardHeadersNonceHashDataUnit"
 	case ExtendedShardHeadersUnit:

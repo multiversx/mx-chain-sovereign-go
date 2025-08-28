@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	dataRetrieverMocks "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/sync"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	epochNotifierMock "github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
 	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
@@ -138,6 +140,8 @@ func TestShardStorageBootstrapper_LoadFromStorageShouldWork(t *testing.T) {
 			},
 			ProcessedMiniBlocksTracker: &testscommon.ProcessedMiniBlocksTrackerStub{},
 			AppStatusHandler:           &statusHandler.AppStatusHandlerMock{},
+			EnableEpochsHandler:        &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			ProofsPool:                 &dataRetrieverMocks.ProofsPoolMock{},
 		},
 	}
 
@@ -164,7 +168,7 @@ func testCleanupNotarizedStorageForHigherNoncesIfExist(
 	header data.HeaderHandler,
 	factory BootstrapperFromStorageCreator,
 ) {
-	baseArgs := createMockShardStorageBoostrapperArgs()
+	baseArgs := createMockShardStorageBootstrapperArgs()
 
 	bForceError := true
 	numCalled := 0

@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -112,7 +113,7 @@ func createDataCompsMock() *nodeFactoryMock.DataComponentsMock {
 func createDataPoolMock() *dataRetriever.PoolsHolderStub {
 	return &dataRetriever.PoolsHolderStub{
 		MetaBlocksCalled: func() chainStorage.Cacher {
-			return &testscommon.CacherStub{}
+			return &cache.CacherStub{}
 		},
 		HeadersCalled: func() retriever.HeadersPool {
 			return &pool.HeadersPoolStub{}
@@ -122,6 +123,9 @@ func createDataPoolMock() *dataRetriever.PoolsHolderStub {
 		},
 		CurrEpochValidatorInfoCalled: func() retriever.ValidatorInfoCacher {
 			return &validatorInfoCacherStub.ValidatorInfoCacherStub{}
+		},
+		ProofsCalled: func() retriever.ProofsPool {
+			return &dataRetriever.ProofsPoolMock{}
 		},
 	}
 }

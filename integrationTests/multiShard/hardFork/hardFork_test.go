@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common/enablers"
+	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -68,11 +69,11 @@ func TestHardForkWithoutTransactionInMultiShardedEnvironment(t *testing.T) {
 		node.WaitTime = 100 * time.Millisecond
 	}
 
-	idxProposers := make([]int, numOfShards+1)
+	leaders := make([]*integrationTests.TestProcessorNode, numOfShards+1)
 	for i := 0; i < numOfShards; i++ {
-		idxProposers[i] = i * nodesPerShard
+		leaders[i] = nodes[i*nodesPerShard]
 	}
-	idxProposers[numOfShards] = numOfShards * nodesPerShard
+	leaders[numOfShards] = nodes[numOfShards*nodesPerShard]
 
 	integrationTests.DisplayAndStartNodes(nodes)
 
@@ -93,11 +94,11 @@ func TestHardForkWithoutTransactionInMultiShardedEnvironment(t *testing.T) {
 
 	nrRoundsToPropagateMultiShard := 5
 	// ----- wait for epoch end period
-	nonce, round = integrationTests.WaitOperationToBeDone(t, nodes, int(roundsPerEpoch), nonce, round, idxProposers)
+	nonce, round = integrationTests.WaitOperationToBeDone(t, leaders, nodes, int(roundsPerEpoch), nonce, round)
 
 	time.Sleep(time.Second)
 
-	nonce, _ = integrationTests.WaitOperationToBeDone(t, nodes, nrRoundsToPropagateMultiShard, nonce, round, idxProposers)
+	nonce, _ = integrationTests.WaitOperationToBeDone(t, leaders, nodes, nrRoundsToPropagateMultiShard, nonce, round)
 
 	time.Sleep(time.Second)
 
@@ -139,11 +140,11 @@ func TestHardForkWithContinuousTransactionsInMultiShardedEnvironment(t *testing.
 		node.EpochStartTrigger.SetRoundsPerEpoch(roundsPerEpoch)
 	}
 
-	idxProposers := make([]int, numOfShards+1)
+	leaders := make([]*integrationTests.TestProcessorNode, numOfShards+1)
 	for i := 0; i < numOfShards; i++ {
-		idxProposers[i] = i * nodesPerShard
+		leaders[i] = nodes[i*nodesPerShard]
 	}
-	idxProposers[numOfShards] = numOfShards * nodesPerShard
+	leaders[numOfShards] = nodes[numOfShards*nodesPerShard]
 
 	integrationTests.DisplayAndStartNodes(nodes)
 
@@ -193,7 +194,7 @@ func TestHardForkWithContinuousTransactionsInMultiShardedEnvironment(t *testing.
 	epoch := uint32(2)
 	nrRoundsToPropagateMultiShard := uint64(6)
 	for i := uint64(0); i <= (uint64(epoch)*roundsPerEpoch)+nrRoundsToPropagateMultiShard; i++ {
-		round, nonce = integrationTests.ProposeAndSyncOneBlock(t, nodes, idxProposers, round, nonce)
+		round, nonce = integrationTests.ProposeAndSyncOneBlock(t, nodes, leaders, round, nonce)
 		integrationTests.AddSelfNotarizedHeaderByMetachain(nodes)
 		for _, node := range nodes {
 			integrationTests.CreateAndSendTransaction(node, nodes, sendValue, receiverAddress1, "", integrationTests.AdditionalGasLimit)
@@ -257,11 +258,11 @@ func TestHardForkEarlyEndOfEpochWithContinuousTransactionsInMultiShardedEnvironm
 		node.EpochStartTrigger.SetMinRoundsBetweenEpochs(minRoundsPerEpoch)
 	}
 
-	idxProposers := make([]int, numOfShards+1)
+	leaders := make([]*integrationTests.TestProcessorNode, numOfShards+1)
 	for i := 0; i < numOfShards; i++ {
-		idxProposers[i] = i * nodesPerShard
+		leaders[i] = allNodes[i*nodesPerShard]
 	}
-	idxProposers[numOfShards] = numOfShards * nodesPerShard
+	leaders[numOfShards] = allNodes[numOfShards*nodesPerShard]
 
 	integrationTests.DisplayAndStartNodes(allNodes)
 
@@ -314,7 +315,7 @@ func TestHardForkEarlyEndOfEpochWithContinuousTransactionsInMultiShardedEnvironm
 			log.LogIfError(err)
 		}
 
-		round, nonce = integrationTests.ProposeAndSyncOneBlock(t, consensusNodes, idxProposers, round, nonce)
+		round, nonce = integrationTests.ProposeAndSyncOneBlock(t, consensusNodes, leaders, round, nonce)
 		integrationTests.AddSelfNotarizedHeaderByMetachain(consensusNodes)
 		for _, node := range consensusNodes {
 			integrationTests.CreateAndSendTransaction(node, allNodes, sendValue, receiverAddress1, "", integrationTests.AdditionalGasLimit)
@@ -392,7 +393,9 @@ func hardForkImport(
 		defaults.FillGasMapInternal(gasSchedule, 1)
 		log.Warn("started import process")
 
-		coreComponents := integrationTests.GetDefaultCoreComponents(integrationTests.CreateEnableEpochsConfig())
+		genericEpochNotifier := forking.NewGenericEpochNotifier()
+		enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(integrationTests.CreateEnableEpochsConfig(), genericEpochNotifier)
+		coreComponents := integrationTests.GetDefaultCoreComponents(enableEpochsHandler, genericEpochNotifier)
 		coreComponents.InternalMarshalizerField = integrationTests.TestMarshalizer
 		coreComponents.TxMarshalizerField = integrationTests.TestMarshalizer
 		coreComponents.HasherField = integrationTests.TestHasher
@@ -455,7 +458,8 @@ func hardForkImport(
 						MinVetoThreshold: 0.5,
 						LostProposalFee:  "1",
 					},
-					OwnerAddress: integrationTests.DelegationManagerConfigChangeAddress,
+					OwnerAddress:                 integrationTests.DelegationManagerConfigChangeAddress,
+					MaxVotingDelayPeriodInEpochs: 30,
 				},
 				StakingSystemSCConfig: config.StakingSystemSCConfig{
 					GenesisNodePrice:                     "1000",
@@ -573,7 +577,9 @@ func createHardForkExporter(
 		returnedConfigs[node.ShardCoordinator.SelfId()] = append(returnedConfigs[node.ShardCoordinator.SelfId()], exportConfig)
 		returnedConfigs[node.ShardCoordinator.SelfId()] = append(returnedConfigs[node.ShardCoordinator.SelfId()], keysConfig)
 
-		coreComponents := integrationTests.GetDefaultCoreComponents(integrationTests.CreateEnableEpochsConfig())
+		genericEpochNotifier := forking.NewGenericEpochNotifier()
+		enableEpochsHandler, _ := enablers.NewEnableEpochsHandler(integrationTests.CreateEnableEpochsConfig(), genericEpochNotifier)
+		coreComponents := integrationTests.GetDefaultCoreComponents(enableEpochsHandler, genericEpochNotifier)
 		coreComponents.InternalMarshalizerField = integrationTests.TestMarshalizer
 		coreComponents.TxMarshalizerField = integrationTests.TestTxSignMarshalizer
 		coreComponents.HasherField = integrationTests.TestHasher
@@ -605,6 +611,7 @@ func createHardForkExporter(
 		networkComponents.PeersRatingHandlerField = node.PeersRatingHandler
 		networkComponents.InputAntiFlood = &mock.NilAntifloodHandler{}
 		networkComponents.OutputAntiFlood = &mock.NilAntifloodHandler{}
+
 		argsExportHandler := mxFactory.ArgsExporter{
 			CoreComponents:       coreComponents,
 			CryptoComponents:     cryptoComponents,

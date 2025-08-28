@@ -34,6 +34,11 @@ type HeaderRequester interface {
 	EpochRequester
 }
 
+// EquivalentProofsRequester defines what an equivalent proofs requester can do
+type EquivalentProofsRequester interface {
+	RequestDataFromNonce(nonceShardKey []byte, epoch uint32) error
+}
+
 // RequestHandlerArgs holds all dependencies required by the process data factory to create components
 type RequestHandlerArgs struct {
 	RequestersFinder      dataRetriever.RequestersFinder
@@ -52,4 +57,6 @@ type baseRequestHandler interface {
 	getShardHeaderRequester(shardID uint32) (dataRetriever.Requester, error)
 	getValidatorsInfoRequester() (dataRetriever.Requester, error)
 	getMiniBlocksRequester(destShardID uint32) (dataRetriever.Requester, error)
+	getEquivalentProofsRequester(headerShard uint32) (dataRetriever.Requester, error)
+	getCrossRequesterForHashes(destShardID uint32, topic string) (dataRetriever.Requester, error)
 }

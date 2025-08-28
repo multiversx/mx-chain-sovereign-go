@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-go/common"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/process"
@@ -18,15 +19,17 @@ var _ process.InterceptedData = (*InterceptedHeader)(nil)
 // InterceptedHeader represents the wrapper over HeaderWrapper struct.
 // It implements Newer and Hashed interfaces
 type InterceptedHeader struct {
-	hdr               data.HeaderHandler
-	sigVerifier       process.InterceptedHeaderSigVerifier
-	integrityVerifier process.HeaderIntegrityVerifier
-	hasher            hashing.Hasher
-	shardCoordinator  sharding.Coordinator
-	hash              []byte
-	isForCurrentShard bool
-	validityAttester  process.ValidityAttester
-	epochStartTrigger process.EpochStartTriggerHandler
+	hdr                           data.HeaderHandler
+	sigVerifier                   process.InterceptedHeaderSigVerifier
+	integrityVerifier             process.HeaderIntegrityVerifier
+	hasher                        hashing.Hasher
+	shardCoordinator              sharding.Coordinator
+	hash                          []byte
+	isForCurrentShard             bool
+	validityAttester              process.ValidityAttester
+	epochStartTrigger             process.EpochStartTriggerHandler
+	enableEpochsHandler           common.EnableEpochsHandler
+	epochChangeGracePeriodHandler common.EpochChangeGracePeriodHandler
 
 	acceptedCrossShardIDs map[uint32]struct{}
 }
@@ -44,14 +47,16 @@ func NewInterceptedHeader(arg *ArgInterceptedBlockHeader) (*InterceptedHeader, e
 	}
 
 	inHdr := &InterceptedHeader{
-		hdr:                   hdr,
-		hasher:                arg.Hasher,
-		sigVerifier:           arg.HeaderSigVerifier,
-		integrityVerifier:     arg.HeaderIntegrityVerifier,
-		shardCoordinator:      arg.ShardCoordinator,
-		validityAttester:      arg.ValidityAttester,
-		epochStartTrigger:     arg.EpochStartTrigger,
-		acceptedCrossShardIDs: getNormalRunTypeChainAcceptedCrossShardID(),
+		hdr:                           hdr,
+		hasher:                        arg.Hasher,
+		sigVerifier:                   arg.HeaderSigVerifier,
+		integrityVerifier:             arg.HeaderIntegrityVerifier,
+		shardCoordinator:              arg.ShardCoordinator,
+		validityAttester:              arg.ValidityAttester,
+		epochStartTrigger:             arg.EpochStartTrigger,
+		enableEpochsHandler:           arg.EnableEpochsHandler,
+		epochChangeGracePeriodHandler: arg.EpochChangeGracePeriodHandler,
+		acceptedCrossShardIDs:         getNormalRunTypeChainAcceptedCrossShardID(),
 	}
 	inHdr.processFields(arg.HdrBuff)
 
@@ -78,7 +83,11 @@ func (inHdr *InterceptedHeader) CheckValidity() error {
 		return err
 	}
 
-	err = inHdr.sigVerifier.VerifyRandSeedAndLeaderSignature(inHdr.hdr)
+	return inHdr.verifySignatures()
+}
+
+func (inHdr *InterceptedHeader) verifySignatures() error {
+	err := inHdr.sigVerifier.VerifyRandSeedAndLeaderSignature(inHdr.hdr)
 	if err != nil {
 		return err
 	}
@@ -99,7 +108,12 @@ func (inHdr *InterceptedHeader) isEpochCorrect() bool {
 	if inHdr.hdr.GetRound() <= inHdr.epochStartTrigger.EpochStartRound() {
 		return true
 	}
-	if inHdr.hdr.GetRound() <= inHdr.epochStartTrigger.EpochFinalityAttestingRound()+process.EpochChangeGracePeriod {
+	gracePeriod, err := inHdr.epochChangeGracePeriodHandler.GetGracePeriodForEpoch(inHdr.hdr.GetEpoch())
+	if err != nil {
+		log.Warn("isEpochCorrect", "epoch", inHdr.hdr.GetEpoch(), "error", err)
+		return false
+	}
+	if inHdr.hdr.GetRound() <= inHdr.epochStartTrigger.EpochFinalityAttestingRound()+uint64(gracePeriod) {
 		return true
 	}
 
@@ -125,7 +139,7 @@ func (inHdr *InterceptedHeader) integrity() error {
 			inHdr.epochStartTrigger.EpochFinalityAttestingRound())
 	}
 
-	err := checkHeaderHandler(inHdr.HeaderHandler())
+	err := checkHeaderHandler(inHdr.HeaderHandler(), inHdr.enableEpochsHandler)
 	if err != nil {
 		return err
 	}
