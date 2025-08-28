@@ -119,8 +119,6 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 	)
 
 	t.Run("getMessageToVerifySig should return nil when CalculateHash method fails", func(t *testing.T) {
-		t.Parallel()
-
 		sovEndRound.SetHeader(nil)
 
 		msg := sovEndRound.GetMessageToVerifySig()
@@ -128,8 +126,6 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 	})
 
 	t.Run("getMessageToVerifySig should return the message on which the signature should be verified", func(t *testing.T) {
-		t.Parallel()
-
 		sovEndRound.SetHeader(&block.Header{Nonce: 1})
 		expectedMsg, _ := core.CalculateHash(sovEndRound.Marshalizer(), sovEndRound.Hasher(), sovEndRound.GetHeader())
 
