@@ -309,7 +309,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
 	require.Len(t, outGoingMBHdrs, 1)
 
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
+	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash(), coreDTO.MVX)
 	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
 
