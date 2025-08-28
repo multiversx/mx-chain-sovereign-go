@@ -1113,6 +1113,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Hash:                   []byte("hashOfHashes"),
 				OutGoingOperationsHash: []byte("hashOfHashes"),
 			},
