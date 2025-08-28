@@ -917,7 +917,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			MiniBlocks: []*block.MiniBlock{
 				{
 					TxHashes:        [][]byte{outGoingOpHash},
-					ReceiverShardID: core.MainChainShardId,
+					ReceiverShardID: uint32(dto.MVX),
 					SenderShardID:   core.SovereignChainShardId,
 				},
 			},
@@ -935,12 +935,16 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 				Epoch:    nextEpoch,
 				RandSeed: []byte("rndSeed"),
 			},
+			EpochStart: block.EpochStartSovereign{
+				LastFinalizedCrossChainHeader: make([]block.EpochStartCrossChainData, 0),
+			},
 			IsStartOfEpoch: true,
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
 					Type:                   block.OutGoingMbChangeValidatorSet,
 					Hash:                   outGoingMBHash,
 					OutGoingOperationsHash: outGoingOpsHash,
+					ChainID:                dto.MVX,
 				},
 			},
 		}
@@ -1330,7 +1334,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		expectedOutGoingMB := &block.MiniBlock{
 
 			TxHashes:        [][]byte{outGoingOpHash},
-			ReceiverShardID: core.MainChainShardId,
+			ReceiverShardID: uint32(dto.MVX),
 			SenderShardID:   core.SovereignChainShardId,
 		}
 
@@ -1341,6 +1345,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		)
 		sovHeader.OutGoingMiniBlockHeaders = []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Type:                   block.OutGoingMbChangeValidatorSet,
 				Hash:                   outGoingMBHash,
 				OutGoingOperationsHash: outGoingOpsHash,

@@ -990,7 +990,7 @@ func TestSovereignChainShardBlockTrack_doReceivedHeaderJobWithAndromedaNoProof(t
 	}
 
 	sbt, _ := track.NewShardBlockTrack(args)
-	scsbt, _ := track.NewSovereignChainShardBlockTrack(sbt)
+	scsbt, _ := track.NewSovereignChainShardBlockTrack(sbt, orderedChainIDs)
 
 	sovHdr := &block.SovereignChainHeader{
 		Header: &block.Header{

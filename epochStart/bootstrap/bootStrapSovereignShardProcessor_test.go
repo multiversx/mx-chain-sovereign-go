@@ -174,7 +174,7 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 	headersSyncedCt := 0
 	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
 		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
-			require.Equal(t, []uint32{core.SovereignChainShardId, core.MainChainShardId, core.SovereignChainShardId}, shardIDs)
+			require.Equal(t, []uint32{core.SovereignChainShardId, uint32(dto.MVX), core.SovereignChainShardId}, shardIDs)
 			require.Equal(t, [][]byte{currentHeaderHash, lastCrossChainHeaderHash, prevEpochStartHash}, headersHashes)
 			headersSyncedCt++
 			return nil
@@ -205,9 +205,11 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFromStorage(t *testing.T) {
 			Economics: block.Economics{
 				PrevEpochStartHash: prevEpochStartHash,
 			},
-			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
-				ShardID:    core.MainChainShardId,
-				HeaderHash: lastCrossChainHeaderHash,
+			LastFinalizedCrossChainHeader: []block.EpochStartCrossChainData{
+				{
+					ShardID:    uint32(dto.MVX),
+					HeaderHash: lastCrossChainHeaderHash,
+				},
 			},
 		},
 	}

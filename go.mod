@@ -1,8 +1,8 @@
 module github.com/multiversx/mx-chain-go
 
 replace (
-	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250827133221-c9233e6bcdc7
-	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250827085438-81d194a7d4f1
+	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250827134803-1666dcee92f0
+	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250827090449-a68b23b996fb
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250715144941-88820f3a7c28
 )
 

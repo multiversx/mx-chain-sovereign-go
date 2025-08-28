@@ -3,8 +3,10 @@ package interceptedBlocks
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/multiversx/mx-chain-go/common/graceperiod"
@@ -12,7 +14,6 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 )
@@ -24,7 +25,7 @@ func createDefaultBlockHeaderArgument() *ArgInterceptedBlockHeader {
 		Hasher:                        &hashingMocks.HasherMock{},
 		Marshalizer:                   &mock.MarshalizerMock{},
 		HdrBuff:                       []byte("test buffer"),
-		HeaderSigVerifier:             &consensus.HeaderSigVerifierMock{},
+		HeaderSigVerifier:             disabled.NewHeaderSigVerifier(),
 		HeaderIntegrityVerifier:       &mock.HeaderIntegrityVerifierStub{},
 		ValidityAttester:              &mock.ValidityAttesterStub{},
 		EpochStartTrigger:             &mock.EpochStartTriggerStub{},

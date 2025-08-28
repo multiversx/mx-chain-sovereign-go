@@ -2,9 +2,9 @@ package runType
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
-	"golang.org/x/exp/slices"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/process"
@@ -21,9 +21,7 @@ func GetOrderedCrossChainIDs(mainChainNotarizationStartRound map[string]config.M
 		orderedChainIDs = append(orderedChainIDs, dto.ChainID(dto.ChainID_value[chainIDStr]))
 	}
 
-	slices.SortStableFunc(orderedChainIDs, func(a, b dto.ChainID) bool {
-		return a < b
-	})
+	slices.Sort(orderedChainIDs)
 
 	return orderedChainIDs, nil
 }
