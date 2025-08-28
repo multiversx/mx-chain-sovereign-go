@@ -204,7 +204,7 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 
 	txsData := make(map[dto.ChainID][][]byte, 0)
 	for i, event := range outgoingEvents {
-		chainID, operation, err := op.getOperationData(event)
+		operations, err := op.getOperationData(event)
 		if err != nil {
 			log.Error("outgoingOperations.CreateOutgoingTxsData error",
 				"tx hash", logs[i].TxHash,
@@ -214,12 +214,18 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 			return nil, err
 		}
 
-		txsData[chainID] = append(txsData[chainID], operation)
+		addOpsToMap(operations, txsData)
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
 	// Task: MX-14720
 	return txsData, nil
+}
+
+func addOpsToMap(operations map[dto.ChainID][]byte, allOperations map[dto.ChainID][][]byte) {
+	for chainID, operation := range operations {
+		allOperations[chainID] = append(allOperations[chainID], operation)
+	}
 }
 
 func (op *outgoingOperations) createOutgoingEvents(logs []*data.LogData) []data.EventHandler {
@@ -266,20 +272,36 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.ChainID, []byte, error) {
-	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
+func (op *outgoingOperations) getOperationData(event data.EventHandler) (map[dto.ChainID][]byte, error) {
+	eventID := string(event.GetIdentifier())
+	opFormatter, found := op.opFormatters[eventID]
 	if !found {
-		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
-		return 0, nil, errEventIDNotFound
+		log.Error("outgoingOperations.getOperationData: event not found", "event", eventID)
+		return nil, errEventIDNotFound
 	}
 
 	opData, err := opFormatter.CreateOperationData(event)
 	if err != nil {
-		return 0, nil, err
+		return nil, err
 	}
 
-	// TODO: MX-16831 Here, we should have contracts emitting chain id
-	return dto.MVX, opData, err
+	return op.getChainsToSendOutGoingOp(eventID, opData), err
+}
+
+func (op *outgoingOperations) getChainsToSendOutGoingOp(eventID string, opData []byte) map[dto.ChainID][]byte {
+	if eventID != topicIDRegisterBlsKey {
+		// TODO: MX-16831 Here, we should have contracts emitting chain id
+		return map[dto.ChainID][]byte{
+			dto.MVX: opData,
+		}
+	}
+
+	ret := make(map[dto.ChainID][]byte)
+	for chainID := range op.mapChainIDs {
+		ret[chainID] = opData
+	}
+
+	return ret
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change

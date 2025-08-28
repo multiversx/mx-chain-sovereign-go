@@ -1358,7 +1358,12 @@ func (scbp *sovereignChainBlockProcessor) computeAndVerifyEpochChangeOutGoingOpe
 	}
 
 	outGoingMBs := make([]*block.MiniBlock, 0)
-	for chainID, outGoingData := range outGoingOperationChangeValidatorSet {
+	for _, chainID := range scbp.orderedChainIDs {
+		outGoingData, found := outGoingOperationChangeValidatorSet[chainID]
+		if !found {
+			continue
+		}
+
 		outGoingMB, computedOutGoingMbHash, err := scbp.computeEpochChangeOutGoingMBHeaderAndHash(header, outGoingData, chainID)
 		if err != nil {
 			return nil, err
