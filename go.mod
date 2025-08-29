@@ -46,7 +46,7 @@ require (
 )
 
 require (
-	github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829103550-ee61c29f7c16
+	github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829111718-0d0d58a128ba
 	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250610105734-30b3338debcf
 	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250829103158-7dcb32c64e26
 	github.com/multiversx/mx-sdk-abi-go v0.3.0

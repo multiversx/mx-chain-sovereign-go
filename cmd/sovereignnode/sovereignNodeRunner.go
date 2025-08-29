@@ -539,10 +539,8 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	notifier, err := ethFactory.CreateWSETHClientNotifier(ethConfig.Config{})
-
 	notifierServices, err := createNotifierWSReceiverServicesIfNeeded(
-		&configs.SovereignExtraConfig.NotifierConfig,
+		configs.SovereignExtraConfig,
 		incomingHeaderHandler,
 		managedCoreComponents.GenesisNodesSetup().GetRoundDuration(),
 		managedProcessComponents.ForkDetector(),
@@ -1851,33 +1849,41 @@ func createWhiteListerVerifiedTxs(generalConfig *config.Config) (process.WhiteLi
 }
 
 func createNotifierWSReceiverServicesIfNeeded(
-	config *config.NotifierConfig,
+	config *config.SovereignConfig,
 	incomingHeaderHandler process.IncomingHeaderSubscriber,
 	roundDuration uint64,
 	forkDetector process.ForkDetector,
 	bootstrapper process.Bootstrapper,
 	sigStopNode chan os.Signal,
 ) ([]mainFactory.Closer, error) {
-	if !config.Enabled {
-		log.Info("running without any notifier attached")
-		return make([]mainFactory.Closer, 0), nil
+	closers := make([]mainFactory.Closer, 0)
+	notifiers := make([]notifier.SovereignNotifier, 0)
+
+	if config.NotifierConfig.Enabled {
+		log.Info("running without mvx notifier attached")
+		mvxNotifier, mvxCloser, err := createMVXNotifierServices(&config.NotifierConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		notifiers = append(notifiers, mvxNotifier)
+		closers = append(closers, mvxCloser)
 	}
 
-	sovereignNotifier, err := createSovereignNotifier(config)
-	if err != nil {
-		return nil, err
+	if config.ETHNotifierConfig.Enabled {
+		log.Info("running with eth notifier attached")
+		ethNotifier, err := createETHNotifier(config.ETHNotifierConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		notifiers = append(notifiers, ethNotifier)
+		closers = append(closers, ethNotifier)
 	}
 
-	sovereignWsReceiver, err := createSovereignWsReceiver(
-		config,
-		sovereignNotifier,
-	)
-	if err != nil {
-		return nil, err
-	}
 	sovereignNotifierBootstrapper, err := startSovereignNotifierBootstrapper(
 		incomingHeaderHandler,
-		sovereignNotifier,
+		notifiers,
 		roundDuration,
 		forkDetector,
 		bootstrapper,
@@ -1887,7 +1893,24 @@ func createNotifierWSReceiverServicesIfNeeded(
 		return nil, err
 	}
 
-	return []mainFactory.Closer{sovereignWsReceiver, sovereignNotifierBootstrapper}, nil
+	return append(closers, sovereignNotifierBootstrapper), nil
+}
+
+func createMVXNotifierServices(config *config.NotifierConfig) (notifier.SovereignNotifier, mainFactory.Closer, error) {
+	sovereignNotifier, err := createSovereignNotifier(config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sovereignWsReceiver, err := createSovereignWsReceiver(
+		config,
+		sovereignNotifier,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return sovereignNotifier, sovereignWsReceiver, nil
 }
 
 func createSovereignWsReceiver(
@@ -1925,6 +1948,27 @@ func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.Sov
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)
+}
+
+func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, error) {
+	subEvents := make([]ethConfig.SubscribedEvent, 0)
+	for _, cfg := range config.SubscribedEvents {
+		subEvents = append(subEvents, ethConfig.SubscribedEvent{
+			Identifier: cfg.Identifier,
+			Address:    cfg.Address,
+		})
+	}
+
+	return ethFactory.CreateWSETHClientNotifier(ethConfig.Config{
+		MarshallerType:        config.MarshallerType,
+		HasherType:            config.HasherType,
+		MinBlocksConfirmation: config.MinBlocksConfirmation,
+		BlockCacheSize:        config.BlockCacheSize,
+		SubscribedEvents:      subEvents,
+		ClientConfig: ethConfig.ClientConfig{
+			Url: config.URL,
+		},
+	})
 }
 
 func startSovereignNotifierBootstrapper(

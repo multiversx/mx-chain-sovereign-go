@@ -8,6 +8,7 @@ type SovereignConfig struct {
 	OutgoingSubscribedEvents         OutgoingSubscribedEvents         `toml:"OutgoingSubscribedEvents"`
 	OutGoingBridge                   OutGoingBridge                   `toml:"OutGoingBridge"`
 	NotifierConfig                   NotifierConfig                   `toml:"NotifierConfig"`
+	ETHNotifierConfig                ETHNotifierConfig                `toml:"ETHNotifierConfig"`
 	GenesisConfig                    GenesisConfig                    `toml:"GenesisConfig"`
 	OutGoingBridgeCertificate        OutGoingBridgeCertificate
 }
@@ -45,10 +46,27 @@ type NotifierConfig struct {
 	AddressPubKeyConverter PubkeyConfig      `toml:"AddressPubKeyConverter"`
 }
 
+// ETHNotifierConfig holds eth notifier config
+type ETHNotifierConfig struct {
+	Enabled               bool                 `toml:"Enabled"`
+	SubscribedEvents      []ETHSubscribedEvent `toml:"SubscribedEvents"`
+	HasherType            string               `toml:"HasherType"`
+	MarshallerType        string               `toml:"MarshallerType"`
+	MinBlocksConfirmation uint8                `toml:"MinBlocksConfirmation"`
+	BlockCacheSize        uint64               `toml:"BlockCacheSize"`
+	URL                   string               `toml:"URL"`
+}
+
 // SubscribedEvent holds subscribed events config
 type SubscribedEvent struct {
 	Identifier string   `toml:"Identifier"`
 	Addresses  []string `toml:"Addresses"`
+}
+
+// ETHSubscribedEvent holds eth subsribed events config
+type ETHSubscribedEvent struct {
+	Identifier string `toml:"Identifier"`
+	Address    string `toml:"Address"`
 }
 
 // WebSocketConfig holds web socket config

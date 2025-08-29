@@ -445,8 +445,8 @@ github.com/multiformats/go-varint v0.0.7 h1:sWSGR+f/eu5ABZA2ZpYKBILXTTs9JWpdEM/n
 github.com/multiformats/go-varint v0.0.7/go.mod h1:r8PUYw/fD/SjBCiKOoDlGF6QawOELpZAu9eioSos/OU=
 github.com/multiversx/concurrent-map v0.1.4 h1:hdnbM8VE4b0KYJaGY5yJS2aNIW9TFFsUYwbO0993uPI=
 github.com/multiversx/concurrent-map v0.1.4/go.mod h1:8cWFRJDOrWHOTNSqgYCUvwT7c7eFQ4U2vKMOp4A/9+o=
-github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829103550-ee61c29f7c16 h1:+8Rr/zi6yGd7337enlg6abV9EBnyymBLXto8iSGWpU8=
-github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829103550-ee61c29f7c16/go.mod h1:N2mapkK1jUdcFyVOA68FGZREWSl8SqjNrslXHnHhBf8=
+github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829111718-0d0d58a128ba h1:KQgMSQcMTlp4Vc+yZQp8ISXIN7R4LMP19QYcWiUy8gQ=
+github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829111718-0d0d58a128ba/go.mod h1:N2mapkK1jUdcFyVOA68FGZREWSl8SqjNrslXHnHhBf8=
 github.com/multiversx/mx-chain-communication-go v1.3.0 h1:ziNM1dRuiR/7al2L/jGEA/a/hjurtJ/HEqgazHNt9P8=
 github.com/multiversx/mx-chain-communication-go v1.3.0/go.mod h1:gDVWn6zUW6aCN1YOm/FbbT5MUmhgn/L1Rmpl8EoH3Yg=
 github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250828124016-b9cd40c599cc h1:uxR8ELtCR+/3FDmU4O9HPyLkwPamFJWsCybfhVbdacw=
