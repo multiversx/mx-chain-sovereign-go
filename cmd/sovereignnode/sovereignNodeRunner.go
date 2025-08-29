@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/google/gops/agent"
+	ethConfig "github.com/multiversx/eth-chain-sovereign-notifier-go/config"
+	ethFactory "github.com/multiversx/eth-chain-sovereign-notifier-go/factory"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
@@ -536,6 +538,8 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	notifier, err := ethFactory.CreateWSETHClientNotifier(ethConfig.Config{})
 
 	notifierServices, err := createNotifierWSReceiverServicesIfNeeded(
 		&configs.SovereignExtraConfig.NotifierConfig,
@@ -1925,7 +1929,7 @@ func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.Sov
 
 func startSovereignNotifierBootstrapper(
 	incomingHeaderHandler process.IncomingHeaderSubscriber,
-	sovereignNotifier notifierProcess.SovereignNotifier,
+	sovereignNotifiers []notifier.SovereignNotifier,
 	roundDuration uint64,
 	forkDetector process.ForkDetector,
 	bootstrapper process.Bootstrapper,
@@ -1933,7 +1937,7 @@ func startSovereignNotifierBootstrapper(
 ) (notifier.SovereignNotifierBootstrapper, error) {
 	args := notifier.ArgsNotifierBootstrapper{
 		IncomingHeaderHandler: incomingHeaderHandler,
-		SovereignNotifier:     sovereignNotifier,
+		SovereignNotifiers:    sovereignNotifiers,
 		ForkDetector:          forkDetector,
 		Bootstrapper:          bootstrapper,
 		RoundDuration:         roundDuration,

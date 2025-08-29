@@ -2,16 +2,15 @@ package notifier
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"syscall"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
-
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const roundsThreshold = process.MaxRoundsWithoutNewBlockReceived + 1
@@ -21,7 +20,7 @@ var log = logger.GetOrCreate("notifier-bootstrap")
 // ArgsNotifierBootstrapper defines args needed to create a new notifier bootstrapper
 type ArgsNotifierBootstrapper struct {
 	IncomingHeaderHandler process.IncomingHeaderSubscriber
-	SovereignNotifier     notifierProcess.SovereignNotifier
+	SovereignNotifiers    []SovereignNotifier
 	ForkDetector          process.ForkDetector
 	Bootstrapper          process.Bootstrapper
 	SigStopNode           chan os.Signal
@@ -30,7 +29,7 @@ type ArgsNotifierBootstrapper struct {
 
 type notifierBootstrapper struct {
 	incomingHeaderHandler process.IncomingHeaderSubscriber
-	sovereignNotifier     notifierProcess.SovereignNotifier
+	sovereignNotifiers    []SovereignNotifier
 	forkDetector          process.ForkDetector
 	sigStopNode           chan os.Signal
 
@@ -47,7 +46,7 @@ func NewNotifierBootstrapper(args ArgsNotifierBootstrapper) (*notifierBootstrapp
 
 	nb := &notifierBootstrapper{
 		incomingHeaderHandler: args.IncomingHeaderHandler,
-		sovereignNotifier:     args.SovereignNotifier,
+		sovereignNotifiers:    args.SovereignNotifiers,
 		forkDetector:          args.ForkDetector,
 		syncedRoundsChan:      make(chan int32, 1),
 		cancelFunc:            nil,
@@ -64,8 +63,10 @@ func checkArgs(args ArgsNotifierBootstrapper) error {
 	if check.IfNil(args.IncomingHeaderHandler) {
 		return errors.ErrNilIncomingHeaderSubscriber
 	}
-	if check.IfNil(args.SovereignNotifier) {
-		return errNilSovereignNotifier
+	for idx, sovNotifier := range args.SovereignNotifiers {
+		if check.IfNil(sovNotifier) {
+			return fmt.Errorf("%w at idx: %d", errNilSovereignNotifier, idx)
+		}
 	}
 	if check.IfNil(args.ForkDetector) {
 		return errors.ErrNilForkDetector
@@ -123,14 +124,7 @@ func (nb *notifierBootstrapper) checkNodeState(ctx context.Context) {
 				continue
 			}
 
-			err := nb.sovereignNotifier.RegisterHandler(nb.incomingHeaderHandler)
-			if err != nil {
-				log.Error("notifierBootstrapper: sovereignNotifier.RegisterHandler", "err", err)
-				nb.sigStopNode <- syscall.SIGTERM
-			} else {
-				log.Info("notifierBootstrapper.checkNodeState", "is node synced", true)
-			}
-
+			nb.registerHandlerToNotifiers()
 			return
 		case <-ticker.C:
 			log.Debug("notifierBootstrapper.checkNodeState", "is node synced", false)
@@ -146,6 +140,18 @@ func updateSyncedRounds(syncedRounds uint32, delta int32) uint32 {
 	}
 
 	return syncedRounds
+}
+
+func (nb *notifierBootstrapper) registerHandlerToNotifiers() {
+	for _, sovereignNotifier := range nb.sovereignNotifiers {
+		err := sovereignNotifier.RegisterHandler(nb.incomingHeaderHandler)
+		if err != nil {
+			log.Error("notifierBootstrapper: sovereignNotifier.RegisterHandler", "err", err, "notifier", fmt.Sprintf("%T", sovereignNotifier))
+			nb.sigStopNode <- syscall.SIGTERM
+		} else {
+			log.Info("notifierBootstrapper.checkNodeState", "is node synced", true)
+		}
+	}
 }
 
 // Close cancels current context and empties channel reads
