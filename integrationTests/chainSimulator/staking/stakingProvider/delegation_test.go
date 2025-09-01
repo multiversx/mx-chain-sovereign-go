@@ -2061,21 +2061,6 @@ func testChainSimulatorMergingDelegation(t *testing.T, cs chainSimulatorIntegrat
 	require.Equal(t, expectedTopUpValue, getBLSTopUpValue(t, metachainNode, delegationAddress))
 }
 
-func getBLSKeyOwner(t *testing.T, metachainNode chainSimulatorProcess.NodeHandler, blsKey []byte) []byte {
-	scQuery := &process.SCQuery{
-		ScAddress:  vm.StakingSCAddress,
-		FuncName:   "getOwner",
-		CallerAddr: vm.ValidatorSCAddress,
-		CallValue:  big.NewInt(0),
-		Arguments:  [][]byte{blsKey},
-	}
-	result, _, err := metachainNode.GetFacadeHandler().ExecuteSCQuery(scQuery)
-	require.Nil(t, err)
-	require.Equal(t, chainSimulatorIntegrationTests.OkReturnCode, result.ReturnCode)
-
-	return result.ReturnData[0]
-}
-
 func TestChainSimulator_CreateDelegationContractAndWithdraw(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
