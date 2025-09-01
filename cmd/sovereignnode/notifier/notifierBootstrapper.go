@@ -149,7 +149,7 @@ func (nb *notifierBootstrapper) registerHandlerToNotifiers() {
 			log.Error("notifierBootstrapper: sovereignNotifier.RegisterHandler", "err", err, "notifier", fmt.Sprintf("%T", sovereignNotifier))
 			nb.sigStopNode <- syscall.SIGTERM
 		} else {
-			log.Info("notifierBootstrapper.checkNodeState", "is node synced", true)
+			log.Info("notifierBootstrapper.registerHandlerToNotifiers", "sovereignNotifier", fmt.Sprintf("%T", sovereignNotifier), "is node synced", true)
 		}
 	}
 }

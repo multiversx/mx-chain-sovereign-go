@@ -4,6 +4,7 @@ package main
 // TODO: Create a baseNodeRunner that uses common code from here and nodeRunner.go to avoid duplicated code
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -1860,7 +1861,7 @@ func createNotifierWSReceiverServicesIfNeeded(
 	notifiers := make([]notifier.SovereignNotifier, 0)
 
 	if config.NotifierConfig.Enabled {
-		log.Info("running without mvx notifier attached")
+		log.Info("running with mvx notifier attached")
 		mvxNotifier, mvxCloser, err := createMVXNotifierServices(&config.NotifierConfig)
 		if err != nil {
 			return nil, err
@@ -1879,6 +1880,11 @@ func createNotifierWSReceiverServicesIfNeeded(
 
 		notifiers = append(notifiers, ethNotifier)
 		closers = append(closers, ethNotifier)
+
+		err = ethNotifier.RegisterHandler(incomingHeaderHandler)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sovereignNotifierBootstrapper, err := startSovereignNotifierBootstrapper(
@@ -1959,7 +1965,7 @@ func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, e
 		})
 	}
 
-	return ethFactory.CreateWSETHClientNotifier(ethConfig.Config{
+	ethNotifier, err := ethFactory.CreateWSETHClientNotifier(ethConfig.Config{
 		MarshallerType:        config.MarshallerType,
 		HasherType:            config.HasherType,
 		MinBlocksConfirmation: config.MinBlocksConfirmation,
@@ -1969,6 +1975,17 @@ func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, e
 			Url: config.URL,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		err = ethNotifier.Start(context.Background())
+		log.LogIfError(err)
+		time.Sleep(time.Second * 5)
+	}()
+
+	return ethNotifier, nil
 }
 
 func startSovereignNotifierBootstrapper(

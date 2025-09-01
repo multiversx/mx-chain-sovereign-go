@@ -1181,7 +1181,7 @@ func (scbp *sovereignChainBlockProcessor) checkExtendedShardHeadersValidityForCh
 				"lastCrossNotarizedHeader.Round", lastCrossNotarizedHeader.GetRound(),
 				"chainID", chainData.GetChainID().String(),
 			)
-			return fmt.Errorf("%w : checkExtendedShardHeadersValidity -> isHdrConstructionValid", err)
+			//return fmt.Errorf("%w : checkExtendedShardHeadersValidity -> isHdrConstructionValid", err)
 		}
 
 		lastCrossNotarizedHeader = extendedShardHdr

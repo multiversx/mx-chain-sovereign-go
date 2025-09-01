@@ -39,6 +39,12 @@ func newExtendedHeaderProcessor(
 	if err != nil {
 		return nil, err
 	}
+	ethHeaderCreator := extendedHeader.NewETHExtendedHeaderCreator()
+	err = container.Add(sovDto.ETH, ethHeaderCreator)
+	if err != nil {
+		return nil, err
+	}
+
 	return &extendedHeaderProcessor{
 		headersPool: headersPool,
 		txPool:      txPool,
