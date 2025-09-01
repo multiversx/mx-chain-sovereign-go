@@ -316,14 +316,14 @@ func (bp *blockProcessor) getNextHeader(
 
 		err := bp.headerValidator.IsHeaderConstructionValid(currHeader, prevHeader)
 		if err != nil {
-			// TODO: HERE
-			//continue
+			log.Debug("blockProcessor.getNextHeader.IsHeaderConstructionValid", "err", err)
+			continue
 		}
 
 		err = bp.checkHeaderFinality(currHeader, sortedHeaders, sortedHeadersHashes, i+1)
 		if err != nil {
-			// TODO: HERE
-			//continue
+			log.Debug("blockProcessor.getNextHeader.checkHeaderFinality", "err", err)
+			continue
 		}
 
 		headersIndexes = append(headersIndexes, i)

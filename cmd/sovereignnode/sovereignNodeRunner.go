@@ -1880,11 +1880,6 @@ func createNotifierWSReceiverServicesIfNeeded(
 
 		notifiers = append(notifiers, ethNotifier)
 		closers = append(closers, ethNotifier)
-
-		err = ethNotifier.RegisterHandler(incomingHeaderHandler)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	sovereignNotifierBootstrapper, err := startSovereignNotifierBootstrapper(
