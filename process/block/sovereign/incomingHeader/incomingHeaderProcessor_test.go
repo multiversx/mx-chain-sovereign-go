@@ -415,7 +415,7 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 
 		handler, _ := NewIncomingHeaderProcessor(args)
 		err := handler.AddHeader([]byte("hash"), incomingHeader)
-		require.Equal(t, dto.ErrInvalidIncomingEventIdentifier, err)
+		require.ErrorIs(t, err, dto.ErrInvalidIncomingEventIdentifier)
 	})
 
 	t.Run("cannot compute scr hash, should return error", func(t *testing.T) {
