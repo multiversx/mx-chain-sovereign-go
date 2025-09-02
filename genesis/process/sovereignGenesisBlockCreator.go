@@ -286,16 +286,16 @@ func createSovereignShardGenesisBlock(
 		return nil, nil, nil, err
 	}
 
-	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
 	deploySystemSCTxs, err := deploySystemSmartContracts(arg, metaProcessor.txProcessor, metaProcessor.systemSCs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	indexingData.DeploySystemScTxs = deploySystemSCTxs
+
+	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	stakingTxs, err := setSovereignStakedData(arg, metaProcessor, nodesListSplitter)
 	if err != nil {
