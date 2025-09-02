@@ -32,7 +32,7 @@ func (creator *ethExtendedHeaderCreator) CreateNewExtendedHeader(proof []byte) (
 			Header: &block.Header{
 				Nonce: ethHeader.Number.Uint64(),
 				Round: ethHeader.Number.Uint64(),
-				// TODO: Here, Think here maybe extend from core ShardHeaderExtended to return GetShardID as source chain for mvx as well?
+				// TODO: MX-17145 maybe extend ShardHeaderExtended from core to return on GetShardID the source chain
 				ShardID: uint32(dto.ETH),
 			},
 		},

@@ -65,7 +65,7 @@ func checkArgs(args ArgsNotifierBootstrapper) error {
 	}
 	for idx, sovNotifier := range args.SovereignNotifiers {
 		if check.IfNil(sovNotifier) {
-			return fmt.Errorf("%w at idx: %d", errNilSovereignNotifier, idx)
+			return fmt.Errorf("%w at idx: %d in NewNotifierBootstrapper->checkArgs", errNilSovereignNotifier, idx)
 		}
 	}
 	if check.IfNil(args.ForkDetector) {
@@ -149,7 +149,7 @@ func (nb *notifierBootstrapper) registerHandlerToNotifiers() {
 			log.Error("notifierBootstrapper: sovereignNotifier.RegisterHandler", "err", err, "notifier", fmt.Sprintf("%T", sovereignNotifier))
 			nb.sigStopNode <- syscall.SIGTERM
 		} else {
-			log.Info("notifierBootstrapper.registerHandlerToNotifiers", "sovereignNotifier", fmt.Sprintf("%T", sovereignNotifier), "is node synced", true)
+			log.Info("notifierBootstrapper: registered notifier", "notifier", fmt.Sprintf("%T", sovereignNotifier), "is node synced", true)
 		}
 	}
 }

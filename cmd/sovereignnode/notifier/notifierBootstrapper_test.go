@@ -167,6 +167,66 @@ func TestNotifierBootstrapper_Start(t *testing.T) {
 	}
 }
 
+func TestNotifierBootstrapper_StartWithMultipleNotifiers(t *testing.T) {
+	t.Parallel()
+
+	args := createArgs()
+
+	wasRegisteredToStateSync := false
+	args.Bootstrapper = &processMocks.BootstrapperStub{
+		AddSyncStateListenerCalled: func(f func(bool)) {
+			require.Contains(t, getFunctionName(f), "(*notifierBootstrapper).receivedSyncState")
+			wasRegisteredToStateSync = true
+		},
+	}
+
+	registerCalledCt1 := atomic.Int64{}
+	args.SovereignNotifiers[0] = &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
+			require.Equal(t, args.IncomingHeaderHandler, handler)
+			registerCalledCt1.Add(1)
+			return nil
+		},
+	}
+	registerCalledCt2 := atomic.Int64{}
+	args.SovereignNotifiers = append(args.SovereignNotifiers, &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
+			require.Equal(t, args.IncomingHeaderHandler, handler)
+			registerCalledCt2.Add(1)
+			return nil
+		},
+	})
+
+	getHighestNonceCalledCt := atomic.Int64{}
+	args.ForkDetector = &mock.ForkDetectorStub{
+		GetHighestFinalBlockNonceCalled: func() uint64 {
+			defer func() {
+				getHighestNonceCalledCt.Add(1)
+			}()
+
+			return uint64(getHighestNonceCalledCt.Load())
+		},
+	}
+
+	nb, _ := NewNotifierBootstrapper(args)
+	require.True(t, wasRegisteredToStateSync)
+
+	nb.Start()
+
+	defer func() {
+		err := nb.Close()
+		require.Nil(t, err)
+	}()
+
+	for i := int64(0); i < roundsThreshold+1; i++ {
+		nb.receivedSyncState(true)
+		time.Sleep(time.Millisecond * 50)
+	}
+
+	require.Equal(t, int64(1), registerCalledCt1.Load())
+	require.Equal(t, int64(1), registerCalledCt2.Load())
+}
+
 func TestNotifierBootstrapper_Start_ConcurrencyTest(t *testing.T) {
 	t.Parallel()
 

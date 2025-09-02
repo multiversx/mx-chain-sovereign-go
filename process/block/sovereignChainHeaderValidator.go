@@ -42,6 +42,7 @@ func (schv *sovereignChainHeaderValidator) calculateHeaderHash(headerHandler dat
 	return core.CalculateHash(schv.marshalizer, schv.hasher, headerHandler)
 }
 
+// IsHeaderConstructionValid verifies if current header is constructed correctly on top of previous header
 func (schv *sovereignChainHeaderValidator) IsHeaderConstructionValid(currHeader, prevHeader data.HeaderHandler) error {
 	err := schv.checkHdrRoundAndNonce(currHeader, prevHeader)
 	if err != nil {

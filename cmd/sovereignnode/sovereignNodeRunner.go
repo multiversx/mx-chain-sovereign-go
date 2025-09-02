@@ -1861,7 +1861,7 @@ func createNotifierWSReceiverServicesIfNeeded(
 	notifiers := make([]notifier.SovereignNotifier, 0)
 
 	if config.NotifierConfig.Enabled {
-		log.Info("running with mvx notifier attached")
+		log.Info("running with MVX notifier attached")
 		mvxNotifier, mvxCloser, err := createMVXNotifierServices(&config.NotifierConfig)
 		if err != nil {
 			return nil, err
@@ -1872,7 +1872,7 @@ func createNotifierWSReceiverServicesIfNeeded(
 	}
 
 	if config.ETHNotifierConfig.Enabled {
-		log.Info("running with eth notifier attached")
+		log.Info("running with ETH notifier attached")
 		ethNotifier, err := createETHNotifier(config.ETHNotifierConfig)
 		if err != nil {
 			return nil, err

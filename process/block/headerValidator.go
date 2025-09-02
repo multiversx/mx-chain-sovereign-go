@@ -57,7 +57,7 @@ func (h *headerValidator) IsHeaderConstructionValid(currHeader, prevHeader data.
 		return err
 	}
 
-	return h.checkHdrRoundAndNonce(currHeader, prevHeader)
+	return h.checkHdrHashes(currHeader, prevHeader)
 }
 
 func (h *headerValidator) checkHdrRoundAndNonce(currHeader, prevHeader data.HeaderHandler) error {
