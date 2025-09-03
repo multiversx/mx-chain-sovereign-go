@@ -201,7 +201,7 @@ jobs:
           # Start ChainSimulator with minimal args to initialize configs
           INIT_LOG_FILE="/tmp/chainsim_init.log"
           echo "Starting ChainSimulator initialization process..."
-          ./chainsimulator ${{ matrix.is_sovereign && '--sovereign' || '' }} > $INIT_LOG_FILE 2>&1 &
+          ./chainsimulator --sovereign > $INIT_LOG_FILE 2>&1 &
           INIT_PROCESS_PID=$!
           
           # Verify the process is running
@@ -471,8 +471,8 @@ jobs:
               message = `
               ${verdict}
             
-              📊 **MultiversX Automated Test Report:** [View Report](${backupUrl})
               [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
+              📊 **MultiversX Automated Test Report:** [View Report](${backupUrl})
             
               📊 **MultiversX Automated Test Report:** [View Report](${r2Url})
 
