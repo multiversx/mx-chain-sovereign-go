@@ -351,7 +351,7 @@ jobs:
         if: always()
         run: |
           branch="${{ env.BRANCH_NAME }}"
-          target="reports/chain-simulator/${branch}/${TS}"
+          target="reports/chain-simulator/${branch}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${TS}"
           rclone copy r2_upload/ "r2:${REPORT_BUCKET}/${target}"
           echo "R2_REPORT_URL=${REPORT_BASE_URL}/${target}/index.html" >> $GITHUB_ENV          
 
@@ -471,10 +471,8 @@ jobs:
               message = `
               ${verdict}
             
-              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
-              📊 **MultiversX Automated Test Report:** [View Report](${backupUrl})
-            
               📊 **MultiversX Automated Test Report:** [View Report](${r2Url})
+              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
 
               🔄 **Build Details:**
               - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`
