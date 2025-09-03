@@ -1,7 +1,7 @@
 module github.com/multiversx/mx-chain-go
 
 replace (
-	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250828124016-b9cd40c599cc
+	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20250902130224-83ae7358b348
 	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250827090449-a68b23b996fb
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250715144941-88820f3a7c28
 )
@@ -11,6 +11,7 @@ go 1.23.0
 require (
 	github.com/beevik/ntp v1.3.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/ethereum/go-ethereum v1.12.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.10.0
@@ -78,7 +79,6 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/go-elasticsearch/v7 v7.12.0 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
-	github.com/ethereum/go-ethereum v1.12.0 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.6 // indirect
