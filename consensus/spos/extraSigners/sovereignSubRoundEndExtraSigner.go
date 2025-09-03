@@ -112,7 +112,7 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetAggregatedSignatureInHeader(hea
 		}
 	}
 
-	return nil
+	return sovHeader.SetOutGoingMiniBlockHeaderHandlers(outGoingMBs)
 }
 
 // SignAndSetLeaderSignature signs and sets leader signature for outgoing tx in header
