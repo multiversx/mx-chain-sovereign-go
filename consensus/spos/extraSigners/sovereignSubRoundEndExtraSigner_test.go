@@ -196,6 +196,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: outGoingOpHash,
+				},
 			},
 		}, sovHdr)
 	})
@@ -221,6 +226,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
@@ -283,6 +293,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     expectedLeaderSig,
 				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: outGoingOpHash,
+				},
 			},
 		}, sovHdr)
 	})
@@ -308,6 +323,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 				ChainID:                               dto.ETH,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
@@ -352,6 +372,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 				LeaderSignatureOutGoingOperations:     expectedLeaderSig,
 			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
 		},
 	}, sovHdr)
 }
@@ -384,6 +409,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SetConsensusDataInHeader(t *testing.
 			{
 				ChainID:                dto.MVX,
 				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: []byte("anotherOpHash"),
 			},
 		},
 	}
@@ -423,6 +453,11 @@ func TestSovereignSubRoundEndOutGoingTxData_SetConsensusDataInHeader(t *testing.
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     leaderSig,
+				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: []byte("anotherOpHash"),
 				},
 			},
 		}, sovHdr)

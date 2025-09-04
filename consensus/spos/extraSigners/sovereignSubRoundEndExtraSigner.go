@@ -112,7 +112,7 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetAggregatedSignatureInHeader(hea
 		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandlers(outGoingMBs)
+	return nil
 }
 
 // SignAndSetLeaderSignature signs and sets leader signature for outgoing tx in header
@@ -155,7 +155,7 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SignAndSetLeaderSignature(header d
 		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandlers(outGoingMBs)
+	return nil
 }
 
 // SetConsensusDataInHeader sets aggregated and leader signature in header with provided data from consensus message
@@ -184,10 +184,13 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 		if err != nil {
 			return err
 		}
-
+		err = sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMB)
+		if err != nil {
+			return err
+		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandlers(outGoingMBs)
+	return nil
 }
 
 // GetLeaderExtraSig will return the leader extra sig from the header
