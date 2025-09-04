@@ -6,7 +6,6 @@ on:
       - 'main'
       - 'master'
       - 'rc/*'
-      - 'feat/*'
   workflow_dispatch:
   issue_comment:
     types: [created]
