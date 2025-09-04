@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -40,6 +41,16 @@ func TestSovereignSubRoundSignatureOutGoingTxData_CreateSignatureShare(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				ChainID:                dto.ETH,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.SUI,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
@@ -75,6 +86,15 @@ func TestSovereignSubRoundSignatureOutGoingTxData_CreateSignatureShare(t *testin
 		sigShare, err := sovSigHandler.CreateSignatureShare(&sovHdrCopy, selfIndex, selfPubKey)
 		require.Empty(t, sigShare)
 		require.Nil(t, err)
+	})
+
+	t.Run("outgoing mbs do not have the same type", func(t *testing.T) {
+		sovHdrCopy := sovHdr.ShallowClone()
+		sovHdrCopy.(*block.SovereignChainHeader).OutGoingMiniBlockHeaders[1].OutGoingOperationsHash = []byte("another hash")
+
+		sigShare, err := sovSigHandler.CreateSignatureShare(sovHdrCopy, selfIndex, selfPubKey)
+		require.Empty(t, sigShare)
+		require.Equal(t, errDataMismatchOutGoingMB, err)
 	})
 
 	t.Run("should create sig share", func(t *testing.T) {
