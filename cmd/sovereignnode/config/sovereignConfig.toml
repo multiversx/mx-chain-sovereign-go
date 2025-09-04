@@ -30,8 +30,8 @@
     [MainChainNotarization.MVX]
         StartRound = 11
 
-    #[MainChainNotarization.ETH]
-    #    StartRound = 12
+    [MainChainNotarization.ETH]
+        StartRound = 12
 
     #[MainChainNotarization.SUI]
     #    StartRound = 13
