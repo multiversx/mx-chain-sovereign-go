@@ -1,0 +1,11 @@
+[
+  {
+    "hex": "$SOV_CHAIN_PREFIX"
+  },
+  {
+    "min_validators": 0,
+    "max_validators": $SHARD_VALIDATORCOUNT,
+    "min_stake": 0,
+    "opt_additional_stake_required": []
+  }
+]

@@ -10,13 +10,12 @@ source $TESTNET_DIR/variables.sh
 # Source all scripts
 source $SCRIPT_PATH/config/configs.cfg
 source $SCRIPT_PATH/config/helper.cfg
-source $SCRIPT_PATH/config/esdt-safe.snippets.sh
-source $SCRIPT_PATH/config/fee-market.snippets.sh
-source $SCRIPT_PATH/config/header-verifier.snippets.sh
-source $SCRIPT_PATH/config/common.snippets.sh
+source $SCRIPT_PATH/config/utils.snippets.sh
 source $SCRIPT_PATH/config/py.snippets.sh
 source $SCRIPT_PATH/config/contracts.snippets.sh
 source $SCRIPT_PATH/config/deploy.snippets.sh
+source $SCRIPT_PATH/config/common.snippets.sh
+source $SCRIPT_PATH/config/sovereign.snippets.sh
 source $SCRIPT_PATH/observer/deployObserver.sh
 
 # Create necessary directories
