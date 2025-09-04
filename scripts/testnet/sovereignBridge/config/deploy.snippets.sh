@@ -1,3 +1,58 @@
+deployMainChainObserver() {
+    prepareObserver
+
+    createObserver
+
+    deployObserver
+}
+
+deployObserverAndCrossChainContracts() {
+    deployMainChainObserver
+
+    deployMainChainContractsAndSovereignChain $1 || return
+}
+
+deployMainChainContractsAndSovereignChain() {
+    SOV_CHAIN_PREFIX=$(generateChainId $1)
+    echo "Chain ID: $SOV_CHAIN_PREFIX"
+
+    deployPhaseOne || return
+
+    deployPhaseTwo || return
+
+    deployPhaseThree || return
+
+    deployPhaseFour || return
+
+
+    setGenesisContract
+
+    updateSovereignTomlConfigs
+
+    updateNotifierNotarizationRound
+
+
+    $TESTNET_DIR/config.sh
+
+    registerBLSKeys || return
+
+    completeSetupPhase
+
+
+    updateAndStartBridgeService
+
+    $TESTNET_DIR/sovereignStart.sh
+
+
+#    fund $WALLET_ADDRESS
+#
+#    unpauseEsdtSafeContractSovereign
+
+    # unpauseEsdtSafe on main chain
+}
+
+
+
 # This function will deploy full sovereign setup:
 # - deploy all main chain contracts and update sovereign configs
 # - deploy sovereign nodes with all services
@@ -5,7 +60,34 @@ deploySovereignWithCrossChainContracts() {
     deployMainChainContractsAndSetupObserver $1 || return
 
     sovereignDeploy
+
+
+
+
+    deployPhaseOne $1 || return
+
+    deployPhaseTwo || return
+
+    deployPhaseThree || return
+
+    deployPhaseFour || return
+
+    setGenesisContract
+
+    updateSovereignConfig $1 || return
+
+    prepareObserver
+
+    updateNotifierNotarizationRound
+
+    $TESTNET_DIR/config.sh
+
+    registerBLSKeys || return
+
+    completeSetupPhase
 }
+
+
 
 # This function will deploy main chain services:
 # - deploy all main chain contracts
@@ -29,6 +111,14 @@ deployMainChainContractsAndSetupObserver() {
     updateSovereignConfig $1 || return
 
     prepareObserver
+
+    sovereignStart
+
+    unpauseEsdtSafeContract
+
+    fund $WALLET_ADDRESS
+
+    unpauseEsdtSafeContractSovereign
 }
 
 # This function will deploy sovereign:
@@ -53,6 +143,14 @@ sovereignDeploy() {
     fund $WALLET_ADDRESS
 
     unpauseEsdtSafeContractSovereign
+}
+
+sovereignStart() {
+    deployObserver
+
+    # WAIT FOR INPUT
+
+    $TESTNET_DIR/sovereignStart.sh
 }
 
 # This function will start sovereign:
