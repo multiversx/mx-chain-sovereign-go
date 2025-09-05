@@ -19,7 +19,7 @@ deployPhaseOne() {
     mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
-        --gas-limit=30000000 \
+        --gas-limit=25000000 \
         --abi=$(eval echo ${SOVEREIGN_FORGE_ABI}) \
         --function="deployPhaseOne" \
         --arguments-file ${ARGS_FILE}\
@@ -65,7 +65,7 @@ deployPhaseTwo() {
     mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
-        --gas-limit=100000000 \
+        --gas-limit=80000000 \
         --abi=$(eval echo ${SOVEREIGN_FORGE_ABI}) \
         --function="registerNativeToken" \
         --arguments-file ${ARGS_FILE}\
@@ -110,7 +110,7 @@ deployPhaseFour() {
     mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
-        --gas-limit=30000000 \
+        --gas-limit=20000000 \
         --function="deployPhaseFour" \
         --outfile=${OUTFILE} \
         --wait-result \
@@ -133,7 +133,7 @@ registerBLSKeys() {
         mxpy contract call ${CHAIN_CONFIG_ADDRESS} \
             --pem=${WALLET} \
             --proxy=${PROXY} \
-            --gas-limit=90000000 \
+            --gas-limit=20000000 \
             --function="register" \
             --arguments \
                 ${BLS_KEY} \
@@ -152,7 +152,7 @@ completeSetupPhase() {
     mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
-        --gas-limit=90000000 \
+        --gas-limit=50000000 \
         --function="completeSetupPhase" \
         --outfile=${OUTFILE} \
         --wait-result \
