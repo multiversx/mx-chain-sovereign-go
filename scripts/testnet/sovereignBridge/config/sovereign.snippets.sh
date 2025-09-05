@@ -30,7 +30,7 @@ deployPhaseOne() {
     printTxStatus ${OUTFILE} || return
 
     CHAIN_CONFIG_ADDRESS=$(readContractAddress $CHAIN_CONFIG_INDEX)
-    echo -e "chain-config contract: ${CHAIN_CONFIG_ADDRESS}"
+    echo "chain-config contract: ${CHAIN_CONFIG_ADDRESS}"
 }
 
 deployPhaseTwo() {
@@ -49,9 +49,9 @@ deployPhaseTwo() {
     printTxStatus ${OUTFILE} || return
 
     ESDT_SAFE_ADDRESS=$(readContractAddress $ESDT_SAFE_INDEX)
-    echo -e "mvx-esdt-safe contract: ${ESDT_SAFE_ADDRESS}"
+    echo "mvx-esdt-safe contract: ${ESDT_SAFE_ADDRESS}"
     ESDT_SAFE_ADDRESS_SOVEREIGN=$(computeFirstSovereignContractAddress)
-    echo -e "sov-esdt-safe contract: ${ESDT_SAFE_ADDRESS_SOVEREIGN}"
+    echo "sov-esdt-safe contract: ${ESDT_SAFE_ADDRESS_SOVEREIGN}"
 
     echo "Registering native ESDT token..."
 
@@ -77,7 +77,7 @@ deployPhaseTwo() {
     printTxStatus ${OUTFILE} || return
 
     NATIVE_ESDT=$(readNativeESDT)
-    echo -e "Native ESDT Token: ${NATIVE_ESDT}"
+    echo "Native ESDT Token: ${NATIVE_ESDT}"
 }
 
 deployPhaseThree() {
@@ -98,9 +98,9 @@ deployPhaseThree() {
     printTxStatus ${OUTFILE} || return
 
     FEE_MARKET_ADDRESS=$(readContractAddress $FEE_MARKET_INDEX)
-    echo -e "mvx-fee-market contract: ${FEE_MARKET_ADDRESS}"
+    echo "mvx-fee-market contract: ${FEE_MARKET_ADDRESS}"
     FEE_MARKET_ADDRESS_SOVEREIGN=$(computeSecondSovereignContractAddress)
-    echo -e "sov-fee-market contract: ${FEE_MARKET_ADDRESS_SOVEREIGN}"
+    echo "sov-fee-market contract: ${FEE_MARKET_ADDRESS_SOVEREIGN}"
 }
 
 deployPhaseFour() {
@@ -110,7 +110,7 @@ deployPhaseFour() {
     mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
-        --gas-limit=20000000 \
+        --gas-limit=25000000 \
         --function="deployPhaseFour" \
         --outfile=${OUTFILE} \
         --wait-result \
@@ -119,7 +119,7 @@ deployPhaseFour() {
     printTxStatus ${OUTFILE} || return
 
     HEADER_VERIFIER_ADDRESS=$(readContractAddress $HEADER_VERIFIER_INDEX)
-    echo -e "header-verifier contract: ${HEADER_VERIFIER_ADDRESS}"
+    echo "header-verifier contract: ${HEADER_VERIFIER_ADDRESS}"
 }
 
 registerBLSKeys() {
