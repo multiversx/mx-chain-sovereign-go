@@ -280,8 +280,9 @@ func (bp *blockProcessor) GetNextHeader(
 	sortedHeaders []data.HeaderHandler,
 	sortedHashes [][]byte,
 	index int,
+	shardID uint32,
 ) {
-	bp.getNextHeader(longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, sortedHashes, index)
+	bp.getNextHeader(longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, sortedHashes, index, shardID)
 }
 
 // CheckHeaderFinality -
