@@ -27,7 +27,7 @@ func TestNewRegisterValidatorOpFormatter(t *testing.T) {
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
-	t.Run("nil peer account", func(t *testing.T) {
+	t.Run("should work", func(t *testing.T) {
 		opFormatter, err := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{})
 		require.Nil(t, err)
 		require.False(t, opFormatter.IsInterfaceNil())

@@ -23,6 +23,7 @@ type registerNewValidatorOpFormatter struct {
 	dataCodec      DataCodecHandler
 }
 
+// NewRegisterValidatorOpFormatter will create a register validator op formatter
 func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
