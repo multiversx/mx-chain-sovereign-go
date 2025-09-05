@@ -1,10 +1,10 @@
 [
-  [
-    {
-      "hex": "$NATIVE_ESDT_TICKER"
-    },
-    {
-      "hex": "$NATIVE_ESDT_NAME"
-    }
-  ]
+    [
+        {
+            "hex": "$NATIVE_ESDT_TICKER"
+        },
+        {
+            "hex": "$NATIVE_ESDT_NAME"
+        }
+    ]
 ]

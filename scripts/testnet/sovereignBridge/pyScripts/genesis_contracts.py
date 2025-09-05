@@ -72,12 +72,12 @@ def main():
     push_genesis_contract(json_path, esdt_safe_genesis_contract)
 
     # fee-market -----------------
-    fee_market_wasm_path = project_path + "/cmd/node/config/genesisContracts/fee-market.wasm"
+    fee_market_wasm_path = project_path + "/cmd/node/config/genesisContracts/sov-fee-market.wasm"
     copy_wasm_in_project(fee_market_wasm_path, fee_market_path)
 
     fee_market_genesis_contract = {
         "owner": owner_address,
-        "filename": "./config/genesisContracts/fee-market.wasm",
+        "filename": "./config/genesisContracts/sov-fee-market.wasm",
         "init-parameters": fee_market_init_params,
         "vm-type": "0500",
         "type": "fee"
