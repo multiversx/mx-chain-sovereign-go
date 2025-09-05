@@ -12,11 +12,9 @@ source $SCRIPT_PATH/config/configs.cfg
 source $SCRIPT_PATH/config/helper.cfg
 source $SCRIPT_PATH/config/utils.snippets.sh
 source $SCRIPT_PATH/config/py.snippets.sh
-source $SCRIPT_PATH/config/contracts.snippets.sh
 source $SCRIPT_PATH/config/deploy.snippets.sh
-source $SCRIPT_PATH/config/common.snippets.sh
-source $SCRIPT_PATH/config/sovereign.snippets.sh
 source $SCRIPT_PATH/observer/deployObserver.sh
+source $SCRIPT_PATH/config/sovereign.snippets.sh
 
 # Create necessary directories
 mkdir -p $(eval echo "${SOVEREIGN_DIRECTORY}")
