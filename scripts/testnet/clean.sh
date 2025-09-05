@@ -9,7 +9,7 @@ source "$MULTIVERSXTESTNETSCRIPTSDIR/variables.sh"
 if [ $USE_ELASTICSEARCH -eq 1 ]; then
   echo "Removing Elasticsearch Docker container and volume..."
   ES_CONTAINER_ID=$(cat $TESTNETDIR/es_container_id.txt)
-  sudo docker remove $ES_CONTAINER_ID
+  sudo docker rm $ES_CONTAINER_ID
 
   sudo docker volume rm $ELASTICSEARCH_VOLUME
 fi

@@ -47,7 +47,7 @@ require (
 
 require (
 	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250610105734-30b3338debcf
-	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250610105857-815660e78064
+	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20250812062019-4c4f98dfb7c4
 	github.com/multiversx/mx-sdk-abi-go v0.3.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.1
