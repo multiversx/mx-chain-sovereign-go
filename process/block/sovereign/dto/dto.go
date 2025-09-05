@@ -17,6 +17,7 @@ type TokenProperties struct {
 
 // RegisteredBlsKey defines operation data for a newly registered validator in sovereign
 type RegisteredBlsKey struct {
-	ID  []byte
-	Key []byte
+	ID    []byte
+	Key   []byte
+	Owner []byte
 }

@@ -578,7 +578,7 @@ func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0
 
 		s.eei.AddLogEntry(&vmcommon.LogEntry{
 			Identifier: []byte("registerBlsKey"),
-			Topics:     [][]byte{blsKey},
+			Topics:     [][]byte{blsKey, registrationData.OwnerAddress},
 			Address:    vm.StakingSCAddress,
 		})
 
