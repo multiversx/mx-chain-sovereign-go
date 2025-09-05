@@ -29,7 +29,7 @@ setGenesisContracts() {
     local FEE_MARKET_INIT_PARAMS="$(bech32ToHex $ESDT_SAFE_ADDRESS_SOVEREIGN)@00"
     local ADDRESS=$(python3 $TESTNET_DIR/convert_address.py $WALLET_ADDRESS $ADDRESS_HRP)
 
-    python3 $SCRIPT_PATH/pyScripts/genesis_contracts.py $ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $SOV_FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
+    python3 $SCRIPT_PATH/pyScripts/genesis_contracts.py $ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $SOV_FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS $SOV_REGISTRAR_WASM
 }
 
 updateSovereignTomlConfigs() {
