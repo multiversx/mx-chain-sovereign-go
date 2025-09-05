@@ -14,7 +14,7 @@ stopAndCleanMainChainObserver() {
 
 deploySovereignWithCrossChainContracts() {
     SOV_CHAIN_PREFIX=$(generateChainId $1)
-    echo "Chain ID: $SOV_CHAIN_PREFIX"
+    echo "Sovereign chain ID: $SOV_CHAIN_PREFIX"
 
     deployPhaseOne || return
 
