@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -459,15 +460,8 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 		return err
 	}
 
-	valAcc.SetMainChainID(intToBytes(id))
+	valAcc.SetMainChainID(runType.UIntToBytes(uint32(id)))
 	return peerAccountsDB.SaveAccount(valAcc)
-}
-
-func intToBytes(n int) []byte {
-	if n == 0 {
-		return []byte{0x0}
-	}
-	return big.NewInt(int64(n)).Bytes()
 }
 
 func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {
