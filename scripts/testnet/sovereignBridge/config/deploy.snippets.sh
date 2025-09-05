@@ -32,7 +32,7 @@ deploySovereignWithCrossChainContracts() {
 
     completeSetupPhase
 
-    startsovereign
+    startSovereign
 }
 
 startSovereign() {
