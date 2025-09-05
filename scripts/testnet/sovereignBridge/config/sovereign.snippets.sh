@@ -1,4 +1,4 @@
-SOV_CHAIN_PREFIX=j8x
+SOV_CHAIN_PREFIX=
 NATIVE_ESDT=
 CHAIN_CONFIG_ADDRESS=
 ESDT_SAFE_ADDRESS=
@@ -29,7 +29,8 @@ deployPhaseOne() {
 
     printTxStatus ${OUTFILE} || return
 
-    CHAIN_CONFIG_ADDRESS=$(readSovereignContract $CHAIN_CONFIG_INDEX)
+    CHAIN_CONFIG_ADDRESS=$(readContractAddress $CHAIN_CONFIG_INDEX)
+    echo -e "chain-config contract: ${CHAIN_CONFIG_ADDRESS}"
 }
 
 deployPhaseTwo() {
@@ -47,8 +48,10 @@ deployPhaseTwo() {
 
     printTxStatus ${OUTFILE} || return
 
-    ESDT_SAFE_ADDRESS=$(readSovereignContract $ESDT_SAFE_INDEX)
+    ESDT_SAFE_ADDRESS=$(readContractAddress $ESDT_SAFE_INDEX)
+    echo -e "mvx-esdt-safe contract: ${ESDT_SAFE_ADDRESS}"
     ESDT_SAFE_ADDRESS_SOVEREIGN=$(computeFirstSovereignContractAddress)
+    echo -e "sov-esdt-safe contract: ${ESDT_SAFE_ADDRESS_SOVEREIGN}"
 
     echo "Registering native ESDT token..."
 
@@ -73,9 +76,8 @@ deployPhaseTwo() {
 
     printTxStatus ${OUTFILE} || return
 
-    local NATIVE_ESDT_HEX=$(readNativeToken)
-    NATIVE_ESDT=$(hex_to_string "$NATIVE_ESDT_HEX")
-    echo "Native ESDT Token: ${NATIVE_ESDT}"
+    NATIVE_ESDT=$(readNativeESDT)
+    echo -e "Native ESDT Token: ${NATIVE_ESDT}"
 }
 
 deployPhaseThree() {
@@ -95,8 +97,10 @@ deployPhaseThree() {
 
     printTxStatus ${OUTFILE} || return
 
-    FEE_MARKET_ADDRESS=$(readSovereignContract $FEE_MARKET_INDEX)
+    FEE_MARKET_ADDRESS=$(readContractAddress $FEE_MARKET_INDEX)
+    echo -e "mvx-fee-market contract: ${FEE_MARKET_ADDRESS}"
     FEE_MARKET_ADDRESS_SOVEREIGN=$(computeSecondSovereignContractAddress)
+    echo -e "sov-fee-market contract: ${FEE_MARKET_ADDRESS_SOVEREIGN}"
 }
 
 deployPhaseFour() {
@@ -114,11 +118,12 @@ deployPhaseFour() {
 
     printTxStatus ${OUTFILE} || return
 
-    HEADER_VERIFIER_ADDRESS=$(readSovereignContract $HEADER_VERIFIER_INDEX)
+    HEADER_VERIFIER_ADDRESS=$(readContractAddress $HEADER_VERIFIER_INDEX)
+    echo -e "header-verifier contract: ${HEADER_VERIFIER_ADDRESS}"
 }
 
 registerBLSKeys() {
-    echo "Register validator BLS keys in main chain..."
+    echo "Registering validator BLS keys in main chain..."
     checkVariables CHAIN_CONFIG_ADDRESS || return
 
     BLS_PUB_KEYS=$(python3 $SCRIPT_PATH/pyScripts/read_bls_keys.py)
@@ -156,19 +161,21 @@ completeSetupPhase() {
     printTxStatus ${OUTFILE} || return
 }
 
-readNativeToken() {
+readNativeESDT() {
     checkVariables ESDT_SAFE_ADDRESS || return
 
-    mxpy contract query ${ESDT_SAFE_ADDRESS} \
+    local NATIVE_ESDT_HEX=$(mxpy contract query ${ESDT_SAFE_ADDRESS} \
         --proxy=${PROXY} \
-        --function="getNativeToken"
+        --function="getNativeToken")
+        
+    echo $(hexToString "$NATIVE_ESDT_HEX")
 }
 
 HEADER_VERIFIER_INDEX=2
 ESDT_SAFE_INDEX=3
 FEE_MARKET_INDEX=4
 CHAIN_CONFIG_INDEX=6
-readSovereignContract() {
+readContractAddress() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: ${FUNCNAME[0]} <contract_index>"
         return 1

@@ -24,12 +24,12 @@ updateAndStartBridgeService() {
     python3 $SCRIPT_PATH/pyScripts/bridge_service.py $WALLET $PROXY $ESDT_SAFE_ADDRESS $HEADER_VERIFIER_ADDRESS
 }
 
-setGenesisContract() {
+setGenesisContracts() {
     local ESDT_SAFE_INIT_PARAMS="$(bech32ToHex $FEE_MARKET_ADDRESS_SOVEREIGN)"
     local FEE_MARKET_INIT_PARAMS="$(bech32ToHex $ESDT_SAFE_ADDRESS_SOVEREIGN)@00"
     local ADDRESS=$(python3 $TESTNET_DIR/convert_address.py $WALLET_ADDRESS $ADDRESS_HRP)
 
-    python3 $SCRIPT_PATH/pyScripts/genesis_contract.py $ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $SOV_FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
+    python3 $SCRIPT_PATH/pyScripts/genesis_contracts.py $ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $SOV_FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
 }
 
 updateSovereignTomlConfigs() {
@@ -38,4 +38,12 @@ updateSovereignTomlConfigs() {
 
 updateNotifierNotarizationRound() {
     python3 $SCRIPT_PATH/pyScripts/notifier_round.py $PROXY $(getShardOfAddress)
+}
+
+updateSovereignNodeConfigs() {
+    setGenesisContracts
+
+    updateSovereignTomlConfigs
+
+    updateNotifierNotarizationRound
 }

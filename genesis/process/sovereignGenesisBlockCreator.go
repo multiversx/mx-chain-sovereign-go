@@ -430,7 +430,7 @@ func setSovereignStakedData(
 			return nil, genesis.ErrBLSKeyNotStaked
 		}
 
-		err = setGenesisNodeChainID(idx, arg.ValidatorAccounts, nodeInfo.PubKeyBytes())
+		err = setGenesisNodeChainID(idx+1, arg.ValidatorAccounts, nodeInfo.PubKeyBytes())
 		if err != nil {
 			return nil, err
 		}
