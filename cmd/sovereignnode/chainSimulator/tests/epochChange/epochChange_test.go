@@ -164,7 +164,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, devFeesInEpoch.Bytes())
 
 	staking.StakeNodes(t, cs, nodeHandler, 10)
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler)
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8) // 10 newly staked nodes and 8 nodes from genesis
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
 
@@ -291,25 +291,18 @@ func checkEpochChangeRewardsMB(
 func checkOutGoingMiniBlockRegisterValidator(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
+	numOperations int,
+	latestMainChainID int,
 ) {
-	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
-
-	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
-	require.Nil(t, err)
-
-	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
-	require.Len(t, outGoingMBHdrs, 1)
-
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
+	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
 	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
+	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
 
 	blsKeys := make([][]byte, 0)
 	assignedMainChainIDs := make([][]byte, 0)
 
-	latestMainChainID := 8 // 8 nodes from genesis
 	expectedMainChainIDs := make([][]byte, 0)
 	for _, op := range bridgeData.OutGoingOperations {
 		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)

@@ -580,14 +580,14 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 
 func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool, newNode bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
-		s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData, newNode)
+		s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData.OwnerAddress, newNode)
 		return s.processStakeV2(registrationData)
 	}
 
 	return s.processStakeV1(blsKey, registrationData, addFirst)
 }
 
-func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData *StakedDataV2_0, newNode bool) {
+func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, owner []byte, newNode bool) {
 	if !newNode {
 		return
 	}
@@ -598,7 +598,7 @@ func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData
 
 	s.eei.AddLogEntry(&vmcommon.LogEntry{
 		Identifier: []byte(idLogRegisterBlsKey),
-		Topics:     [][]byte{blsKey, registrationData.OwnerAddress},
+		Topics:     [][]byte{blsKey, owner},
 		Address:    vm.StakingSCAddress,
 	})
 }
@@ -696,6 +696,8 @@ func (s *stakingSC) doUnStake(key []byte, registrationData *StakedDataV2_0) vmco
 		s.eei.AddReturnMessage("cannot save staking data: error " + err.Error())
 		return vmcommon.UserError
 	}
+
+	s.addUnRegisterBlsKeyLogIfNeeded(key, registrationData.OwnerAddress)
 
 	return vmcommon.Ok
 }
