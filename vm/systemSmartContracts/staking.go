@@ -25,6 +25,11 @@ var log = logger.GetOrCreate("vm/systemsmartcontracts")
 const ownerKey = "owner"
 const nodesConfigKey = "nodesConfig"
 
+const (
+	idLogRegisterBlsKey   = "registerBlsKey"
+	idLogUnRegisterBlsKey = "unRegisterBlsKey"
+)
+
 type stakingSC struct {
 	eei                      vm.SystemEI
 	unBondPeriod             uint64
@@ -592,7 +597,7 @@ func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData
 	}
 
 	s.eei.AddLogEntry(&vmcommon.LogEntry{
-		Identifier: []byte("registerBlsKey"),
+		Identifier: []byte(idLogRegisterBlsKey),
 		Topics:     [][]byte{blsKey, registrationData.OwnerAddress},
 		Address:    vm.StakingSCAddress,
 	})
@@ -693,6 +698,18 @@ func (s *stakingSC) doUnStake(key []byte, registrationData *StakedDataV2_0) vmco
 	}
 
 	return vmcommon.Ok
+}
+
+func (s *stakingSC) addUnRegisterBlsKeyLogIfNeeded(blsKey []byte, owner []byte) {
+	if !s.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return
+	}
+
+	s.eei.AddLogEntry(&vmcommon.LogEntry{
+		Identifier: []byte(idLogUnRegisterBlsKey),
+		Topics:     [][]byte{blsKey, owner},
+		Address:    vm.StakingSCAddress,
+	})
 }
 
 func (s *stakingSC) unBond(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {

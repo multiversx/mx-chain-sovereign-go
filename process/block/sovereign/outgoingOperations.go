@@ -19,9 +19,10 @@ import (
 type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
 
 const (
-	topicIDDeposit        = "deposit"
-	topicIDRegisterToken  = "registerToken"
-	topicIDRegisterBlsKey = "registerBlsKey"
+	topicIDDeposit          = "deposit"
+	topicIDRegisterToken    = "registerToken"
+	topicIDRegisterBlsKey   = "registerBlsKey"
+	topicIDUnRegisterBlsKey = "unRegisterBlsKey"
 )
 
 var log = logger.GetOrCreate("outgoing-operations")
@@ -136,6 +137,11 @@ func checkEmptyAddresses(addresses map[string]string) error {
 func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]OperationFormatter, error) {
 	handlers := make(map[string]OperationFormatter)
 
+	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+	if err != nil {
+		return nil, err
+	}
+
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
 			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
@@ -144,7 +150,10 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
 		},
 		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+			return blsKeyOpFormatter, nil
+		},
+		topicIDUnRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return blsKeyOpFormatter, nil
 		},
 	}
 

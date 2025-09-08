@@ -24,7 +24,7 @@ type registerNewValidatorOpFormatter struct {
 	dataCodec      DataCodecHandler
 }
 
-// NewRegisterValidatorOpFormatter will create a register validator op formatter
+// NewRegisterValidatorOpFormatter will create a register/unregister validator op formatter
 func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
@@ -42,7 +42,7 @@ func NewRegisterValidatorOpFormatter(
 	}, nil
 }
 
-// CreateOperationData creates a register new validator operation data
+// CreateOperationData creates a register/unregister new validator operation data
 func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
 	numTopics := len(event.GetTopics())
 	if numTopics != numExpectedTopicsInRegisterNewValidator {
