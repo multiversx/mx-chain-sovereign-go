@@ -5,7 +5,7 @@ from multiversx_sdk import Address, AddressComputer
 
 def main():
     # input arguments
-    address = Address.from_bech32(sys.argv[1])
+    address = Address.new_from_bech32(sys.argv[1])
     nonce = int(sys.argv[2])
 
     address_computer = AddressComputer()
