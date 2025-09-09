@@ -34,6 +34,8 @@ deploySovereignWithCrossChainContracts() {
 
     startSovereign
 
+    fund $WALLET_ADDRESS
+
     unpauseEsdtSafeContractSovereign
 }
 
