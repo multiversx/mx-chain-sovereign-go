@@ -38,6 +38,8 @@ deploySovereignWithCrossChainContracts() {
 startSovereign() {
     updateAndStartBridgeService
 
+    updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" "$(generateStartTime)"
+
     $TESTNET_DIR/sovereignStart.sh
 }
 
