@@ -19,7 +19,7 @@ const (
 	topicIdxOwner                           = 1
 )
 
-type registerNewValidatorOpFormatter struct {
+type registerValidatorOpFormatter struct {
 	peerAccountsDB state.AccountsAdapter
 	dataCodec      DataCodecHandler
 }
@@ -28,7 +28,7 @@ type registerNewValidatorOpFormatter struct {
 func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
-) (*registerNewValidatorOpFormatter, error) {
+) (*registerValidatorOpFormatter, error) {
 	if check.IfNil(peerAccountsDB) {
 		return nil, errMx.ErrNilPeerAccounts
 	}
@@ -36,21 +36,21 @@ func NewRegisterValidatorOpFormatter(
 		return nil, errMx.ErrNilDataCodec
 	}
 
-	return &registerNewValidatorOpFormatter{
+	return &registerValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,
 		dataCodec:      dataCodec,
 	}, nil
 }
 
 // CreateOperationData creates a register/unregister new validator operation data
-func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
 	numTopics := len(event.GetTopics())
 	if numTopics != numExpectedTopicsInRegisterNewValidator {
 		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterNewValidator, numTopics)
 	}
 
 	if !bytes.Equal(event.GetAddress(), vm.StakingSCAddress) {
-		return nil, fmt.Errorf("%w in registerNewValidatorOpFormatter, expected StakingSCAddress", vm.ErrInvalidAddress)
+		return nil, fmt.Errorf("%w in registerValidatorOpFormatter, expected StakingSCAddress", vm.ErrInvalidAddress)
 	}
 
 	peerAcc, err := process.GetPeerAccount(event.GetTopics()[topicIdxBlsKey], op.peerAccountsDB)
@@ -66,6 +66,6 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil
-func (op *registerNewValidatorOpFormatter) IsInterfaceNil() bool {
+func (op *registerValidatorOpFormatter) IsInterfaceNil() bool {
 	return op == nil
 }

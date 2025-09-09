@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var serializer, _ = abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
+
 func getBridgeDataFromPrevBlock(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
@@ -43,11 +45,11 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 	expectedBlsKeys [][]byte,
 	latestMainChainID int,
 ) {
+	// StakeNodes func from staking/common.go generates one extra block after staking tx, so we need to get
+	// data from previous block
 	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
 	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
-
-	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
 
 	blsKeys := make([][]byte, 0)
 	assignedMainChainIDs := make([][]byte, 0)
