@@ -27,7 +27,7 @@ var serializer, _ = abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"}
 func getBridgeDataFromPrevBlock(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
-) *sovereign.BridgeOutGoingData {
+) (uint64, *sovereign.BridgeOutGoingData) {
 	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
 	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
 	require.Nil(t, err)
@@ -35,7 +35,7 @@ func getBridgeDataFromPrevBlock(
 	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
 	require.Len(t, outGoingMBHdrs, 1)
 
-	return nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
+	return prevHdr.GetNonce(), nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
 }
 
 func checkOutGoingMiniBlockUnRegisterValidator(
@@ -47,8 +47,8 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 ) {
 	// StakeNodes func from staking/common.go generates one extra block after staking tx, so we need to get
 	// data from previous block
-	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
-	require.Equal(t, int32(block.OutGoingMbDeposit), bridgeData.Type)
+	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
+	require.Equal(t, int32(block.OutGoingMBUnRegisterBlsKey), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	blsKeys := make([][]byte, 0)
@@ -57,6 +57,8 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 
 	for _, op := range bridgeData.OutGoingOperations {
 		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+		require.Equal(t, nonce, registeredData.Nonce)
+
 		blsKeys = append(blsKeys, registeredData.Key)
 		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
 

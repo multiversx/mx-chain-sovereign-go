@@ -294,8 +294,8 @@ func checkOutGoingMiniBlockRegisterValidator(
 	numOperations int,
 	latestMainChainID int,
 ) {
-	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
-	require.Equal(t, int32(block.OutGoingMbDeposit), bridgeData.Type)
+	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
+	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
@@ -306,6 +306,8 @@ func checkOutGoingMiniBlockRegisterValidator(
 	expectedMainChainIDs := make([][]byte, 0)
 	for _, op := range bridgeData.OutGoingOperations {
 		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+		require.Equal(t, nonce, registeredData.Nonce)
+
 		blsKeys = append(blsKeys, registeredData.Key)
 		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
 
@@ -322,6 +324,7 @@ func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandl
 	id := &abi.BytesValue{}
 	blsKey := &abi.BytesValue{}
 	owner := &abi.BytesValue{}
+	nonce := &abi.U64Value{}
 
 	abiStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -337,6 +340,10 @@ func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandl
 				Name:  "owner",
 				Value: owner,
 			},
+			{
+				Name:  "nonce",
+				Value: nonce,
+			},
 		},
 	}
 
@@ -350,6 +357,7 @@ func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandl
 		ID:    id.Value,
 		Key:   blsKey.Value,
 		Owner: owner.Value,
+		Nonce: nonce.Value,
 	}
 }
 
