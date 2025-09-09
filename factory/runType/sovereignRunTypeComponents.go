@@ -289,7 +289,7 @@ func (rcf *sovereignRunTypeComponentsFactory) createOutGoingTxDataSigners() (bls
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
 
-	mbTypes := []dataBlock.OutGoingMBType{dataBlock.OutGoingMbTx, dataBlock.OutGoingMbChangeValidatorSet}
+	mbTypes := []dataBlock.OutGoingMBType{dataBlock.OutGoingMbDeposit, dataBlock.OutGoingMbChangeValidatorSet}
 	for _, mbType := range mbTypes {
 		extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()
 

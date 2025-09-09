@@ -295,7 +295,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 	latestMainChainID int,
 ) {
 	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
-	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
+	require.Equal(t, int32(block.OutGoingMbDeposit), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})

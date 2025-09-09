@@ -48,7 +48,7 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 	// StakeNodes func from staking/common.go generates one extra block after staking tx, so we need to get
 	// data from previous block
 	bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
-	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
+	require.Equal(t, int32(block.OutGoingMbDeposit), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	blsKeys := make([][]byte, 0)

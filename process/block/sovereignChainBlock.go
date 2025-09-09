@@ -1635,7 +1635,7 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 		headerHandler,
 		outGoingOperations,
 		blockBody,
-		block.OutGoingMbTx,
+		block.OutGoingMbDeposit,
 	)
 }
 
