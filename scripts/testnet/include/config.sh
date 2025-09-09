@@ -177,16 +177,8 @@ updateNodeConfig() {
   rm p2p_edit.toml
 
   cp nodesSetup.json nodesSetup_edit.json
-  
-  if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
-    currentTimeMs=$(date +%s%3N)
-    let "startTime = currentTimeMs + GENESIS_DELAY * 1000"
-  else
-    currentTimeS=$(date +%s)
-    let "startTime = currentTimeS + GENESIS_DELAY"
-  fi
 
-  updateJSONValue nodesSetup_edit.json "startTime" "$startTime"
+  updateJSONValue nodesSetup_edit.json "startTime" "$(generateStartTime)"
 
   updateJSONValue nodesSetup_edit.json "minTransactionVersion" "1"
 
@@ -232,6 +224,16 @@ updateNodeConfig() {
 
   echo "Updated configuration for Nodes."
   popd
+}
+
+generateStartTime() {
+  if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
+    currentTimeMs=$(date +%s%3N)
+    echo $((currentTimeMs + GENESIS_DELAY * 1000))
+  else
+    currentTimeS=$(date +%s)
+    echo $((currentTimeS + GENESIS_DELAY))
+  fi
 }
 
 updateChainParameters() {
