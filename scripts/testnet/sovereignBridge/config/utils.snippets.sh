@@ -11,7 +11,6 @@ fund() {
     mxpy tx new \
         --pem=${WALLET_SOVEREIGN} \
         --proxy=${PROXY_SOVEREIGN} \
-        --chain=${CHAIN_ID_SOVEREIGN} \
         --receiver=$RECEIVER \
         --value=100000000000000000000000 \
         --gas-limit=50000 \
@@ -83,7 +82,7 @@ gitPullAllChanges()
 
     popd
 
-    pip install --upgrade multversx-sdk
+    pip install multversx-sdk --upgrade
     pipx upgrade multiversx-sdk-cli --force
 }
 
