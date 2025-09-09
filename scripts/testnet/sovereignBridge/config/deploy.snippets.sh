@@ -33,6 +33,8 @@ deploySovereignWithCrossChainContracts() {
     completeSetupPhase
 
     startSovereign
+
+    unpauseEsdtSafeContractSovereign
 }
 
 startSovereign() {

@@ -196,3 +196,19 @@ readContractAddress() {
 
     echo $(hexToBech32 $HEX_ADDRESS)
 }
+
+unpauseEsdtSafeContractSovereign() {
+    echo "Unpausing sovereign deposits..."
+
+    local OUTFILE="${OUTFILE_PATH}/unpause.interaction.json"
+    mxpy contract call ${ESDT_SAFE_ADDRESS_SOVEREIGN} \
+        --pem=${WALLET} \
+        --proxy=${PROXY} \
+        --gas-limit=10000000 \
+        --function="unpause" \
+        --outfile=${OUTFILE} \
+        --wait-result \
+        --send || return
+
+    printTxStatus ${OUTFILE}
+}
