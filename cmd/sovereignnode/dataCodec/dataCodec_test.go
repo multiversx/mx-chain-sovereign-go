@@ -389,6 +389,7 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 		ID:    []byte{0xf1},
 		Key:   []byte("blsKey"),
 		Owner: []byte("owner"),
+		Nonce: 4,
 	}
 	expectedABIStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -403,6 +404,10 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 			{
 				Name:  "owner",
 				Value: &abi.BytesValue{Value: blsKeyData.Owner},
+			},
+			{
+				Name:  "nonce",
+				Value: &abi.U64Value{Value: blsKeyData.Nonce},
 			},
 		},
 	}

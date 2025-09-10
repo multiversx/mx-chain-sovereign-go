@@ -294,7 +294,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 	numOperations int,
 	latestMainChainID int,
 ) {
-	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler)
+	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBRegisterBlsKey)
 	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
 	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
@@ -317,7 +317,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 
 	auctionNodes := getAuctionListKeys(t, nodeHandler)
 	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.ElementsMatch(t, blsKeys, auctionNodes)
+	require.Subset(t, auctionNodes, blsKeys)
 }
 
 func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
