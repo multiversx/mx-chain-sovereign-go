@@ -138,6 +138,8 @@ def main():
         external_path = project_path + "/cmd/node/config/external.toml"
         update_external_config(external_path, main_chain_elastic)
 
+    print("Successfully updated config toml files")
+
 
 if __name__ == "__main__":
     main()
