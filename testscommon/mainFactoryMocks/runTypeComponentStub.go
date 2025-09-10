@@ -1,6 +1,8 @@
 package mainFactoryMocks
 
 import (
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
@@ -111,6 +113,7 @@ type RunTypeComponentsStub struct {
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactoryField               headerSigVerifierFactory.HeaderSigVerifierFactory
 	ExtraSignersHolderField                     bls.ExtraSignersHolder
+	BaseTokenIDField                            []byte
 }
 
 // NewRunTypeComponentsStub -
@@ -169,6 +172,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
 		HeaderSigVerifierFactoryField:               &testFactory.HeaderSignatureVerifyFactoryMock{},
 		ExtraSignersHolderField:                     holders.NewEmptyExtraSignersHolder(),
+		BaseTokenIDField:                            []byte(vmcommon.EGLDIdentifier),
 	}
 }
 
@@ -475,6 +479,11 @@ func (r *RunTypeComponentsStub) HeaderSigVerifierFactory() headerSigVerifierFact
 // ExtraSignersHolder -
 func (r *RunTypeComponentsStub) ExtraSignersHolder() bls.ExtraSignersHolder {
 	return r.ExtraSignersHolderField
+}
+
+// BaseTokenID -
+func (r *RunTypeComponentsStub) BaseTokenID() []byte {
+	return r.BaseTokenIDField
 }
 
 // IsInterfaceNil -

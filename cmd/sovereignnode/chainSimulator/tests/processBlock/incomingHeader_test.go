@@ -48,6 +48,64 @@ type sovChainBlockTracer interface {
 	IsGenesisLastCrossNotarizedHeader() bool
 }
 
+func TestSovereignChainSimulator_IncomingHeaderWithEGLD(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this is not a short test")
+	}
+
+	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: sovereignConfigPath,
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck: false,
+			TempDir:                t.TempDir(),
+			PathToInitialConfig:    defaultPathToInitialConfig,
+			GenesisTimestamp:       time.Now().Unix(),
+			RoundDurationInMillis:  uint64(6000),
+			RoundsPerEpoch:         core.OptionalUint64{},
+			ApiInterface:           api.NewNoApiInterface(),
+			MinNodesPerShard:       2,
+		},
+	})
+	require.Nil(t, err)
+	require.NotNil(t, cs)
+
+	defer cs.Close()
+
+	token := "EGLD"
+	amountToTransfer := "123"
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+
+	receiverWallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.ZeroValue)
+	require.Nil(t, err)
+
+	headerNonce := uint64(9999999)
+	prevHeader := createHeaderV2(headerNonce, generateRandomHash(), generateRandomHash())
+	txsEvent := make([]*transaction.Event, 0)
+
+	for i := 0; i < 3; i++ {
+		if i == 1 {
+			txsEvent = append(txsEvent, createTransactionsEvent(nodeHandler.GetRunTypeComponents().DataCodecHandler(), receiverWallet.Bytes, token, amountToTransfer)...)
+		} else {
+			txsEvent = nil
+		}
+
+		incomingHdr, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, txsEvent)
+		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
+		require.Nil(t, err)
+
+		prevHeader = incomingHdr.Header
+
+		err = cs.GenerateBlocks(1)
+		require.Nil(t, err)
+	}
+
+	esdts, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(receiverWallet.Bech32, coreAPI.AccountQueryOptions{})
+	require.Nil(t, err)
+	require.NotNil(t, esdts)
+	require.True(t, esdts["EGLD-000000"] != nil)
+	require.Equal(t, amountToTransfer, esdts["EGLD-000000"].Value.String())
+}
+
 // This test will simulate an incoming header.
 // At the end of the test the amount of tokens needs to be in the receiver account
 func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {

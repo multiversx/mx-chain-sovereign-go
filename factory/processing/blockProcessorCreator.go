@@ -1368,6 +1368,7 @@ func (pcf *processComponentsFactory) createBuiltInFunctionContainer(
 		SelfESDTPrefix:                 []byte(pcf.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		PubKeyConverter:                pcf.coreData.AddressPubKeyConverter(),
 		CrawlerAddressGetterHandler:    pcf.runTypeComponents.CrawlerAddressGetter(),
+		BaseTokenID:                    pcf.runTypeComponents.BaseTokenID(),
 	}
 
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

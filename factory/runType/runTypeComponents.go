@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/config"
@@ -141,6 +143,7 @@ type runTypeComponents struct {
 	crawlerAddressGetter                    crawlerAddressGetter.CrawlerAddressGetterHandler
 	headerSigVerifierFactory                headerSigVerifierFactory.HeaderSigVerifierFactory
 	extraSignersHolder                      bls.ExtraSignersHolder
+	baseTokenID                             []byte
 }
 
 // NewRunTypeComponentsFactory will return a new instance of runTypeComponentsFactory
@@ -272,6 +275,7 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		crawlerAddressGetter:                    crawlerAddressGetter.NewCrawlerAddressGetter(),
 		headerSigVerifierFactory:                headerSigVerifierFactory.NewHeaderSignatureVerifyFactory(),
 		extraSignersHolder:                      holders.NewEmptyExtraSignersHolder(),
+		baseTokenID:                             []byte(vmcommon.EGLDIdentifier),
 	}, nil
 }
 

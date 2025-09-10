@@ -10,10 +10,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 
 	"github.com/multiversx/mx-chain-go/common"
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
@@ -222,19 +223,19 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -270,19 +271,19 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetSovereignRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetSovereignRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -1272,6 +1273,7 @@ func GetRunTypeComponentsStub(rt factory.RunTypeComponentsHandler) *mainFactoryM
 		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
 		HeaderSigVerifierFactoryField:               rt.HeaderSigVerifierFactory(),
 		ExtraSignersHolderField:                     rt.ExtraSignersHolder(),
+		BaseTokenIDField:                            rt.BaseTokenID(),
 	}
 }
 

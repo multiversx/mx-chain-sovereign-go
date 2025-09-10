@@ -68,6 +68,7 @@ type runTypeComponentsHandler interface {
 	PreProcessorsContainerFactoryCreator() shardData.PreProcessorsContainerFactoryCreator
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
+	BaseTokenID() []byte
 	IsInterfaceNil() bool
 }
 

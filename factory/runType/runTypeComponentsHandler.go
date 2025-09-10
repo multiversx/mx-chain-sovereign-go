@@ -967,6 +967,17 @@ func (mrc *managedRunTypeComponents) ExtraSignersHolder() bls.ExtraSignersHolder
 	return mrc.runTypeComponents.extraSignersHolder
 }
 
+func (mrc *managedRunTypeComponents) BaseTokenID() []byte {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.baseTokenID
+}
+
 // IsInterfaceNil returns true if the interface is nil
 func (mrc *managedRunTypeComponents) IsInterfaceNil() bool {
 	return mrc == nil

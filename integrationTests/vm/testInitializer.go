@@ -578,6 +578,7 @@ func CreateVMAndBlockchainHookAndDataPool(
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    []byte(vmcommon.EGLDIdentifier),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = integrationTests.GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
@@ -674,6 +675,7 @@ func CreateVMAndBlockchainHookMeta(
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    []byte(vmcommon.EGLDIdentifier),
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = integrationTests.GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncFactory, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

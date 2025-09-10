@@ -281,6 +281,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
 		headerSigVerifierFactory:                headerSigVerifierFactory.NewSovereignHeaderSignatureVerifyFactory(),
 		extraSignersHolder:                      extraSignersHolder,
+		baseTokenID:                             []byte(rcf.sovConfig.GenesisConfig.NativeESDT),
 	}, nil
 }
 

@@ -677,6 +677,7 @@ type RunTypeComponentsHolder interface {
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory
 	ExtraSignersHolder() bls.ExtraSignersHolder
+	BaseTokenID() []byte
 	Create() error
 	Close() error
 	CheckSubcomponents() error

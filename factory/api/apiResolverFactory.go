@@ -183,6 +183,7 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 		[]byte(args.Configs.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
 		args.RunTypeComponents.CrawlerAddressGetter(),
+		args.RunTypeComponents.BaseTokenID(),
 	)
 	if err != nil {
 		return nil, err
@@ -413,6 +414,7 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		[]byte(args.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
 		args.runTypeComponents.CrawlerAddressGetter(),
+		args.runTypeComponents.BaseTokenID(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -684,6 +686,7 @@ func createBuiltinFuncs(
 	selfESDTPrefix []byte,
 	pubKeyConverter core.PubkeyConverter,
 	crawlerAddressGetter crawlerAddressGetter.CrawlerAddressGetterHandler,
+	baseTokenId []byte,
 ) (vmcommon.BuiltInFunctionFactory, error) {
 	argsBuiltIn := builtInFunctions.ArgsCreateBuiltInFunctionContainer{
 		GasSchedule:                    gasScheduleNotifier,
@@ -702,6 +705,7 @@ func createBuiltinFuncs(
 		SelfESDTPrefix:                 selfESDTPrefix,
 		PubKeyConverter:                pubKeyConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter,
+		BaseTokenID:                    baseTokenId,
 	}
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 }
