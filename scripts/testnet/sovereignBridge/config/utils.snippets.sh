@@ -18,7 +18,7 @@ fund() {
         --wait-result \
         --send
 
-    printTxStatus ${OUTFILE} || return
+    printTxStatus ${OUTFILE} ${PROXY_SOVEREIGN} || return
 }
 
 downloadCrossChainContracts() {
