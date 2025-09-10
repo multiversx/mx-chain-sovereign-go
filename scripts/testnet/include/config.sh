@@ -227,12 +227,17 @@ updateNodeConfig() {
 }
 
 generateStartTime() {
+  local DELAY=$GENESIS_DELAY
+  if [ "${USE_ELASTICSEARCH:-0}" -eq 1 ]; then
+    DELAY=$((DELAY + 30))
+  fi
+
   if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
     currentTimeMs=$(date +%s%3N)
-    echo $((currentTimeMs + GENESIS_DELAY * 1000))
+    echo $((currentTimeMs + DELAY * 1000))
   else
     currentTimeS=$(date +%s)
-    echo $((currentTimeS + GENESIS_DELAY))
+    echo $((currentTimeS + DELAY))
   fi
 }
 
