@@ -180,7 +180,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error
 		}
 
 		transfer := []byte("@" +
-			hex.EncodeToString(getTokenID(topics[idx])) + // tokenID
+			hex.EncodeToString(formatTokenID(topics[idx])) + // tokenID
 			"@" + hex.EncodeToString(topics[idx+1]) + // nonce
 			"@" + hex.EncodeToString(tokenData)) // value/tokenData
 
@@ -190,7 +190,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error
 	return ret, nil
 }
 
-func getTokenID(topic []byte) []byte {
+func formatTokenID(topic []byte) []byte {
 	if bytes.Equal(topic, []byte("EGLD")) {
 		return []byte(vmcommon.EGLDIdentifier)
 	}
