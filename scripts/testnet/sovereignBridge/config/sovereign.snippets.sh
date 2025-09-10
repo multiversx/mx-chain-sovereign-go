@@ -210,5 +210,5 @@ unpauseEsdtSafeContractSovereign() {
         --wait-result \
         --send || return
 
-    printTxStatus ${OUTFILE}
+    printTxStatus ${OUTFILE} ${PROXY_SOVEREIGN} || return
 }
