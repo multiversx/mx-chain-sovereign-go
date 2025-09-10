@@ -203,7 +203,7 @@ unpauseEsdtSafeContractSovereign() {
     local OUTFILE="${OUTFILE_PATH}/unpause.interaction.json"
     mxpy contract call ${ESDT_SAFE_ADDRESS_SOVEREIGN} \
         --pem=${WALLET} \
-        --proxy=${PROXY} \
+        --proxy=${PROXY_SOVEREIGN} \
         --gas-limit=10000000 \
         --function="unpause" \
         --outfile=${OUTFILE} \
