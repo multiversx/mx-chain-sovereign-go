@@ -39,7 +39,7 @@ def push_genesis_contract(file_path: str, genesis_contract):
         with open(file_path, 'a') as file:
             file.write('\n')
 
-        print(f"genesis contract pushed successfully")
+        print(f"genesis contract data pushed successfully")
     except Exception as e:
         print(f"An error occurred: {e}")
 
