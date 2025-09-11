@@ -49,7 +49,7 @@ def update_sovereign_config(file_path, main_chain_address, sovereign_chain_addre
         lines = file.readlines()
 
     updated_lines = update_subscribed_addresses(lines, "OutgoingSubscribedEvents", "deposit", sovereign_chain_address)
-    # updated_lines = update_subscribed_addresses(updated_lines, "OutgoingSubscribedEvents", "registerToken", sovereign_chain_address)
+    updated_lines = update_subscribed_addresses(updated_lines, "OutgoingSubscribedEvents", "registerToken", sovereign_chain_address)
     updated_lines = update_subscribed_addresses(updated_lines, "NotifierConfig", "deposit", main_chain_address)
     updated_lines = update_subscribed_addresses(updated_lines, "NotifierConfig", "execute", main_chain_address)
     updated_lines = update_subscribed_addresses(updated_lines, "NotifierConfig", "changeValidatorSet", header_verifier_address)
