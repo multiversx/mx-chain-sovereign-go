@@ -2,6 +2,7 @@ package operationFormatters
 
 import (
 	"errors"
+	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -50,12 +51,14 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 	}
 
 	serializedData := []byte("serializedData")
+	nonce := uint64(4)
 	dataCodec := &sovereign.DataCodecMock{
 		SerializeNewlyRegisteredKeyCalled: func(keyData dto.RegisteredBlsKey) ([]byte, error) {
 			require.Equal(t, dto.RegisteredBlsKey{
 				ID:    mainChainID,
 				Key:   blsKey,
 				Owner: ownerAddress,
+				Nonce: nonce,
 			}, keyData)
 
 			return serializedData, nil
@@ -64,7 +67,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 
 	event := &transaction.Event{
 		Address: vm.StakingSCAddress,
-		Topics:  [][]byte{blsKey, ownerAddress},
+		Topics:  [][]byte{blsKey, ownerAddress, big.NewInt(int64(nonce)).Bytes()},
 	}
 	opFormatter, _ := NewRegisterValidatorOpFormatter(peerAccountsDB, dataCodec)
 	res, err := opFormatter.CreateOperationData(event)
@@ -89,7 +92,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testin
 	t.Run("invalid event address", func(t *testing.T) {
 		event := &transaction.Event{
 			Address: vm.ValidatorSCAddress,
-			Topics:  [][]byte{[]byte("blsKey"), []byte("owner")},
+			Topics:  [][]byte{[]byte("blsKey"), []byte("owner"), []byte("nonce")},
 		}
 
 		opFormatter, _ := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{})
@@ -100,7 +103,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testin
 	t.Run("cannot load account", func(t *testing.T) {
 		event := &transaction.Event{
 			Address: vm.StakingSCAddress,
-			Topics:  [][]byte{[]byte("blsKey"), []byte("owner")},
+			Topics:  [][]byte{[]byte("blsKey"), []byte("owner"), []byte("nonce")},
 		}
 
 		expectedErr := errors.New("load account fails")

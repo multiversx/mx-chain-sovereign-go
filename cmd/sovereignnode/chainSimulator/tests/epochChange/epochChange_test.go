@@ -164,7 +164,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, devFeesInEpoch.Bytes())
 
 	staking.StakeNodes(t, cs, nodeHandler, 10)
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler)
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8) // 10 newly staked nodes and 8 nodes from genesis
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
 
@@ -291,28 +291,23 @@ func checkEpochChangeRewardsMB(
 func checkOutGoingMiniBlockRegisterValidator(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
+	numOperations int,
+	latestMainChainID int,
 ) {
-	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
-
-	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
-	require.Nil(t, err)
-
-	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
-	require.Len(t, outGoingMBHdrs, 1)
-
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
-	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
+	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBRegisterBlsKey)
+	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
+	require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
 	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
 
 	blsKeys := make([][]byte, 0)
 	assignedMainChainIDs := make([][]byte, 0)
 
-	latestMainChainID := 8 // 8 nodes from genesis
 	expectedMainChainIDs := make([][]byte, 0)
 	for _, op := range bridgeData.OutGoingOperations {
 		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+		require.Equal(t, nonce, registeredData.Nonce)
+
 		blsKeys = append(blsKeys, registeredData.Key)
 		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
 
@@ -322,13 +317,14 @@ func checkOutGoingMiniBlockRegisterValidator(
 
 	auctionNodes := getAuctionListKeys(t, nodeHandler)
 	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.ElementsMatch(t, blsKeys, auctionNodes)
+	require.Subset(t, auctionNodes, blsKeys)
 }
 
 func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
 	id := &abi.BytesValue{}
 	blsKey := &abi.BytesValue{}
 	owner := &abi.BytesValue{}
+	nonce := &abi.U64Value{}
 
 	abiStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -344,6 +340,10 @@ func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandl
 				Name:  "owner",
 				Value: owner,
 			},
+			{
+				Name:  "nonce",
+				Value: nonce,
+			},
 		},
 	}
 
@@ -357,6 +357,7 @@ func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandl
 		ID:    id.Value,
 		Key:   blsKey.Value,
 		Owner: owner.Value,
+		Nonce: nonce.Value,
 	}
 }
 

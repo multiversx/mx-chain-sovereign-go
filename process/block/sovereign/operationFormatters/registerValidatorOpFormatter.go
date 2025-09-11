@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -14,21 +15,22 @@ import (
 )
 
 const (
-	numExpectedTopicsInRegisterNewValidator = 2
-	topicIdxBlsKey                          = 0
-	topicIdxOwner                           = 1
+	numExpectedTopicsInRegisterValidator = 3
+	topicIdxBlsKey                       = 0
+	topicIdxOwner                        = 1
+	topicIdxNonce                        = 2
 )
 
-type registerNewValidatorOpFormatter struct {
+type registerValidatorOpFormatter struct {
 	peerAccountsDB state.AccountsAdapter
 	dataCodec      DataCodecHandler
 }
 
-// NewRegisterValidatorOpFormatter will create a register validator op formatter
+// NewRegisterValidatorOpFormatter will create a register/unregister validator op formatter
 func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
-) (*registerNewValidatorOpFormatter, error) {
+) (*registerValidatorOpFormatter, error) {
 	if check.IfNil(peerAccountsDB) {
 		return nil, errMx.ErrNilPeerAccounts
 	}
@@ -36,24 +38,29 @@ func NewRegisterValidatorOpFormatter(
 		return nil, errMx.ErrNilDataCodec
 	}
 
-	return &registerNewValidatorOpFormatter{
+	return &registerValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,
 		dataCodec:      dataCodec,
 	}, nil
 }
 
-// CreateOperationData creates a register new validator operation data
-func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+// CreateOperationData creates a register/unregister new validator operation data
+func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
 	numTopics := len(event.GetTopics())
-	if numTopics != numExpectedTopicsInRegisterNewValidator {
-		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterNewValidator, numTopics)
+	if numTopics != numExpectedTopicsInRegisterValidator {
+		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterValidator, numTopics)
 	}
 
 	if !bytes.Equal(event.GetAddress(), vm.StakingSCAddress) {
-		return nil, fmt.Errorf("%w in registerNewValidatorOpFormatter, expected StakingSCAddress", vm.ErrInvalidAddress)
+		return nil, fmt.Errorf("%w in registerValidatorOpFormatter, expected StakingSCAddress", vm.ErrInvalidAddress)
 	}
 
 	peerAcc, err := process.GetPeerAccount(event.GetTopics()[topicIdxBlsKey], op.peerAccountsDB)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := common.ByteSliceToUint64(event.GetTopics()[topicIdxNonce])
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +69,11 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 		ID:    peerAcc.GetMainChainID(),
 		Key:   peerAcc.GetBLSPublicKey(),
 		Owner: event.GetTopics()[topicIdxOwner],
+		Nonce: nonce,
 	})
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil
-func (op *registerNewValidatorOpFormatter) IsInterfaceNil() bool {
+func (op *registerValidatorOpFormatter) IsInterfaceNil() bool {
 	return op == nil
 }

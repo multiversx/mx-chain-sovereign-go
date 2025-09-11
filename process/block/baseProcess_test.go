@@ -3416,7 +3416,7 @@ func TestBaseProcessor_DisplayHeader(t *testing.T) {
 		require.Equal(t, 23, len(lines))
 
 		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
-			block.OutGoingMbTx.String(): {
+			block.OutGoingMbDeposit.String(): {
 				AggregatedSignature: []byte("aggSig1"),
 				LeaderSignature:     []byte("leaderSig1"),
 			},
