@@ -99,7 +99,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	outGoingOpHash := []byte("outGoingOpHash")
 	outGoingAggregatedSig := []byte("aggregatedSig")
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
-		Type:                                  block.OutGoingMbTx,
+		Type:                                  block.OutGoingMbDeposit,
 		OutGoingOperationsHash:                outGoingOpHash,
 		AggregatedSignatureOutGoingOperations: outGoingAggregatedSig,
 	}
@@ -135,7 +135,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 		aggregatedSigFromProof := []byte("aggregatedSigFromProof")
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
-				block.OutGoingMbTx.String(): {
+				block.OutGoingMbDeposit.String(): {
 					AggregatedSignature: aggregatedSigFromProof,
 				},
 			},
@@ -161,7 +161,7 @@ func TestSovereignHeaderSigVerifier_getLeaderSignedMessage(t *testing.T) {
 	outGoingOpHash := []byte("outGoingOpHash")
 	outGoingAggregatedSig := []byte("aggregatedSig")
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
-		Type:                                  block.OutGoingMbTx,
+		Type:                                  block.OutGoingMbDeposit,
 		OutGoingOperationsHash:                outGoingOpHash,
 		AggregatedSignatureOutGoingOperations: outGoingAggregatedSig,
 	}

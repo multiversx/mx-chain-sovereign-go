@@ -1631,12 +1631,19 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 		return err
 	}
 
-	return scbp.createAndSetOutGoingMiniBlock(
-		headerHandler,
-		outGoingOperations,
-		blockBody,
-		block.OutGoingMbTx,
-	)
+	for mbType, outGoingOps := range outGoingOperations {
+		err = scbp.createAndSetOutGoingMiniBlock(
+			headerHandler,
+			outGoingOps,
+			blockBody,
+			mbType,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlock(

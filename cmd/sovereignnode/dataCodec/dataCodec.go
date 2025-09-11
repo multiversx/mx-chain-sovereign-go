@@ -568,6 +568,10 @@ func getRegisteredKeyData(keyData dto.RegisteredBlsKey) *abi.StructValue {
 				Name:  "owner",
 				Value: &abi.BytesValue{Value: keyData.Owner},
 			},
+			{
+				Name:  "nonce",
+				Value: &abi.U64Value{Value: keyData.Nonce},
+			},
 		},
 	}
 }
