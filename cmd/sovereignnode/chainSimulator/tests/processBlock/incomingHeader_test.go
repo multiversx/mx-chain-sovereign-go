@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -71,7 +72,7 @@ func TestSovereignChainSimulator_IncomingHeaderWithEGLD(t *testing.T) {
 
 	defer cs.Close()
 
-	token := "EGLD"
+	eventToken := "EGLD"
 	amountToTransfer := "123"
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
@@ -84,7 +85,7 @@ func TestSovereignChainSimulator_IncomingHeaderWithEGLD(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		if i == 1 {
-			txsEvent = append(txsEvent, createTransactionsEvent(nodeHandler.GetRunTypeComponents().DataCodecHandler(), receiverWallet.Bytes, token, amountToTransfer)...)
+			txsEvent = append(txsEvent, createTransactionsEvent(nodeHandler.GetRunTypeComponents().DataCodecHandler(), receiverWallet.Bytes, eventToken, amountToTransfer)...)
 		} else {
 			txsEvent = nil
 		}
@@ -102,8 +103,8 @@ func TestSovereignChainSimulator_IncomingHeaderWithEGLD(t *testing.T) {
 	esdts, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(receiverWallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
 	require.NotNil(t, esdts)
-	require.True(t, esdts["EGLD-000000"] != nil)
-	require.Equal(t, amountToTransfer, esdts["EGLD-000000"].Value.String())
+	require.True(t, esdts[vmcommon.EGLDIdentifier] != nil)
+	require.Equal(t, amountToTransfer, esdts[vmcommon.EGLDIdentifier].Value.String())
 }
 
 // This test will simulate an incoming header.
