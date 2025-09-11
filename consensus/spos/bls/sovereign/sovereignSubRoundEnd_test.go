@@ -368,7 +368,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		currentBridgeOutGoingData1 := &sovCore.BridgeOutGoingData{
-			Type: int32(block.OutGoingMbTx),
+			Type: int32(block.OutGoingMbDeposit),
 			Hash: outGoingDataHash1,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
@@ -402,7 +402,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 				switch string(hash) {
 				case string(outGoingDataHash1):
 					return &sovCore.BridgeOutGoingData{
-						Type: int32(block.OutGoingMbTx),
+						Type: int32(block.OutGoingMbDeposit),
 						Hash: outGoingDataHash1,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
@@ -463,7 +463,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
-					Type:                                  block.OutGoingMbTx,
+					Type:                                  block.OutGoingMbDeposit,
 					OutGoingOperationsHash:                outGoingDataHash1,
 					AggregatedSignatureOutGoingOperations: aggregatedSig1,
 					LeaderSignatureOutGoingOperations:     leaderSig1,
@@ -961,7 +961,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 		PubKey:          []byte("A"),
 		InvalidSigners:  []byte("invalidSignersData"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbTx.String(): {
+			block.OutGoingMbDeposit.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
 				LeaderSignatureOutGoingTxData:     leaderSig,
 			},
@@ -974,7 +974,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	require.False(t, wasDataSent)
 
 	// Header's outgoing mb is updated with signatures from consensus message
-	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbTx))
+	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbDeposit))
 	require.Equal(t, leaderSig, outGoingMb.GetLeaderSignatureOutGoingOperations())
 	require.Equal(t, aggregatedSig, outGoingMb.GetAggregatedSignatureOutGoingOperations())
 

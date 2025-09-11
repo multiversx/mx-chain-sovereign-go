@@ -45,7 +45,10 @@
         { Identifier = "registerToken", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         # Subscribtion to send event(bls key + assigned ID) from sovereign to main chain when a new bls key is staked in sovereign
         # Address that emits these events should be vm StakingSCAddress
-        { Identifier = "registerBlsKey", Addresses = ["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7"] }
+        { Identifier = "registerBlsKey", Addresses = ["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7"] },
+        # Subscribtion to send event(bls key + assigned ID) from sovereign to main chain when a new bls key is unStaked in sovereign
+        # Address that emits these events should be vm StakingSCAddress
+        { Identifier = "unRegisterBlsKey", Addresses = ["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7"] }
     ]
 
 [OutGoingBridge]

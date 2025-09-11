@@ -1,20 +1,23 @@
 package sovereign
 
-import "github.com/multiversx/mx-chain-core-go/data"
+import (
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+)
 
 // OutgoingOperationsFormatterMock -
 type OutgoingOperationsFormatterMock struct {
-	CreateOutgoingTxDataCalled              func(logs []*data.LogData) ([][]byte, error)
+	CreateOutgoingTxDataCalled              func(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error)
 	CreateOutGoingChangeValidatorDataCalled func(pubKeys []string, epoch uint32) ([]byte, error)
 }
 
 // CreateOutgoingTxsData -
-func (stub *OutgoingOperationsFormatterMock) CreateOutgoingTxsData(logs []*data.LogData) ([][]byte, error) {
+func (stub *OutgoingOperationsFormatterMock) CreateOutgoingTxsData(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
 	if stub.CreateOutgoingTxDataCalled != nil {
 		return stub.CreateOutgoingTxDataCalled(logs)
 	}
 
-	return make([][]byte, 0), nil
+	return make(map[block.OutGoingMBType][][]byte), nil
 }
 
 // CreateOutGoingChangeValidatorData -

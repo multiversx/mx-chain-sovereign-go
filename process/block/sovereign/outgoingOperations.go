@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
@@ -16,12 +17,17 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
+type opFormatterData struct {
+	handler OperationFormatter
+	mbType  block.OutGoingMBType
+}
+type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error)
 
 const (
-	topicIDDeposit        = "deposit"
-	topicIDRegisterToken  = "registerToken"
-	topicIDRegisterBlsKey = "registerBlsKey"
+	topicIDDeposit          = "deposit"
+	topicIDRegisterToken    = "registerToken"
+	topicIDRegisterBlsKey   = "registerBlsKey"
+	topicIDUnRegisterBlsKey = "unRegisterBlsKey"
 )
 
 var log = logger.GetOrCreate("outgoing-operations")
@@ -45,7 +51,7 @@ type outgoingOperations struct {
 	topicsChecker    TopicsCheckerHandler
 	peerAccountsDB   state.AccountsAdapter
 
-	opFormatters map[string]OperationFormatter
+	opFormatters map[string]opFormatterData
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -133,18 +139,28 @@ func checkEmptyAddresses(addresses map[string]string) error {
 	return nil
 }
 
-func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]OperationFormatter, error) {
-	handlers := make(map[string]OperationFormatter)
+func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]opFormatterData, error) {
+	handlers := make(map[string]opFormatterData)
+
+	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+	if err != nil {
+		return nil, err
+	}
 
 	availableHandlers := map[string]createOpFormatterHandler{
-		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
+		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
+			return opFormatter, block.OutGoingMbDeposit, err
 		},
-		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+			return opFormatter, block.OutGoingMBRegisterToken, err
 		},
-		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+			return blsKeyOpFormatter, block.OutGoingMBRegisterBlsKey, nil
+		},
+		topicIDUnRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+			return blsKeyOpFormatter, block.OutGoingMBUnRegisterBlsKey, nil
 		},
 	}
 
@@ -171,7 +187,7 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 func addHandlerIfSubscribed(
 	id string,
 	subscribedEvents map[string]struct{},
-	allHandlers map[string]OperationFormatter,
+	allHandlers map[string]opFormatterData,
 	createOpFormatterHandlerFunc createOpFormatterHandler,
 	args ArgsOutgoingOperations,
 ) error {
@@ -180,27 +196,31 @@ func addHandlerIfSubscribed(
 		return nil
 	}
 
-	opHandler, err := createOpFormatterHandlerFunc(args)
+	opHandler, mbType, err := createOpFormatterHandlerFunc(args)
 	if err != nil {
 		return err
 	}
 
-	allHandlers[id] = opHandler
+	allHandlers[id] = opFormatterData{
+		handler: opHandler,
+		mbType:  mbType,
+	}
+
 	delete(subscribedEvents, id)
 	return nil
 }
 
 // CreateOutgoingTxsData collects relevant outgoing events(based on subscribed addresses and topics) for bridge from the
 // logs and creates outgoing data that needs to be signed by validators to bridge tokens
-func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([][]byte, error) {
+func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
 	outgoingEvents := op.createOutgoingEvents(logs)
 	if len(outgoingEvents) == 0 {
-		return make([][]byte, 0), nil
+		return make(map[block.OutGoingMBType][][]byte), nil
 	}
 
-	txsData := make([][]byte, 0)
+	txsData := make(map[block.OutGoingMBType][][]byte)
 	for i, event := range outgoingEvents {
-		operation, err := op.getOperationData(event)
+		operation, mbType, err := op.getOperationData(event)
 		if err != nil {
 			log.Error("outgoingOperations.CreateOutgoingTxsData error",
 				"tx hash", logs[i].TxHash,
@@ -210,7 +230,7 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([][]b
 			return nil, err
 		}
 
-		txsData = append(txsData, operation)
+		txsData[mbType] = append(txsData[mbType], operation)
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
@@ -262,14 +282,15 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, error) {
+func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, block.OutGoingMBType, error) {
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
-		return nil, errEventIDNotFound
+		return nil, block.OutGoingMBType(0), errEventIDNotFound
 	}
 
-	return opFormatter.CreateOperationData(event)
+	opData, err := opFormatter.handler.CreateOperationData(event)
+	return opData, opFormatter.mbType, err
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change

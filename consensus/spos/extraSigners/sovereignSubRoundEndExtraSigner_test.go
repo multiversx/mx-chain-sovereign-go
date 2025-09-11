@@ -19,13 +19,13 @@ func TestNewSovereignSubRoundEndOutGoingTxData(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil signing handler, should return error", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(nil, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(nil, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		require.Equal(t, spos.ErrNilSigningHandler, err)
 		require.True(t, check.IfNil(sovSigHandler))
 	})
 
 	t.Run("should work", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		require.Nil(t, err)
 		require.False(t, sovSigHandler.IsInterfaceNil())
 	})
@@ -59,7 +59,7 @@ func TestSovereignSubRoundEndOutGoingTxData_VerifyAggregatedSignatures(t *testin
 			return nil
 		},
 	}
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.VerifyAggregatedSignatures(expectedBitMap, sovHdr.Header)
@@ -117,7 +117,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AggregateSignatures(t *testing.T) {
 			return nil
 		},
 	}
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 	result, err := sovSigHandler.AggregateAndSetSignatures(expectedBitMap, sovHdr)
 	require.Nil(t, err)
 	require.Equal(t, aggregatedSig, result)
@@ -139,7 +139,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SetAggregatedSignatureInHeader(sovHdr.Header, aggregatedSig)
@@ -202,7 +202,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SignAndSetLeaderSignature(sovHdr.Header, expectedLeaderPubKey)
@@ -270,7 +270,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 
 	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(
 		signingHandler,
-		block.OutGoingMbTx,
+		block.OutGoingMbDeposit,
 		enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.AndromedaFlag),
 	)
 
@@ -299,7 +299,7 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 	leaderSig := []byte("leaderSig")
 	cnsMsg := &consensus.Message{
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbTx.String(): {
+			block.OutGoingMbDeposit.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
 				LeaderSignatureOutGoingTxData:     leaderSig,
 			},
@@ -319,7 +319,7 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SetConsensusDataInHeader(sovHdr.Header, cnsMsg)
@@ -375,7 +375,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.AddLeaderAndAggregatedSignatures(sovHdr.Header, cnsMsg)
@@ -395,7 +395,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		require.Nil(t, err)
 		require.Equal(t, &consensus.Message{
 			ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-				block.OutGoingMbTx.String(): {
+				block.OutGoingMbDeposit.String(): {
 					AggregatedSignatureOutGoingTxData: aggregatedSig,
 					LeaderSignatureOutGoingTxData:     leaderSig,
 				},
@@ -406,6 +406,6 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 
 func TestSovereignSubRoundEndOutGoingTxData_Identifier(t *testing.T) {
 	t.Parallel()
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	require.Equal(t, block.OutGoingMbTx.String(), sovSigHandler.Identifier())
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	require.Equal(t, block.OutGoingMbDeposit.String(), sovSigHandler.Identifier())
 }
