@@ -17,6 +17,13 @@ import (
 	"github.com/multiversx/mx-chain-go/errors"
 )
 
+type bridgeDataSignatures struct {
+	hash      []byte
+	aggSig    []byte
+	leaderSig []byte
+	bitmap    []byte
+}
+
 type sovereignSubRoundEnd struct {
 	bls.SubRoundEndHandler
 	outGoingOperationsPool bls.OutGoingOperationsPool
@@ -75,26 +82,9 @@ func (sr *sovereignSubRoundEnd) receivedBlockHeaderFinalInfo(ctx context.Context
 func (sr *sovereignSubRoundEnd) ReceivedProof(proof consensus.ProofHandler) {
 	sr.SubRoundEndHandler.ReceivedProof(proof)
 
-	err := sr.updateOutGoingPoolIfNeeded(&consensus.Message{
-		PubKeysBitmap:   proof.GetPubKeysBitmap(),
-		ExtraSignatures: getExtraSigsOutGoingOps(proof),
-	})
-	if err != nil {
-		log.Error("sovereignSubRoundEnd.ReceivedProof", "error", err)
-	}
-}
-
-func getExtraSigsOutGoingOps(proof consensus.ProofHandler) map[string]*consensus.ExtraSignatureData {
-	extraSigsOutGoingOps := make(map[string]*consensus.ExtraSignatureData)
-
-	for id, sigData := range proof.GetExtraSignatureHandlers() {
-		extraSigsOutGoingOps[id] = &consensus.ExtraSignatureData{
-			AggregatedSignatureOutGoingTxData: sigData.GetAggregatedSignature(),
-			LeaderSignatureOutGoingTxData:     sigData.GetLeaderSignature(),
-		}
-	}
-
-	return extraSigsOutGoingOps
+	// There is a bug in main chain code and this callback function is not used.
+	// If it will be used again, then we should update bridge data with signatures here by calling updateBridgeDataWithSignatures
+	// and not update it anymore in doSovereignEndRoundJob
 }
 
 func (sr *sovereignSubRoundEnd) updateOutGoingPoolIfNeeded(cnsDta *consensus.Message) error {
@@ -142,7 +132,13 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 		"type", mbType,
 	)
 
-	_, err = sr.updateBridgeDataWithSignatures(outGoingMBHeader, cnsDta.PubKeysBitmap)
+	_, err = sr.updateBridgeDataWithSignatures(&bridgeDataSignatures{
+		hash:      outGoingMBHeader.GetOutGoingOperationsHash(),
+		aggSig:    extraSigData.AggregatedSignatureOutGoingTxData,
+		leaderSig: extraSigData.LeaderSignatureOutGoingTxData,
+		bitmap:    cnsDta.PubKeysBitmap,
+	},
+	)
 	if err != nil {
 		log.Error("sovereignSubRoundEnd.updatePoolForOutGoingMiniBlock.updateBridgeDataWithSignatures", "error", err)
 		return err
@@ -169,14 +165,10 @@ func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool
 		return true
 	}
 
-	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
-	for idx, outGoingMBHdr := range outGoingMBHeaders {
-		currBridgeData, err := sr.updateBridgeDataWithSignatures(outGoingMBHdr, sovHeader.GetPubKeysBitmap())
-		if err != nil {
-			log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.updateBridgeDataWithSignatures", "error", err)
-			return false
-		}
-		currentOperations[idx] = currBridgeData
+	currentOperations, err := sr.getCurrentOperationsWithSignatures(sovHeader.GetNonce(), outGoingMBHeaders)
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.getCurrentOperations", "error", err)
+		return false
 	}
 
 	if !sr.isSelfLeader() {
@@ -204,18 +196,18 @@ func (sr *sovereignSubRoundEnd) sendUnconfirmedOperationsIfFound(ctx context.Con
 }
 
 func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
-	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler, pubKeysBitmap []byte,
+	bridgeDataSigs *bridgeDataSignatures,
 ) (*sovereign.BridgeOutGoingData, error) {
-	hash := outGoingMBHeader.GetOutGoingOperationsHash()
+	hash := bridgeDataSigs.hash
 	currBridgeData := sr.outGoingOperationsPool.Get(hash)
 	if currBridgeData == nil {
 		return nil, fmt.Errorf("%w in sovereignSubRoundEnd.updateBridgeDataWithSignatures for hash: %s",
 			errors.ErrOutGoingOperationsNotFound, hex.EncodeToString(hash))
 	}
 
-	currBridgeData.LeaderSignature = outGoingMBHeader.GetLeaderSignatureOutGoingOperations()
-	currBridgeData.AggregatedSignature = outGoingMBHeader.GetAggregatedSignatureOutGoingOperations()
-	currBridgeData.PubKeysBitmap = pubKeysBitmap
+	currBridgeData.LeaderSignature = bridgeDataSigs.leaderSig
+	currBridgeData.AggregatedSignature = bridgeDataSigs.aggSig
+	currBridgeData.PubKeysBitmap = bridgeDataSigs.bitmap
 
 	sr.outGoingOperationsPool.Delete(hash)
 	sr.outGoingOperationsPool.Add(currBridgeData)
@@ -224,6 +216,41 @@ func (sr *sovereignSubRoundEnd) updateBridgeDataWithSignatures(
 
 func (sr *sovereignSubRoundEnd) isSelfLeader() bool {
 	return sr.IsSelfLeaderInCurrentRound() || sr.IsMultiKeyLeaderInCurrentRound()
+}
+
+func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignatures(
+	nonce uint64,
+	outGoingMBHeaders []data.OutGoingMiniBlockHeaderHandler,
+) ([]*sovereign.BridgeOutGoingData, error) {
+	proof, err := sr.EquivalentProofsPool().GetProofByNonce(nonce, core.SovereignChainShardId)
+	if err != nil {
+		log.Error("sovereignSubRoundEnd.getCurrentOperationsWithSignatures.GetProofByNonce", "error", err)
+		return nil, err
+	}
+
+	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
+	for idx, outGoingMBHdr := range outGoingMBHeaders {
+		mbType := block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()
+		extraSigData, found := proof.GetExtraSignatureHandlers()[mbType]
+		if !found {
+			return nil, fmt.Errorf("%w for type %s in sovereignSubRoundEnd.getCurrentOperationsWithSignatures", bls.ErrExtraSigShareDataNotFound, mbType)
+		}
+
+		currBridgeData, err := sr.updateBridgeDataWithSignatures(&bridgeDataSignatures{
+			hash:      outGoingMBHdr.GetOutGoingOperationsHash(),
+			aggSig:    extraSigData.GetAggregatedSignature(),
+			leaderSig: extraSigData.GetLeaderSignature(),
+			bitmap:    proof.GetPubKeysBitmap(),
+		})
+		if err != nil {
+			log.Error("sovereignSubRoundEnd.getCurrentOperationsWithSignatures.updateBridgeDataWithSignatures", "error", err)
+			return nil, err
+		}
+
+		currentOperations[idx] = currBridgeData
+	}
+
+	return currentOperations, nil
 }
 
 func (sr *sovereignSubRoundEnd) getAllOutGoingOperations(currentOperations []*sovereign.BridgeOutGoingData) []*sovereign.BridgeOutGoingData {
