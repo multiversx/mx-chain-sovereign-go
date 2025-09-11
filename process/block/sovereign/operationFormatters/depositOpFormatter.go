@@ -15,8 +15,8 @@ const (
 )
 
 type depositOpFormatter struct {
-	*opFormatterHelper
-	dataCodec DataCodecHandler
+	dataCodec     DataCodecHandler
+	topicsChecker TopicsCheckerHandler
 }
 
 // NewDepositOpFormatter creates a new deposit token operation formatter
@@ -29,11 +29,8 @@ func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheck
 	}
 
 	return &depositOpFormatter{
-		opFormatterHelper: &opFormatterHelper{
-			dataCodec:     dataCodec,
-			topicsChecker: topicsChecker,
-		},
-		dataCodec: dataCodec,
+		dataCodec:     dataCodec,
+		topicsChecker: topicsChecker,
 	}, nil
 }
 
@@ -55,6 +52,21 @@ func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]by
 	}
 
 	return operationBytes, nil
+}
+
+func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*sovData.EventData, error) {
+	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
+	if err != nil {
+		return nil, err
+	}
+
+	topics := event.GetTopics()
+	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
+	if err != nil {
+		return nil, err
+	}
+
+	return evData, nil
 }
 
 func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *sovData.EventData) (*sovData.Operation, error) {

@@ -386,7 +386,7 @@ func (s *stakingSC) unJail(args *vmcommon.ContractCallInput) vmcommon.ReturnCode
 	stakedData.UnJailedNonce = s.eei.BlockChainHook().CurrentNonce()
 	stakedData.Jailed = false
 
-	err = s.processStake(args.Arguments[0], stakedData, stakedData.NumJailed == 1)
+	err = s.processStake(args.Arguments[0], stakedData, stakedData.NumJailed == 1, false)
 	if err != nil {
 		return vmcommon.UserError
 	}
@@ -494,7 +494,7 @@ func (s *stakingSC) stake(args *vmcommon.ContractCallInput, onlyRegister bool) v
 	registrationData.OwnerAddress = args.Arguments[2]
 	registrationData.StakeValue.Set(s.stakeValue)
 	if !onlyRegister {
-		err = s.processStake(args.Arguments[0], registrationData, false)
+		err = s.processStake(args.Arguments[0], registrationData, false, true)
 		if err != nil {
 			return vmcommon.UserError
 		}
@@ -573,19 +573,29 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 	stakingData.Waiting = false
 }
 
-func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool) error {
+func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool, newNode bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
-
-		s.eei.AddLogEntry(&vmcommon.LogEntry{
-			Identifier: []byte("registerBlsKey"),
-			Topics:     [][]byte{blsKey},
-			Address:    vm.StakingSCAddress,
-		})
-
+		s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData, newNode)
 		return s.processStakeV2(registrationData)
 	}
 
 	return s.processStakeV1(blsKey, registrationData, addFirst)
+}
+
+func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData *StakedDataV2_0, newNode bool) {
+	if !newNode {
+		return
+	}
+
+	if !s.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return
+	}
+
+	s.eei.AddLogEntry(&vmcommon.LogEntry{
+		Identifier: []byte("registerBlsKey"),
+		Topics:     [][]byte{blsKey, registrationData.OwnerAddress},
+		Address:    vm.StakingSCAddress,
+	})
 }
 
 func (s *stakingSC) processStakeV2(registrationData *StakedDataV2_0) error {

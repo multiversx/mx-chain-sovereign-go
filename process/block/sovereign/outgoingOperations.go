@@ -141,7 +141,7 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, args.TopicsChecker)
+			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
 		},
 		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
 			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)

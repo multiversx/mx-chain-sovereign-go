@@ -386,8 +386,9 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 	t.Parallel()
 
 	blsKeyData := dto.RegisteredBlsKey{
-		ID:  []byte{0xf1},
-		Key: []byte("blsKey"),
+		ID:    []byte{0xf1},
+		Key:   []byte("blsKey"),
+		Owner: []byte("owner"),
 	}
 	expectedABIStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -398,6 +399,10 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 			{
 				Name:  "key",
 				Value: &abi.BytesValue{Value: blsKeyData.Key},
+			},
+			{
+				Name:  "owner",
+				Value: &abi.BytesValue{Value: blsKeyData.Owner},
 			},
 		},
 	}

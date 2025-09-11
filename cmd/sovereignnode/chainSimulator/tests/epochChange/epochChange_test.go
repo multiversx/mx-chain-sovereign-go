@@ -312,7 +312,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 	latestMainChainID := 8 // 8 nodes from genesis
 	expectedMainChainIDs := make([][]byte, 0)
 	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, serializer, op.Data)
+		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
 		blsKeys = append(blsKeys, registeredData.Key)
 		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
 
@@ -325,9 +325,10 @@ func checkOutGoingMiniBlockRegisterValidator(
 	require.ElementsMatch(t, blsKeys, auctionNodes)
 }
 
-func deserializeRegisteredBlsKeyData(t *testing.T, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
+func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
 	id := &abi.BytesValue{}
 	blsKey := &abi.BytesValue{}
+	owner := &abi.BytesValue{}
 
 	abiStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -339,17 +340,23 @@ func deserializeRegisteredBlsKeyData(t *testing.T, serializer dataCodec.AbiSeria
 				Name:  "key",
 				Value: blsKey,
 			},
+			{
+				Name:  "owner",
+				Value: owner,
+			},
 		},
 	}
 
 	err := serializer.Deserialize(hex.EncodeToString(data), []any{abiStruct})
 	require.Nil(t, err)
 	require.NotNil(t, blsKey)
+	require.Equal(t, staking.GetBLSKeyOwner(t, nodeHandler, blsKey.Value), owner.Value)
 	require.NotZero(t, id)
 
 	return &dto.RegisteredBlsKey{
-		ID:  id.Value,
-		Key: blsKey.Value,
+		ID:    id.Value,
+		Key:   blsKey.Value,
+		Owner: owner.Value,
 	}
 }
 

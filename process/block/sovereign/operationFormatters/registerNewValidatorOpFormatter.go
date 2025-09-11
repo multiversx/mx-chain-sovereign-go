@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	numExpectedTopicsInRegisterNewValidator = 1
+	numExpectedTopicsInRegisterNewValidator = 2
 	topicIdxBlsKey                          = 0
+	topicIdxOwner                           = 1
 )
 
 type registerNewValidatorOpFormatter struct {
@@ -58,8 +59,9 @@ func (op *registerNewValidatorOpFormatter) CreateOperationData(event data.EventH
 	}
 
 	return op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
-		ID:  peerAcc.GetMainChainID(),
-		Key: peerAcc.GetBLSPublicKey(),
+		ID:    peerAcc.GetMainChainID(),
+		Key:   peerAcc.GetBLSPublicKey(),
+		Owner: event.GetTopics()[topicIdxOwner],
 	})
 }
 

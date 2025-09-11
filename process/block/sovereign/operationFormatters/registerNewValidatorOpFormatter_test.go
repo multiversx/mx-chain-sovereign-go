@@ -39,6 +39,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 
 	mainChainID := []byte{0xfc}
 	blsKey := []byte("blsKey")
+	ownerAddress := []byte("owner")
 	peerAccountsDB := &state.AccountsStub{
 		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return &state.PeerAccountHandlerMock{
@@ -52,8 +53,9 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 	dataCodec := &sovereign.DataCodecMock{
 		SerializeNewlyRegisteredKeyCalled: func(keyData dto.RegisteredBlsKey) ([]byte, error) {
 			require.Equal(t, dto.RegisteredBlsKey{
-				ID:  mainChainID,
-				Key: blsKey,
+				ID:    mainChainID,
+				Key:   blsKey,
+				Owner: ownerAddress,
 			}, keyData)
 
 			return serializedData, nil
@@ -62,7 +64,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 
 	event := &transaction.Event{
 		Address: vm.StakingSCAddress,
-		Topics:  [][]byte{blsKey},
+		Topics:  [][]byte{blsKey, ownerAddress},
 	}
 	opFormatter, _ := NewRegisterValidatorOpFormatter(peerAccountsDB, dataCodec)
 	res, err := opFormatter.CreateOperationData(event)
@@ -76,7 +78,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testin
 	t.Run("invalid num topics", func(t *testing.T) {
 		event := &transaction.Event{
 			Address: vm.StakingSCAddress,
-			Topics:  [][]byte{[]byte("blsKey"), []byte("topic2")},
+			Topics:  [][]byte{[]byte("blsKey")},
 		}
 
 		opFormatter, _ := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{})
@@ -87,7 +89,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testin
 	t.Run("invalid event address", func(t *testing.T) {
 		event := &transaction.Event{
 			Address: vm.ValidatorSCAddress,
-			Topics:  [][]byte{[]byte("blsKey")},
+			Topics:  [][]byte{[]byte("blsKey"), []byte("owner")},
 		}
 
 		opFormatter, _ := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{})
@@ -98,7 +100,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testin
 	t.Run("cannot load account", func(t *testing.T) {
 		event := &transaction.Event{
 			Address: vm.StakingSCAddress,
-			Topics:  [][]byte{[]byte("blsKey")},
+			Topics:  [][]byte{[]byte("blsKey"), []byte("owner")},
 		}
 
 		expectedErr := errors.New("load account fails")

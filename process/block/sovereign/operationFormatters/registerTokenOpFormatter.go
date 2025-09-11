@@ -27,12 +27,9 @@ type registerTokenOpFormatter struct {
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
-func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*registerTokenOpFormatter, error) {
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
-	}
-	if check.IfNil(topicsChecker) {
-		return nil, errMx.ErrNilTopicsChecker
 	}
 
 	return &registerTokenOpFormatter{
