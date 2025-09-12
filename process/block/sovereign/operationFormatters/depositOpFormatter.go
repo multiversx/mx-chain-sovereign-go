@@ -6,7 +6,6 @@ import (
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 
 	"github.com/multiversx/mx-chain-go/common"
-	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 )
 
@@ -74,7 +73,7 @@ func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*so
 func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *sovData.EventData) (*sovData.Operation, error) {
 	tokens := make([]sovData.EsdtToken, 0)
 	for i := tokensIndex; i < len(topics); i += numTransferTopics {
-		tokenIdentifier := runTypeCommon.FormatEGLDID(topics[i])
+		tokenIdentifier := topics[i]
 		tokenNonce, err := common.ByteSliceToUint64(topics[i+1])
 		if err != nil {
 			return nil, err
