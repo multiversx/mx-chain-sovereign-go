@@ -6,7 +6,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/sharding"
 )
@@ -136,10 +135,10 @@ func (tp *tokensProcessor) processMultiTransferEvent(event data.EventHandler, ma
 		tokenID := topics[i]
 		nonceBigInt := big.NewInt(0).SetBytes(topics[i+1])
 
-		if string(tokenID) == vmcommon.EGLDIdentifier {
-			tp.processNativeEGLDTransferWithMultiTransfer(destinationAddress, markedAlteredAccounts)
-			continue
-		}
+		//if string(tokenID) == vmcommon.EGLDIdentifier {
+		//	tp.processNativeEGLDTransferWithMultiTransfer(destinationAddress, markedAlteredAccounts)
+		//	continue
+		//}
 
 		// process event for the sender address
 		tp.processEsdtDataForAddress(address, nonceBigInt, string(tokenID), markedAlteredAccounts, false)
