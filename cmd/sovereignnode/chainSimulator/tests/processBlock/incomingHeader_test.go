@@ -105,6 +105,11 @@ func TestSovereignChainSimulator_IncomingHeaderWithEGLD(t *testing.T) {
 	require.NotNil(t, esdts)
 	require.True(t, esdts[vmcommon.EGLDIdentifier] != nil)
 	require.Equal(t, amountToTransfer, esdts[vmcommon.EGLDIdentifier].Value.String())
+
+	// ESDT System account should not contain any data about the fungible token
+	accountKeys, _, err := nodeHandler.GetFacadeHandler().GetKeyValuePairs(chainSim.ESDTSystemAccount, coreAPI.AccountQueryOptions{})
+	require.Nil(t, err)
+	require.Empty(t, accountKeys)
 }
 
 // This test will simulate an incoming header.
