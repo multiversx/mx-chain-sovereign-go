@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/common"
 
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -165,7 +166,7 @@ func (sr *sovereignSubRoundEnd) doSovereignEndRoundJob(ctx context.Context) bool
 		return true
 	}
 
-	currentOperations, err := sr.getCurrentOperationsWithSignatures(sovHeader.GetNonce(), outGoingMBHeaders)
+	currentOperations, err := sr.getCurrentOperationsWithSignatures(sovHeader)
 	if err != nil {
 		log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.getCurrentOperations", "error", err)
 		return false
@@ -218,7 +219,37 @@ func (sr *sovereignSubRoundEnd) isSelfLeader() bool {
 	return sr.IsSelfLeaderInCurrentRound() || sr.IsMultiKeyLeaderInCurrentRound()
 }
 
-func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignatures(
+func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignatures(sovHeader data.SovereignChainHeaderHandler) ([]*sovereign.BridgeOutGoingData, error) {
+	if sr.EnableEpochsHandler().IsFlagEnabledInEpoch(common.AndromedaFlag, sovHeader.GetEpoch()) {
+		return sr.getCurrentOperationsWithSignaturesAfterAndromeda(sovHeader.GetNonce(), sovHeader.GetOutGoingMiniBlockHeaderHandlers())
+	}
+
+	return sr.getCurrentOperationsWithSignaturesBeforeAndromeda(sovHeader.GetPubKeysBitmap(), sovHeader.GetOutGoingMiniBlockHeaderHandlers())
+}
+
+func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesBeforeAndromeda(
+	pubKeysBitmap []byte,
+	outGoingMBHeaders []data.OutGoingMiniBlockHeaderHandler,
+) ([]*sovereign.BridgeOutGoingData, error) {
+	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
+	for idx, outGoingMBHdr := range outGoingMBHeaders {
+		currBridgeData, err := sr.updateBridgeDataWithSignatures(&bridgeDataSignatures{
+			hash:      outGoingMBHdr.GetOutGoingOperationsHash(),
+			aggSig:    outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(),
+			leaderSig: outGoingMBHdr.GetLeaderSignatureOutGoingOperations(),
+			bitmap:    pubKeysBitmap,
+		})
+		if err != nil {
+			log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.updateBridgeDataWithSignatures", "error", err)
+			return nil, err
+		}
+		currentOperations[idx] = currBridgeData
+	}
+
+	return currentOperations, nil
+}
+
+func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesAfterAndromeda(
 	nonce uint64,
 	outGoingMBHeaders []data.OutGoingMiniBlockHeaderHandler,
 ) ([]*sovereign.BridgeOutGoingData, error) {
