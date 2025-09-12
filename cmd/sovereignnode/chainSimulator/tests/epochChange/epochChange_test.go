@@ -140,18 +140,13 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	trie := nodeHandler.GetStateComponents().TriesContainer().Get([]byte(dataRetriever.PeerAccountsUnit.String()))
 	require.NotNil(t, trie)
 
-	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
-	err = cs.GenerateBlocksUntilEpochIsReached(40)
-	require.Nil(t, err)
-	require.Equal(t, uint32(40), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
-
 	// all pub key ids from genesis are in ascending order
 	allPubKeyIDs := make([][]byte, 8)
 	for idx := 0; idx < 8; idx++ {
 		allPubKeyIDs[idx] = []byte{byte(idx)}
 	}
 
-	for epoch := 41; epoch <= 45; epoch++ {
+	for epoch := 1; epoch <= 5; epoch++ {
 		err = cs.GenerateBlocksUntilEpochIsReached(int32(epoch))
 		require.Nil(t, err)
 
@@ -210,6 +205,11 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 		require.NotEmpty(t, accFeesTotal.Bytes())
 		require.Empty(t, devFeesTotal.Bytes())
 	}
+
+	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
+	err = cs.GenerateBlocksUntilEpochIsReached(45)
+	require.Nil(t, err)
+	require.Equal(t, uint32(45), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
 }
 
 func checkEpochChangeHeader(

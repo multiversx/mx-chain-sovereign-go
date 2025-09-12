@@ -45,7 +45,6 @@ func getBridgeDataFromPrevBlock(
 func checkOutGoingMiniBlockUnRegisterValidator(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
-	numOperations int,
 	expectedBlsKeys [][]byte,
 	expectedMainChainIDs [][]byte,
 ) {
@@ -53,7 +52,7 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 	// data from previous block
 	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBUnRegisterBlsKey)
 	require.Equal(t, int32(block.OutGoingMBUnRegisterBlsKey), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, numOperations)
+	require.Len(t, bridgeData.OutGoingOperations, len(expectedBlsKeys))
 
 	blsKeys := make([][]byte, 0)
 	assignedMainChainIDs := make([][]byte, 0)
@@ -129,6 +128,14 @@ func createUnStakeTxs(
 	return txs
 }
 
+func sendTxsAndGenerateOneBlock(t *testing.T, cs chainSimulatorIntegrationTests.ChainSimulator, txs []*transaction.Transaction) {
+	txsResults, err := cs.SendTxsAndGenerateBlocksTilAreExecuted(txs, staking.MaxNumOfBlockToGenerateWhenExecutingTx)
+	require.Nil(t, err)
+	require.NotNil(t, txsResults)
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+}
+
 func TestSovereignChainSimulator_OutgoingOpRegisterAndUnregisterNode(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -174,34 +181,26 @@ func TestSovereignChainSimulator_OutgoingOpRegisterAndUnregisterNode(t *testing.
 	require.Nil(t, err)
 
 	nonce := uint64(0)
-
-	txs := createStakeTxs(&nonce, walletAddress, blsKeys[:3])
-	txsResults, err := cs.SendTxsAndGenerateBlocksTilAreExecuted(txs, staking.MaxNumOfBlockToGenerateWhenExecutingTx)
-	require.Nil(t, err)
-	require.NotNil(t, txsResults)
-
-	err = cs.GenerateBlocks(1)
-	require.Nil(t, err)
-
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+
+	// Create a block with 3 stake transactions (by staking first 3/4 nodes) and check outgoing mbs
+	txs := createStakeTxs(&nonce, walletAddress, blsKeys[:3])
+	sendTxsAndGenerateOneBlock(t, cs, txs)
 	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 3, 8)
 
+	// Create a block with unStake(1/4 & 3/4 nodes) and stake(4/4 node) transactions and check there are two outgoing mbs with
+	// different types
 	txsUnStake := createUnStakeTxs(&nonce, walletAddress, []string{blsKeys[0], blsKeys[2]})
 	txStakeLastNode := createStakeTxs(&nonce, walletAddress, blsKeys[3:])
-	txsResults, err = cs.SendTxsAndGenerateBlocksTilAreExecuted(append(txsUnStake, txStakeLastNode...), staking.MaxNumOfBlockToGenerateWhenExecutingTx)
-	require.Nil(t, err)
-	require.NotNil(t, txsResults)
-
-	err = cs.GenerateBlocks(1)
-	require.Nil(t, err)
+	sendTxsAndGenerateOneBlock(t, cs, append(txsUnStake, txStakeLastNode...))
 
 	err = cs.ForceResetValidatorStatisticsCache()
 	require.Nil(t, err)
 
-	checkOutGoingMiniBlockUnRegisterValidator(t, nodeHandler, 2, getBlsKeyBytes(t, []string{blsKeys[0], blsKeys[2]}), [][]byte{{0x09}, {0x0b}})
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 1, 8+3)
-
 	blsKeysBytes := getBlsKeyBytes(t, blsKeys)
+	checkOutGoingMiniBlockUnRegisterValidator(t, nodeHandler, [][]byte{blsKeysBytes[0], blsKeysBytes[2]}, [][]byte{{0x09}, {0x0b}})
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 1, 8+3) // 8 from genesis + 3 staked nodes in total
+
 	require.Equal(t, "unStaked", staking.GetBLSKeyStatus(t, nodeHandler, blsKeysBytes[0]))
 	require.Equal(t, "staked", staking.GetBLSKeyStatus(t, nodeHandler, blsKeysBytes[1]))
 	require.Equal(t, "unStaked", staking.GetBLSKeyStatus(t, nodeHandler, blsKeysBytes[2]))
