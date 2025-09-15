@@ -1,27 +1,19 @@
 package process
 
 import (
-	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
-	"github.com/multiversx/mx-chain-go/errors"
 	chainSimulatorProcess "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	"github.com/multiversx/mx-chain-go/process"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 )
-
-type bridgeDataSignatures struct {
-	hash      []byte
-	aggSig    []byte
-	leaderSig []byte
-	bitmap    []byte
-}
 
 type sovereignBlockProcessor struct {
 }
@@ -70,37 +62,17 @@ func (sbpf *sovereignBlockProcessor) ProcessHeaderProof(
 			return fmt.Errorf("%w for type %s in ProcessHeaderProof", bls.ErrExtraSigShareDataNotFound, mbType)
 		}
 
-		err := sbpf.updateBridgeDataWithSignatures(&bridgeDataSignatures{
-			hash:      outGoingMb.GetOutGoingOperationsHash(),
-			aggSig:    extraSigData.GetAggregatedSignature(),
-			leaderSig: extraSigData.GetLeaderSignature(),
-			bitmap:    proof.GetPubKeysBitmap(),
+		_, err := sovereign.UpdateBridgeDataWithSignatures(&sovereign.BridgeDataSignatures{
+			Hash:      outGoingMb.GetOutGoingOperationsHash(),
+			AggSig:    extraSigData.GetAggregatedSignature(),
+			LeaderSig: extraSigData.GetLeaderSignature(),
+			Bitmap:    proof.GetPubKeysBitmap(),
 		}, outGoingOperationsPool)
 		if err != nil {
 			return err
 		}
 	}
 
-	return nil
-}
-
-func (sbpf *sovereignBlockProcessor) updateBridgeDataWithSignatures(
-	bridgeDataSigs *bridgeDataSignatures,
-	outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
-) error {
-	hash := bridgeDataSigs.hash
-	currBridgeData := outGoingOperationsPool.Get(hash)
-	if currBridgeData == nil {
-		return fmt.Errorf("%w for hash: %s",
-			errors.ErrOutGoingOperationsNotFound, hex.EncodeToString(hash))
-	}
-
-	currBridgeData.LeaderSignature = bridgeDataSigs.leaderSig
-	currBridgeData.AggregatedSignature = bridgeDataSigs.aggSig
-	currBridgeData.PubKeysBitmap = bridgeDataSigs.bitmap
-
-	outGoingOperationsPool.Delete(hash)
-	outGoingOperationsPool.Add(currBridgeData)
 	return nil
 }
 
