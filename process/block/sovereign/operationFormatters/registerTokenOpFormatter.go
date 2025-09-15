@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -73,7 +74,7 @@ func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, event
 		TokenType:       core.ESDTType(tokenType),
 		Name:            topics[topicIdxName],
 		Ticker:          topics[topicIdxTicker],
-		NumDecimals:     numDecimals,
+		NumDecimals:     uint32(numDecimals),
 		EventData:       eventData,
 	}, nil
 }
