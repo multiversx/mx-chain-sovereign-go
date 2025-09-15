@@ -5,6 +5,7 @@ import (
 	chainData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	"github.com/multiversx/mx-chain-go/consensus"
+	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/heartbeat/data"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
@@ -43,8 +44,13 @@ type HeartbeatMonitorWithSet interface {
 	IsInterfaceNil() bool
 }
 
-// BlocksProcessorFactory defines what the block processor factory should be able to do
-type BlocksProcessorFactory interface {
+// BlocksProcessor defines what the block processor should be able to do
+type BlocksProcessor interface {
 	ProcessBlock(processor process.BlockProcessor, header chainData.HeaderHandler) (chainData.HeaderHandler, chainData.BodyHandler, error)
+	ProcessHeaderProof(
+		header chainData.HeaderHandler,
+		proof chainData.HeaderProofHandler,
+		outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
+	) error
 	IsInterfaceNil() bool
 }

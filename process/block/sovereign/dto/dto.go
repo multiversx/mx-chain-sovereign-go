@@ -11,7 +11,7 @@ type TokenProperties struct {
 	TokenType       core.ESDTType
 	Name            []byte
 	Ticker          []byte
-	NumDecimals     uint64
+	NumDecimals     uint32
 	EventData       *sovereign.EventData
 }
 
