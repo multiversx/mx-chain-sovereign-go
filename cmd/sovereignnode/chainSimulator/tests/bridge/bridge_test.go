@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -28,7 +29,6 @@ const (
 	feeMarketWasmPath          = "../testdata/sov-fee-market.wasm"
 	sovRegistrarWasmPath       = "../testdata/sov-registrar.wasm"
 	issuePaymentCost           = "50000000000000000"
-	egldIdentifier             = "EGLD-000000"
 )
 
 // This test will:
@@ -276,7 +276,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositMainChainToken(t
 	nonce := uint64(0)
 
 	depositMainChainToken(t, cs, bridgeData, wallet, &nonce, "MAIN-1a2b3c")
-	depositMainChainToken(t, cs, bridgeData, wallet, &nonce, egldIdentifier)
+	depositMainChainToken(t, cs, bridgeData, wallet, &nonce, vmcommon.EGLDIdentifier)
 }
 
 func depositMainChainToken(
@@ -518,7 +518,7 @@ func issueAndRegisterToken(
 ) (string, *big.Int) {
 	// Set EGLD-000000 supply in wallet
 	egldSupply, _ := big.NewInt(0).SetString("12000000000000000000", 10)
-	chainSim.SetEsdtInWallet(t, cs, wallet, egldIdentifier, 0, esdt.ESDigitalToken{Value: egldSupply})
+	chainSim.SetEsdtInWallet(t, cs, wallet, vmcommon.EGLDIdentifier, 0, esdt.ESDigitalToken{Value: egldSupply})
 	_ = cs.GenerateBlocks(1)
 
 	// Issue new fungible token
@@ -540,7 +540,7 @@ func issueAndRegisterToken(
 	}
 	paymentTokens := make([]chainSim.ArgsDepositToken, 0)
 	paymentTokens = append(paymentTokens, chainSim.ArgsDepositToken{
-		Identifier: egldIdentifier,
+		Identifier: vmcommon.EGLDIdentifier,
 		Nonce:      uint64(0),
 		Amount:     issueCost,
 	})

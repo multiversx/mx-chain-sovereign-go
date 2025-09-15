@@ -967,6 +967,7 @@ func (mrc *managedRunTypeComponents) ExtraSignersHolder() bls.ExtraSignersHolder
 	return mrc.runTypeComponents.extraSignersHolder
 }
 
+// BaseTokenID return the base token id
 func (mrc *managedRunTypeComponents) BaseTokenID() []byte {
 	mrc.mutRunTypeComponents.RLock()
 	defer mrc.mutRunTypeComponents.RUnlock()
