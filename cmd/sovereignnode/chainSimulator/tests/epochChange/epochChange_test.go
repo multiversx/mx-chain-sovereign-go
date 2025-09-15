@@ -288,38 +288,6 @@ func checkEpochChangeRewardsMB(
 	require.Empty(t, owners)
 }
 
-func checkOutGoingMiniBlockRegisterValidator(
-	t *testing.T,
-	nodeHandler process.NodeHandler,
-	numOperations int,
-	latestMainChainID int,
-) {
-	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBRegisterBlsKey)
-	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, numOperations)
-
-	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
-
-	blsKeys := make([][]byte, 0)
-	assignedMainChainIDs := make([][]byte, 0)
-
-	expectedMainChainIDs := make([][]byte, 0)
-	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
-		require.Equal(t, nonce, registeredData.Nonce)
-
-		blsKeys = append(blsKeys, registeredData.Key)
-		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
-
-		latestMainChainID++
-		expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
-	}
-
-	auctionNodes := getAuctionListKeys(t, nodeHandler)
-	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.Subset(t, auctionNodes, blsKeys)
-}
-
 func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
 	id := &abi.BytesValue{}
 	blsKey := &abi.BytesValue{}
