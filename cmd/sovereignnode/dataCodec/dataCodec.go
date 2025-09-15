@@ -531,7 +531,7 @@ func getTokenPropertiesStruct(tokenProperties dto.TokenProperties) *abi.StructVa
 			},
 			{
 				Name:  "num_decimals",
-				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+				Value: &abi.U32Value{Value: tokenProperties.NumDecimals},
 			},
 			{
 				Name:  "event_data",

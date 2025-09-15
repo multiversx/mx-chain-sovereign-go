@@ -73,7 +73,7 @@ func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, event
 		TokenType:       core.ESDTType(tokenType),
 		Name:            topics[topicIdxName],
 		Ticker:          topics[topicIdxTicker],
-		NumDecimals:     numDecimals,
+		NumDecimals:     uint32(numDecimals),
 		EventData:       eventData,
 	}, nil
 }

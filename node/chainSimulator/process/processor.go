@@ -24,12 +24,12 @@ type manualRoundHandler interface {
 
 type blocksCreator struct {
 	nodeHandler     NodeHandler
-	blocksProcessor BlocksProcessorFactory
+	blocksProcessor BlocksProcessor
 	monitor         HeartbeatMonitorWithSet
 }
 
 // NewBlocksCreator will create a new instance of blocksCreator
-func NewBlocksCreator(nodeHandler NodeHandler, blocksProcessor BlocksProcessorFactory, monitor HeartbeatMonitorWithSet) (*blocksCreator, error) {
+func NewBlocksCreator(nodeHandler NodeHandler, blocksProcessor BlocksProcessor, monitor HeartbeatMonitorWithSet) (*blocksCreator, error) {
 	if check.IfNil(nodeHandler) {
 		return nil, ErrNilNodeHandler
 	}
@@ -271,9 +271,14 @@ func (creator *blocksCreator) ApplySignaturesAndGetProof(
 		if err != nil {
 			return nil, err
 		}
-
+		creator.nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler()
 		dataPool := creator.nodeHandler.GetDataComponents().Datapool()
 		_ = dataPool.Proofs().AddProof(headerProof)
+
+		err = creator.blocksProcessor.ProcessHeaderProof(header, headerProof, creator.nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return headerProof, nil
