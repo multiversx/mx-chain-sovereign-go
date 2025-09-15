@@ -1,0 +1,411 @@
+package sovereignBridge
+
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"math/big"
+	"testing"
+
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/require"
+
+	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	"github.com/multiversx/mx-chain-go/process"
+)
+
+const (
+	issuePaymentCost = "50000000000000000"
+
+	sovereignForgeWasmPath = "testdata/sovereign-forge.wasm"
+	chainFactoryWasmPath   = "testdata/chain-factory.wasm"
+	chainConfigWasmPath    = "testdata/chain-config.wasm"
+	headerVerifierWasmPath = "testdata/header-verifier.wasm"
+	esdtSafeWasmPath       = "testdata/mvx-esdt-safe.wasm"
+	feeMarketWasmPath      = "testdata/fee-market.wasm"
+
+	sovereignForgeShardID = 1
+	chainConfigIndex      = 6
+	esdtSafeIndex         = 3
+	feeMarketIndex        = 4
+	headerVerifierIndex   = 2
+
+	sovChainID = "sov1"
+
+	depositFunc = "deposit"
+)
+
+// ArgsBridgeSetup holds the arguments for bridge setup
+type ArgsBridgeSetup struct {
+	SovereignForgeAddress []byte
+	ChainConfigAddress    []byte
+	HeaderVerifierAddress []byte
+	ESDTSafeAddress       []byte
+	FeeMarketAddress      []byte
+	OwnerAccount          chainSim.Account
+	RegisteredBLSKeys     []string
+	NativeESDT            string
+}
+
+type transferData struct {
+	GasLimit uint64
+	Function []byte
+	Args     [][]byte
+}
+
+// This function will:
+// - deploy esdt-safe contract
+// - deploy fee-market contract
+// - set the fee-market address inside esdt-safe contract
+// - disable fee in fee-market contract
+// - unpause esdt-safe contract so deposit operations can start
+func deployBridgeSetup(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	ownerAddress string,
+) *ArgsBridgeSetup {
+	nodeHandler := cs.GetNodeHandler(0)
+
+	systemContractDeploy := chainSim.GetSysContactDeployAddressBytes(t, nodeHandler)
+
+	sovereignForgeAddress := deploySovereignSCSetup(t, cs, systemContractDeploy)
+
+	ownerAddrBytes, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Decode(ownerAddress)
+	require.Nil(t, err)
+	nonce := uint64(0)
+
+	chainConfigAddress := deployPhaseOne(t, cs, sovereignForgeAddress, ownerAddrBytes, &nonce, sovChainID)
+
+	esdtSafeAddress, nativeESDT := deployPhaseTwo(t, cs, sovereignForgeAddress, ownerAddrBytes, &nonce, sovChainID)
+
+	feeMarketAddress := deployPhaseThree(t, cs, sovereignForgeAddress, ownerAddrBytes, &nonce, sovChainID)
+
+	headerVerifierAddress := deployPhaseFour(t, cs, sovereignForgeAddress, ownerAddrBytes, &nonce, sovChainID)
+
+	_, blsKeys, err := chainSimulator.GenerateBlsPrivateKeys(2)
+	require.Nil(t, err)
+	for _, key := range blsKeys {
+		registerArgs := "register" +
+			"@" + key
+		chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, chainConfigAddress, chainSim.ZeroValue, registerArgs, uint64(20_000_000))
+	}
+
+	chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, sovereignForgeAddress, chainSim.ZeroValue, "completeSetupPhase", uint64(50_000_000))
+
+	return &ArgsBridgeSetup{
+		SovereignForgeAddress: sovereignForgeAddress,
+		ChainConfigAddress:    chainConfigAddress,
+		HeaderVerifierAddress: headerVerifierAddress,
+		ESDTSafeAddress:       esdtSafeAddress,
+		FeeMarketAddress:      feeMarketAddress,
+		OwnerAccount: chainSim.Account{
+			Wallet: dtos.WalletAddress{Bech32: ownerAddress, Bytes: ownerAddrBytes},
+			Nonce:  nonce,
+		},
+		RegisteredBLSKeys: blsKeys,
+		NativeESDT:        nativeESDT,
+	}
+}
+
+func deploySovereignSCSetup(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	systemContractDeploy []byte,
+) []byte {
+	owner, _ := cs.GenerateAndMintWalletAddress(sovereignForgeShardID, chainSim.InitialAmount)
+	ownerNonce := uint64(0)
+	_ = cs.GenerateBlocks(1)
+	sovereignForgeAddress := chainSim.DeployContract(t, cs, owner.Bytes, &ownerNonce, systemContractDeploy, "", sovereignForgeWasmPath)
+
+	for shardId := uint32(0); shardId < cs.GetNodeHandler(0).GetProcessComponents().ShardCoordinator().NumberOfShards(); shardId++ {
+		wallet, _ := cs.GenerateAndMintWalletAddress(shardId, chainSim.InitialAmount)
+		nonce := uint64(0)
+		_ = cs.GenerateBlocks(1)
+
+		chainConfigTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", chainConfigWasmPath)
+		esdtSafeTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@31", esdtSafeWasmPath)                                                   // random prefix
+		feeMarketTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(esdtSafeTemplateAddress)+"@00", feeMarketWasmPath) // no fee
+		headerVerifierTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", headerVerifierWasmPath)
+
+		chainFactoryArgs := "@" + hex.EncodeToString(sovereignForgeAddress) +
+			"@" + hex.EncodeToString(chainConfigTemplateAddress) +
+			"@" + hex.EncodeToString(headerVerifierTemplateAddress) +
+			"@" + hex.EncodeToString(esdtSafeTemplateAddress) +
+			"@" + hex.EncodeToString(feeMarketTemplateAddress)
+		chainFactoryAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, chainFactoryArgs, chainFactoryWasmPath)
+
+		registerChainFactoryArgs := "registerChainFactory" +
+			"@" + hex.EncodeToString(big.NewInt(int64(shardId)).Bytes()) +
+			"@" + hex.EncodeToString(chainFactoryAddress)
+		chainSim.SendTransactionWithSuccess(t, cs, owner.Bytes, &ownerNonce, sovereignForgeAddress, chainSim.ZeroValue, registerChainFactoryArgs, uint64(30_000_000))
+	}
+
+	return sovereignForgeAddress
+}
+
+func deployPhaseOne(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	contractAddress []byte,
+	wallet []byte,
+	nonce *uint64,
+	sovChainID string,
+) []byte {
+	phaseOneArgs := "deployPhaseOne" +
+		"@01" + lengthOn4Bytes(len(sovChainID)) + hex.EncodeToString([]byte(sovChainID))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, chainSim.ZeroValue, phaseOneArgs, uint64(25_000_000))
+	return readContractAddress(t, cs, contractAddress, sovChainID, chainConfigIndex)
+}
+
+func deployPhaseTwo(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	contractAddress []byte,
+	wallet []byte,
+	nonce *uint64,
+	sovChainID string,
+) ([]byte, string) {
+	phaseTwoArgs := "deployPhaseTwo"
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, chainSim.ZeroValue, phaseTwoArgs, uint64(30_000_000))
+	esdtSafeAddress := readContractAddress(t, cs, contractAddress, sovChainID, esdtSafeIndex)
+
+	nativeTokenTicker := "SOV"
+	nativeTokenName := "SovToken"
+	issueCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
+	registerNativeTokenArgs := "registerNativeToken" +
+		"@" + lengthOn4Bytes(len(nativeTokenTicker)) + hex.EncodeToString([]byte(nativeTokenTicker)) +
+		lengthOn4Bytes(len(nativeTokenName)) + hex.EncodeToString([]byte(nativeTokenName))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, issueCost, registerNativeTokenArgs, uint64(80_000_000))
+	_ = cs.GenerateBlocks(2)
+	nativeESDT := readNativeESDT(t, cs, esdtSafeAddress)
+
+	return esdtSafeAddress, nativeESDT
+}
+
+func deployPhaseThree(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	contractAddress []byte,
+	wallet []byte,
+	nonce *uint64,
+	sovChainID string,
+) []byte {
+	phaseThreeArgs := "deployPhaseThree" +
+		"@00"
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, chainSim.ZeroValue, phaseThreeArgs, uint64(30_000_000))
+	return readContractAddress(t, cs, contractAddress, sovChainID, feeMarketIndex)
+}
+
+func deployPhaseFour(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	contractAddress []byte,
+	wallet []byte,
+	nonce *uint64,
+	sovChainID string,
+) []byte {
+	phaseFourArgs := "deployPhaseFour"
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, chainSim.ZeroValue, phaseFourArgs, uint64(25_000_000))
+	return readContractAddress(t, cs, contractAddress, sovChainID, headerVerifierIndex)
+}
+
+func readContractAddress(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	sovereignForgeAddress []byte,
+	sovChainID string,
+	index int,
+) []byte {
+	res, _, err := cs.GetNodeHandler(sovereignForgeShardID).GetFacadeHandler().ExecuteSCQuery(&process.SCQuery{
+		ScAddress: sovereignForgeAddress,
+		FuncName:  "getDeployedSovereignContracts",
+		Arguments: [][]byte{[]byte(sovChainID)},
+	})
+	require.NoError(t, err)
+	require.Equal(t, chainSim.OkReturnCode, res.ReturnCode)
+
+	return getAddressAtIndex(t, index, res.ReturnData)
+}
+
+func getAddressAtIndex(
+	t *testing.T,
+	index int,
+	data [][]byte,
+) []byte {
+	for _, dt := range data {
+		if int(dt[0]) == index {
+			addr := make([]byte, 32)
+			copy(addr, dt[1:33])
+			return addr
+		}
+	}
+
+	require.Fail(t, "Address not found at index", index)
+	return nil
+}
+
+func readNativeESDT(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	esdtSafeAddress []byte,
+) string {
+	res, _, err := cs.GetNodeHandler(1).GetFacadeHandler().ExecuteSCQuery(&process.SCQuery{
+		ScAddress: esdtSafeAddress,
+		FuncName:  "getNativeToken",
+	})
+	require.NoError(t, err)
+	require.Equal(t, chainSim.OkReturnCode, res.ReturnCode)
+
+	return string(res.ReturnData[0])
+}
+
+func lengthOn4Bytes(number int) string {
+	numberBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(numberBytes, uint32(number))
+	return hex.EncodeToString(numberBytes)
+}
+
+// deposit will deposit tokens in the bridge sc safe contract
+func deposit(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	sender []byte,
+	nonce *uint64,
+	contract []byte,
+	tokens []chainSim.ArgsDepositToken,
+	receiver []byte,
+	transferData *transferData,
+) *transaction.ApiTransactionResult {
+	if len(tokens) == 0 {
+		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
+	}
+
+	depositArgs := core.BuiltInFunctionMultiESDTNFTTransfer +
+		"@" + hex.EncodeToString(contract) +
+		"@" + fmt.Sprintf("%02X", len(tokens))
+
+	for _, token := range tokens {
+		depositArgs = depositArgs +
+			"@" + hex.EncodeToString([]byte(token.Identifier)) +
+			"@" + hex.EncodeToString(big.NewInt(int64(token.Nonce)).Bytes()) +
+			"@" + hex.EncodeToString(token.Amount.Bytes())
+	}
+
+	depositArgs = depositArgs +
+		"@" + hex.EncodeToString([]byte(depositFunc)) +
+		"@" + hex.EncodeToString(receiver) +
+		getDepositTransferDataArgs(transferData)
+
+	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+// depositScCall will make a smart contract call through deposit endpoint
+func depositScCall(t *testing.T,
+	cs chainSim.ChainSimulator,
+	sender []byte,
+	nonce *uint64,
+	contract []byte,
+	receiver []byte,
+	transferData *transferData,
+) *transaction.ApiTransactionResult {
+	depositArgs := depositFunc +
+		"@" + hex.EncodeToString(receiver) +
+		getDepositTransferDataArgs(transferData)
+
+	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+func getDepositTransferDataArgs(transferData *transferData) string {
+	if transferData == nil {
+		return ""
+	}
+
+	args := ""
+	for _, arg := range transferData.Args {
+		args = args + "@" +
+			hex.EncodeToString(arg)
+	}
+
+	return "@" + getUint64Bytes(transferData.GasLimit) +
+		"@" + hex.EncodeToString(transferData.Function) +
+		args
+}
+
+func getUint64Bytes(number uint64) string {
+	nonceBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(nonceBytes, number)
+	return hex.EncodeToString(nonceBytes)
+}
+
+func generateRandomHash() string {
+	randomBytes := make([]byte, 32)
+	_, _ = rand.Read(randomBytes)
+	return hex.EncodeToString(randomBytes)
+}
+
+func executeOperation(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	wallet dtos.WalletAddress,
+	receiver []byte,
+	nonce *uint64,
+	esdtSafeAddress []byte,
+	bridgedInTokens []chainSim.ArgsDepositToken,
+	originalSender []byte,
+	transferData *transferData,
+) *transaction.ApiTransactionResult {
+	executeBridgeOpsData := "executeBridgeOps" +
+		"@" + generateRandomHash() + //dummy hash
+		"@" + // operation
+		hex.EncodeToString(receiver) + // receiver address
+		lengthOn4Bytes(len(bridgedInTokens)) + // nr of tokens
+		getTokenDataArgs(wallet.Bytes, bridgedInTokens) + // tokens encoded arg
+		getUint64Bytes(0) + // event nonce
+		hex.EncodeToString(originalSender) + // sender address from other chain
+		getTransferDataArgs(transferData)
+	return chainSim.SendTransaction(t, cs, wallet.Bytes, nonce, esdtSafeAddress, chainSim.ZeroValue, executeBridgeOpsData, uint64(100000000))
+}
+
+func getTokenDataArgs(creator []byte, tokens []chainSim.ArgsDepositToken) string {
+	var arg string
+	for _, token := range tokens {
+		arg = arg +
+			lengthOn4Bytes(len(token.Identifier)) + // length of token identifier
+			hex.EncodeToString([]byte(token.Identifier)) + //token identifier
+			getUint64Bytes(token.Nonce) + // nonce
+			fmt.Sprintf("%02x", uint32(token.Type)) + // type
+			lengthOn4Bytes(len(token.Amount.Bytes())) + // length of amount
+			hex.EncodeToString(token.Amount.Bytes()) + // amount
+			"00" + // not frozen
+			lengthOn4Bytes(0) + // length of hash
+			lengthOn4Bytes(4) + // length of name
+			hex.EncodeToString([]byte("ESDT")) + // name
+			lengthOn4Bytes(0) + // length of attributes
+			hex.EncodeToString(creator) + // creator
+			lengthOn4Bytes(0) + //length of royalties
+			lengthOn4Bytes(0) // length of uris
+	}
+	return arg
+}
+
+func getTransferDataArgs(transferData *transferData) string {
+	if transferData == nil {
+		return "00"
+	}
+
+	transferDataArgs := "01" +
+		getUint64Bytes(transferData.GasLimit) +
+		lengthOn4Bytes(len(transferData.Function)) +
+		hex.EncodeToString(transferData.Function) +
+		lengthOn4Bytes(len(transferData.Args))
+	for _, arg := range transferData.Args {
+		transferDataArgs = transferDataArgs +
+			lengthOn4Bytes(len(arg)) +
+			hex.EncodeToString(arg)
+	}
+	return transferDataArgs
+}
