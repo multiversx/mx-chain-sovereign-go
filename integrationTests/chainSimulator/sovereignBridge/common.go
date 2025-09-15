@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -36,7 +37,8 @@ const (
 
 	sovChainID = "sov1"
 
-	depositFunc = "deposit"
+	depositFunc       = "deposit"
+	registerTokenFunc = "registerToken"
 )
 
 // ArgsBridgeSetup holds the arguments for bridge setup
@@ -408,4 +410,72 @@ func getTransferDataArgs(transferData *transferData) string {
 			hex.EncodeToString(arg)
 	}
 	return transferDataArgs
+}
+
+func registerTokens(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	wallet []byte,
+	nonce *uint64,
+	esdtSafeAddress []byte,
+	token chainSim.ArgsDepositToken,
+) {
+	ticker := getTokenTicker(token.Identifier)
+
+	registerTokenArgs := registerTokenFunc +
+		"@" + generateRandomHash() +
+		"@" +
+		lengthOn4Bytes(len(token.Identifier)) + // length of identifier
+		hex.EncodeToString([]byte(token.Identifier)) + // identifier
+		fmt.Sprintf("%02x", uint32(token.Type)) + // type
+		lengthOn4Bytes(len(ticker)) + // length of name
+		hex.EncodeToString([]byte(ticker)) + // name
+		lengthOn4Bytes(len(ticker)) + // length of ticker
+		hex.EncodeToString([]byte(ticker)) + // ticker
+		//getUint64Bytes(18) + // num decimals
+		"00000012" + // num decimals
+		getUint64Bytes(1) + // event nonce
+		hex.EncodeToString(wallet) + // sender address from other chain
+		"00" // no transfer data
+	txResult := chainSim.SendTransaction(t, cs, wallet, nonce, esdtSafeAddress, chainSim.ZeroValue, registerTokenArgs, uint64(100_000_000))
+	chainSim.RequireSuccessfulTransaction(t, txResult)
+
+	// wait for issue processing from metachain
+	err := cs.GenerateBlocks(1)
+	require.Nil(t, err)
+}
+
+func getTokenTicker(tokenIdentifier string) string {
+	return strings.Split(tokenIdentifier, "-")[1]
+}
+
+func waitIfCrossShardProcessing(cs chainSim.ChainSimulator, senderShard uint32, receivedShard uint32) {
+	if senderShard != receivedShard {
+		_ = cs.GenerateBlocks(3)
+	}
+}
+
+func getTokenIdentifier(token chainSim.ArgsDepositToken) string {
+	if token.Nonce == 0 {
+		return token.Identifier
+	}
+	return token.Identifier + "-" + fmt.Sprintf("%02x", token.Nonce)
+}
+
+func nextShardId(shardId *uint32) {
+	*shardId++
+	if *shardId > 2 {
+		*shardId = 0
+	}
+}
+
+func isMeta(esdtType core.ESDTType) bool {
+	return esdtType == core.MetaFungible ||
+		esdtType == core.DynamicMeta
+}
+
+func isSftOrMeta(esdtType core.ESDTType) bool {
+	return esdtType == core.SemiFungible ||
+		esdtType == core.DynamicSFT ||
+		isMeta(esdtType)
 }
