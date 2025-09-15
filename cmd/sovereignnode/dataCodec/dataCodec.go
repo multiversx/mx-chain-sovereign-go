@@ -5,10 +5,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-sdk-abi-go/abi"
+
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
-	"github.com/multiversx/mx-sdk-abi-go/abi"
 )
 
 type dataCodec struct {
@@ -531,7 +532,7 @@ func getTokenPropertiesStruct(tokenProperties dto.TokenProperties) *abi.StructVa
 			},
 			{
 				Name:  "num_decimals",
-				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+				Value: &abi.U32Value{Value: tokenProperties.NumDecimals},
 			},
 			{
 				Name:  "event_data",
