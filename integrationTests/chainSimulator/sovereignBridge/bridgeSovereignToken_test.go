@@ -1,10 +1,7 @@
 package sovereignBridge
 
 import (
-	"encoding/hex"
-	"fmt"
 	"math/big"
-	"strings"
 	"testing"
 	"time"
 
@@ -20,131 +17,7 @@ import (
 
 const (
 	defaultPathToInitialConfig = "../../../cmd/node/config/"
-	helloWasmPath              = "testdata/hello.wasm"
-	registerTokenFunc          = "registerToken"
 )
-
-type wallet struct {
-	addrBech32 string
-	nonce      uint64
-}
-
-// 1. transfer from sovereign chain to main chain
-// 2. transfer from main chain to sovereign chain
-// 3. transfer again the same tokens from sovereign chain to main chain
-// tokens are originated from sovereign chain
-// esdt-safe contract in main chain will issue its own tokens at registerToken step
-// and will work with a mapper between sov_id <-> main_id
-//func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
-//	if testing.Short() {
-//		t.Skip("this is not a short test")
-//	}
-//
-//	roundsPerEpoch := core.OptionalUint64{
-//		HasValue: true,
-//		Value:    20,
-//	}
-//	cs, err := chainSimulator.NewChainSimulator(chainSimulator.ArgsChainSimulator{
-//		BypassTxSignatureCheck:   true,
-//		TempDir:                  t.TempDir(),
-//		PathToInitialConfig:      defaultPathToInitialConfig,
-//		NumOfShards:              3,
-//		GenesisTimestamp:         time.Now().Unix(),
-//		RoundDurationInMillis:    uint64(6000),
-//		RoundsPerEpoch:           roundsPerEpoch,
-//		ApiInterface:             api.NewNoApiInterface(),
-//		MinNodesPerShard:         3,
-//		MetaChainMinNodes:        3,
-//		NumNodesWaitingListMeta:  0,
-//		NumNodesWaitingListShard: 0,
-//		AlterConfigsFunction: func(cfg *config.Configs) {
-//			cfg.SystemSCConfig.ESDTSystemSCConfig.BaseIssuingCost = issuePaymentCost
-//		},
-//	})
-//	require.Nil(t, err)
-//	require.NotNil(t, cs)
-//
-//	defer cs.Close()
-//
-//	err = cs.GenerateBlocksUntilEpochIsReached(4)
-//	require.Nil(t, err)
-//
-//	// deploy bridge setup
-//	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
-//	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-//	bridgeData := deployBridgeSetup(t, cs, initialAddress)
-//
-//	wallet, err := cs.GenerateAndMintWalletAddress(1, chainSim.InitialAmount)
-//	require.Nil(t, err)
-//	nonce := uint64(0)
-//
-//	err = cs.GenerateBlocks(1)
-//	require.Nil(t, err)
-//
-//	//deposit EGLD-000000
-//	issueCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
-//	egldPaymentToken := chainSim.ArgsDepositToken{
-//		Identifier: vmcommon.EGLDIdentifier,
-//		Nonce:      uint64(0),
-//		Amount:     issueCost,
-//	}
-//	txResult := deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{egldPaymentToken}, bridgeData.ESDTSafeAddress, nil)
-//	chainSim.RequireSuccessfulTransaction(t, txResult)
-//
-//	// generate new tokens
-//	tokens := make([]chainSim.ArgsDepositToken, 0)
-//	tokens = append(tokens, chainSim.ArgsDepositToken{
-//		Identifier: sovChainID + "-TKN-123456",
-//		Nonce:      uint64(0),
-//		Amount:     big.NewInt(14556666767),
-//		Type:       core.Fungible,
-//	})
-//
-//	tokensMapper := make(map[string]string)
-//
-//	// register the tokens
-//	for _, token := range tokens {
-//		registerTokens(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
-//		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), token.Type.String())
-//	}
-//}
-
-func registerTokens(
-	t *testing.T,
-	cs chainSim.ChainSimulator,
-	wallet []byte,
-	nonce *uint64,
-	esdtSafeAddress []byte,
-	token chainSim.ArgsDepositToken,
-) {
-	ticker := getTokenTicker(token.Identifier)
-
-	registerTokenArgs := registerTokenFunc +
-		"@" + generateRandomHash() +
-		"@" +
-		lengthOn4Bytes(len(token.Identifier)) + // length of identifier
-		hex.EncodeToString([]byte(token.Identifier)) + // identifier
-		fmt.Sprintf("%02x", uint32(token.Type)) + // type
-		lengthOn4Bytes(len(ticker)) + // length of name
-		hex.EncodeToString([]byte(ticker)) + // name
-		lengthOn4Bytes(len(ticker)) + // length of ticker
-		hex.EncodeToString([]byte(ticker)) + // ticker
-		//getUint64Bytes(18) + // num decimals
-		"00000012" + // num decimals
-		getUint64Bytes(1) + // event nonce
-		hex.EncodeToString(wallet) + // sender address from other chain
-		"00" // no transfer data
-	txResult := chainSim.SendTransaction(t, cs, wallet, nonce, esdtSafeAddress, chainSim.ZeroValue, registerTokenArgs, uint64(100_000_000))
-	chainSim.RequireSuccessfulTransaction(t, txResult)
-
-	// wait for issue processing from metachain
-	err := cs.GenerateBlocks(1)
-	require.Nil(t, err)
-}
-
-func getTokenTicker(tokenIdentifier string) string {
-	return strings.Split(tokenIdentifier, "-")[1]
-}
 
 // This test will:
 // - Generate a new wallet
@@ -155,7 +28,11 @@ func getTokenTicker(tokenIdentifier string) string {
 //   - Generate a receiver in a random shard & executeBridgeOp
 //   - Deposit 1 token to self main chain -> sovereign chain
 //
-// NOTE: registerBridgeOp is skipped in contract execution
+// NOTES:
+// - tokens are originated from sovereign chain and have prefix
+// - registerToken will issue a new token in main chain with same ticker
+// - esdt-safe contract in main chain will mint with executeOperation and burn when tokens are deposited back
+// - registerBridgeOp is skipped in contract execution
 func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -331,35 +208,4 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 
 		nextShardId(&receiverShardId)
 	}
-}
-
-func waitIfCrossShardProcessing(cs chainSim.ChainSimulator, senderShard uint32, receivedShard uint32) {
-	if senderShard != receivedShard {
-		_ = cs.GenerateBlocks(3)
-	}
-}
-
-func getTokenIdentifier(token chainSim.ArgsDepositToken) string {
-	if token.Nonce == 0 {
-		return token.Identifier
-	}
-	return token.Identifier + "-" + fmt.Sprintf("%02x", token.Nonce)
-}
-
-func nextShardId(shardId *uint32) {
-	*shardId++
-	if *shardId > 2 {
-		*shardId = 0
-	}
-}
-
-func isMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.MetaFungible ||
-		esdtType == core.DynamicMeta
-}
-
-func isSftOrMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.SemiFungible ||
-		esdtType == core.DynamicSFT ||
-		isMeta(esdtType)
 }
