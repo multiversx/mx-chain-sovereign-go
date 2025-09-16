@@ -1529,5 +1529,6 @@ func getMockArgs() ArgsAlteredAccountsProvider {
 		AddressConverter:       &testscommon.PubkeyConverterMock{},
 		AccountsDB:             &state.AccountsStub{},
 		EsdtDataStorageHandler: &testscommon.EsdtStorageHandlerStub{},
+		BaseTokenID:            vmcommon.EGLDIdentifier,
 	}
 }

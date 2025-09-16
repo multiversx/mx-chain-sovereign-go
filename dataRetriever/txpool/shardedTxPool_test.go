@@ -398,6 +398,7 @@ func Test_routeToCacheUnions(t *testing.T) {
 		Marshalizer:    &marshal.GogoProtoMarshalizer{},
 		NumberOfShards: 4,
 		SelfShardID:    42,
+		BaseTokenID:    vmcommon.EGLDIdentifier,
 	}
 	pool, _ := NewShardedTxPool(args)
 

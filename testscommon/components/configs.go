@@ -1,6 +1,8 @@
 package components
 
 import (
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/config"
 )
 
@@ -169,6 +171,7 @@ func GetGeneralConfig() config.Config {
 				},
 			},
 			EpochChangeGracePeriodByEpoch: []config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}},
+			BaseTokenID:                   vmcommon.EGLDIdentifier,
 		},
 		Marshalizer: config.MarshalizerConfig{
 			Type:           TestMarshalizer,

@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -402,6 +403,9 @@ func createMockSCQueryElementArgs(shardId uint32) api.SCQueryElementArgs {
 						TransferAndExecuteByUserAddresses: []string{"erd1qqqqqqqqqqqqqpgqr46jrxr6r2unaqh75ugd308dwx5vgnhwh47qtvepe3"},
 					},
 				},
+			},
+			GeneralSettings: config.GeneralSettingsConfig{
+				BaseTokenID: vmcommon.EGLDIdentifier,
 			},
 		},
 		EpochConfig: &config.EpochConfig{},
