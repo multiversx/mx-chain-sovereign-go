@@ -50,6 +50,9 @@
         {EnableEpoch = 1, GracePeriodInRounds = 10 }, # Andromeda epoch comes with a longer grace period
     ]
 
+    # BaseTokenID represents the base token identifier for chain
+    BaseTokenID = "EGLD-000000"
+
 [HardwareRequirements]
     CPUFlags = ["SSE4", "SSE42"]
 

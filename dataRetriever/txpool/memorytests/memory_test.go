@@ -13,11 +13,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/txpool"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
-	"github.com/stretchr/testify/require"
 )
 
 // useMemPprof dictates whether to save heap profiles when running the test.
@@ -116,6 +118,7 @@ func newPool() dataRetriever.ShardedDataCacherNotifier {
 		Marshalizer:    &marshal.GogoProtoMarshalizer{},
 		NumberOfShards: 2,
 		SelfShardID:    0,
+		BaseTokenID:    vmcommon.EGLDIdentifier,
 	}
 	pool, err := txpool.NewShardedTxPool(args)
 	if err != nil {

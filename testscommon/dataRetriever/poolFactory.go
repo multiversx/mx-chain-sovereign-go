@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -43,6 +44,7 @@ func CreateTxPool(numShards uint32, selfShard uint32) (dataRetriever.ShardedData
 			SelfShardID:    selfShard,
 			TxGasHandler:   txcachemocks.NewTxGasHandlerMock(),
 			Marshalizer:    &marshal.GogoProtoMarshalizer{},
+			BaseTokenID:    vmcommon.EGLDIdentifier,
 		},
 	)
 }

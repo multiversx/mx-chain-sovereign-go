@@ -183,6 +183,7 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 		[]byte(args.Configs.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
 		args.RunTypeComponents.CrawlerAddressGetter(),
+		args.Configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	)
 	if err != nil {
 		return nil, err
@@ -413,6 +414,7 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		[]byte(args.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
 		args.runTypeComponents.CrawlerAddressGetter(),
+		args.generalConfig.GeneralSettings.BaseTokenID,
 	)
 	if err != nil {
 		return nil, nil, err
@@ -684,6 +686,7 @@ func createBuiltinFuncs(
 	selfESDTPrefix []byte,
 	pubKeyConverter core.PubkeyConverter,
 	crawlerAddressGetter crawlerAddressGetter.CrawlerAddressGetterHandler,
+	baseTokenID string,
 ) (vmcommon.BuiltInFunctionFactory, error) {
 	argsBuiltIn := builtInFunctions.ArgsCreateBuiltInFunctionContainer{
 		GasSchedule:                    gasScheduleNotifier,
@@ -702,6 +705,7 @@ func createBuiltinFuncs(
 		SelfESDTPrefix:                 selfESDTPrefix,
 		PubKeyConverter:                pubKeyConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter,
+		BaseTokenID:                    baseTokenID,
 	}
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 }
@@ -744,6 +748,7 @@ func createAPIBlockProcessorArgs(args *ApiResolverArgs, apiTransactionHandler ex
 		AddressConverter:       args.CoreComponents.AddressPubKeyConverter(),
 		AccountsDB:             args.StateComponents.AccountsAdapterAPI(),
 		EsdtDataStorageHandler: args.ProcessComponents.ESDTDataStorageHandlerForAPI(),
+		BaseTokenID:            args.Configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	})
 	if err != nil {
 		return nil, err

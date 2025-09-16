@@ -14,13 +14,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts/shared"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/state"
 	"github.com/multiversx/mx-chain-go/testscommon/trie"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewAlteredAccountsProvider(t *testing.T) {
@@ -68,6 +70,28 @@ func TestNewAlteredAccountsProvider(t *testing.T) {
 		aap, err := NewAlteredAccountsProvider(args)
 		require.Nil(t, aap)
 		require.Equal(t, ErrNilESDTDataStorageHandler, err)
+	})
+
+	t.Run("nil esdt data storage handler", func(t *testing.T) {
+		t.Parallel()
+
+		args := getMockArgs()
+		args.EsdtDataStorageHandler = nil
+
+		aap, err := NewAlteredAccountsProvider(args)
+		require.Nil(t, aap)
+		require.Equal(t, ErrNilESDTDataStorageHandler, err)
+	})
+
+	t.Run("invalid base token id should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := getMockArgs()
+		args.BaseTokenID = "invalid"
+
+		aap, err := NewAlteredAccountsProvider(args)
+		require.Nil(t, aap)
+		require.Equal(t, builtInFunctions.ErrInvalidTokenID, err)
 	})
 
 	t.Run("should work", func(t *testing.T) {
