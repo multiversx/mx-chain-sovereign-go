@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"net/http"
 	"time"
@@ -10,6 +9,13 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gorilla/websocket"
 )
+
+const (
+	ethMethodSubscribe = "eth_subscribe"
+	ethMethodGetLogs   = "eth_getLogs"
+)
+
+type ethMethodHandler func(req jsonRPCReq, conn *websocket.Conn) error
 
 var upgrader = websocket.Upgrader{}
 
@@ -32,15 +38,21 @@ func startETHMockNotifier() error {
 			log.Error("upgrade error:", err)
 			return
 		}
-		defer conn.Close()
+		defer func(conn *websocket.Conn) {
+			err = conn.Close()
+			log.LogIfError(err)
+		}(conn)
 
-		var subscriptionID = "0x1"
+		handlers := map[string]ethMethodHandler{
+			ethMethodSubscribe: handleBlockSubscribe,
+			ethMethodGetLogs:   handleGetLogs,
+		}
 
 		for {
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				log.Error("read error:", err)
-				return
+				continue
 			}
 
 			var req jsonRPCReq
@@ -49,75 +61,16 @@ func startETHMockNotifier() error {
 				continue
 			}
 
-			if req.Method == "eth_subscribe" {
-				resp := jsonRPCResp{
-					JSONRPC: "2.0",
-					ID:      req.ID,
-					Result:  subscriptionID,
-				}
-				conn.WriteJSON(resp)
-
-				go func() {
-					ticker := time.NewTicker(5 * time.Second)
-					defer ticker.Stop()
-
-					blockNumber := big.NewInt(1000)
-
-					for range ticker.C {
-						blockNumber = big.NewInt(blockNumber.Int64() + 1)
-						header := &types.Header{
-							Number:     blockNumber,
-							Difficulty: big.NewInt(1),
-						}
-
-						// JSON-RPC subscription event
-						event := map[string]interface{}{
-							"jsonrpc": "2.0",
-							"method":  "eth_subscription",
-							"params": map[string]interface{}{
-								"subscription": subscriptionID,
-								"result":       header,
-							},
-						}
-
-						if err := conn.WriteJSON(event); err != nil {
-							log.Error("write error:", err)
-							return
-						}
-						log.Info(fmt.Sprintf("mock: sent new head %d\n", header.Number))
-					}
-				}()
-			}
-			if req.Method == "eth_getLogs" {
-				// todo: here, maybe read the block number to return it
-				fakeLog := map[string]interface{}{
-					"address":          "0x1111111111111111111111111111111111111111",
-					"blockHash":        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-					"blockNumber":      "0x3e9", // 1001 în hex
-					"transactionHash":  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-					"transactionIndex": "0x0",
-					"logIndex":         "0x0",
-					"removed":          false,
-					"data":             "0xdeadbeef",
-					"topics": []string{
-						"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-					},
-				}
-
-				resp := jsonRPCResp{
-					JSONRPC: "2.0",
-					ID:      req.ID,
-					Result:  []interface{}{fakeLog},
-				}
-
-				////// TODO: HERE, we do not have any incoming event processor handler for this
-				resp.Result = []interface{}{}
-				//////
-
-				conn.WriteJSON(resp)
+			requestHandler, found := handlers[req.Method]
+			if !found {
+				log.Error("unknown ETH request method:", req.Method)
 				continue
 			}
 
+			err = requestHandler(req, conn)
+			if err != nil {
+				log.Error("requestHandler failed", "error", err, "req type", req.Method)
+			}
 		}
 
 	})
@@ -127,4 +80,84 @@ func startETHMockNotifier() error {
 	log.LogIfError(err)
 
 	return nil
+}
+
+func handleBlockSubscribe(req jsonRPCReq, conn *websocket.Conn) error {
+	subscriptionID := "0x1"
+
+	resp := jsonRPCResp{
+		JSONRPC: "2.0",
+		ID:      req.ID,
+		Result:  subscriptionID,
+	}
+	err := conn.WriteJSON(resp)
+	if err != nil {
+		log.Error("handleBlockSubscribe conn.WriteJSON", "error", err)
+		return err
+	}
+
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		blockNumber := big.NewInt(1000)
+
+		for range ticker.C {
+			blockNumber = big.NewInt(blockNumber.Int64() + 1)
+			header := &types.Header{
+				Number:     blockNumber,
+				Difficulty: big.NewInt(1),
+			}
+
+			event := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"method":  "eth_subscription",
+				"params": map[string]interface{}{
+					"subscription": subscriptionID,
+					"result":       header,
+				},
+			}
+
+			if err := conn.WriteJSON(event); err != nil {
+				log.Error("handleBlockSubscribe write error:", "error", err)
+				return
+			}
+			log.Info("sending ETH block", "number", header.Number.Uint64())
+		}
+	}()
+
+	return nil
+}
+
+func handleGetLogs(req jsonRPCReq, conn *websocket.Conn) error {
+	var reqParams []struct {
+		FromBlock string `json:"fromBlock"`
+	}
+	if err := json.Unmarshal(req.Params, &reqParams); err != nil {
+		return err
+	}
+
+	incomingLog := map[string]interface{}{
+		"address":          "0x1111111111111111111111111111111111111111",
+		"blockHash":        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"blockNumber":      reqParams[0].FromBlock,
+		"transactionHash":  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		"transactionIndex": "0x0",
+		"logIndex":         "0x0",
+		"removed":          false,
+		"data":             "0xdeadbeef",
+		"topics": []string{
+			"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
+	}
+
+	resp := jsonRPCResp{
+		JSONRPC: "2.0",
+		ID:      req.ID,
+		Result:  []interface{}{incomingLog},
+	}
+
+	// TODO: For now have this empty, since we do not have any incoming event processor handler for this
+	resp.Result = []interface{}{}
+	return conn.WriteJSON(resp)
 }

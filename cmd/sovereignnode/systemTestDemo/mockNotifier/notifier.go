@@ -134,7 +134,7 @@ func startMVXMockNotifier(ctx *cli.Context) error {
 		}
 
 		headerHash := outportBlock.BlockData.HeaderHash
-		log.Info("sending block",
+		log.Info("sending MVX block",
 			"nonce", nonce,
 			"hash", hex.EncodeToString(headerHash),
 			"prev hash", prevHash,
@@ -459,7 +459,7 @@ func sendWithRetrial(host factoryHost.FullDuplexHost, data []byte, topic string)
 			return
 		}
 
-		log.Warn("could not send data", "topic", topic, "error", err)
+		log.Warn("could not send MVX data", "topic", topic, "error", err)
 		timer.Reset(3 * time.Second)
 	}
 }
