@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	sovCommon "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
 	sovChainSimConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/configs"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
@@ -51,6 +52,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		cfg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix = "sov"
 		cfg.GeneralConfig.Versions.VersionsByEpochs = []config.VersionByEpochs{{StartEpoch: 0, Version: string(process.SovereignHeaderVersion)}}
 		cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 0.4
+		cfg.GeneralConfig.GeneralSettings.BaseTokenID = configs.SovereignExtraConfig.GenesisConfig.NativeESDT
 
 		if alterConfigs != nil {
 			alterConfigs(cfg)
