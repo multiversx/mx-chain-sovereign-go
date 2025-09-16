@@ -14,6 +14,7 @@ var (
 			" log level.",
 		Value: "*:" + logger.LogTrace.String(),
 	}
+	// todo: here flag for multiple notifiers?
 	grpcEnabled = cli.BoolFlag{
 		Name:  "grpc-enabled",
 		Usage: "Boolean option for enabling GRPC server.",

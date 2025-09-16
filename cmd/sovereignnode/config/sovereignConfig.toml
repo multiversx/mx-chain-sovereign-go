@@ -123,7 +123,7 @@
     # For a cache size = 1000, we would hold blocks from the past ~3h.
     BlockCacheSize = 1000
 
-    URL = "wss://rpc.sepolia.org"
+    URL = "ws://127.0.0.1:8546"
 
 
 [GenesisConfig]

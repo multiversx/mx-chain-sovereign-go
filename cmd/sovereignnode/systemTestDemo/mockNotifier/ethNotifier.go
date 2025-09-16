@@ -109,6 +109,11 @@ func startETHMockNotifier() error {
 					ID:      req.ID,
 					Result:  []interface{}{fakeLog},
 				}
+
+				////// TODO: HERE, we do not have any incoming event processor handler for this
+				resp.Result = []interface{}{}
+				//////
+
 				conn.WriteJSON(resp)
 				continue
 			}

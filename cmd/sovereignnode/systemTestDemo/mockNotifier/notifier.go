@@ -8,7 +8,9 @@ import (
 	"math/big"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/multiversx/mx-chain-communication-go/websocket/data"
@@ -56,7 +58,7 @@ func main() {
 		},
 	}
 
-	app.Action = startMockNotifier
+	app.Action = startAllNotifiers
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Error(err.Error())
@@ -64,12 +66,36 @@ func main() {
 	}
 }
 
-func startMockNotifier(ctx *cli.Context) error {
+func startAllNotifiers(ctx *cli.Context) error {
 	err := initializeLogger(ctx)
 	if err != nil {
 		return err
 	}
 
+	go func() {
+		err = startMVXMockNotifier(ctx)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}()
+
+	go func() {
+		err = startETHMockNotifier()
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	<-interrupt
+	log.Info("closing app at user's signal")
+
+	return nil
+}
+
+func startMVXMockNotifier(ctx *cli.Context) error {
 	host, err := createWSHost()
 	if err != nil {
 		log.Error("cannot create WebSocket server", "error", err)
