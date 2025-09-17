@@ -3,10 +3,12 @@ package processBlock
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	coreAPI "github.com/multiversx/mx-chain-core-go/data/api"
@@ -465,6 +467,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
 				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 1}
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.ETH.String()] = config.MainChainNotarization{StartRound: 1}
 			},
 		},
 	})
@@ -475,10 +478,15 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
-	incomingHdrNonce := uint64(1)
-	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
-	incomingHeader, _, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, nil)
+	incomingHdrNonceMVX := uint64(1)
+	prevHeader := createHeaderV2(incomingHdrNonceMVX, generateRandomHash(), generateRandomHash())
+	incomingHeader, _, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeader, nil)
 	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
+	require.Nil(t, err)
+
+	incomingHdrNonceETH := uint64(2)
+	currentHeaderETH, headerHashETH := createETHIncomingHeader(nodeHandler, &incomingHdrNonceETH, nil)
+	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
 	require.Nil(t, err)
 
 	for epoch := int32(1); epoch < 5; epoch++ {
@@ -491,25 +499,26 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 		require.Nil(t, err)
 
 		unconfirmedOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
-		require.Len(t, unconfirmedOps, 1)
+		require.Len(t, unconfirmedOps, 2)
 		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), unconfirmedOps[0].Type)
 		require.Equal(t, uint32(epoch), unconfirmedOps[0].Epoch)
 
 		hashOfHashes := unconfirmedOps[0].Hash
 		hashOfOperation := unconfirmedOps[0].OutGoingOperations[0].Hash
 
-		// TODO: We should check confirmed incoming events from multiple chains when we have different incoming header
-		// handlers for other chains as well
 		confirmBridgeOpEvent := &transaction.Event{
 			Identifier: []byte(dto.EventIDChangeValidatorSet),
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 
-		currIncomingHeader, headerV2, currHeaderHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
+		currIncomingHeader, headerV2, currHeaderHash := createIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(currHeaderHash, currIncomingHeader)
 		require.Nil(t, err)
 
 		prevHeader = headerV2
+
+		currentHeaderETH, headerHashETH = createETHIncomingHeader(nodeHandler, &incomingHdrNonceETH, []*transaction.Event{confirmBridgeOpEvent})
+		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
 	}
 }
 
@@ -651,4 +660,27 @@ func checkLastCrossNotarizedRound(t *testing.T, sovBlockTracker sovChainBlockTra
 	require.Nil(t, err)
 	require.Equal(t, lastCrossNotarizedRound, lastCrossNotarizedHeader.GetRound())
 	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+}
+
+func createETHIncomingHeader(
+	nodeHandler process.NodeHandler,
+	headerNonce *uint64,
+	txsEvent []*transaction.Event,
+) (*sovereign.IncomingHeader, []byte) {
+	*headerNonce++
+
+	ethHeader := &types.Header{
+		Difficulty: big.NewInt(1),
+		Number:     big.NewInt(int64(*headerNonce)),
+	}
+	proof, _ := json.Marshal(ethHeader)
+	incomingHdr := &sovereign.IncomingHeader{
+		Nonce:          *headerNonce,
+		Proof:          proof,
+		SourceChainID:  sovDto.ETH,
+		IncomingEvents: txsEvent,
+	}
+
+	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), ethHeader)
+	return incomingHdr, headerHash
 }
