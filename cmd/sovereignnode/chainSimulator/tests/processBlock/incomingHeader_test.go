@@ -94,7 +94,7 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 			txsEvent = nil
 		}
 
-		incomingHdr, headerV2, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, txsEvent)
+		incomingHdr, headerV2, headerHash := createMVXIncomingHeader(nodeHandler, &headerNonce, prevHeader, txsEvent)
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
 		require.Nil(t, err)
 
@@ -466,8 +466,10 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			NumNodesWaitingListShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.MVX.String()] = config.MainChainNotarization{StartRound: 1}
-				cfg.GeneralConfig.SovereignConfig.MainChainNotarization[sovDto.ETH.String()] = config.MainChainNotarization{StartRound: 1}
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					sovDto.MVX.String(): {StartRound: 1},
+					sovDto.ETH.String(): {StartRound: 1},
+				}
 			},
 		},
 	})
@@ -479,9 +481,9 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	incomingHdrNonceMVX := uint64(1)
-	prevHeader := createHeaderV2(incomingHdrNonceMVX, generateRandomHash(), generateRandomHash())
-	incomingHeader, _, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeader, nil)
-	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
+	prevHeaderMVX := createHeaderV2(incomingHdrNonceMVX, generateRandomHash(), generateRandomHash())
+	incomingHeaderMVX, _, headerHashMVX := createMVXIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeaderMVX, nil)
+	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashMVX, incomingHeaderMVX)
 	require.Nil(t, err)
 
 	incomingHdrNonceETH := uint64(2)
@@ -499,9 +501,27 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 		require.Nil(t, err)
 
 		unconfirmedOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
-		require.Len(t, unconfirmedOps, 2)
-		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), unconfirmedOps[0].Type)
-		require.Equal(t, uint32(epoch), unconfirmedOps[0].Epoch)
+		require.Len(t, unconfirmedOps, 2) // 2 chains
+
+		expectedChainIDs := map[sovDto.ChainID]struct{}{
+			sovDto.MVX: {},
+			sovDto.ETH: {},
+		}
+
+		hashOfHashesMap := make(map[string]struct{})
+		hashOfOperationsMap := make(map[string]struct{})
+		for _, unconfirmedOp := range unconfirmedOps {
+			require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), unconfirmedOp.Type)
+			require.Equal(t, uint32(epoch), unconfirmedOp.Epoch)
+			delete(expectedChainIDs, sovDto.ChainID(unconfirmedOp.ChainID))
+
+			hashOfHashesMap[string(unconfirmedOp.Hash)] = struct{}{}
+			hashOfOperationsMap[string(unconfirmedOp.Hash)] = struct{}{}
+		}
+		require.Empty(t, expectedChainIDs)
+		// Same outgoing op hash for all chains when chainging validators
+		require.Len(t, hashOfHashesMap, 1)
+		require.Len(t, hashOfOperationsMap, 1)
 
 		hashOfHashes := unconfirmedOps[0].Hash
 		hashOfOperation := unconfirmedOps[0].OutGoingOperations[0].Hash
@@ -511,11 +531,10 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 
-		currIncomingHeader, headerV2, currHeaderHash := createIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
-		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(currHeaderHash, currIncomingHeader)
+		currIncomingHeaderMVX, headerV2, currHeaderHashMVX := createMVXIncomingHeader(nodeHandler, &incomingHdrNonceMVX, prevHeaderMVX, []*transaction.Event{confirmBridgeOpEvent})
+		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(currHeaderHashMVX, currIncomingHeaderMVX)
 		require.Nil(t, err)
-
-		prevHeader = headerV2
+		prevHeaderMVX = headerV2
 
 		currentHeaderETH, headerHashETH = createETHIncomingHeader(nodeHandler, &incomingHdrNonceETH, []*transaction.Event{confirmBridgeOpEvent})
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
@@ -537,7 +556,7 @@ func getExtendedHeaderHash(t *testing.T, nodeHandler process.NodeHandler, incomi
 	return extendedHeaderHash
 }
 
-func createIncomingHeader(
+func createMVXIncomingHeader(
 	nodeHandler process.NodeHandler,
 	headerNonce *uint64,
 	prevHeader *block.HeaderV2,

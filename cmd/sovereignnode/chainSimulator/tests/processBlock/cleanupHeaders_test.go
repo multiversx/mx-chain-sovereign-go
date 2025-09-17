@@ -122,7 +122,7 @@ func TestSovereignChainSimulator_BlockTrackerPoolsCleanup(t *testing.T) {
 		require.Nil(t, err)
 		checkCrossNotarizedHeader(t, round, crossNotarizedHeader, headerNonce)
 
-		incomingHeader, headerV2, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, nil)
+		incomingHeader, headerV2, headerHash := createMVXIncomingHeader(nodeHandler, &headerNonce, prevHeader, nil)
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
 		require.Nil(t, err)
 
