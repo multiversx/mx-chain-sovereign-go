@@ -542,6 +542,14 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 	}
 }
 
+// In this test, we simulate a sovereign chain that receives incoming headers to notarize from two sources (MVX + ETH).
+// - Every two rounds, a new MVX header is received.
+// - Every six rounds, a new ETH header is received.
+// As a result, some sovereign headers will contain:
+// - no notarized cross-chain header,
+// - one notarized MVX header every two rounds,
+// - two notarized headers (MVX + ETH) every six rounds.
+// An epoch change header should include the latest notarized cross-chain data from both MVX and ETH.
 func TestSovereignChainSimulator_IncomingHeadersFromMultipleChains(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
