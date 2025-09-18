@@ -16,6 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -158,7 +159,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 	for currIncomingHeaderRound := startRound - 5; currIncomingHeaderRound < startRound+200; currIncomingHeaderRound++ {
 
 		// Handlers are notified on go routines; wait a bit so that pools are updated
-		incomingHdr, headerV2 := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevIncomingHeader)
+		incomingHdr, headerV2 := addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevIncomingHeader)
 		time.Sleep(time.Millisecond * 10)
 
 		// We just received header in pool and notified all subscribed components, header has not been processed + committed.
@@ -272,7 +273,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 
 	incomingHdrNonce := startRound - 1
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
-	incomingHdr, headerV2 := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
+	incomingHdr, headerV2 := addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 	require.Nil(t, err)
 
 	lastCrossNotarizedRound := uint64(100)
@@ -291,7 +292,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		if i%3 == 0 {
 			prevHeader = headerV2
-			incomingHdr, headerV2 = addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
+			incomingHdr, headerV2 = addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 			lastCrossNotarizedRound++
 		}
 
@@ -382,7 +383,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 
 	// Fill pool with incoming headers up until pre-genesis
 	for i := 0; i < 3; i++ {
-		_, headerV2 := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
+		_, headerV2 := addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 		prevHeader = headerV2
 	}
 
@@ -400,7 +401,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	extendedHeaderHashes := make([][]byte, 0)
 	// From now on, we generate 3 incoming headers per sovereign block
 	for i := 1; i < 300; i++ {
-		incomingHdr, headerV2 := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
+		incomingHdr, headerV2 := addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 		extendedHeaderHashes = append(extendedHeaderHashes, getExtendedHeaderHash(t, nodeHandler, incomingHdr))
 
 		if i%3 == 0 {
@@ -519,7 +520,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 			hashOfOperationsMap[string(unconfirmedOp.Hash)] = struct{}{}
 		}
 		require.Empty(t, expectedChainIDs)
-		// Same outgoing op hash for all chains when chainging validators
+		// Same outgoing op hash for all chains when changing validators
 		require.Len(t, hashOfHashesMap, 1)
 		require.Len(t, hashOfOperationsMap, 1)
 
@@ -538,6 +539,95 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 		currentHeaderETH, headerHashETH = createETHIncomingHeader(nodeHandler, &incomingHdrNonceETH, []*transaction.Event{confirmBridgeOpEvent})
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
+	}
+}
+
+func TestSovereignChainSimulator_IncomingHeadersFromMultipleChains(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this is not a short test")
+	}
+
+	roundsPerEpoch := core.OptionalUint64{
+		HasValue: true,
+		Value:    20,
+	}
+
+	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: sovereignConfigPath,
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck:   true,
+			TempDir:                  t.TempDir(),
+			PathToInitialConfig:      defaultPathToInitialConfig,
+			GenesisTimestamp:         time.Now().Unix(),
+			RoundDurationInMillis:    uint64(6000),
+			RoundsPerEpoch:           roundsPerEpoch,
+			ApiInterface:             api.NewNoApiInterface(),
+			MinNodesPerShard:         6,
+			NumNodesWaitingListShard: 2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					sovDto.MVX.String(): {StartRound: 1},
+					sovDto.ETH.String(): {StartRound: 1},
+				}
+			},
+		},
+	})
+	require.Nil(t, err)
+	require.NotNil(t, cs)
+
+	defer cs.Close()
+
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+
+	incomingHdrNonceMVX := uint64(2)
+	prevHeaderMVX := createHeaderV2(incomingHdrNonceMVX, generateRandomHash(), generateRandomHash())
+	_, currHeaderMVX := addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonceMVX, prevHeaderMVX)
+
+	incomingHdrNonceETH := uint64(3)
+	createAndAddETHIncomingHeader(t, nodeHandler, &incomingHdrNonceETH, nil)
+
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+	prevSovHdr := common.GetCurrentSovereignHeader(nodeHandler)
+
+	for round := int32(1); round < 200; round++ {
+		if round%2 == 0 {
+			prevHeaderMVX = currHeaderMVX
+			_, currHeaderMVX = addMVXIncomingHeader(t, nodeHandler, &incomingHdrNonceMVX, prevHeaderMVX)
+		}
+		if round%6 == 0 {
+			createAndAddETHIncomingHeader(t, nodeHandler, &incomingHdrNonceETH, nil)
+		}
+
+		err = cs.GenerateBlocks(1)
+		require.Nil(t, err)
+
+		currentSovHeader := common.GetCurrentSovereignHeader(nodeHandler)
+		notarizedChainsData := currentSovHeader.GetChainDataHandlers()
+
+		if currentSovHeader.IsStartOfEpochBlock() {
+			require.Empty(t, notarizedChainsData)
+
+			require.Len(t, currentSovHeader.GetOutGoingMiniBlockHeaderHandlers(), 2)
+			require.Equal(t, currentSovHeader.GetOutGoingMiniBlockHeaderHandlers()[0].GetChainID(), sovDto.MVX)
+			require.Equal(t, currentSovHeader.GetOutGoingMiniBlockHeaderHandlers()[1].GetChainID(), sovDto.ETH)
+
+			require.Len(t, currentSovHeader.GetEpochStartHandler().GetLastFinalizedHeaderHandlers(), 2)
+			require.Equal(t, currentSovHeader.GetEpochStartHandler().GetLastFinalizedHeaderHandlers()[0].GetShardID(), uint32(sovDto.MVX))
+			require.Equal(t, currentSovHeader.GetEpochStartHandler().GetLastFinalizedHeaderHandlers()[1].GetShardID(), uint32(sovDto.ETH))
+		} else if round%2 == 0 && round%6 != 0 {
+			require.Len(t, notarizedChainsData, 1)
+			require.Equal(t, notarizedChainsData[0].GetChainID(), sovDto.MVX)
+		} else if round%6 == 0 {
+			require.Len(t, notarizedChainsData, 2)
+			require.Equal(t, notarizedChainsData[0].GetChainID(), sovDto.MVX)
+			require.Equal(t, notarizedChainsData[1].GetChainID(), sovDto.ETH)
+		} else if !prevSovHdr.IsStartOfEpochBlock() {
+			require.Empty(t, notarizedChainsData)
+		}
+
+		prevSovHdr = currentSovHeader
 	}
 }
 
@@ -577,7 +667,7 @@ func createMVXIncomingHeader(
 	return incomingHdr, headerV2, headerHash
 }
 
-func addIncomingHeader(
+func addMVXIncomingHeader(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
 	headerNonce *uint64,
@@ -700,6 +790,17 @@ func createETHIncomingHeader(
 		IncomingEvents: txsEvent,
 	}
 
-	headerHash, _ := core.CalculateHash(nodeHandler.GetCoreComponents().InternalMarshalizer(), nodeHandler.GetCoreComponents().Hasher(), ethHeader)
+	headerHash, _ := core.CalculateHash(&marshal.JsonMarshalizer{}, nodeHandler.GetCoreComponents().Hasher(), ethHeader)
 	return incomingHdr, headerHash
+}
+
+func createAndAddETHIncomingHeader(
+	t *testing.T,
+	nodeHandler process.NodeHandler,
+	headerNonce *uint64,
+	txsEvent []*transaction.Event,
+) {
+	currentHeaderETH, headerHashETH := createETHIncomingHeader(nodeHandler, headerNonce, txsEvent)
+	err := nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
+	require.Nil(t, err)
 }
