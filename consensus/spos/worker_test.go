@@ -2122,6 +2122,40 @@ func TestWorker_ExtendShouldWork(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&executed))
 }
 
+func TestWorker_ExtendShouldWorkInAndromeda(t *testing.T) {
+	t.Parallel()
+	wrk := *initWorker(&statusHandlerMock.AppStatusHandlerStub{})
+	enableEpochsHandler := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
+		IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+			return flag == common.AndromedaFlag
+		},
+	}
+	wrk.SetEnableEpochsHandler(enableEpochsHandler)
+
+	hdrHash := []byte("hdrHash")
+	currHdr := &block.Header{Epoch: 4}
+	currHdrHash, err := core.CalculateHash(wrk.Marshalizer(), &hashingMocks.HasherMock{}, currHdr)
+	require.Nil(t, err)
+
+	removedHdrsMap := map[string]struct{}{
+		string(hdrHash):     {},
+		string(currHdrHash): {},
+	}
+	blockProcessor := &testscommon.BlockProcessorStub{
+		RemoveHeaderFromPoolCalled: func(headerHash []byte) {
+			delete(removedHdrsMap, string(headerHash))
+		},
+	}
+
+	wrk.ConsensusState().SetData(hdrHash)
+	wrk.ConsensusState().SetHeader(currHdr)
+
+	wrk.SetBlockProcessor(blockProcessor)
+	wrk.Extend(1)
+	time.Sleep(1000 * time.Millisecond)
+	require.Empty(t, removedHdrsMap)
+}
+
 func TestWorker_ExecuteStoredMessagesShouldWork(t *testing.T) {
 	t.Parallel()
 	wrk := *initWorker(&statusHandlerMock.AppStatusHandlerStub{})
