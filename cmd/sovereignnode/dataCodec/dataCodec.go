@@ -3,11 +3,11 @@ package dataCodec
 import (
 	"encoding/hex"
 
-	"github.com/multiversx/mx-chain-go/errors"
-	"github.com/multiversx/mx-chain-go/process"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	"github.com/multiversx/mx-sdk-abi-go/abi"
 )
 
@@ -493,6 +493,49 @@ func getOperationData(data sovereign.EventData) *abi.StructValue {
 				Value: &abi.OptionValue{
 					Value: transferData,
 				},
+			},
+		},
+	}
+}
+
+// SerializeTokenProperties will serialize the given token properties
+func (dc *dataCodec) SerializeTokenProperties(properties dto.TokenProperties) ([]byte, error) {
+	tokenPropertiesStruct := getTokenPropertiesStruct(properties)
+
+	encodedOp, err := dc.serializer.Serialize([]any{tokenPropertiesStruct})
+	if err != nil {
+		return nil, err
+	}
+
+	return hex.DecodeString(encodedOp)
+}
+
+func getTokenPropertiesStruct(tokenProperties dto.TokenProperties) *abi.StructValue {
+	return &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "token_id",
+				Value: &abi.BytesValue{Value: tokenProperties.TokenIdentifier},
+			},
+			{
+				Name:  "type",
+				Value: &abi.EnumValue{Discriminant: uint8(tokenProperties.TokenType)},
+			},
+			{
+				Name:  "name",
+				Value: &abi.BytesValue{Value: tokenProperties.Name},
+			},
+			{
+				Name:  "ticker",
+				Value: &abi.BytesValue{Value: tokenProperties.Ticker},
+			},
+			{
+				Name:  "num_decimals",
+				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+			},
+			{
+				Name:  "event_data",
+				Value: getOperationData(*tokenProperties.EventData),
 			},
 		},
 	}

@@ -3,6 +3,7 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 )
 
 // OutgoingOperationsFormatter collects relevant outgoing events for bridge from the logs and creates outgoing data
@@ -20,6 +21,7 @@ type DataCodecHandler interface {
 	SerializeTokenData(tokenData sovereign.EsdtTokenData) ([]byte, error)
 	DeserializeTokenData(data []byte) (*sovereign.EsdtTokenData, error)
 	SerializeOperation(operation sovereign.Operation) ([]byte, error)
+	SerializeTokenProperties(properties dto.TokenProperties) ([]byte, error)
 	IsInterfaceNil() bool
 }
 

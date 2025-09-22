@@ -21,7 +21,7 @@ import (
 func createEvents() []SubscribedEvent {
 	return []SubscribedEvent{
 		{
-			Identifier: []byte("id"),
+			Identifier: []byte("deposit"),
 			Addresses: map[string]string{
 				"decodedAddr": "encodedAddr",
 			},
@@ -49,6 +49,21 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 		require.Equal(t, errNoSubscribedEvent, err)
 	})
 
+	t.Run("invalid subscribed event, should return error", func(t *testing.T) {
+		args := createArgs()
+		args.SubscribedEvents = []SubscribedEvent{
+			{
+				Identifier: []byte("invalid"),
+				Addresses: map[string]string{
+					"decodedAddr": "encodedAddr",
+				},
+			},
+		}
+		creator, err := NewOutgoingOperationsFormatter(args)
+		require.Nil(t, creator)
+		require.ErrorIs(t, err, errUnsupportedEventType)
+	})
+
 	t.Run("nil data codec, should return error", func(t *testing.T) {
 		args := createArgs()
 		args.DataCodec = nil
@@ -65,11 +80,29 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 		require.Equal(t, errors.ErrNilTopicsChecker, err)
 	})
 
-	t.Run("should work", func(t *testing.T) {
+	t.Run("should work with deposit tokens formatter", func(t *testing.T) {
 		args := createArgs()
 		creator, err := NewOutgoingOperationsFormatter(args)
 		require.Nil(t, err)
 		require.False(t, creator.IsInterfaceNil())
+		require.Len(t, creator.opFormatters, 1)
+		require.Contains(t, creator.opFormatters, topicIDDeposit)
+	})
+
+	t.Run("should work with deposit tokens and register token formatters", func(t *testing.T) {
+		args := createArgs()
+		args.SubscribedEvents = append(args.SubscribedEvents, SubscribedEvent{
+			Identifier: []byte("registerToken"),
+			Addresses: map[string]string{
+				"decodedAddr": "encodedAddr",
+			},
+		})
+		creator, err := NewOutgoingOperationsFormatter(args)
+		require.Nil(t, err)
+		require.False(t, creator.IsInterfaceNil())
+		require.Len(t, creator.opFormatters, 2)
+		require.Contains(t, creator.opFormatters, topicIDDeposit)
+		require.Contains(t, creator.opFormatters, topicIDRegisterToken)
 	})
 }
 
@@ -251,7 +284,6 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	addr1 := []byte("addr1")
 	addr2 := []byte("addr2")
-	addr3 := []byte("addr3")
 
 	identifier1 := []byte("deposit")
 	identifier2 := []byte("send")
@@ -309,12 +341,6 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 			Addresses: map[string]string{
 				string(addr1): string(addr1),
 				string(addr2): string(addr2),
-			},
-		},
-		{
-			Identifier: identifier2,
-			Addresses: map[string]string{
-				string(addr3): string(addr3),
 			},
 		},
 	}

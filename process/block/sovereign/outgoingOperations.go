@@ -16,7 +16,12 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 )
 
-const topicIDDeposit = "deposit"
+type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
+
+const (
+	topicIDDeposit       = "deposit"
+	topicIDRegisterToken = "registerToken"
+)
 
 var log = logger.GetOrCreate("outgoing-operations")
 
@@ -48,7 +53,7 @@ type outgoingOperations struct {
 
 // NewOutgoingOperationsFormatter creates an outgoing operations formatter
 func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOperations, error) {
-	err := checkEvents(args.SubscribedEvents)
+	subscribedEvents, err := checkEvents(args.SubscribedEvents)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +62,9 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		return nil, err
 	}
 
-	depositOutGoingOpFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec)
+	opFormatters, err := createOpFormatterHandlers(subscribedEvents, args)
 	if err != nil {
 		return nil, err
-	}
-	opFormatters := map[string]OperationFormatter{
-		topicIDDeposit: depositOutGoingOpFormatter,
 	}
 
 	return &outgoingOperations{
@@ -88,26 +90,30 @@ func checkNilArgs(args ArgsOutgoingOperations) error {
 	return nil
 }
 
-func checkEvents(events []SubscribedEvent) error {
+func checkEvents(events []SubscribedEvent) (map[string]struct{}, error) {
 	if len(events) == 0 {
-		return errNoSubscribedEvent
+		return nil, errNoSubscribedEvent
 	}
+
+	subscribedEvents := make(map[string]struct{})
 
 	log.Debug("sovereign outgoing operations creator: received config", "num subscribed events", len(events))
 	for idx, event := range events {
 		if len(event.Identifier) == 0 {
-			return fmt.Errorf("%w at event index = %d", errNoSubscribedIdentifier, idx)
+			return nil, fmt.Errorf("%w at event index = %d", errNoSubscribedIdentifier, idx)
 		}
 
 		log.Debug("sovereign outgoing operations creator", "subscribed event identifier", string(event.Identifier))
 
 		err := checkEmptyAddresses(event.Addresses)
 		if err != nil {
-			return fmt.Errorf("%w at event index = %d", err, idx)
+			return nil, fmt.Errorf("%w at event index = %d", err, idx)
 		}
+
+		subscribedEvents[string(event.Identifier)] = struct{}{}
 	}
 
-	return nil
+	return subscribedEvents, nil
 }
 
 func checkEmptyAddresses(addresses map[string]string) error {
@@ -123,6 +129,60 @@ func checkEmptyAddresses(addresses map[string]string) error {
 		log.Debug("sovereign outgoing operations creator", "subscribed address", encodedAddr)
 	}
 
+	return nil
+}
+
+func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]OperationFormatter, error) {
+	handlers := make(map[string]OperationFormatter)
+
+	availableHandlers := map[string]createOpFormatterHandler{
+		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewDepositOpFormatter(args.DataCodec)
+		},
+		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+		},
+	}
+
+	for handlerID, handlerCreator := range availableHandlers {
+		err := addHandlerIfSubscribed(
+			handlerID,
+			subscribedEvents,
+			handlers,
+			handlerCreator,
+			args,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(subscribedEvents) != 0 {
+		return nil, fmt.Errorf("%w, event ids: %v", errUnsupportedEventType, subscribedEvents)
+	}
+
+	return handlers, nil
+}
+
+func addHandlerIfSubscribed(
+	id string,
+	subscribedEvents map[string]struct{},
+	allHandlers map[string]OperationFormatter,
+	createOpFormatterHandlerFunc createOpFormatterHandler,
+	args ArgsOutgoingOperations,
+) error {
+	_, found := subscribedEvents[id]
+	if !found {
+		return nil
+	}
+
+	opHandler, err := createOpFormatterHandlerFunc(args)
+	if err != nil {
+		return err
+	}
+
+	allHandlers[id] = opHandler
+	delete(subscribedEvents, id)
 	return nil
 }
 
