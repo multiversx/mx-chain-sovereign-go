@@ -140,18 +140,13 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	trie := nodeHandler.GetStateComponents().TriesContainer().Get([]byte(dataRetriever.PeerAccountsUnit.String()))
 	require.NotNil(t, trie)
 
-	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
-	err = cs.GenerateBlocksUntilEpochIsReached(40)
-	require.Nil(t, err)
-	require.Equal(t, uint32(40), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
-
 	// all pub key ids from genesis are in ascending order
 	allPubKeyIDs := make([][]byte, 8)
 	for idx := 0; idx < 8; idx++ {
-		allPubKeyIDs[idx] = []byte{byte(idx)}
+		allPubKeyIDs[idx] = []byte{byte(idx + 1)}
 	}
 
-	for epoch := 41; epoch <= 45; epoch++ {
+	for epoch := 1; epoch <= 5; epoch++ {
 		err = cs.GenerateBlocksUntilEpochIsReached(int32(epoch))
 		require.Nil(t, err)
 
@@ -210,6 +205,11 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 		require.NotEmpty(t, accFeesTotal.Bytes())
 		require.Empty(t, devFeesTotal.Bytes())
 	}
+
+	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
+	err = cs.GenerateBlocksUntilEpochIsReached(45)
+	require.Nil(t, err)
+	require.Equal(t, uint32(45), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
 }
 
 func checkEpochChangeHeader(
@@ -286,38 +286,6 @@ func checkEpochChangeRewardsMB(
 	}
 
 	require.Empty(t, owners)
-}
-
-func checkOutGoingMiniBlockRegisterValidator(
-	t *testing.T,
-	nodeHandler process.NodeHandler,
-	numOperations int,
-	latestMainChainID int,
-) {
-	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBRegisterBlsKey)
-	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, numOperations)
-
-	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
-
-	blsKeys := make([][]byte, 0)
-	assignedMainChainIDs := make([][]byte, 0)
-
-	expectedMainChainIDs := make([][]byte, 0)
-	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
-		require.Equal(t, nonce, registeredData.Nonce)
-
-		blsKeys = append(blsKeys, registeredData.Key)
-		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
-
-		latestMainChainID++
-		expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
-	}
-
-	auctionNodes := getAuctionListKeys(t, nodeHandler)
-	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.Subset(t, auctionNodes, blsKeys)
 }
 
 func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {

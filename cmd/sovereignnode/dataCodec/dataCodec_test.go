@@ -359,7 +359,7 @@ func TestDataCodec_SerializeTokenProperties(t *testing.T) {
 			},
 			{
 				Name:  "num_decimals",
-				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+				Value: &abi.U32Value{Value: tokenProperties.NumDecimals},
 			},
 			{
 				Name:  "event_data",
