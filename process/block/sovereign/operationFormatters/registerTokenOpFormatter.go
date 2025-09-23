@@ -38,7 +38,12 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFo
 }
 
 // CreateOperationData will create register token operation data
-func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
+func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
+	if err != nil {
+		return nil, err
+	}
+
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err
@@ -50,7 +55,7 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler,
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {
 	numTopics := len(topics)
 	if numTopics != numExpectedTopicsInRegisterToken {
-		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterTopic, numExpectedTopicsInRegisterToken, numTopics)
+		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterToken, numExpectedTopicsInRegisterToken, numTopics)
 	}
 
 	tokenType, err := common.ByteSliceToUint64(topics[topicIdxTokenType])

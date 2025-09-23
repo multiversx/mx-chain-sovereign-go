@@ -14,3 +14,10 @@ type TokenProperties struct {
 	NumDecimals     uint64
 	EventData       *sovereign.EventData
 }
+
+// RegisteredBlsKey defines operation data for a newly registered validator in sovereign
+type RegisteredBlsKey struct {
+	ID    []byte
+	Key   []byte
+	Owner []byte
+}

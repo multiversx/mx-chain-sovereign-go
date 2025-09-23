@@ -43,6 +43,11 @@ func (dc *dataCodec) SerializeTokenProperties(_ dto.TokenProperties) ([]byte, er
 	return make([]byte, 0), nil
 }
 
+// SerializeNewlyRegisteredKey returns nothing
+func (dc *dataCodec) SerializeNewlyRegisteredKey(_ dto.RegisteredBlsKey) ([]byte, error) {
+	return make([]byte, 0), nil
+}
+
 // IsInterfaceNil - returns true if there is no value under the interface
 func (dc *dataCodec) IsInterfaceNil() bool {
 	return dc == nil

@@ -12,7 +12,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -99,7 +102,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 					},
 				}
 
-				newCfg.AndromedaEnableEpoch = 2
+				newCfg.AndromedaEnableEpoch = 1
 				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
@@ -161,6 +164,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, devFeesInEpoch.Bytes())
 
 	staking.StakeNodes(t, cs, nodeHandler, 10)
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler)
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
 
@@ -176,9 +180,10 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.NotEmpty(t, accFeesInEpoch)
 	require.NotEmpty(t, devFeesInEpoch)
 
-	// we currently do not have any implemented mechanism to assign a new ID for a newly staked pub key,
-	// so the new value is empty. Assignment should come in a future implementation and this test should fail.
-	allPubKeyIDs = append(allPubKeyIDs, []byte{})
+	// Add newly assigned IDs from the 10 staked nodes
+	for idx := 8; idx <= 18; idx++ {
+		allPubKeyIDs = append(allPubKeyIDs, []byte{byte(idx)})
+	}
 
 	currentEpoch := nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch()
 	for epoch := currentEpoch + 1; epoch < currentEpoch+6; epoch++ {
@@ -281,6 +286,95 @@ func checkEpochChangeRewardsMB(
 	}
 
 	require.Empty(t, owners)
+}
+
+func checkOutGoingMiniBlockRegisterValidator(
+	t *testing.T,
+	nodeHandler process.NodeHandler,
+) {
+	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
+
+	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
+	require.Nil(t, err)
+
+	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
+	require.Len(t, outGoingMBHdrs, 1)
+
+	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
+	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
+	require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
+
+	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
+
+	blsKeys := make([][]byte, 0)
+	assignedMainChainIDs := make([][]byte, 0)
+
+	latestMainChainID := 8 // 8 nodes from genesis
+	expectedMainChainIDs := make([][]byte, 0)
+	for _, op := range bridgeData.OutGoingOperations {
+		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+		blsKeys = append(blsKeys, registeredData.Key)
+		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+
+		latestMainChainID++
+		expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
+	}
+
+	auctionNodes := getAuctionListKeys(t, nodeHandler)
+	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
+	require.ElementsMatch(t, blsKeys, auctionNodes)
+}
+
+func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
+	id := &abi.BytesValue{}
+	blsKey := &abi.BytesValue{}
+	owner := &abi.BytesValue{}
+
+	abiStruct := &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "id",
+				Value: id,
+			},
+			{
+				Name:  "key",
+				Value: blsKey,
+			},
+			{
+				Name:  "owner",
+				Value: owner,
+			},
+		},
+	}
+
+	err := serializer.Deserialize(hex.EncodeToString(data), []any{abiStruct})
+	require.Nil(t, err)
+	require.NotNil(t, blsKey)
+	require.Equal(t, staking.GetBLSKeyOwner(t, nodeHandler, blsKey.Value), owner.Value)
+	require.NotZero(t, id)
+
+	return &dto.RegisteredBlsKey{
+		ID:    id.Value,
+		Key:   blsKey.Value,
+		Owner: owner.Value,
+	}
+}
+
+func getAuctionListKeys(t *testing.T, nodeHandler process.NodeHandler) [][]byte {
+	auctionList, err := nodeHandler.GetFacadeHandler().AuctionListApi()
+	require.Nil(t, err)
+
+	blsKeys := make([][]byte, 0)
+	for _, auctionData := range auctionList {
+		for _, node := range auctionData.Nodes {
+			blsKey, err := hex.DecodeString(node.BlsKey)
+			require.Nil(t, err)
+
+			blsKeys = append(blsKeys, blsKey)
+		}
+	}
+
+	return blsKeys
 }
 
 func checkOutGoingMiniBlockChangeValidatorSet(

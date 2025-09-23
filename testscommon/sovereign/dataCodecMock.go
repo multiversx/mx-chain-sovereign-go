@@ -7,13 +7,14 @@ import (
 
 // DataCodecMock -
 type DataCodecMock struct {
-	SerializeEventDataCalled       func(eventData sovereign.EventData) ([]byte, error)
-	DeserializeEventDataCalled     func(data []byte) (*sovereign.EventData, error)
-	SerializeTokenDataCalled       func(tokenData sovereign.EsdtTokenData) ([]byte, error)
-	DeserializeTokenDataCalled     func(data []byte) (*sovereign.EsdtTokenData, error)
-	GetTokenDataBytesCalled        func(tokenNonce []byte, tokenData []byte) ([]byte, error)
-	SerializeOperationCalled       func(operation sovereign.Operation) ([]byte, error)
-	SerializeTokenPropertiesCalled func(properties dto.TokenProperties) ([]byte, error)
+	SerializeEventDataCalled          func(eventData sovereign.EventData) ([]byte, error)
+	DeserializeEventDataCalled        func(data []byte) (*sovereign.EventData, error)
+	SerializeTokenDataCalled          func(tokenData sovereign.EsdtTokenData) ([]byte, error)
+	DeserializeTokenDataCalled        func(data []byte) (*sovereign.EsdtTokenData, error)
+	GetTokenDataBytesCalled           func(tokenNonce []byte, tokenData []byte) ([]byte, error)
+	SerializeOperationCalled          func(operation sovereign.Operation) ([]byte, error)
+	SerializeTokenPropertiesCalled    func(properties dto.TokenProperties) ([]byte, error)
+	SerializeNewlyRegisteredKeyCalled func(keyData dto.RegisteredBlsKey) ([]byte, error)
 }
 
 // SerializeEventData -
@@ -76,6 +77,14 @@ func (dcm *DataCodecMock) SerializeTokenProperties(properties dto.TokenPropertie
 		return dcm.SerializeTokenPropertiesCalled(properties)
 	}
 
+	return make([]byte, 0), nil
+}
+
+// SerializeNewlyRegisteredKey  -
+func (dcm *DataCodecMock) SerializeNewlyRegisteredKey(keyData dto.RegisteredBlsKey) ([]byte, error) {
+	if dcm.SerializeNewlyRegisteredKeyCalled != nil {
+		return dcm.SerializeNewlyRegisteredKeyCalled(keyData)
+	}
 	return make([]byte, 0), nil
 }
 

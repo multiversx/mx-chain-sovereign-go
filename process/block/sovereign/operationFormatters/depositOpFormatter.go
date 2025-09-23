@@ -15,22 +15,32 @@ const (
 )
 
 type depositOpFormatter struct {
-	dataCodec DataCodecHandler
+	dataCodec     DataCodecHandler
+	topicsChecker TopicsCheckerHandler
 }
 
 // NewDepositOpFormatter creates a new deposit token operation formatter
-func NewDepositOpFormatter(dataCodec DataCodecHandler) (*depositOpFormatter, error) {
+func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*depositOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(topicsChecker) {
+		return nil, errMx.ErrNilTopicsChecker
+	}
 
 	return &depositOpFormatter{
-		dataCodec: dataCodec,
+		dataCodec:     dataCodec,
+		topicsChecker: topicsChecker,
 	}, nil
 }
 
 // CreateOperationData creates a deposit token operation data bytes
-func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evData *sovData.EventData) ([]byte, error) {
+func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+	evData, err := op.checkAndGetEventData(event)
+	if err != nil {
+		return nil, err
+	}
+
 	operation, err := op.createOperationData(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err
@@ -42,6 +52,21 @@ func (op *depositOpFormatter) CreateOperationData(event data.EventHandler, evDat
 	}
 
 	return operationBytes, nil
+}
+
+func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*sovData.EventData, error) {
+	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
+	if err != nil {
+		return nil, err
+	}
+
+	topics := event.GetTopics()
+	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
+	if err != nil {
+		return nil, err
+	}
+
+	return evData, nil
 }
 
 func (op *depositOpFormatter) createOperationData(topics [][]byte, eventData *sovData.EventData) (*sovData.Operation, error) {

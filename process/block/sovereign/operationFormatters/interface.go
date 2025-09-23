@@ -10,5 +10,13 @@ type DataCodecHandler interface {
 	DeserializeTokenData(data []byte) (*sovereign.EsdtTokenData, error)
 	SerializeOperation(operation sovereign.Operation) ([]byte, error)
 	SerializeTokenProperties(properties dto.TokenProperties) ([]byte, error)
+	SerializeNewlyRegisteredKey(keyData dto.RegisteredBlsKey) ([]byte, error)
+	DeserializeEventData(data []byte) (*sovereign.EventData, error)
+	IsInterfaceNil() bool
+}
+
+// TopicsCheckerHandler should be able to check the topics validity
+type TopicsCheckerHandler interface {
+	CheckValidity(topics [][]byte, transferData *sovereign.TransferData) error
 	IsInterfaceNil() bool
 }

@@ -541,6 +541,37 @@ func getTokenPropertiesStruct(tokenProperties dto.TokenProperties) *abi.StructVa
 	}
 }
 
+// SerializeNewlyRegisteredKey will serialize the given newly registered validator key
+func (dc *dataCodec) SerializeNewlyRegisteredKey(keyData dto.RegisteredBlsKey) ([]byte, error) {
+	registeredKeyData := getRegisteredKeyData(keyData)
+
+	encodedOp, err := dc.serializer.Serialize([]any{registeredKeyData})
+	if err != nil {
+		return nil, err
+	}
+
+	return hex.DecodeString(encodedOp)
+}
+
+func getRegisteredKeyData(keyData dto.RegisteredBlsKey) *abi.StructValue {
+	return &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "id",
+				Value: &abi.BytesValue{Value: keyData.ID},
+			},
+			{
+				Name:  "key",
+				Value: &abi.BytesValue{Value: keyData.Key},
+			},
+			{
+				Name:  "owner",
+				Value: &abi.BytesValue{Value: keyData.Owner},
+			},
+		},
+	}
+}
+
 // IsInterfaceNil checks if the underlying pointer is nil
 func (dc *dataCodec) IsInterfaceNil() bool {
 	return dc == nil

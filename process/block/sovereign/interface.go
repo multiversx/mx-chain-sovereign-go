@@ -22,6 +22,7 @@ type DataCodecHandler interface {
 	DeserializeTokenData(data []byte) (*sovereign.EsdtTokenData, error)
 	SerializeOperation(operation sovereign.Operation) ([]byte, error)
 	SerializeTokenProperties(properties dto.TokenProperties) ([]byte, error)
+	SerializeNewlyRegisteredKey(keyData dto.RegisteredBlsKey) ([]byte, error)
 	IsInterfaceNil() bool
 }
 
@@ -33,6 +34,6 @@ type TopicsCheckerHandler interface {
 
 // OperationFormatter defines an operation formatter(like deposit tokens)
 type OperationFormatter interface {
-	CreateOperationData(event data.EventHandler, evData *sovereign.EventData) ([]byte, error)
+	CreateOperationData(event data.EventHandler) ([]byte, error)
 	IsInterfaceNil() bool
 }

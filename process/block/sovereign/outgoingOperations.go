@@ -7,11 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/state"
 )
@@ -19,8 +19,9 @@ import (
 type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, error)
 
 const (
-	topicIDDeposit       = "deposit"
-	topicIDRegisterToken = "registerToken"
+	topicIDDeposit        = "deposit"
+	topicIDRegisterToken  = "registerToken"
+	topicIDRegisterBlsKey = "registerBlsKey"
 )
 
 var log = logger.GetOrCreate("outgoing-operations")
@@ -137,10 +138,13 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
-			return operationFormatters.NewDepositOpFormatter(args.DataCodec)
+			return operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
 			return operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+		},
+		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, error) {
+			return operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
 		},
 	}
 
@@ -259,24 +263,13 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 }
 
 func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, error) {
-	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
-	if err != nil {
-		return nil, err
-	}
-
-	topics := event.GetTopics()
-	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)
-	if err != nil {
-		return nil, err
-	}
-
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
 		return nil, errEventIDNotFound
 	}
 
-	return opFormatter.CreateOperationData(event, evData)
+	return opFormatter.CreateOperationData(event)
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change
@@ -284,7 +277,7 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 	validatorsID := make([][]byte, len(pubKeys))
 
 	for idx, pubKey := range pubKeys {
-		peerAcc, err := op.getPeerAccount([]byte(pubKey))
+		peerAcc, err := process.GetPeerAccount([]byte(pubKey), op.peerAccountsDB)
 		if err != nil {
 			return nil, err
 		}
@@ -296,20 +289,6 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
-}
-
-func (op *outgoingOperations) getPeerAccount(key []byte) (state.PeerAccountHandler, error) {
-	account, err := op.peerAccountsDB.LoadAccount(key)
-	if err != nil {
-		return nil, err
-	}
-
-	peerAcc, ok := account.(state.PeerAccountHandler)
-	if !ok {
-		return nil, epochStart.ErrWrongTypeAssertion
-	}
-
-	return peerAcc, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

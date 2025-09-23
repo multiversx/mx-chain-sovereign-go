@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
@@ -317,6 +318,7 @@ func (stp *stakingToPeer) updatePeerState(
 	}
 
 	if isNew {
+		account.SetMainChainID(runType.UIntToBytes(stakingData.MainChainID))
 		log.Debug("new node", "blsKey", blsPubKey)
 	}
 
