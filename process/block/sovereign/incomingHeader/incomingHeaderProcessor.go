@@ -103,7 +103,19 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	if err != nil {
 		return nil, err
 	}
-	err = eventsProc.RegisterProcessor(dto.EventIDChangeValidatorSet, confirmExecutedOperationProc)
+	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedChangeValidatorSet, confirmExecutedOperationProc)
+	if err != nil {
+		return nil, err
+	}
+	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedChangeRegisterToken, executedOpProc)
+	if err != nil {
+		return nil, err
+	}
+	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedRegisterBlsKey, confirmExecutedOperationProc)
+	if err != nil {
+		return nil, err
+	}
+	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedUnregisterBlsKey, confirmExecutedOperationProc)
 	if err != nil {
 		return nil, err
 	}

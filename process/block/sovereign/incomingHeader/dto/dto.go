@@ -25,14 +25,23 @@ const (
 	// EventIDDepositIncomingTransfer identifies an event related to an incoming token deposit.
 	EventIDDepositIncomingTransfer = "deposit"
 
-	// EventIDChangeValidatorSet identifies an event related to validator set changes.
-	EventIDChangeValidatorSet = "changeValidatorSet"
+	// EventIDConfirmedChangeValidatorSet identifies an event related to confirmed validator set changes.
+	EventIDConfirmedChangeValidatorSet = "changeValidatorSet"
 
 	// TopicIDConfirmedOutGoingOperation is used as a topic identifier for confirmed outgoing bridge operations.
 	TopicIDConfirmedOutGoingOperation = "executedBridgeOp"
 
 	// TopicIDDepositIncomingTransfer is used as a topic identifier for incoming token deposit events.
 	TopicIDDepositIncomingTransfer = "deposit"
+
+	// EventIDConfirmedChangeRegisterToken identifies an event related to confirmed register token
+	EventIDConfirmedChangeRegisterToken = "registerToken"
+
+	// EventIDConfirmedRegisterBlsKey identifies an event related to confirmed register bls key
+	EventIDConfirmedRegisterBlsKey = "registerBlsKey"
+
+	// EventIDConfirmedUnregisterBlsKey identifies an event related to confirmed unregister bls key
+	EventIDConfirmedUnregisterBlsKey = "unRegisterBlsKey"
 
 	// TopicIDSCCall is used as a topic identifier for incoming sc call events.
 	TopicIDSCCall = "scCall"
