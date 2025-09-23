@@ -168,7 +168,7 @@ func deposit(
 	for _, token := range tokens {
 		depositArgs = depositArgs +
 			"@" + hex.EncodeToString([]byte(token.Identifier)) +
-			"@" + getTokenNonce(token.Nonce) +
+			"@" + hex.EncodeToString(big.NewInt(int64(token.Nonce)).Bytes()) +
 			"@" + hex.EncodeToString(token.Amount.Bytes())
 	}
 
@@ -311,18 +311,6 @@ func getTokenIdentifier(token chainSim.ArgsDepositToken) string {
 		return token.Identifier
 	}
 	return token.Identifier + "-" + fmt.Sprintf("%02x", token.Nonce)
-}
-
-func getTokenNonce(nonce uint64) string {
-	if nonce == 0 {
-		return ""
-	}
-
-	hexStr := fmt.Sprintf("%X", nonce)
-	if len(hexStr)%2 != 0 {
-		hexStr = "0" + hexStr
-	}
-	return hexStr
 }
 
 func getUint64Bytes(number uint64) string {
