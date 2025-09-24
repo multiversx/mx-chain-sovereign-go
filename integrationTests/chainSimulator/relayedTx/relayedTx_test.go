@@ -628,6 +628,7 @@ func testRelayedV3MultiESDTTransferWithEGLD(
 			cfg.EpochConfig.EnableEpochs.FixRelayedBaseCostEnableEpoch = providedActivationEpoch
 			cfg.EpochConfig.EnableEpochs.RelayedTransactionsV3EnableEpoch = providedActivationEpoch
 			cfg.EpochConfig.EnableEpochs.RelayedTransactionsV3FixESDTTransferEnableEpoch = providedActivationEpoch
+			cfg.GeneralConfig.GeneralSettings.BaseTokenID = egldTicker
 		}
 
 		cs := startChainSimulator(t, alterConfigsFunc)

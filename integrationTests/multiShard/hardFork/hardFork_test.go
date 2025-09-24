@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -513,6 +514,11 @@ func hardForkImport(
 			TxExecutionOrderHandler: &commonMocks.TxExecutionOrderHandlerStub{},
 			RunTypeComponents:       componentsMock.GetRunTypeComponents(),
 			EnableEpochsFactory:     enablers.NewEnableEpochsFactory(),
+			Config: config.Config{
+				GeneralSettings: config.GeneralSettingsConfig{
+					BaseTokenID: vmcommon.EGLDIdentifier,
+				},
+			},
 		}
 
 		genesisProcessor, err := process.NewGenesisBlockCreator(argsGenesis)
