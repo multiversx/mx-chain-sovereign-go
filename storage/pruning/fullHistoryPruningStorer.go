@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 )
@@ -178,7 +179,8 @@ func (fhps *FullHistoryPruningStorer) getOrOpenPersister(epoch uint32) (storage.
 
 	pdata, exists = fhps.getPersisterData(epochString, epoch)
 	if !exists {
-		newPdata, errPersisterData := createPersisterDataForEpoch(fhps.args, epoch, fhps.shardId)
+		filePath := createPersisterPathForEpoch(fhps.args, epoch, fhps.shardId)
+		newPdata, errPersisterData := createPersisterDataForEpoch(fhps.args.PersisterFactory, filePath, epoch)
 		if errPersisterData != nil {
 			return nil, errPersisterData
 		}
