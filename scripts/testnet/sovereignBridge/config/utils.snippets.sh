@@ -93,3 +93,25 @@ generateChainId() {
         echo $1
     fi
 }
+
+waitUntilStartTime() {
+    local START_TIME=$1
+    local DELAY_IN_SECONDS=5
+
+    if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
+        local target=$((START_TIME + DELAY_IN_SECONDS * 1000))
+        local now=$(date +%s%3N)
+        local wait_ms=$((target - now))
+        if [ "$wait_ms" -gt 0 ]; then
+            sleep $(awk "BEGIN {print $wait_ms/1000}")
+        fi
+    else
+        local target=$((START_TIME + DELAY_IN_SECONDS))
+        local now=$(date +%s)
+        local wait_s=$((target - now))
+        if [ "$wait_s" -gt 0 ]; then
+            sleep "$wait_s"
+        fi
+    fi
+}
+
