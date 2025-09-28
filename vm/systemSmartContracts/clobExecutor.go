@@ -1,12 +1,12 @@
 package systemSmartContracts
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts/clob"
 	storageCommon "github.com/multiversx/mx-chain-storage-go/common"
-	vmcommon "github.comcom/multiversx/mx-chain-vm-common-go"
-	"github.com/nikolaydubina/fpdecimal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const clobStorageKey = "clob"
@@ -49,17 +49,17 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 		orderID := string(input.Arguments[0])
 		side := clob.Side(input.Arguments[1][0])
 		orderType := clob.OrderType(input.Arguments[2])
-		quantity, err := fpdecimal.NewFromString(string(input.Arguments[3]))
+		quantity, err := clob.NewDecimal(string(input.Arguments[3]))
 		if err != nil {
 			returnErr = fmt.Errorf("invalid quantity: %w", err)
 			break
 		}
-		price, err := fpdecimal.NewFromString(string(input.Arguments[4]))
+		price, err := clob.NewDecimal(string(input.Arguments[4]))
 		if err != nil {
 			returnErr = fmt.Errorf("invalid price: %w", err)
 			break
 		}
-		stop, err := fpdecimal.NewFromString(string(input.Arguments[5]))
+		stop, err := clob.NewDecimal(string(input.Arguments[5]))
 		if err != nil {
 			returnErr = fmt.Errorf("invalid stop price: %w", err)
 			break
@@ -70,9 +70,14 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 		ret, err := sc.ProcessOrder(orderID, side, orderType, quantity, price, stop, tif, oco)
 		if err != nil {
 			returnErr = err
-		} else {
-			returnData = append(returnData, ret)
+			break
 		}
+		retBytes, err := json.Marshal(ret)
+		if err != nil {
+			returnErr = err
+			break
+		}
+		returnData = append(returnData, retBytes)
 
 	case clob.CancelOrderEndpoint:
 		if len(input.Arguments) < 1 {
@@ -83,9 +88,14 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 		ret, err := sc.CancelOrder(orderID)
 		if err != nil {
 			returnErr = err
-		} else {
-			returnData = append(returnData, ret)
+			break
 		}
+		retBytes, err := json.Marshal(ret)
+		if err != nil {
+			returnErr = err
+			break
+		}
+		returnData = append(returnData, retBytes)
 
 	case clob.GetOrderEndpoint:
 		if len(input.Arguments) < 1 {
@@ -96,17 +106,27 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 		ret, err := sc.GetOrder(orderID)
 		if err != nil {
 			returnErr = err
-		} else {
-			returnData = append(returnData, ret)
+			break
 		}
+		retBytes, err := json.Marshal(ret)
+		if err != nil {
+			returnErr = err
+			break
+		}
+		returnData = append(returnData, retBytes)
 
 	case clob.GetDepthEndpoint:
 		ret, err := sc.GetDepth()
 		if err != nil {
 			returnErr = err
-		} else {
-			returnData = append(returnData, ret)
+			break
 		}
+		retBytes, err := json.Marshal(ret)
+		if err != nil {
+			returnErr = err
+			break
+		}
+		returnData = append(returnData, retBytes)
 
 	default:
 		returnErr = fmt.Errorf("invalid function name: %s", funcName)
@@ -114,7 +134,7 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 
 	if returnErr != nil {
 		return &vmcommon.VMOutput{
-			ReturnCode: vmcommon.InternalError,
+			ReturnCode:    vmcommon.InternalError,
 			ReturnMessage: []byte(returnErr.Error()),
 		}, nil
 	}
@@ -131,7 +151,6 @@ func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcom
 			return nil, fmt.Errorf("could not save key-value: %w", err)
 		}
 	}
-
 
 	return &vmcommon.VMOutput{
 		ReturnData: returnData,
@@ -155,13 +174,17 @@ func (ce *clobExecutor) matchOrders(storage vmcommon.AccountDataHandler) error {
 		return fmt.Errorf("could not load clob state: %w", err)
 	}
 
-    // The current implementation matches orders upon insertion. A dedicated `matchOrders` function
-    // could be used for end-of-block processing. The main utility would be activating stop orders
-    // that might have been triggered by price movements within the block.
-    // However, the current `OrderBook` logic triggers stop order activation when a trade occurs at a certain price.
-    // A standalone matching function would require a more sophisticated implementation that
-    // takes a price feed.
-    // For now, this function is a placeholder.
+	// The current implementation matches orders upon insertion. A dedicated `matchOrders` function
+	// could be used for end-of-block processing. The main utility would be activating stop orders
+	// that might have been triggered by price movements within the block.
+	// However, the current `OrderBook` logic triggers stop order activation when a trade occurs at a certain price.
+	// A standalone matching function would require a more sophisticated implementation that
+	// takes a price feed.
+	// For now, this function is a placeholder.
+	_, err = clobInstance.MatchOrders()
+	if err != nil {
+		return fmt.Errorf("could not match orders: %w", err)
+	}
 
 	// Save the state back in case any latent matching logic is added in the future.
 	newState, err := clobInstance.SaveState()

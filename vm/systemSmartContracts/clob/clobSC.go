@@ -1,8 +1,4 @@
-package systemSmartContracts
-
-import (
-	"math/big"
-)
+package clob
 
 // clobSC is the smart contract that handles the CLOB logic.
 type clobSC struct {
@@ -10,9 +6,9 @@ type clobSC struct {
 }
 
 // NewClobSC creates a new instance of the clobSC.
-func NewClobSC() *clobSC {
+func NewClobSC(clob *CLOB) *clobSC {
 	return &clobSC{
-		clob: NewCLOB(),
+		clob: clob,
 	}
 }
 
@@ -21,7 +17,7 @@ func (sc *clobSC) ProcessOrder(
 	orderID string,
 	side Side,
 	orderType OrderType,
-	quantity, price, stop *big.Float,
+	quantity, price, stop Decimal,
 	tif TIF,
 	oco string,
 ) (*Done, error) {

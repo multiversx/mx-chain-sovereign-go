@@ -1,8 +1,7 @@
-package systemSmartContracts
+package clob
 
 import (
 	"encoding/json"
-	"math/big"
 )
 
 // CLOB represents the Central Limit Order Book.
@@ -58,7 +57,7 @@ func (c *CLOB) ProcessOrder(
 	orderID string,
 	side Side,
 	orderType OrderType,
-	quantity, price, stop *big.Float,
+	quantity, price, stop Decimal,
 	tif TIF,
 	oco string,
 ) (*Done, error) {
@@ -105,7 +104,7 @@ func (c *CLOB) GetDepth() *Depth {
 func (c *CLOB) MatchOrders() ([]*Done, error) {
 	var (
 		dones     []*Done
-		lastPrice *big.Float
+		lastPrice Decimal
 	)
 
 	// In a real implementation, we would get the last trade price from a persistent store.
@@ -114,18 +113,18 @@ func (c *CLOB) MatchOrders() ([]*Done, error) {
 		lastPrice = c.OrderBook.Bids.Best().GetPrice()
 	}
 
-	if lastPrice == nil {
+	if lastPrice.IsZero() {
 		return dones, nil
 	}
 
 	c.OrderBook.Stop.Iterate(func(order *Order) {
-		if order.GetSide() == SideBuy && order.GetStop().Cmp(lastPrice) <= 0 {
+		if order.GetSide() == SideBuy && order.GetStop().LTE(lastPrice) {
 			done, err := c.OrderBook.Process(order)
 			if err == nil {
 				dones = append(dones, done)
 			}
 		}
-		if order.GetSide() == SideSell && order.GetStop().Cmp(lastPrice) >= 0 {
+		if order.GetSide() == SideSell && order.GetStop().GTE(lastPrice) {
 			done, err := c.OrderBook.Process(order)
 			if err == nil {
 				dones = append(dones, done)
