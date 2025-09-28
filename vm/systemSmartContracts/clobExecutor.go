@@ -2,139 +2,176 @@ package systemSmartContracts
 
 import (
 	"fmt"
-	"github.com/multiversx/mx-chain-go/vm"
+
+	"github.com/multiversx/mx-chain-go/vm/systemSmartContracts/clob"
+	storageCommon "github.com/multiversx/mx-chain-storage-go/common"
+	vmcommon "github.comcom/multiversx/mx-chain-vm-common-go"
 	"github.com/nikolaydubina/fpdecimal"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
-const clobStateKey = "clobState"
+const clobStorageKey = "clob"
 
 type clobExecutor struct {
-	sc  *clobSC
-	eei vm.SystemEI
 }
 
-// NewClobExecutor creates a new instance of the clobExecutor.
-func NewClobExecutor(eei vm.SystemEI) (*clobExecutor, error) {
-	if eei == nil || eei.IsInterfaceNil() {
-		return nil, vm.ErrNilSystemEnvironmentInterface
+func NewClobExecutor() *clobExecutor {
+	return &clobExecutor{}
+}
+
+// Execute will have the core dispatch logic. It will parse the function name from input.Function,
+// instantiate the clobSC with the provided storage handler, call the appropriate endpoint on clobSC
+// based on the function name and construct and return a vmcommon.VMOutput with the results and a vmcommon.Ok return code.
+func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput, storage vmcommon.AccountDataHandler) (*vmcommon.VMOutput, error) {
+	funcName := string(input.Function)
+
+	// Load CLOB from storage
+	clobInstance := clob.NewCLOB()
+	data, _, err := storage.RetrieveValue([]byte(clobStorageKey))
+	if err != nil && err != storageCommon.ErrKeyNotFound {
+		return nil, err
 	}
-	return &clobExecutor{
-		sc:  NewClobSC(),
-		eei: eei,
+	// if err is nil or ErrKeyNotFound, proceed. data will be nil if not found.
+	err = clobInstance.LoadState(data)
+	if err != nil {
+		return nil, fmt.Errorf("could not load clob state: %w", err)
+	}
+
+	sc := clob.NewClobSC(clobInstance)
+	var returnData [][]byte
+	var returnErr error
+
+	switch funcName {
+	case clob.ProcessOrderEndpoint:
+		if len(input.Arguments) < 8 {
+			returnErr = fmt.Errorf("invalid number of arguments for %s", funcName)
+			break
+		}
+		orderID := string(input.Arguments[0])
+		side := clob.Side(input.Arguments[1][0])
+		orderType := clob.OrderType(input.Arguments[2])
+		quantity, err := fpdecimal.NewFromString(string(input.Arguments[3]))
+		if err != nil {
+			returnErr = fmt.Errorf("invalid quantity: %w", err)
+			break
+		}
+		price, err := fpdecimal.NewFromString(string(input.Arguments[4]))
+		if err != nil {
+			returnErr = fmt.Errorf("invalid price: %w", err)
+			break
+		}
+		stop, err := fpdecimal.NewFromString(string(input.Arguments[5]))
+		if err != nil {
+			returnErr = fmt.Errorf("invalid stop price: %w", err)
+			break
+		}
+		tif := clob.TIF(input.Arguments[6])
+		oco := string(input.Arguments[7])
+
+		ret, err := sc.ProcessOrder(orderID, side, orderType, quantity, price, stop, tif, oco)
+		if err != nil {
+			returnErr = err
+		} else {
+			returnData = append(returnData, ret)
+		}
+
+	case clob.CancelOrderEndpoint:
+		if len(input.Arguments) < 1 {
+			returnErr = fmt.Errorf("invalid number of arguments for %s", funcName)
+			break
+		}
+		orderID := string(input.Arguments[0])
+		ret, err := sc.CancelOrder(orderID)
+		if err != nil {
+			returnErr = err
+		} else {
+			returnData = append(returnData, ret)
+		}
+
+	case clob.GetOrderEndpoint:
+		if len(input.Arguments) < 1 {
+			returnErr = fmt.Errorf("invalid number of arguments for %s", funcName)
+			break
+		}
+		orderID := string(input.Arguments[0])
+		ret, err := sc.GetOrder(orderID)
+		if err != nil {
+			returnErr = err
+		} else {
+			returnData = append(returnData, ret)
+		}
+
+	case clob.GetDepthEndpoint:
+		ret, err := sc.GetDepth()
+		if err != nil {
+			returnErr = err
+		} else {
+			returnData = append(returnData, ret)
+		}
+
+	default:
+		returnErr = fmt.Errorf("invalid function name: %s", funcName)
+	}
+
+	if returnErr != nil {
+		return &vmcommon.VMOutput{
+			ReturnCode: vmcommon.InternalError,
+			ReturnMessage: []byte(returnErr.Error()),
+		}, nil
+	}
+
+	// Save the new state, only for endpoints that modify it
+	switch funcName {
+	case clob.ProcessOrderEndpoint, clob.CancelOrderEndpoint:
+		newState, err := clobInstance.SaveState()
+		if err != nil {
+			return nil, fmt.Errorf("could not save clob state: %w", err)
+		}
+		err = storage.SaveKeyValue([]byte(clobStorageKey), newState)
+		if err != nil {
+			return nil, fmt.Errorf("could not save key-value: %w", err)
+		}
+	}
+
+
+	return &vmcommon.VMOutput{
+		ReturnData: returnData,
+		ReturnCode: vmcommon.Ok,
 	}, nil
 }
 
-// Execute is the main entry point for the smart contract.
-func (ce *clobExecutor) Execute(input *vmcommon.ContractCallInput) vmcommon.ReturnCode {
-	stateBytes := ce.eei.GetStorage([]byte(clobStateKey))
-	err := ce.sc.LoadState(stateBytes)
+// matchOrders takes no input, but starts to iterate the orders and resolve those.
+func (ce *clobExecutor) matchOrders(storage vmcommon.AccountDataHandler) error {
+	// Load CLOB from storage
+	clobInstance := clob.NewCLOB()
+	data, _, err := storage.RetrieveValue([]byte(clobStorageKey))
 	if err != nil {
-		ce.eei.AddReturnMessage(fmt.Sprintf("cannot load state: %s", err.Error()))
-		return vmcommon.UserError
+		if err == storageCommon.ErrKeyNotFound {
+			return nil // Nothing to match
+		}
+		return err
 	}
-
-	funcName := string(input.Function)
-	args := input.Arguments
-
-	var returnData []byte
-	var retCode = vmcommon.Ok
-	switch funcName {
-	case processOrderEndpoint:
-		returnData, err = ce.processOrder(args)
-	case cancelOrderEndpoint:
-		returnData, err = ce.cancelOrder(args)
-	case getOrderEndpoint:
-		returnData, err = ce.getOrder(args)
-	case getDepthEndpoint:
-		returnData, err = ce.getDepth()
-	case "matchOrders":
-		returnData, err = ce.matchOrders()
-	default:
-		ce.eei.AddReturnMessage(fmt.Sprintf("invalid function name: %s", funcName))
-		return vmcommon.UserError
-	}
-
+	err = clobInstance.LoadState(data)
 	if err != nil {
-		ce.eei.AddReturnMessage(err.Error())
-		return vmcommon.UserError
+		return fmt.Errorf("could not load clob state: %w", err)
 	}
 
-	newState, err := ce.sc.SaveState()
+    // The current implementation matches orders upon insertion. A dedicated `matchOrders` function
+    // could be used for end-of-block processing. The main utility would be activating stop orders
+    // that might have been triggered by price movements within the block.
+    // However, the current `OrderBook` logic triggers stop order activation when a trade occurs at a certain price.
+    // A standalone matching function would require a more sophisticated implementation that
+    // takes a price feed.
+    // For now, this function is a placeholder.
+
+	// Save the state back in case any latent matching logic is added in the future.
+	newState, err := clobInstance.SaveState()
 	if err != nil {
-		ce.eei.AddReturnMessage(fmt.Sprintf("cannot save state: %s", err.Error()))
-		return vmcommon.UserError
+		return fmt.Errorf("could not save clob state: %w", err)
 	}
-	ce.eei.SetStorage([]byte(clobStateKey), newState)
-
-	ce.eei.Finish(returnData)
-	return retCode
-}
-
-func (ce *clobExecutor) processOrder(args [][]byte) ([]byte, error) {
-	if len(args) != 8 {
-		return nil, fmt.Errorf("invalid number of arguments for processOrder, expected 8, got %d", len(args))
-	}
-
-	orderID := string(args[0])
-	side := Side(args[1][0])
-	orderType := OrderType(args[2])
-	quantity, err := fpdecimal.Parse(args[3])
+	err = storage.SaveKeyValue([]byte(clobStorageKey), newState)
 	if err != nil {
-		return nil, fmt.Errorf("invalid quantity: %w", err)
+		return fmt.Errorf("could not save key-value: %w", err)
 	}
-	price, err := fpdecimal.Parse(args[4])
-	if err != nil {
-		return nil, fmt.Errorf("invalid price: %w", err)
-	}
-	stop, err := fpdecimal.Parse(args[5])
-	if err != nil {
-		return nil, fmt.Errorf("invalid stop price: %w", err)
-	}
-	tif := TIF(args[6])
-	oco := string(args[7])
 
-	return ce.sc.ProcessOrder(orderID, side, orderType, quantity, price, stop, tif, oco)
-}
-
-func (ce *clobExecutor) cancelOrder(args [][]byte) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, fmt.Errorf("invalid number of arguments for cancelOrder, expected 1, got %d", len(args))
-	}
-	orderID := string(args[0])
-	return ce.sc.CancelOrder(orderID)
-}
-
-func (ce *clobExecutor) getOrder(args [][]byte) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, fmt.Errorf("invalid number of arguments for getOrder, expected 1, got %d", len(args))
-	}
-	orderID := string(args[0])
-	return ce.sc.GetOrder(orderID)
-}
-
-func (ce *clobExecutor) getDepth() ([]byte, error) {
-	return ce.sc.GetDepth()
-}
-
-func (ce *clobExecutor) matchOrders() ([]byte, error) {
-	ce.sc.clob.OrderBook.Stop.Iterate(func(order *Order) {
-		// Placeholder for stop order processing logic
-	})
-	return []byte("orders matched successfully"), nil
-}
-
-// IsInterfaceNil returns true if there is no value under the interface
-func (ce *clobExecutor) IsInterfaceNil() bool {
-	return ce == nil
-}
-
-// CanUseContract returns true if the contract can be used
-func (ce *clobExecutor) CanUseContract() bool {
-	return true
-}
-
-// SetNewGasCost sets a new gas cost for the system smart contract
-func (ce *clobExecutor) SetNewGasCost(gasCost vm.GasCost) {
-	// not needed for this contract
+	return nil
 }

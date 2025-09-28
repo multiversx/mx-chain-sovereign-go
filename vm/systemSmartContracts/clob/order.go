@@ -1,9 +1,8 @@
 package systemSmartContracts
 
 import (
+	"math/big"
 	"time"
-
-	"github.com/nikolaydubina/fpdecimal"
 )
 
 // OrderType represents the type of an order.
@@ -29,16 +28,16 @@ type Order struct {
 	id        string
 	side      Side
 	orderType OrderType
-	quantity  fpdecimal.Decimal
-	price     fpdecimal.Decimal
-	stop      fpdecimal.Decimal
+	quantity  *big.Float
+	price     *big.Float
+	stop      *big.Float
 	tif       TIF
 	oco       string
 	timestamp int64
 }
 
 // NewMarketOrder creates a new market order.
-func NewMarketOrder(orderID string, side Side, quantity fpdecimal.Decimal) *Order {
+func NewMarketOrder(orderID string, side Side, quantity *big.Float) *Order {
 	return &Order{
 		id:        orderID,
 		side:      side,
@@ -49,7 +48,7 @@ func NewMarketOrder(orderID string, side Side, quantity fpdecimal.Decimal) *Orde
 }
 
 // NewLimitOrder creates a new limit order.
-func NewLimitOrder(orderID string, side Side, quantity, price fpdecimal.Decimal, tif TIF, oco string) *Order {
+func NewLimitOrder(orderID string, side Side, quantity, price *big.Float, tif TIF, oco string) *Order {
 	return &Order{
 		id:        orderID,
 		side:      side,
@@ -63,7 +62,7 @@ func NewLimitOrder(orderID string, side Side, quantity, price fpdecimal.Decimal,
 }
 
 // NewStopLimitOrder creates a new stop-limit order.
-func NewStopLimitOrder(orderID string, side Side, quantity, price, stop fpdecimal.Decimal, oco string) *Order {
+func NewStopLimitOrder(orderID string, side Side, quantity, price, stop *big.Float, oco string) *Order {
 	return &Order{
 		id:        orderID,
 		side:      side,
@@ -92,17 +91,17 @@ func (o *Order) GetType() OrderType {
 }
 
 // GetQuantity returns the order quantity.
-func (o *Order) GetQuantity() fpdecimal.Decimal {
+func (o *Order) GetQuantity() *big.Float {
 	return o.quantity
 }
 
 // GetPrice returns the order price.
-func (o *Order) GetPrice() fpdecimal.Decimal {
+func (o *Order) GetPrice() *big.Float {
 	return o.price
 }
 
 // GetStop returns the order stop price.
-func (o *Order) GetStop() fpdecimal.Decimal {
+func (o *Order) GetStop() *big.Float {
 	return o.stop
 }
 
@@ -128,10 +127,10 @@ func (o *Order) IsStopOrder() bool {
 
 // IsFilled returns true if the order is completely filled.
 func (o *Order) IsFilled() bool {
-	return o.quantity == 0
+	return o.quantity.Cmp(big.NewFloat(0)) == 0
 }
 
 // fill fills the order with the given quantity.
-func (o *Order) fill(quantity fpdecimal.Decimal) {
-	o.quantity = o.quantity.Sub(quantity)
+func (o *Order) fill(quantity *big.Float) {
+	o.quantity.Sub(o.quantity, quantity)
 }

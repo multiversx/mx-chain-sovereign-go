@@ -1,8 +1,7 @@
 package systemSmartContracts
 
 import (
-	"encoding/json"
-	"github.com/nikolaydubina/fpdecimal"
+	"math/big"
 )
 
 // clobSC is the smart contract that handles the CLOB logic.
@@ -22,39 +21,26 @@ func (sc *clobSC) ProcessOrder(
 	orderID string,
 	side Side,
 	orderType OrderType,
-	quantity, price, stop fpdecimal.Decimal,
+	quantity, price, stop *big.Float,
 	tif TIF,
 	oco string,
-) ([]byte, error) {
-	done, err := sc.clob.ProcessOrder(orderID, side, orderType, quantity, price, stop, tif, oco)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(done)
+) (*Done, error) {
+	return sc.clob.ProcessOrder(orderID, side, orderType, quantity, price, stop, tif, oco)
 }
 
 // CancelOrder handles the cancellation of an existing order.
-func (sc *clobSC) CancelOrder(orderID string) ([]byte, error) {
-	order := sc.clob.CancelOrder(orderID)
-	if order == nil {
-		return nil, ErrOrderNotFound
-	}
-	return json.Marshal(order)
+func (sc *clobSC) CancelOrder(orderID string) (*Order, error) {
+	return sc.clob.CancelOrder(orderID)
 }
 
 // GetOrder retrieves an order by its ID.
-func (sc *clobSC) GetOrder(orderID string) ([]byte, error) {
-	order := sc.clob.GetOrder(orderID)
-	if order == nil {
-		return nil, ErrOrderNotFound
-	}
-	return json.Marshal(order)
+func (sc *clobSC) GetOrder(orderID string) (*Order, error) {
+	return sc.clob.GetOrder(orderID)
 }
 
 // GetDepth retrieves the order book depth.
-func (sc *clobSC) GetDepth() ([]byte, error) {
-	depth := sc.clob.GetDepth()
-	return json.Marshal(depth)
+func (sc *clobSC) GetDepth() (*Depth, error) {
+	return sc.clob.GetDepth(), nil
 }
 
 // LoadState loads the contract's state from storage.

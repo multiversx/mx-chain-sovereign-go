@@ -1,9 +1,8 @@
 package systemSmartContracts
 
 import (
+	"math/big"
 	"sort"
-
-	"github.com/nikolaydubina/fpdecimal"
 )
 
 // Side represents the side of an order (buy or sell).
@@ -20,7 +19,7 @@ type OrderSide struct {
 	prices       []string
 	priceLevels  map[string]*OrderQueue
 	numOrders    int
-	totalNotional fpdecimal.Decimal
+	totalNotional *big.Float
 }
 
 // NewOrderSide creates a new instance of the OrderSide.
@@ -29,6 +28,7 @@ func NewOrderSide(side Side) *OrderSide {
 		side:        side,
 		prices:      make([]string, 0),
 		priceLevels: make(map[string]*OrderQueue),
+		totalNotional: big.NewFloat(0),
 	}
 }
 
@@ -56,7 +56,7 @@ func (os *OrderSide) Append(order *Order) {
 	}
 	level.PushBack(order)
 	os.numOrders++
-	os.totalNotional += order.GetQuantity() * order.GetPrice()
+	os.totalNotional.Add(os.totalNotional, big.NewFloat(0).Mul(order.GetQuantity(), order.GetPrice()))
 }
 
 // Remove removes an order from the side.
@@ -70,7 +70,7 @@ func (os *OrderSide) Remove(order *Order) *Order {
 	removed := level.Remove(order)
 	if removed != nil {
 		os.numOrders--
-		os.totalNotional -= removed.GetQuantity() * removed.GetPrice()
+		os.totalNotional.Sub(os.totalNotional, big.NewFloat(0).Mul(removed.GetQuantity(), removed.GetPrice()))
 		if level.Len() == 0 {
 			delete(os.priceLevels, priceStr)
 			os.removePrice(priceStr)
@@ -81,12 +81,12 @@ func (os *OrderSide) Remove(order *Order) *Order {
 
 // Depth returns the depth of the side.
 func (os *OrderSide) Depth() []struct {
-	Price    fpdecimal.Decimal
-	Quantity fpdecimal.Decimal
+	Price    *big.Float
+	Quantity *big.Float
 } {
 	levels := make([]struct {
-		Price    fpdecimal.Decimal
-		Quantity fpdecimal.Decimal
+		Price    *big.Float
+		Quantity *big.Float
 	}, 0, len(os.prices))
 
 	for _, priceStr := range os.prices {
@@ -95,14 +95,14 @@ func (os *OrderSide) Depth() []struct {
 			continue
 		}
 
-		price, _ := fpdecimal.Parse([]byte(priceStr))
-		var quantity fpdecimal.Decimal
+		price, _, _ := big.ParseFloat(priceStr, 10, 0, big.ToNearestEven)
+		quantity := big.NewFloat(0)
 		for i := 0; i < level.Len(); i++ {
-			quantity += level.orders.At(i).GetQuantity()
+			quantity.Add(quantity, level.orders.At(i).GetQuantity())
 		}
 		levels = append(levels, struct {
-			Price    fpdecimal.Decimal
-			Quantity fpdecimal.Decimal
+			Price    *big.Float
+			Quantity *big.Float
 		}{Price: price, Quantity: quantity})
 	}
 	return levels
@@ -111,12 +111,12 @@ func (os *OrderSide) Depth() []struct {
 func (os *OrderSide) addPrice(price string) {
 	os.prices = append(os.prices, price)
 	sort.Slice(os.prices, func(i, j int) bool {
-		a, _ := fpdecimal.Parse([]byte(os.prices[i]))
-		b, _ := fpdecimal.Parse([]byte(os.prices[j]))
+		a, _, _ := big.ParseFloat(os.prices[i], 10, 0, big.ToNearestEven)
+		b, _, _ := big.ParseFloat(os.prices[j], 10, 0, big.ToNearestEven)
 		if os.side == SideBuy {
-			return a > b
+			return a.Cmp(b) > 0
 		}
-		return a < b
+		return a.Cmp(b) < 0
 	})
 }
 

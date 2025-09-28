@@ -2,8 +2,7 @@ package systemSmartContracts
 
 import (
 	"encoding/json"
-
-	"github.com/nikolaydubina/fpdecimal"
+	"math/big"
 )
 
 // CLOB represents the Central Limit Order Book.
@@ -35,7 +34,7 @@ func (c *CLOB) LoadState(data []byte) error {
 	for _, order := range orders {
 		if order.IsStopOrder() {
 			orderBook.Stop.Append(order)
-			orderBook.orders[order.GetID()] = order
+			orderBook.Orders[order.GetID()] = order
 		} else {
 			orderBook.appendLimitOrder(order)
 		}
@@ -47,8 +46,8 @@ func (c *CLOB) LoadState(data []byte) error {
 
 // SaveState saves the order book state to a byte array.
 func (c *CLOB) SaveState() ([]byte, error) {
-	orders := make([]*Order, 0, len(c.OrderBook.orders))
-	for _, order := range c.OrderBook.orders {
+	orders := make([]*Order, 0, len(c.OrderBook.Orders))
+	for _, order := range c.OrderBook.Orders {
 		orders = append(orders, order)
 	}
 	return json.Marshal(orders)
@@ -59,7 +58,7 @@ func (c *CLOB) ProcessOrder(
 	orderID string,
 	side Side,
 	orderType OrderType,
-	quantity, price, stop fpdecimal.Decimal,
+	quantity, price, stop *big.Float,
 	tif TIF,
 	oco string,
 ) (*Done, error) {
@@ -79,16 +78,60 @@ func (c *CLOB) ProcessOrder(
 }
 
 // CancelOrder cancels an existing order.
-func (c *CLOB) CancelOrder(orderID string) *Order {
-	return c.OrderBook.CancelOrder(orderID)
+func (c *CLOB) CancelOrder(orderID string) (*Order, error) {
+	order := c.OrderBook.CancelOrder(orderID)
+	if order == nil {
+		return nil, ErrOrderNotFound
+	}
+	return order, nil
 }
 
 // GetOrder retrieves an order by its ID.
-func (c *CLOB) GetOrder(orderID string) *Order {
-	return c.OrderBook.GetOrder(orderID)
+func (c *CLOB) GetOrder(orderID string) (*Order, error) {
+	order := c.OrderBook.GetOrder(orderID)
+	if order == nil {
+		return nil, ErrOrderNotFound
+	}
+	return order, nil
 }
 
 // GetDepth retrieves the order book depth.
 func (c *CLOB) GetDepth() *Depth {
 	return c.OrderBook.Depth()
+}
+
+// MatchOrders is a placeholder for the matching engine.
+// In a real implementation, this would be triggered by a cron job or some other mechanism.
+func (c *CLOB) MatchOrders() ([]*Done, error) {
+	var (
+		dones     []*Done
+		lastPrice *big.Float
+	)
+
+	// In a real implementation, we would get the last trade price from a persistent store.
+	// For now, we'll just use the best bid price.
+	if c.OrderBook.Bids.Len() > 0 {
+		lastPrice = c.OrderBook.Bids.Best().GetPrice()
+	}
+
+	if lastPrice == nil {
+		return dones, nil
+	}
+
+	c.OrderBook.Stop.Iterate(func(order *Order) {
+		if order.GetSide() == SideBuy && order.GetStop().Cmp(lastPrice) <= 0 {
+			done, err := c.OrderBook.Process(order)
+			if err == nil {
+				dones = append(dones, done)
+			}
+		}
+		if order.GetSide() == SideSell && order.GetStop().Cmp(lastPrice) >= 0 {
+			done, err := c.OrderBook.Process(order)
+			if err == nil {
+				dones = append(dones, done)
+			}
+		}
+	})
+
+	return dones, nil
 }
