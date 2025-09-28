@@ -234,7 +234,7 @@ updateNodeConfig() {
 generateStartTime() {
   local DELAY=$GENESIS_DELAY
   if [ "${USE_ELASTICSEARCH:-0}" -eq 1 ]; then
-    DELAY=$((DELAY + 60))
+    DELAY=$((DELAY + 90))
   fi
 
   if [ "$ROUND_DURATION_IN_MS" -lt 1000 ]; then
