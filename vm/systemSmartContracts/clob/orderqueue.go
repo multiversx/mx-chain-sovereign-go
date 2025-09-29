@@ -23,11 +23,17 @@ func (oq *OrderQueue) Len() int {
 
 // Front returns the first order in the queue without removing it.
 func (oq *OrderQueue) Front() *Order {
+	if oq.orders.Len() == 0 {
+		return nil
+	}
 	return oq.orders.Front()
 }
 
 // Back returns the last order in the queue without removing it.
 func (oq *OrderQueue) Back() *Order {
+	if oq.orders.Len() == 0 {
+		return nil
+	}
 	return oq.orders.Back()
 }
 
@@ -38,6 +44,9 @@ func (oq *OrderQueue) PushBack(order *Order) {
 
 // PopFront removes and returns the first order from the queue.
 func (oq *OrderQueue) PopFront() *Order {
+	if oq.orders.Len() == 0 {
+		return nil
+	}
 	return oq.orders.PopFront()
 }
 

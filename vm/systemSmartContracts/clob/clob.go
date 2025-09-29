@@ -48,6 +48,9 @@ func (c *CLOB) LoadState(data []byte) error {
 
 // SaveState saves the order book state to a byte array.
 func (c *CLOB) SaveState() ([]byte, error) {
+	if c.OrderBook == nil {
+		return nil, ErrNilOrderBook
+	}
 	orders := make([]*Order, 0, len(c.OrderBook.Orders))
 	for _, order := range c.OrderBook.Orders {
 		orders = append(orders, order)

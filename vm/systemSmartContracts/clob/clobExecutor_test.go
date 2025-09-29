@@ -2,637 +2,627 @@ package clob
 
 import (
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"testing"
 
-	vmMock "github.com/multiversx/mx-chain-go/vm/mock"
+	"github.com/multiversx/mx-chain-go/testscommon"
+	storageCommon "github.com/multiversx/mx-chain-storage-go/common"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 )
 
-func createCLOBTestContext(t *testing.T) (*clobSC, *vmMock.SystemEIStub) {
-	sc, err := NewClobSC()
-	require.NoError(t, err)
-	return sc, &vmMock.SystemEIStub{}
+func createExecutorTestContext(tb testing.TB) (*clobExecutor, *testscommon.AccountHandlerStub) {
+	storage := testscommon.NewAccountHandlerStub()
+	executor := NewClobExecutor()
+	return executor, storage
 }
 
-func TestClobSC_All(t *testing.T) {
-	t.Run("Process a new limit buy order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
+func TestNewClobExecutor(t *testing.T) {
+	executor := NewClobExecutor()
+	require.NotNil(t, executor)
+}
+
+func TestClobExecutor_Execute(t *testing.T) {
+	t.Run("invalid function name", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: "invalidFunction",
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Equal(t, "invalid function name: invalidFunction", string(output.ReturnMessage))
+	})
+
+	t.Run("load clob fails", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		expectedErr := fmt.Errorf("expected error")
+		storage.RetrieveValueCalled = func(key []byte) ([]byte, uint32, error) {
+			return nil, 0, expectedErr
+		}
+
+		output, err := executor.Execute(&vmcommon.ContractCallInput{}, storage)
+		require.Nil(t, output)
+		require.ErrorContains(t, err, "failed to retrieve clob data: expected error")
+	})
+
+	t.Run("load clob state fails", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		storage.RetrieveValueCalled = func(key []byte) ([]byte, uint32, error) {
+			return []byte("invalid data"), 0, nil
+		}
+
+		output, err := executor.Execute(&vmcommon.ContractCallInput{}, storage)
+		require.Nil(t, output)
+		require.ErrorContains(t, err, "could not load clob state")
+	})
+
+	t.Run("save clob fails", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		expectedErr := fmt.Errorf("expected error")
+		storage.SaveKeyValueCalled = func(key, value []byte) error {
+			return expectedErr
 		}
 
 		input := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{
 					[]byte("order1"),
-					[]byte{byte(SideBuy)},
+					{byte(SideBuy)},
 					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
+					[]byte("10"),
+					[]byte("100"),
+					[]byte("0"),
+					[]byte(GTC),
 					[]byte(""),
 				},
 			},
 		}
 
-		retCode := sc.Execute(input, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
+		output, err := executor.Execute(input, storage)
+		require.Nil(t, output)
+		require.ErrorContains(t, err, "could not save key-value: expected error")
+	})
+}
+
+func TestClobExecutor_ProcessOrder(t *testing.T) {
+	t.Run("valid limit buy order", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("order1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
+					[]byte("10.0"),
+					[]byte("100.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.Ok, output.ReturnCode)
 
 		var done Done
-		err := json.Unmarshal(finishedData[0], &done)
+		err = json.Unmarshal(output.ReturnData[0], &done)
 		require.NoError(t, err)
 		require.Equal(t, "order1", done.Order.GetID())
 		require.True(t, done.Stored)
 	})
 
-	t.Run("Get the newly created order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
+	t.Run("invalid number of arguments", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{[]byte("arg1")},
+			},
 		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid number of arguments")
+	})
+
+	t.Run("invalid quantity", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("order1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
+					[]byte("invalid"),
+					[]byte("100.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid quantity")
+	})
+
+	t.Run("invalid price", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("order1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
+					[]byte("10.0"),
+					[]byte("invalid"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid price")
+	})
+
+	t.Run("invalid stop price", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("order1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
+					[]byte("10.0"),
+					[]byte("100.0"),
+					[]byte("invalid"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid stop price")
+	})
+}
+
+func TestClobExecutor_CancelOrder(t *testing.T) {
+	t.Run("valid cancel", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
 
 		// First, add an order
 		addOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{
 					[]byte("order1"),
-					[]byte{byte(SideBuy)},
+					{byte(SideBuy)},
 					[]byte(TypeLimit),
 					[]byte("10.0"),
 					[]byte("100.0"),
 					[]byte("0.0"),
-					[]byte(TIF_GTC),
+					[]byte(GTC),
 					[]byte(""),
 				},
 			},
 		}
-		retCode := sc.Execute(addOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
+		_, err := executor.Execute(addOrderInput, storage)
+		require.NoError(t, err)
 
-		// Then, get the order
-		getOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+		// Then, cancel it
+		cancelInput := &vmcommon.ContractCallInput{
+			Function: CancelOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{[]byte("order1")},
 			},
 		}
-
-		retCode = sc.Execute(getOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
+		output, err := executor.Execute(cancelInput, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.Ok, output.ReturnCode)
 
 		var order Order
-		err := json.Unmarshal(finishedData[0], &order)
+		err = json.Unmarshal(output.ReturnData[0], &order)
 		require.NoError(t, err)
 		require.Equal(t, "order1", order.GetID())
 	})
 
-	t.Run("Process a matching limit sell order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add buy order
-		buyOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode := sc.Execute(buyOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
-
-		// Add matching sell order
-		sellOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order2"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeLimit),
-					[]byte("5.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode = sc.Execute(sellOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var done Done
-		err := json.Unmarshal(finishedData[0], &done)
-		require.NoError(t, err)
-		require.Equal(t, "order2", done.Order.GetID())
-		require.Len(t, done.Trades, 2)
-		require.False(t, done.Stored)
-	})
-
-	t.Run("Get depth after match", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add buy order
-		buyOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		sc.Execute(buyOrderInput, eei)
-
-		// Add matching sell order
-		sellOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order2"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeLimit),
-					[]byte("5.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		sc.Execute(sellOrderInput, eei)
-		finishedData = nil
-
-		// Get depth
-		getDepthInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetDepthEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		retCode := sc.Execute(getDepthInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var depth Depth
-		err := json.Unmarshal(finishedData[0], &depth)
-		require.NoError(t, err)
-		require.Len(t, depth.Bids, 1)
-		require.Equal(t, "5", depth.Bids[0][1].Text('f', -1))
-		require.Len(t, depth.Asks, 0)
-	})
-
-	t.Run("Cancel the remaining order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add buy order
-		buyOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		sc.Execute(buyOrderInput, eei)
-		finishedData = nil
-
-		// Cancel order
-		cancelOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(CancelOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{[]byte("order1")},
-			},
-		}
-		retCode := sc.Execute(cancelOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var order Order
-		err := json.Unmarshal(finishedData[0], &order)
-		require.NoError(t, err)
-		require.Equal(t, "order1", order.GetID())
-	})
-
-	t.Run("Get depth after cancellation", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add buy order
-		buyOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("order1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		sc.Execute(buyOrderInput, eei)
-
-		// Cancel order
-		cancelOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(CancelOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{[]byte("order1")},
-			},
-		}
-		sc.Execute(cancelOrderInput, eei)
-		finishedData = nil
-
-		// Get depth
-		getDepthInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetDepthEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		retCode := sc.Execute(getDepthInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var depth Depth
-		err := json.Unmarshal(finishedData[0], &depth)
-		require.NoError(t, err)
-		require.Len(t, depth.Bids, 0)
-		require.Len(t, depth.Asks, 0)
-	})
-
-	t.Run("Invalid function call", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var returnMessage string
-		eei.AddReturnMessageCalled = func(msg string) {
-			returnMessage = msg
-		}
-
+	t.Run("invalid number of arguments", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
 		input := &vmcommon.ContractCallInput{
-			Function: []byte("invalidFunction"),
-			VMInput:  &vmcommon.VMInput{},
+			Function: CancelOrderEndpoint,
+			VMInput:  vmcommon.VMInput{},
 		}
 
-		retCode := sc.Execute(input, eei)
-		require.Equal(t, vmcommon.UserError, retCode)
-		require.Contains(t, returnMessage, "invalid function name")
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid number of arguments")
 	})
 
-	t.Run("Process a market buy order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add a limit sell order to match against
-		sellOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("sell1"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode := sc.Execute(sellOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
-
-		// Process market buy order
-		marketBuyInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("market1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeMarket),
-					[]byte("5.0"),
-					[]byte("0.0"), // Price is ignored for market orders
-					[]byte("0.0"),
-					[]byte(""), // TIF is ignored for market orders
-					[]byte(""),
-				},
-			},
-		}
-		retCode = sc.Execute(marketBuyInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var done Done
-		err := json.Unmarshal(finishedData[0], &done)
-		require.NoError(t, err)
-		require.Equal(t, "market1", done.Order.GetID())
-		require.Len(t, done.Trades, 1)
-		require.False(t, done.Stored)
-		require.Equal(t, "5", done.Trades[0].GetQuantity().Text('f', -1))
-		require.Equal(t, "100", done.Trades[0].GetPrice().Text('f', -1))
-	})
-
-	t.Run("Process an IOC limit order - partial fill", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add a limit sell order to match against
-		sellOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("sell1"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeLimit),
-					[]byte("5.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode := sc.Execute(sellOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
-
-		// Process IOC buy order that will be partially filled
-		iocBuyInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("ioc1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_IOC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode = sc.Execute(iocBuyInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var done Done
-		err := json.Unmarshal(finishedData[0], &done)
-		require.NoError(t, err)
-		require.Equal(t, "ioc1", done.Order.GetID())
-		require.Len(t, done.Trades, 1)
-		require.False(t, done.Stored) // IOC orders are never stored
-		require.Equal(t, "5", done.Trades[0].GetQuantity().Text('f', -1))
-
-		// Check that the unfilled part of the IOC order was canceled
-		depthInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetDepthEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		finishedData = nil
-		sc.Execute(depthInput, eei)
-		var depth Depth
-		err = json.Unmarshal(finishedData[0], &depth)
-		require.NoError(t, err)
-		require.Len(t, depth.Bids, 0) // No buy orders should be left
-	})
-
-	t.Run("Process a FOK limit order - should be killed", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
-
-		// Add a limit sell order that won't fully fill the FOK order
-		sellOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("sell1"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeLimit),
-					[]byte("5.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_GTC),
-					[]byte(""),
-				},
-			},
-		}
-		retCode := sc.Execute(sellOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
-
-		// Process FOK buy order that cannot be fully filled
-		fokBuyInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{
-					[]byte("fok1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeLimit),
-					[]byte("10.0"),
-					[]byte("100.0"),
-					[]byte("0.0"),
-					[]byte(TIF_FOK),
-					[]byte(""),
-				},
-			},
-		}
-		retCode = sc.Execute(fokBuyInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var done Done
-		err := json.Unmarshal(finishedData[0], &done)
-		require.NoError(t, err)
-		require.Equal(t, "fok1", done.Order.GetID())
-		require.Len(t, done.Trades, 0)   // No trades should occur
-		require.False(t, done.Stored) // FOK orders are never stored
-
-		// Check that the order book is not empty
-		depthInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetDepthEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		finishedData = nil
-		sc.Execute(depthInput, eei)
-		var depth Depth
-		err = json.Unmarshal(finishedData[0], &depth)
-		require.NoError(t, err)
-		require.Len(t, depth.Asks, 1) // The sell order should still be there
-	})
-
-	t.Run("Cancel a non-existent order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var returnMessage string
-		eei.AddReturnMessageCalled = func(msg string) {
-			returnMessage = msg
-		}
-
-		cancelOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(CancelOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+	t.Run("order not found", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: CancelOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{[]byte("nonexistent")},
 			},
 		}
-		retCode := sc.Execute(cancelOrderInput, eei)
-		require.Equal(t, vmcommon.UserError, retCode)
-		require.Contains(t, returnMessage, ErrOrderNotFound.Error())
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Equal(t, ErrOrderNotFound.Error(), string(output.ReturnMessage))
 	})
+}
 
-	t.Run("Activate a buy stop order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
-		}
+func TestClobExecutor_GetOrder(t *testing.T) {
+	t.Run("valid get", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
 
-		// Add a stop-limit buy order
-		stopBuyInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+		// First, add an order
+		addOrderInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{
-					[]byte("stop1"),
-					[]byte{byte(SideBuy)},
-					[]byte(TypeStopLimit),
+					[]byte("order1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
 					[]byte("10.0"),
-					[]byte("110.0"), // Limit price
-					[]byte("105.0"), // Stop price
-					[]byte(TIF_GTC),
+					[]byte("100.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
 					[]byte(""),
 				},
 			},
 		}
-		retCode := sc.Execute(stopBuyInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
+		_, err := executor.Execute(addOrderInput, storage)
+		require.NoError(t, err)
 
-		// Manually trigger a trade to set the last price
-		// In a real scenario, this would happen through order matching
-		sc.clob.lastPrice = big.NewFloat(105)
-
-		// Call matchOrders to activate the stop order
-		matchOrdersInput := &vmcommon.ContractCallInput{
-			Function: []byte(MatchOrdersEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		retCode = sc.Execute(matchOrdersInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		// Check that the stop order was converted to a limit order
-		getOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{[]byte("stop1")},
+		// Then, get it
+		getInput := &vmcommon.ContractCallInput{
+			Function: GetOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{[]byte("order1")},
 			},
 		}
-		finishedData = nil
-		retCode = sc.Execute(getOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
+		output, err := executor.Execute(getInput, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.Ok, output.ReturnCode)
 
 		var order Order
-		err := json.Unmarshal(finishedData[0], &order)
+		err = json.Unmarshal(output.ReturnData[0], &order)
 		require.NoError(t, err)
-		require.Equal(t, TypeLimit, order.GetType())
-		require.Equal(t, "110", order.GetPrice().Text('f', -1))
+		require.Equal(t, "order1", order.GetID())
 	})
 
-	t.Run("Activate a sell stop order", func(t *testing.T) {
-		sc, eei := createCLOBTestContext(t)
-		var finishedData [][]byte
-		eei.FinishCalled = func(data []byte) {
-			finishedData = append(finishedData, data)
+	t.Run("invalid number of arguments", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: GetOrderEndpoint,
+			VMInput:  vmcommon.VMInput{},
 		}
 
-		// Add a stop-limit sell order
-		stopSellInput := &vmcommon.ContractCallInput{
-			Function: []byte(ProcessOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Contains(t, string(output.ReturnMessage), "invalid number of arguments")
+	})
+
+	t.Run("order not found", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+		input := &vmcommon.ContractCallInput{
+			Function: GetOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{[]byte("nonexistent")},
+			},
+		}
+
+		output, err := executor.Execute(input, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.UserError, output.ReturnCode)
+		require.Equal(t, ErrOrderNotFound.Error(), string(output.ReturnMessage))
+	})
+}
+
+func TestClobExecutor_GetDepth(t *testing.T) {
+	t.Run("get depth", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+
+		// Add a buy order
+		buyOrderInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
 				Arguments: [][]byte{
-					[]byte("stop1"),
-					[]byte{byte(SideSell)},
-					[]byte(TypeStopLimit),
+					[]byte("buy1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
 					[]byte("10.0"),
-					[]byte("90.0"),  // Limit price
-					[]byte("95.0"),  // Stop price
-					[]byte(TIF_GTC),
+					[]byte("99.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
 					[]byte(""),
 				},
 			},
 		}
-		retCode := sc.Execute(stopSellInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-		finishedData = nil
+		_, err := executor.Execute(buyOrderInput, storage)
+		require.NoError(t, err)
 
-		// Manually trigger a trade to set the last price
-		sc.clob.lastPrice = big.NewFloat(95)
-
-		// Call matchOrders to activate the stop order
-		matchOrdersInput := &vmcommon.ContractCallInput{
-			Function: []byte(MatchOrdersEndpoint),
-			VMInput:  &vmcommon.VMInput{},
-		}
-		retCode = sc.Execute(matchOrdersInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		// Check that the stop order was converted to a limit order
-		getOrderInput := &vmcommon.ContractCallInput{
-			Function: []byte(GetOrderEndpoint),
-			VMInput: &vmcommon.VMInput{
-				Arguments: [][]byte{[]byte("stop1")},
+		// Add a sell order
+		sellOrderInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("sell1"),
+					{byte(SideSell)},
+					[]byte(TypeLimit),
+					[]byte("5.0"),
+					[]byte("101.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
 			},
 		}
-		finishedData = nil
-		retCode = sc.Execute(getOrderInput, eei)
-		require.Equal(t, vmcommon.Ok, retCode)
-
-		var order Order
-		err := json.Unmarshal(finishedData[0], &order)
+		_, err = executor.Execute(sellOrderInput, storage)
 		require.NoError(t, err)
-		require.Equal(t, TypeLimit, order.GetType())
-		require.Equal(t, "90", order.GetPrice().Text('f', -1))
+
+		// Get depth
+		getDepthInput := &vmcommon.ContractCallInput{
+			Function: GetDepthEndpoint,
+		}
+		output, err := executor.Execute(getDepthInput, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.Ok, output.ReturnCode)
+
+		var depth Depth
+		err = json.Unmarshal(output.ReturnData[0], &depth)
+		require.NoError(t, err)
+		require.Len(t, depth.Bids, 1)
+		require.Len(t, depth.Asks, 1)
+		require.Equal(t, "99", depth.Bids[0][0].Text('f', -1))
+		require.Equal(t, "10", depth.Bids[0][1].Text('f', -1))
+		require.Equal(t, "101", depth.Asks[0][0].Text('f', -1))
+		require.Equal(t, "5", depth.Asks[0][1].Text('f', -1))
 	})
+}
+
+func TestClobExecutor_MatchOrders(t *testing.T) {
+	t.Run("match orders", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+
+		// Add a buy order
+		buyOrderInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("buy1"),
+					{byte(SideBuy)},
+					[]byte(TypeLimit),
+					[]byte("10.0"),
+					[]byte("100.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+		_, err := executor.Execute(buyOrderInput, storage)
+		require.NoError(t, err)
+
+		// Add a sell order that matches
+		sellOrderInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("sell1"),
+					{byte(SideSell)},
+					[]byte(TypeLimit),
+					[]byte("5.0"),
+					[]byte("100.0"),
+					[]byte("0.0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+		_, err = executor.Execute(sellOrderInput, storage)
+		require.NoError(t, err)
+
+		// Manually set last price to trigger stop orders if any
+		clob, err := executor.loadClob(storage)
+		require.NoError(t, err)
+		clob.lastPrice = big.NewFloat(100)
+		err = executor.saveClob(storage, clob, ProcessOrderEndpoint)
+		require.NoError(t, err)
+
+		// Match orders
+		matchInput := &vmcommon.ContractCallInput{
+			Function: MatchOrdersEndpoint,
+		}
+		output, err := executor.Execute(matchInput, storage)
+		require.NoError(t, err)
+		require.Equal(t, vmcommon.Ok, output.ReturnCode)
+
+		var done Done
+		err = json.Unmarshal(output.ReturnData[0], &done)
+		require.NoError(t, err)
+		// MatchOrders now returns a Done object containing trades and activated stop orders
+		require.NotNil(t, done)
+	})
+}
+
+func TestClobExecutor_LoadClobFailsWithErrKeyNotFound(t *testing.T) {
+	executor, storage := createExecutorTestContext(t)
+	storage.RetrieveValueCalled = func(key []byte) ([]byte, uint32, error) {
+		return nil, 0, storageCommon.ErrKeyNotFound
+	}
+
+	clob, err := executor.loadClob(storage)
+	require.NoError(t, err)
+	require.NotNil(t, clob)
+	require.Equal(t, 0, clob.OrderBook.Bids.Len())
+	require.Equal(t, 0, clob.OrderBook.Asks.Len())
+}
+
+func TestClobExecutor_SaveClobNoOp(t *testing.T) {
+	executor, storage := createExecutorTestContext(t)
+	var saveCalled bool
+	storage.SaveKeyValueCalled = func(key, value []byte) error {
+		saveCalled = true
+		return nil
+	}
+
+	err := executor.saveClob(storage, NewCLOB(), GetDepthEndpoint)
+	require.NoError(t, err)
+	require.False(t, saveCalled)
+}
+
+func TestClobExecutor_SaveClobSaveStateFails(t *testing.T) {
+	executor, storage := createExecutorTestContext(t)
+	clob := NewCLOB()
+	// Corrupt the clob instance to fail SaveState
+	clob.OrderBook = nil
+
+	err := executor.saveClob(storage, clob, ProcessOrderEndpoint)
+	require.ErrorContains(t, err, "could not save clob state")
+}
+
+func TestClobExecutor_ComplexMatching(t *testing.T) {
+	t.Run("multiple limit and market orders", func(t *testing.T) {
+		executor, storage := createExecutorTestContext(t)
+
+		// 1. Add initial limit orders to populate the book
+		_, err := executor.Execute(createLimitOrderInput("buy1", SideBuy, 10, 99), storage)
+		require.NoError(t, err)
+		_, err = executor.Execute(createLimitOrderInput("buy2", SideBuy, 5, 98), storage)
+		require.NoError(t, err)
+		_, err = executor.Execute(createLimitOrderInput("sell1", SideSell, 8, 101), storage)
+		require.NoError(t, err)
+		_, err = executor.Execute(createLimitOrderInput("sell2", SideSell, 12, 102), storage)
+		require.NoError(t, err)
+
+		clob, _ := executor.loadClob(storage)
+		require.Equal(t, 2, clob.OrderBook.Bids.Len())
+		require.Equal(t, 2, clob.OrderBook.Asks.Len())
+
+		// 2. A market sell order that partially fills the best bid
+		marketSellInput := &vmcommon.ContractCallInput{
+			Function: ProcessOrderEndpoint,
+			VMInput: vmcommon.VMInput{
+				Arguments: [][]byte{
+					[]byte("market_sell1"),
+					{byte(SideSell)},
+					[]byte(TypeMarket),
+					[]byte("7.0"),
+					[]byte("0"),
+					[]byte("0"),
+					[]byte(GTC),
+					[]byte(""),
+				},
+			},
+		}
+		output, err := executor.Execute(marketSellInput, storage)
+		require.NoError(t, err)
+		var done Done
+		err = json.Unmarshal(output.ReturnData[0], &done)
+		require.NoError(t, err)
+		require.Len(t, done.Trades, 2)
+		require.False(t, done.Stored)
+
+		clob, _ = executor.loadClob(storage)
+		require.Equal(t, 2, clob.OrderBook.Bids.Len())
+		bestBid := clob.OrderBook.Bids.Best()
+		require.Equal(t, 0, bestBid.GetQuantity().Cmp(big.NewFloat(3)))
+
+		// 3. A limit buy order that crosses the spread and matches
+		limitBuyInput := createLimitOrderInput("buy3_cross", SideBuy, 10, 101)
+		output, err = executor.Execute(limitBuyInput, storage)
+		require.NoError(t, err)
+		err = json.Unmarshal(output.ReturnData[0], &done)
+		require.NoError(t, err)
+		require.Len(t, done.Trades, 2)
+		require.True(t, done.Stored)
+
+		clob, _ = executor.loadClob(storage)
+		require.Equal(t, 3, clob.OrderBook.Bids.Len())
+		require.Equal(t, 1, clob.OrderBook.Asks.Len())
+		bestAsk := clob.OrderBook.Asks.Best()
+		require.Equal(t, "sell2", bestAsk.GetID())
+
+		// 4. Final check with MatchOrders - should do nothing as the book is not crossed
+		matchInput := &vmcommon.ContractCallInput{
+			Function: MatchOrdersEndpoint,
+		}
+		output, err = executor.Execute(matchInput, storage)
+		require.NoError(t, err)
+		var doneAfterMatch Done
+		err = json.Unmarshal(output.ReturnData[0], &doneAfterMatch)
+		require.NoError(t, err)
+		require.Nil(t, doneAfterMatch.Order)
+		require.Empty(t, doneAfterMatch.Trades)
+	})
+}
+
+func createLimitOrderInput(id string, side Side, quantity float64, price float64) *vmcommon.ContractCallInput {
+	return &vmcommon.ContractCallInput{
+		Function: ProcessOrderEndpoint,
+		VMInput: vmcommon.VMInput{
+			Arguments: [][]byte{
+				[]byte(id),
+				{byte(side)},
+				[]byte(TypeLimit),
+				[]byte(fmt.Sprintf("%f", quantity)),
+				[]byte(fmt.Sprintf("%f", price)),
+				[]byte("0"),
+				[]byte(GTC),
+				[]byte(""),
+			},
+		},
+	}
+}
+
+func BenchmarkClobExecutor_MatchOrders(b *testing.B) {
+	executor, storage := createExecutorTestContext(b)
+
+	// Populate the order book with a large number of orders
+	for i := 0; i < 100; i++ {
+		buyPrice := 99.0 - float64(i)*0.01
+		sellPrice := 101.0 + float64(i)*0.01
+		_, _ = executor.Execute(createLimitOrderInput(fmt.Sprintf("buy-%d", i), SideBuy, 1, buyPrice), storage)
+		_, _ = executor.Execute(createLimitOrderInput(fmt.Sprintf("sell-%d", i), SideSell, 1, sellPrice), storage)
+	}
+
+	// Add a crossing order to trigger matching
+	crossingOrder := createLimitOrderInput("cross", SideBuy, 100, 102)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Create a fresh copy of storage for each run to avoid side effects
+		cleanStorage := testscommon.NewAccountHandlerStub()
+		savedState, _, _ := storage.RetrieveValue([]byte(clobStorageKey))
+		_ = cleanStorage.SaveKeyValue([]byte(clobStorageKey), savedState)
+
+		_, _ = executor.Execute(crossingOrder, cleanStorage)
+	}
 }

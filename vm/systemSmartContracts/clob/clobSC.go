@@ -17,8 +17,15 @@ func NewClobSC(clob *CLOB) *clobSC {
 }
 
 // MatchOrders matches orders in the order book.
-func (sc *clobSC) MatchOrders() ([]*Done, error) {
-	return sc.clob.MatchOrders()
+func (sc *clobSC) MatchOrders() (*Done, error) {
+	dones, err := sc.clob.MatchOrders()
+	if err != nil {
+		return nil, err
+	}
+	if len(dones) > 0 {
+		return dones[0], nil
+	}
+	return nil, nil
 }
 
 // ProcessOrder handles the processing of a new order.
