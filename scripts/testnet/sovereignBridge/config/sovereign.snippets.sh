@@ -55,20 +55,15 @@ deployPhaseTwo() {
 
     echo "Registering native ESDT token..."
 
-    local HEX_TICKER=$(echo -n "$NATIVE_ESDT_TICKER" | xxd -p)
-    local HEX_NAME=$(echo -n "$NATIVE_ESDT_NAME" | xxd -p)
-    ARGS_FILE=$(eval echo "${REGISTER_NATIVE_ESDT_ARGS_FILE}")
-    sed -e "s/\$NATIVE_ESDT_TICKER/$HEX_TICKER/g" \
-        -e "s/\$NATIVE_ESDT_NAME/$HEX_NAME/g" config/deployArguments/registerNativeToken > ${ARGS_FILE}
-
     local OUTFILE="${OUTFILE_PATH}/register-native-token.interaction.json"
-    mxpy contract call ${SOVEREIGN_FORGE_ADDRESS} \
+    mxpy contract call ${ESDT_SAFE_ADDRESS} \
         --pem=${WALLET} \
         --proxy=${PROXY} \
         --gas-limit=80000000 \
-        --abi=$(eval echo ${SOVEREIGN_FORGE_ABI}) \
         --function="registerNativeToken" \
-        --arguments-file ${ARGS_FILE}\
+        --arguments \
+            str:$NATIVE_ESDT_TICKER \
+            str:$NATIVE_ESDT_NAME \
         --value=${ESDT_ISSUE_COST} \
         --outfile=${OUTFILE} \
         --wait-result \
