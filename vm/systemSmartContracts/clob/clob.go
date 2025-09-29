@@ -15,7 +15,7 @@ type CLOB struct {
 func NewCLOB() *CLOB {
 	return &CLOB{
 		OrderBook: NewOrderBook(),
-		lastPrice: big.NewFloat(0),
+		lastPrice: nil, // Initialize as nil to indicate no trades have occurred yet
 	}
 }
 
@@ -136,6 +136,10 @@ func (c *CLOB) MatchOrders() ([]*Done, error) {
 }
 
 func (c *CLOB) activateStopOrders(dones []*Done) ([]*Done, error) {
+	if c.lastPrice == nil {
+		return dones, nil // No trades yet, so no stop orders can be activated
+	}
+
 	var activated []*Order
 
 	c.OrderBook.Stop.Iterate(func(order *Order) {
