@@ -1,4 +1,4 @@
-package systemSmartContracts
+package clob
 
 import "github.com/gammazero/deque"
 
@@ -12,6 +12,11 @@ func NewStopBook() *StopBook {
 	return &StopBook{
 		orders: deque.New[*Order](),
 	}
+}
+
+// Len returns the number of orders in the book.
+func (sb *StopBook) Len() int {
+	return sb.orders.Len()
 }
 
 // Append appends a new stop order to the book.

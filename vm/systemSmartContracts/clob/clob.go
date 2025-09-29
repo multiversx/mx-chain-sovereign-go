@@ -1,4 +1,4 @@
-package systemSmartContracts
+package clob
 
 import (
 	"encoding/json"
@@ -8,12 +8,14 @@ import (
 // CLOB represents the Central Limit Order Book.
 type CLOB struct {
 	OrderBook *OrderBook
+	lastPrice *big.Float
 }
 
 // NewCLOB creates a new instance of the Central Limit Order Book.
 func NewCLOB() *CLOB {
 	return &CLOB{
 		OrderBook: NewOrderBook(),
+		lastPrice: big.NewFloat(0),
 	}
 }
 
@@ -74,7 +76,16 @@ func (c *CLOB) ProcessOrder(
 		return nil, ErrInvalidOrderType
 	}
 
-	return c.OrderBook.Process(order)
+	done, err := c.OrderBook.Process(order)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(done.Trades) > 0 {
+		c.lastPrice = done.Trades[0].GetPrice()
+	}
+
+	return done, nil
 }
 
 // CancelOrder cancels an existing order.
@@ -100,38 +111,99 @@ func (c *CLOB) GetDepth() *Depth {
 	return c.OrderBook.Depth()
 }
 
-// MatchOrders is a placeholder for the matching engine.
-// In a real implementation, this would be triggered by a cron job or some other mechanism.
+// MatchOrders activates stop orders and matches any crossed limit orders.
 func (c *CLOB) MatchOrders() ([]*Done, error) {
 	var (
-		dones     []*Done
-		lastPrice *big.Float
+		dones []*Done
+		err   error
 	)
 
-	// In a real implementation, we would get the last trade price from a persistent store.
-	// For now, we'll just use the best bid price.
-	if c.OrderBook.Bids.Len() > 0 {
-		lastPrice = c.OrderBook.Bids.Best().GetPrice()
+	if c.OrderBook.Stop.Len() > 0 {
+		dones, err = c.activateStopOrders(dones)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if lastPrice == nil {
-		return dones, nil
+	if c.OrderBook.Bids.Len() > 0 && c.OrderBook.Asks.Len() > 0 {
+		dones, err = c.matchLimitOrders(dones)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	return dones, nil
+}
+
+func (c *CLOB) activateStopOrders(dones []*Done) ([]*Done, error) {
+	var activated []*Order
 
 	c.OrderBook.Stop.Iterate(func(order *Order) {
-		if order.GetSide() == SideBuy && order.GetStop().Cmp(lastPrice) <= 0 {
-			done, err := c.OrderBook.Process(order)
-			if err == nil {
-				dones = append(dones, done)
-			}
-		}
-		if order.GetSide() == SideSell && order.GetStop().Cmp(lastPrice) >= 0 {
-			done, err := c.OrderBook.Process(order)
-			if err == nil {
-				dones = append(dones, done)
-			}
+		// A buy stop order is triggered when the last price is at or above the stop price.
+		// A sell stop order is triggered when the last price is at or below the stop price.
+		if (order.GetSide() == SideBuy && c.lastPrice.Cmp(order.GetStop()) >= 0) ||
+			(order.GetSide() == SideSell && c.lastPrice.Cmp(order.GetStop()) <= 0) {
+			activated = append(activated, order)
 		}
 	})
+
+	for _, stopOrder := range activated {
+		// Remove the stop order from the stop book
+		c.OrderBook.CancelOrder(stopOrder.GetID())
+
+		// Create a new limit order from the stop order
+		newOrder := NewLimitOrder(
+			stopOrder.GetID(),
+			stopOrder.GetSide(),
+			stopOrder.GetQuantity(),
+			stopOrder.GetPrice(),
+			stopOrder.GetTIF(),
+			stopOrder.GetOCO(),
+		)
+		newOrder.SetTimestamp(stopOrder.GetTimestamp()) // Preserve original timestamp for priority
+
+		// Process the new order
+		done, err := c.OrderBook.Process(newOrder)
+		if err != nil {
+			return nil, err
+		}
+		dones = append(dones, done)
+
+		if len(done.Trades) > 0 {
+			c.lastPrice = done.Trades[len(done.Trades)-1].GetPrice()
+		}
+	}
+
+	return dones, nil
+}
+
+func (c *CLOB) matchLimitOrders(dones []*Done) ([]*Done, error) {
+	for c.OrderBook.Bids.Len() > 0 && c.OrderBook.Asks.Len() > 0 && c.OrderBook.Bids.Best().GetPrice().Cmp(c.OrderBook.Asks.Best().GetPrice()) >= 0 {
+		var taker *Order
+		bestBid := c.OrderBook.Bids.Best()
+		bestAsk := c.OrderBook.Asks.Best()
+
+		// Determine which order is the taker (the one that arrived later)
+		if bestBid.GetTimestamp() > bestAsk.GetTimestamp() {
+			taker = bestBid
+		} else {
+			taker = bestAsk
+		}
+
+		// Remove the taker order from the book to process it against the other side
+		c.OrderBook.CancelOrder(taker.GetID())
+
+		// Re-process the taker order to match it
+		done, err := c.OrderBook.Process(taker)
+		if err != nil {
+			return nil, err
+		}
+		dones = append(dones, done)
+
+		if len(done.Trades) > 0 {
+			c.lastPrice = done.Trades[len(done.Trades)-1].GetPrice()
+		}
+	}
 
 	return dones, nil
 }

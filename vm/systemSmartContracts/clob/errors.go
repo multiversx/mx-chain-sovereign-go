@@ -1,4 +1,4 @@
-package systemSmartContracts
+package clob
 
 import "errors"
 

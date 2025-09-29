@@ -1,4 +1,4 @@
-package systemSmartContracts
+package clob
 
 import (
 	"math/big"
@@ -10,10 +10,15 @@ type clobSC struct {
 }
 
 // NewClobSC creates a new instance of the clobSC.
-func NewClobSC() *clobSC {
+func NewClobSC(clob *CLOB) *clobSC {
 	return &clobSC{
-		clob: NewCLOB(),
+		clob: clob,
 	}
+}
+
+// MatchOrders matches orders in the order book.
+func (sc *clobSC) MatchOrders() ([]*Done, error) {
+	return sc.clob.MatchOrders()
 }
 
 // ProcessOrder handles the processing of a new order.
@@ -39,8 +44,8 @@ func (sc *clobSC) GetOrder(orderID string) (*Order, error) {
 }
 
 // GetDepth retrieves the order book depth.
-func (sc *clobSC) GetDepth() (*Depth, error) {
-	return sc.clob.GetDepth(), nil
+func (sc *clobSC) GetDepth() *Depth {
+	return sc.clob.GetDepth()
 }
 
 // LoadState loads the contract's state from storage.

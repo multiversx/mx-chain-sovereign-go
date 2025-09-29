@@ -5,6 +5,7 @@ const (
 	CancelOrderEndpoint  = "cancelOrder"
 	GetOrderEndpoint     = "getOrder"
 	GetDepthEndpoint     = "getDepth"
+	MatchOrdersEndpoint  = "matchOrders"
 )
 
 // OrderType of the Order
@@ -27,22 +28,13 @@ const (
 )
 
 // Side of the Order
-type Side int
+type Side byte
 
-// Sell (asks) or Buy (bids)
+// Different order sides
 const (
-	Sell Side = iota
-	Buy
+	SideBuy  Side = 'B'
+	SideSell Side = 'S'
 )
-
-// String implements fmt.Stringer interface
-func (s Side) String() string {
-	if s == Buy {
-		return "BUY"
-	}
-
-	return "SELL"
-}
 
 // TIF of the Order
 type TIF string

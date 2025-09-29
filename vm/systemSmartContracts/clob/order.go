@@ -1,26 +1,8 @@
-package systemSmartContracts
+package clob
 
 import (
 	"math/big"
 	"time"
-)
-
-// OrderType represents the type of an order.
-type OrderType string
-
-const (
-	TypeMarket    OrderType = "MARKET"
-	TypeLimit     OrderType = "LIMIT"
-	TypeStopLimit OrderType = "STOP_LIMIT"
-)
-
-// TIF represents the time in force of an order.
-type TIF string
-
-const (
-	TIF_GTC TIF = "GTC" // Good Till Cancel
-	TIF_IOC TIF = "IOC" // Immediate or Cancel
-	TIF_FOK TIF = "FOK" // Fill or Kill
 )
 
 // Order represents a single order in the order book.
@@ -118,6 +100,11 @@ func (o *Order) GetOCO() string {
 // GetTimestamp returns the order timestamp.
 func (o *Order) GetTimestamp() int64 {
 	return o.timestamp
+}
+
+// SetTimestamp sets the order timestamp.
+func (o *Order) SetTimestamp(timestamp int64) {
+	o.timestamp = timestamp
 }
 
 // IsStopOrder returns true if the order is a stop order.

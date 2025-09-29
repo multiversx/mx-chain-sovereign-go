@@ -1,16 +1,8 @@
-package systemSmartContracts
+package clob
 
 import (
 	"math/big"
 	"sort"
-)
-
-// Side represents the side of an order (buy or sell).
-type Side byte
-
-const (
-	SideBuy  Side = 'B'
-	SideSell Side = 'S'
 )
 
 // OrderSide represents one side of the order book (bids or asks).
