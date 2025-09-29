@@ -25,6 +25,11 @@ var log = logger.GetOrCreate("vm/systemsmartcontracts")
 const ownerKey = "owner"
 const nodesConfigKey = "nodesConfig"
 
+const (
+	idLogRegisterBlsKey   = "registerBlsKey"
+	idLogUnRegisterBlsKey = "unRegisterBlsKey"
+)
+
 type stakingSC struct {
 	eei                      vm.SystemEI
 	unBondPeriod             uint64
@@ -575,14 +580,14 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 
 func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool, newNode bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
-		s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData, newNode)
+		s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData.OwnerAddress, newNode)
 		return s.processStakeV2(registrationData)
 	}
 
 	return s.processStakeV1(blsKey, registrationData, addFirst)
 }
 
-func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData *StakedDataV2_0, newNode bool) {
+func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, owner []byte, newNode bool) {
 	if !newNode {
 		return
 	}
@@ -592,8 +597,8 @@ func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData
 	}
 
 	s.eei.AddLogEntry(&vmcommon.LogEntry{
-		Identifier: []byte("registerBlsKey"),
-		Topics:     [][]byte{blsKey, registrationData.OwnerAddress},
+		Identifier: []byte(idLogRegisterBlsKey),
+		Topics:     [][]byte{blsKey, owner},
 		Address:    vm.StakingSCAddress,
 	})
 }
@@ -692,7 +697,21 @@ func (s *stakingSC) doUnStake(key []byte, registrationData *StakedDataV2_0) vmco
 		return vmcommon.UserError
 	}
 
+	s.addUnRegisterBlsKeyLogIfNeeded(key, registrationData.OwnerAddress)
+
 	return vmcommon.Ok
+}
+
+func (s *stakingSC) addUnRegisterBlsKeyLogIfNeeded(blsKey []byte, owner []byte) {
+	if !s.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return
+	}
+
+	s.eei.AddLogEntry(&vmcommon.LogEntry{
+		Identifier: []byte(idLogUnRegisterBlsKey),
+		Topics:     [][]byte{blsKey, owner},
+		Address:    vm.StakingSCAddress,
+	})
 }
 
 func (s *stakingSC) unBond(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {
