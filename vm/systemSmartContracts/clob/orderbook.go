@@ -1,4 +1,4 @@
-package systemSmartContracts
+package clob
 
 import "math/big"
 
@@ -34,8 +34,10 @@ func (ob *OrderBook) Process(order *Order) (*Done, error) {
 	}
 
 	if !order.IsFilled() {
-		ob.appendLimitOrder(order)
-		done.Stored = true
+		if order.GetType() != TypeMarket {
+			ob.appendLimitOrder(order)
+			done.Stored = true
+		}
 	} else {
 		delete(ob.Orders, order.GetID())
 		done.Stored = false
@@ -140,13 +142,13 @@ func (ob *OrderBook) match(taker, maker *Order, done *Done) {
 	maker.fill(tradeQuantity)
 
 	done.Trades = append(done.Trades, &Order{
-		id:       taker.GetID(),
-		price:    maker.GetPrice(),
-		quantity: tradeQuantity,
+		ID:       taker.GetID(),
+		Price:    maker.GetPrice(),
+		Quantity: tradeQuantity,
 	}, &Order{
-		id:       maker.GetID(),
-		price:    maker.GetPrice(),
-		quantity: tradeQuantity,
+		ID:       maker.GetID(),
+		Price:    maker.GetPrice(),
+		Quantity: tradeQuantity,
 	})
 
 	done.Processed.Add(done.Processed, tradeQuantity)
