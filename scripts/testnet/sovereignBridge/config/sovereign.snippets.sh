@@ -18,13 +18,13 @@ deployPhaseOne() {
 
     local OUTFILE="${OUTFILE_PATH}/deploy-phase-one.interaction.json"
     mxpy contract call "${SOVEREIGN_FORGE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=25000000 \
-        --abi="$(eval echo "${SOVEREIGN_FORGE_ABI}")" \
-        --function="deployPhaseOne" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 25000000 \
+        --abi "$(eval echo "${SOVEREIGN_FORGE_ABI}")" \
+        --function "deployPhaseOne" \
         --arguments-file "${ARGS_FILE}" \
-        --outfile="${OUTFILE}" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -39,11 +39,11 @@ deployPhaseTwo() {
 
     local OUTFILE="${OUTFILE_PATH}/deploy-phase-two.interaction.json"
     mxpy contract call "${SOVEREIGN_FORGE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=30000000 \
-        --function="deployPhaseTwo" \
-        --outfile="${OUTFILE}" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 30000000 \
+        --function "deployPhaseTwo" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -58,15 +58,15 @@ deployPhaseTwo() {
 
     local OUTFILE="${OUTFILE_PATH}/register-native-token.interaction.json"
     mxpy contract call "${ESDT_SAFE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=80000000 \
-        --function="registerNativeToken" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 80000000 \
+        --function "registerNativeToken" \
         --arguments \
             str:"${NATIVE_ESDT_TICKER}" \
             str:"${NATIVE_ESDT_NAME}" \
-        --value="${ESDT_ISSUE_COST}" \
-        --outfile="${OUTFILE}" \
+        --value "${ESDT_ISSUE_COST}" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -81,13 +81,13 @@ deployPhaseThree() {
 
     local OUTFILE="${OUTFILE_PATH}/deploy-phase-three.interaction.json"
     mxpy contract call "${SOVEREIGN_FORGE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=30000000 \
-        --function="deployPhaseThree" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 30000000 \
+        --function "deployPhaseThree" \
         --arguments \
             0x00 \
-        --outfile="${OUTFILE}" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -104,11 +104,11 @@ deployPhaseFour() {
 
     local OUTFILE="${OUTFILE_PATH}/deploy-phase-four.interaction.json"
     mxpy contract call "${SOVEREIGN_FORGE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=25000000 \
-        --function="deployPhaseFour" \
-        --outfile="${OUTFILE}" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 25000000 \
+        --function "deployPhaseFour" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -127,13 +127,13 @@ registerBLSKeys() {
     for BLS_KEY in ${BLS_PUB_KEYS}; do
         local OUTFILE="${OUTFILE_PATH}/register-${BLS_KEY}.interaction.json"
         mxpy contract call "${CHAIN_CONFIG_ADDRESS}" \
-            --pem="${WALLET}" \
-            --proxy="${PROXY}" \
-            --gas-limit=20000000 \
-            --function="register" \
+            --pem "${WALLET}" \
+            --proxy "${PROXY}" \
+            --gas-limit 20000000 \
+            --function "register" \
             --arguments \
                 "${BLS_KEY}" \
-            --outfile="${OUTFILE}" \
+            --outfile "${OUTFILE}" \
             --wait-result \
             --send || return
 
@@ -146,11 +146,11 @@ completeSetupPhase() {
 
     local OUTFILE="${OUTFILE_PATH}/complete-setup-phase.interaction.json"
     mxpy contract call "${SOVEREIGN_FORGE_ADDRESS}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY}" \
-        --gas-limit=50000000 \
-        --function="completeSetupPhase" \
-        --outfile="${OUTFILE}" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY}" \
+        --gas-limit 50000000 \
+        --function "completeSetupPhase" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
@@ -161,8 +161,8 @@ readNativeESDT() {
     checkVariables ESDT_SAFE_ADDRESS || return
 
     local NATIVE_ESDT_HEX=$(mxpy contract query "${ESDT_SAFE_ADDRESS}" \
-        --proxy="${PROXY}" \
-        --function="getNativeToken")
+        --proxy "${PROXY}" \
+        --function "getNativeToken")
 
     echo "$(hexToString "${NATIVE_ESDT_HEX}")"
 }
@@ -178,10 +178,10 @@ readContractAddress() {
     fi
 
     local DATA=$(mxpy contract query "${SOVEREIGN_FORGE_ADDRESS}" \
-        --proxy="${PROXY}" \
-        --abi="$(eval echo "${SOVEREIGN_FORGE_ABI}")" \
-        --function="getDeployedSovereignContracts" \
-        --arguments=str:"${SOV_CHAIN_PREFIX}")
+        --proxy "${PROXY}" \
+        --abi "$(eval echo "${SOVEREIGN_FORGE_ABI}")" \
+        --function "getDeployedSovereignContracts" \
+        --arguments str:"${SOV_CHAIN_PREFIX}")
 
     local HEX_ADDRESS=$(echo "${DATA}" | jq -r \
         --argjson id "$1" '
@@ -198,11 +198,11 @@ unpauseEsdtSafeContractSovereign() {
 
     local OUTFILE="${OUTFILE_PATH}/unpause.interaction.json"
     mxpy contract call "${ESDT_SAFE_ADDRESS_SOVEREIGN}" \
-        --pem="${WALLET}" \
-        --proxy="${PROXY_SOVEREIGN}" \
-        --gas-limit=10000000 \
-        --function="unpause" \
-        --outfile="${OUTFILE}" \
+        --pem "${WALLET}" \
+        --proxy "${PROXY_SOVEREIGN}" \
+        --gas-limit 10000000 \
+        --function "unpause" \
+        --outfile "${OUTFILE}" \
         --wait-result \
         --send || return
 
