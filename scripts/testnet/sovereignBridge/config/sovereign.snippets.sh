@@ -11,9 +11,8 @@ deployPhaseOne() {
     echo "Deploying phase one..."
 
     local HEX_CHAIN_ID=$(echo -n "$SOV_CHAIN_PREFIX" | xxd -p)
-    sed -e "s/\${SOV_CHAIN_PREFIX}/${HEX_CHAIN_ID}/g" \
-        -e "s/\${SHARD_VALIDATORCOUNT}/${SHARD_VALIDATORCOUNT}/g" \
-        "config/deployArguments/phaseOneArgs" > "$PHASE_ONE_ARGS_FILE"
+    sed -e "s/\$SOV_CHAIN_PREFIX/$HEX_CHAIN_ID/g" \
+        -e "s/\$SHARD_VALIDATORCOUNT/$SHARD_VALIDATORCOUNT/g" config/deployArguments/phaseOneArgs > "$PHASE_ONE_ARGS_FILE"
 
     local OUTFILE="$OUTFILE_PATH/deploy-phase-one.interaction.json"
     mxpy contract call $SOVEREIGN_FORGE_ADDRESS \
@@ -163,7 +162,7 @@ readNativeESDT() {
         --proxy "$PROXY" \
         --function "getNativeToken")
 
-    echo $(hexToString $NATIVE_ESDT_HEX)
+    echo $(hexToString "$NATIVE_ESDT_HEX")
 }
 
 HEADER_VERIFIER_INDEX=2
