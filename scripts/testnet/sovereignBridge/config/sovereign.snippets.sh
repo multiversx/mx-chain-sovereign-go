@@ -146,7 +146,7 @@ completeSetupPhase() {
     mxpy contract call $SOVEREIGN_FORGE_ADDRESS \
         --pem "$WALLET" \
         --proxy "$PROXY" \
-        --gas-limit 50000000 \
+        --gas-limit 60000000 \
         --function "completeSetupPhase" \
         --outfile "$OUTFILE" \
         --wait-result \
