@@ -30,7 +30,7 @@ deploySovereignWithCrossChainContracts() {
 
     registerBLSKeys || return
 
-    completeSetupPhase
+    completeSetupPhase || return
 
     startSovereign
 
