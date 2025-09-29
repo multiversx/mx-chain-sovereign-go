@@ -14,7 +14,7 @@ stopAndCleanMainChainObserver() {
 
 deploySovereignWithCrossChainContracts() {
     SOV_CHAIN_PREFIX=$(generateChainId $1)
-    echo "Sovereign chain ID: $SOV_CHAIN_PREFIX"
+    echo "Sovereign chain ID: ${SOV_CHAIN_PREFIX}"
 
     deployPhaseOne || return
 
@@ -46,7 +46,7 @@ startSovereign() {
     updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" "$START_TIME"
     $TESTNET_DIR/sovereignStart.sh
 
-    waitUntilStartTime $START_TIME
+    waitUntilStartTime "$START_TIME"
 }
 
 stopSovereign() {
