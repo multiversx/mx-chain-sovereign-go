@@ -220,7 +220,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 // tokens are originated from sovereign chain
 // the execution is always expected to fail because of transfer data arguments
 // we also check that tokens are burned if the execution fails
-func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
+func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
