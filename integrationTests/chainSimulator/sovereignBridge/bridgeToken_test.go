@@ -243,3 +243,78 @@ func createNftArgs(tokenIdentifier string, initialSupply *big.Int, name string) 
 		"@" + // attributes
 		"@" // uri
 }
+
+// main chain deposit and execute with no payment, only transfer data
+// 1. call deposit endpoint with no payment and no transfer data - should fail
+// 2. call deposit endpoint with no payment and with transfer data - should work
+// 3. call execute endpoint with no payment and with transfer data - should work
+func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this is not a short test")
+	}
+
+	cs, err := chainSimulator.NewChainSimulator(chainSimulator.ArgsChainSimulator{
+		BypassTxSignatureCheck: true,
+		TempDir:                t.TempDir(),
+		PathToInitialConfig:    defaultPathToInitialConfig,
+		NumOfShards:            3,
+		GenesisTimestamp:       time.Now().Unix(),
+		RoundDurationInMillis:  uint64(6000),
+		RoundsPerEpoch: core.OptionalUint64{
+			HasValue: true,
+			Value:    20,
+		},
+		ApiInterface:             api.NewNoApiInterface(),
+		MinNodesPerShard:         3,
+		MetaChainMinNodes:        3,
+		NumNodesWaitingListMeta:  0,
+		NumNodesWaitingListShard: 0,
+		AlterConfigsFunction: func(cfg *config.Configs) {
+			cfg.SystemSCConfig.ESDTSystemSCConfig.BaseIssuingCost = issuePaymentCost
+		},
+	})
+	require.Nil(t, err)
+	require.NotNil(t, cs)
+
+	defer cs.Close()
+
+	err = cs.GenerateBlocksUntilEpochIsReached(4)
+	require.Nil(t, err)
+
+	// deploy bridge setup
+	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
+	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
+	bridgeData := deployBridgeSetup(t, cs, initialAddress)
+
+	wallet, err := cs.GenerateAndMintWalletAddress(0, chainSim.InitialAmount)
+	require.Nil(t, err)
+	nonce := uint64(0)
+
+	err = cs.GenerateBlocks(1)
+	require.Nil(t, err)
+
+	trnsData := &transferData{
+		GasLimit: uint64(10000000),
+		Function: []byte("hello"),
+		Args:     [][]byte{{0x01}},
+	}
+
+	// call deposit endpoint with no payment and no transfer data
+	txResult := deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)
+	chainSim.RequireSignalError(t, txResult, "Nothing to transfer")
+
+	// call deposit endpoint with no payment and with transfer data
+	txResult = deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+	chainSim.RequireSuccessfulTransaction(t, txResult)
+
+	// call execute endpoint with no payment and with transfer data
+	receiverContracts := deployReceiverContractInAllShards(t, cs) // generate hello contracts in each shard
+	for shardId := uint32(0); shardId < cs.GetNodeHandler(0).GetProcessComponents().ShardCoordinator().NumberOfShards(); shardId++ {
+		// get contract from a specific shard
+		receiver := receiverContracts[shardId]
+
+		// the executed operation in hello contract should work
+		txResult = executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+		chainSim.RequireSuccessfulTransaction(t, txResult)
+	}
+}
