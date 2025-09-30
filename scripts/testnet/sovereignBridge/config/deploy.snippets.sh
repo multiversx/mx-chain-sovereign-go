@@ -30,7 +30,7 @@ deploySovereignWithCrossChainContracts() {
 
     registerBLSKeys || return
 
-    completeSetupPhase
+    completeSetupPhase || return
 
     startSovereign
 
@@ -43,7 +43,7 @@ startSovereign() {
     updateAndStartBridgeService
 
     local START_TIME=$(generateStartTime)
-    updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" "$START_TIME"
+    updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" $START_TIME
     $TESTNET_DIR/sovereignStart.sh
 
     waitUntilStartTime $START_TIME
