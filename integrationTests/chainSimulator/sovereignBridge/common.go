@@ -469,6 +469,11 @@ func nextShardId(shardId *uint32) {
 	}
 }
 
+func isNft(esdtType core.ESDTType) bool {
+	return esdtType == core.NonFungibleV2 ||
+		esdtType == core.DynamicNFT
+}
+
 func isMeta(esdtType core.ESDTType) bool {
 	return esdtType == core.MetaFungible ||
 		esdtType == core.DynamicMeta
