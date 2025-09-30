@@ -127,7 +127,7 @@ registerBLSKeys() {
         mxpy contract call $CHAIN_CONFIG_ADDRESS \
             --pem "$WALLET" \
             --proxy "$PROXY" \
-            --gas-limit 20000000 \
+            --gas-limit 10000000 \
             --function "register" \
             --arguments \
                 "$BLS_KEY" \
@@ -146,7 +146,7 @@ completeSetupPhase() {
     mxpy contract call $SOVEREIGN_FORGE_ADDRESS \
         --pem "$WALLET" \
         --proxy "$PROXY" \
-        --gas-limit 60000000 \
+        --gas-limit 70000000 \
         --function "completeSetupPhase" \
         --outfile "$OUTFILE" \
         --wait-result \
