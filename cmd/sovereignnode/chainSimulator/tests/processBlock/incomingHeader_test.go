@@ -50,7 +50,7 @@ type sovChainBlockTracer interface {
 	IsGenesisLastCrossNotarizedHeader() bool
 }
 
-// This test will simulate an processIncomingHeaderWithToken header.
+// This test will simulate an incoming header.
 // At the end of the test the amount of tokens needs to be in the receiver account
 func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 	if testing.Short() {
@@ -135,7 +135,7 @@ func processIncomingHeaderWithToken(
 
 // In this test we simulate:
 // - a sovereign chain with the same round time as mainnet
-// - for each generated block in sovereign chain, we receive an processIncomingHeaderWithToken header from mainnet
+// - for each generated block in sovereign chain, we receive an incoming header from mainnet
 func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -184,7 +184,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		time.Sleep(time.Millisecond * 10)
 
 		// We just received header in pool and notified all subscribed components, header has not been processed + committed.
-		// We check how leader will compute the longest processIncomingHeaderWithToken header chain
+		// We check how leader will compute the longest incoming header chain
 		extendedHeaderHash := getExtendedHeaderHash(t, nodeHandler, incomingHdr)
 		longestChain, longestChainHdrHashes, err := sovBlockTracker.ComputeLongestExtendedShardChainFromLastNotarized()
 		require.Nil(t, err)
@@ -196,8 +196,8 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		} else {
 			currentExtendedHeader := getExtendedHeader(t, nodeHandler, incomingHdr)
 
-			// On sovereign epoch start block processing we do not process processIncomingHeaderWithToken headers.
-			// This means that we accumulate processIncomingHeaderWithToken headers in pool and in next sovereign header we need to include
+			// On sovereign epoch start block processing we do not process incoming headers.
+			// This means that we accumulate incoming headers in pool and in next sovereign header we need to include
 			// accumulating headers
 			if prevSovHdr.IsStartOfEpochBlock() {
 				require.Equal(t, []data.HeaderHandler{previousExtendedHeader, currentExtendedHeader}, longestChain)
@@ -208,7 +208,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 			}
 		}
 
-		// Process + commit sovereign block with received processIncomingHeaderWithToken header
+		// Process + commit sovereign block with received incoming header
 		err = cs.GenerateBlocks(1)
 		require.Nil(t, err)
 
@@ -216,21 +216,21 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
 		require.Nil(t, err)
 
-		// Check tracker and blockchain hook state for processIncomingHeaderWithToken processed data
+		// Check tracker and blockchain hook state for incoming processed data
 		if currIncomingHeaderRound <= 99 {
 			require.Zero(t, lastCrossNotarizedHeader.GetRound())
 			require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
 			require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
-		} else if currIncomingHeaderRound == 100 { // pre-genesis processIncomingHeaderWithToken header is notarized
+		} else if currIncomingHeaderRound == 100 { // pre-genesis incoming header is notarized
 			require.Equal(t, uint64(100), lastCrossNotarizedHeader.GetRound())
 			require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
 			require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
-		} else { // since genesis main-chain header, each processIncomingHeaderWithToken header is instantly notarized (0 block finality)
-			if currentSovHeader.IsStartOfEpochBlock() { // epoch start block, no processIncomingHeaderWithToken header process is added to sovereign block
+		} else { // since genesis main-chain header, each incoming header is instantly notarized (0 block finality)
+			if currentSovHeader.IsStartOfEpochBlock() { // epoch start block, no incoming header process is added to sovereign block
 				require.Equal(t, currIncomingHeaderRound-1, lastCrossNotarizedHeader.GetRound())
 				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
 				require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
-			} else if prevSovHdr.IsStartOfEpochBlock() { // prev sov block was epoch start, should have 2 accumulated processIncomingHeaderWithToken headers
+			} else if prevSovHdr.IsStartOfEpochBlock() { // prev sov block was epoch start, should have 2 accumulated incoming headers
 				require.Equal(t, currIncomingHeaderRound, lastCrossNotarizedHeader.GetRound())
 				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
 				require.Equal(t, [][]byte{previousExtendedHeaderHash, extendedHeaderHash}, currentSovHeader.GetExtendedShardHeaderHashes())
@@ -305,7 +305,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 		checkLastCrossNotarizedRound(t, sovBlockTracker, lastCrossNotarizedRound)
 	}
 
-	// From now on, every 3 sovereign blocks we add one processIncomingHeaderWithToken header
+	// From now on, every 3 sovereign blocks we add one incoming header
 	for i := 0; i < 50; i++ {
 		if i%3 == 0 {
 			prevHeader = incomingHdr.Header
@@ -396,7 +396,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	incomingHdrNonce := startRound - 3
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
 
-	// Fill pool with processIncomingHeaderWithToken headers up until pre-genesis
+	// Fill pool with incoming headers up until pre-genesis
 	for i := 0; i < 3; i++ {
 		incomingHdr := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 		prevHeader = incomingHdr.Header
@@ -405,7 +405,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	err = cs.GenerateBlocks(1)
 	require.Nil(t, err)
 
-	// We process one sovereign block, no processIncomingHeaderWithToken header should be added yet
+	// We process one sovereign block, no incoming header should be added yet
 	lastCrossNotarizedRound := uint64(100)
 	checkLastCrossNotarizedRound(t, sovBlockTracker, lastCrossNotarizedRound)
 
@@ -414,7 +414,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 
 	prevSovBlock := currentSovBlock
 	extendedHeaderHashes := make([][]byte, 0)
-	// From now on, we generate 3 processIncomingHeaderWithToken headers per sovereign block
+	// From now on, we generate 3 incoming headers per sovereign block
 	for i := 1; i < 300; i++ {
 		incomingHdr := addIncomingHeader(t, nodeHandler, &incomingHdrNonce, prevHeader)
 		extendedHeaderHashes = append(extendedHeaderHashes, getExtendedHeaderHash(t, nodeHandler, incomingHdr))
