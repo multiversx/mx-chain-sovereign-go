@@ -4,32 +4,32 @@ fund() {
         return 1
     fi
 
-    local RECEIVER=$(python3 $TESTNET_DIR/convert_address.py $1 $ADDRESS_HRP)
+    local RECEIVER=$(python3 "$TESTNET_DIR/convert_address.py" $1 $ADDRESS_HRP)
     echo "Funding wallet address $RECEIVER on sovereign chain..."
 
-    local OUTFILE="${OUTFILE_PATH}/fund-${RECEIVER}.interaction.json"
+    local OUTFILE="$OUTFILE_PATH/fund-$RECEIVER.interaction.json"
     mxpy tx new \
-        --pem=${WALLET_SOVEREIGN} \
-        --proxy=${PROXY_SOVEREIGN} \
-        --receiver=${RECEIVER} \
-        --value=100000000000000000000000 \
-        --gas-limit=50000 \
-        --outfile=${OUTFILE} \
+        --pem "$WALLET_SOVEREIGN" \
+        --proxy "$PROXY_SOVEREIGN" \
+        --receiver "$RECEIVER" \
+        --value 100000000000000000000000 \
+        --gas-limit 50000 \
+        --outfile "$OUTFILE" \
         --wait-result \
         --send
 
-    printTxStatus ${OUTFILE} ${PROXY_SOVEREIGN} || return
+    printTxStatus "$OUTFILE" "$PROXY_SOVEREIGN" || return
 }
 
 downloadCrossChainContracts() {
     echo "Downloading cross-chain contracts..."
 
-    mkdir -p $(eval echo "${CONTRACTS_DIRECTORY}")
+    mkdir -p "$CONTRACTS_DIRECTORY"
     version=$(basename `curl -s https://github.com/multiversx/mx-sovereign-sc/releases/latest -I | grep location | awk -F"https:/" '{print $2}' | tr -d "\r"`)
-    wget -O $(eval echo ${SOVEREIGN_FORGE_ABI}) https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sovereign-forge.abi.json
-    wget -O $(eval echo ${SOV_ESDT_SAFE_WASM}) https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-esdt-safe.wasm
-    wget -O $(eval echo ${SOV_FEE_MARKET_WASM}) https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-fee-market.wasm
-    wget -O $(eval echo ${SOV_REGISTRAR_WASM}) https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-registrar.wasm
+    wget -O "$SOVEREIGN_FORGE_ABI" https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sovereign-forge.abi.json
+    wget -O "$SOV_ESDT_SAFE_WASM" https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-esdt-safe.wasm
+    wget -O "$SOV_FEE_MARKET_WASM" https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-fee-market.wasm
+    wget -O "$SOV_REGISTRAR_WASM" https://github.com/multiversx/mx-sovereign-sc/releases/download/${version}/sov-registrar.wasm
 }
 
 gitPullAllChanges()
