@@ -26,9 +26,8 @@ var serializer, _ = abi.NewSerializer(abi.ArgsNewSerializer{
 
 // ArgsBridgeSetup holds the arguments for bridge setup
 type ArgsBridgeSetup struct {
-	ESDTSafeAddress     []byte
-	FeeMarketAddress    []byte
-	SovRegistrarAddress []byte
+	ESDTSafeAddress  []byte
+	FeeMarketAddress []byte
 }
 
 // deploySovereignBridgeSetup will deploy all bridge contracts
@@ -57,14 +56,11 @@ func deploySovereignBridgeSetup(
 		"@00" // no fee
 	feeMarketAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemScAddress, feeMarketArgs, feeMarketWasmPath)
 
-	sovRegistrarAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemScAddress, "", sovRegistrarWasmPath)
-
 	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, esdtSafeAddress, chainSim.ZeroValue, "unpause", uint64(10000000))
 
 	return ArgsBridgeSetup{
-		ESDTSafeAddress:     esdtSafeAddress,
-		FeeMarketAddress:    feeMarketAddress,
-		SovRegistrarAddress: sovRegistrarAddress,
+		ESDTSafeAddress:  esdtSafeAddress,
+		FeeMarketAddress: feeMarketAddress,
 	}
 }
 
