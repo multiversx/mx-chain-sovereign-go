@@ -43,7 +43,6 @@ func deploySovereignBridgeSetup(
 	wallet dtos.WalletAddress,
 	esdtSafeWasmPath string,
 	feeMarketWasmPath string,
-	sovRegistrarWasmPath string,
 ) ArgsBridgeSetup {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 	systemScAddress := chainSim.GetSysAccBytesAddress(t, nodeHandler)
@@ -56,7 +55,7 @@ func deploySovereignBridgeSetup(
 		"@00" // no fee
 	feeMarketAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemScAddress, feeMarketArgs, feeMarketWasmPath)
 
-	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, esdtSafeAddress, chainSim.ZeroValue, "unpause", uint64(10000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, esdtSafeAddress, chainSim.ZeroValue, "unpause", uint64(10_000_000))
 
 	return ArgsBridgeSetup{
 		ESDTSafeAddress:  esdtSafeAddress,
