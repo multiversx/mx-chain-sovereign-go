@@ -114,7 +114,7 @@ func TestChainSimulator_DepositAndExecuteMainChainToken(t *testing.T) {
 		}
 		// execute operations received from sovereign chain
 		// expecting the token to be transferred from esdt-safe contract to wallet address
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, accountAddrBytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{executeToken}, accountAddrBytes, nil)
+		txResult := executeOperation(t, cs, bridgeData, accountAddrBytes, []chainSim.ArgsDepositToken{executeToken}, accountAddrBytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(executeToken), esdtSafeAddr, big.NewInt(0))
 		waitIfCrossShardProcessing(cs, esdtSafeAddrShard, chainSim.GetShardForAddress(cs, account.addrBech32))
@@ -314,7 +314,7 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 		receiver := receiverContracts[shardId]
 
 		// the executed operation in hello contract should work
-		txResult = executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+		txResult = executeOperation(t, cs, bridgeData, receiver.Bytes, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 	}
 }

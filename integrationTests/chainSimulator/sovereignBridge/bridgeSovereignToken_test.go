@@ -120,7 +120,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 		// -------------
 		// for (dynamic) SFT/MetaESDT the contract will create one more token and keep it forever
 		// because if the same token is received 2nd time, the contract will just add quantity, not create different token
-		txResult = executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, nil)
+		txResult = executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],
@@ -190,7 +190,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 			Function: []byte("hello"),
 			Args:     [][]byte{{0x01}},
 		}
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
+		txResult := executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],
@@ -295,7 +295,7 @@ func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T)
 		// registerToken from sovereign chain
 		// expecting that a new token is issued by esdt-safe contract
 		registerTokens(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, token)
-		if isMeta(token.Type) {
+		if isSftOrMeta(token.Type) {
 			// for some reason it doesn't work without this
 			_ = cs.GenerateBlocks(1)
 		}
@@ -313,7 +313,7 @@ func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T)
 			Args:     [][]byte{{0x00}},
 		}
 		// the executed operation in hello contract is expected to fail, tokens will be minted and then burned
-		txResult = executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
+		txResult = executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],

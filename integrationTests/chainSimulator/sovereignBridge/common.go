@@ -11,6 +11,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/hashing/factory"
+	"github.com/multiversx/mx-chain-crypto-go/signing"
+	"github.com/multiversx/mx-chain-crypto-go/signing/mcl"
+	mclMultiSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/multisig"
+	"github.com/multiversx/mx-chain-crypto-go/signing/mcl/singlesig"
+	"github.com/multiversx/mx-chain-crypto-go/signing/multisig"
 	"github.com/stretchr/testify/require"
 
 	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
@@ -36,20 +42,30 @@ const (
 	headerVerifierIndex   = 2
 
 	sovChainID = "sov1"
+	numOfKeys  = 2
 
-	depositFunc       = "deposit"
-	registerTokenFunc = "registerToken"
+	depositFunc           = "deposit"
+	registerTokenFunc     = "registerToken"
+	registerBridgeOpsFunc = "registerBridgeOps"
+	executeBridgeOpFunc   = "executeBridgeOps"
 )
+
+var hasher, _ = factory.NewHasher("sha256")
+
+type registeredBLSKeys struct {
+	secretKeys [][]byte
+	publicKeys [][]byte
+}
 
 // ArgsBridgeSetup holds the arguments for bridge setup
 type ArgsBridgeSetup struct {
+	RegisteredBLSKeys     registeredBLSKeys
 	SovereignForgeAddress []byte
 	ChainConfigAddress    []byte
 	HeaderVerifierAddress []byte
 	ESDTSafeAddress       []byte
 	FeeMarketAddress      []byte
 	OwnerAccount          chainSim.Account
-	RegisteredBLSKeys     []string
 	NativeESDT            string
 }
 
@@ -88,9 +104,13 @@ func deployBridgeSetup(
 
 	headerVerifierAddress := deployPhaseFour(t, cs, sovereignForgeAddress, ownerAddrBytes, &nonce, sovChainID)
 
-	_, blsKeys, err := chainSimulator.GenerateBlsPrivateKeys(2)
+	secretBlsKeys, publicBlsKeysHex, err := chainSimulator.GenerateBlsPrivateKeys(numOfKeys)
 	require.Nil(t, err)
-	for _, key := range blsKeys {
+	publicBlsKeys := make([][]byte, 0)
+	for _, key := range publicBlsKeysHex {
+		pubKey, _ := hex.DecodeString(key)
+		publicBlsKeys = append(publicBlsKeys, pubKey)
+
 		registerArgs := "register" +
 			"@" + key
 		chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, chainConfigAddress, chainSim.ZeroValue, registerArgs, uint64(10_000_000))
@@ -99,6 +119,10 @@ func deployBridgeSetup(
 	chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, sovereignForgeAddress, chainSim.ZeroValue, "completeSetupPhase", uint64(70_000_000))
 
 	return &ArgsBridgeSetup{
+		RegisteredBLSKeys: registeredBLSKeys{
+			secretKeys: secretBlsKeys,
+			publicKeys: publicBlsKeys,
+		},
 		SovereignForgeAddress: sovereignForgeAddress,
 		ChainConfigAddress:    chainConfigAddress,
 		HeaderVerifierAddress: headerVerifierAddress,
@@ -108,8 +132,7 @@ func deployBridgeSetup(
 			Wallet: dtos.WalletAddress{Bech32: ownerAddress, Bytes: ownerAddrBytes},
 			Nonce:  nonce,
 		},
-		RegisteredBLSKeys: blsKeys,
-		NativeESDT:        nativeESDT,
+		NativeESDT: nativeESDT,
 	}
 }
 
@@ -349,27 +372,66 @@ func generateRandomHash() string {
 	return hex.EncodeToString(randomBytes)
 }
 
+func createAggrSignature(
+	t *testing.T,
+	bridgeData ArgsBridgeSetup,
+	hashOfHashes []byte,
+) []byte {
+	suite := mcl.NewSuiteBLS12()
+	keyGenerator := signing.NewKeyGenerator(suite)
+
+	signatures := make([][]byte, 0)
+	for _, secretKey := range bridgeData.RegisteredBLSKeys.secretKeys {
+		privateKey, err := keyGenerator.PrivateKeyFromByteArray(secretKey)
+		require.NoError(t, err)
+		signer := singlesig.NewBlsSigner()
+		signature, err := signer.Sign(privateKey, hashOfHashes)
+		require.NoError(t, err)
+		signatures = append(signatures, signature)
+	}
+
+	multisig, err := multisig.NewBLSMultisig(&mclMultiSig.BlsMultiSignerKOSK{}, keyGenerator)
+	require.NoError(t, err)
+	aggrSignature, err := multisig.AggregateSigs(bridgeData.RegisteredBLSKeys.publicKeys, signatures)
+	require.NoError(t, err)
+
+	return aggrSignature
+}
+
 func executeOperation(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
-	wallet dtos.WalletAddress,
+	bridgeData *ArgsBridgeSetup,
 	receiver []byte,
-	nonce *uint64,
-	esdtSafeAddress []byte,
 	bridgedInTokens []chainSim.ArgsDepositToken,
 	originalSender []byte,
 	transferData *transferData,
 ) *transaction.ApiTransactionResult {
-	executeBridgeOpsData := "executeBridgeOps" +
-		"@" + generateRandomHash() + //dummy hash
-		"@" + // operation
-		hex.EncodeToString(receiver) + // receiver address
+	operation := hex.EncodeToString(receiver) + // receiver address
 		lengthOn4Bytes(len(bridgedInTokens)) + // nr of tokens
-		getTokenDataArgs(wallet.Bytes, bridgedInTokens) + // tokens encoded arg
+		getTokenDataArgs(bridgeData.OwnerAccount.Wallet.Bytes, bridgedInTokens) + // tokens encoded arg
 		getUint64Bytes(0) + // event nonce
 		hex.EncodeToString(originalSender) + // sender address from other chain
 		getTransferDataArgs(transferData)
-	return chainSim.SendTransaction(t, cs, wallet.Bytes, nonce, esdtSafeAddress, chainSim.ZeroValue, executeBridgeOpsData, uint64(100000000))
+	operationBytes, _ := hex.DecodeString(operation)
+
+	operationHash := hasher.Compute(string(operationBytes))
+	hashOfHashes := hasher.Compute(string(operationHash))
+	aggrSignature := createAggrSignature(t, *bridgeData, hashOfHashes)
+	bitmap := (1 << numOfKeys) - 1
+
+	registerBridgeOpsData := registerBridgeOpsFunc +
+		"@" + hex.EncodeToString(aggrSignature) +
+		"@" + hex.EncodeToString(hashOfHashes) +
+		"@" + fmt.Sprintf("%02X", bitmap) +
+		"@00" + // epoch
+		"@" + hex.EncodeToString(operationHash)
+	chainSim.SendTransactionWithSuccess(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.HeaderVerifierAddress, chainSim.ZeroValue, registerBridgeOpsData, uint64(100000000))
+
+	executeBridgeOpsData := executeBridgeOpFunc +
+		"@" + hex.EncodeToString(hashOfHashes) +
+		"@" + operation
+	return chainSim.SendTransaction(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, chainSim.ZeroValue, executeBridgeOpsData, uint64(100000000))
 }
 
 func getTokenDataArgs(creator []byte, tokens []chainSim.ArgsDepositToken) string {
