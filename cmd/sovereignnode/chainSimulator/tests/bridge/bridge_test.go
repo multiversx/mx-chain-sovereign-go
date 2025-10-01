@@ -88,7 +88,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositNativeESDTToken(
 	require.Nil(t, err)
 
 	initialWallet := dtos.WalletAddress{Bech32: initialAddress, Bytes: initialAddrBytes}
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath, sovRegistrarWasmPath)
+	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
 	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
 
 	wallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.InitialAmount)
@@ -491,7 +491,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsThenRegisterTokenAndDeposi
 
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
 	initialWallet := dtos.WalletAddress{Bech32: initialAddress, Bytes: initialAddrBytes}
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath, sovRegistrarWasmPath)
+	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
 
 	wallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.InitialAmount)
 	require.Nil(t, err)
