@@ -27,7 +27,6 @@ const (
 	sovereignConfigPath        = "../../../config/"
 	esdtSafeWasmPath           = "../testdata/sov-esdt-safe.wasm"
 	feeMarketWasmPath          = "../testdata/sov-fee-market.wasm"
-	sovRegistrarWasmPath       = "../testdata/sov-registrar.wasm"
 	issuePrice                 = "5000000000000000000"
 )
 
@@ -95,7 +94,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsThenIssueAndDeposit(t *tes
 	expectedESDTSafeAddressBytes, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Decode(outGoingSubscribedAddress)
 	require.Nil(t, err)
 
-	bridgeData := deploySovereignBridgeSetup(t, cs, wallet, esdtSafeWasmPath, feeMarketWasmPath, sovRegistrarWasmPath)
+	bridgeData := deploySovereignBridgeSetup(t, cs, wallet, esdtSafeWasmPath, feeMarketWasmPath)
 	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
 
 	nonce := GetNonce(t, nodeHandler, wallet.Bech32)
@@ -181,7 +180,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositMainChainToken(t
 	require.Nil(t, err)
 
 	initialWallet := dtos.WalletAddress{Bech32: initialAddress, Bytes: initialAddrBytes}
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath, sovRegistrarWasmPath)
+	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
 	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
 
 	// generate wallet and set main chain token supply
@@ -314,7 +313,7 @@ func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) 
 	require.Nil(t, err)
 
 	initialWallet := dtos.WalletAddress{Bech32: initialAddress, Bytes: initialAddrBytes}
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath, sovRegistrarWasmPath)
+	bridgeData := deploySovereignBridgeSetup(t, cs, initialWallet, esdtSafeWasmPath, feeMarketWasmPath)
 	require.Equal(t, expectedESDTSafeAddressBytes, bridgeData.ESDTSafeAddress)
 
 	txResult := Deposit(t, cs, wallet.Bytes, &nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, nil)

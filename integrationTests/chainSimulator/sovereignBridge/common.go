@@ -27,7 +27,7 @@ const (
 	chainConfigWasmPath    = "testdata/chain-config.wasm"
 	headerVerifierWasmPath = "testdata/header-verifier.wasm"
 	esdtSafeWasmPath       = "testdata/mvx-esdt-safe.wasm"
-	feeMarketWasmPath      = "testdata/fee-market.wasm"
+	feeMarketWasmPath      = "testdata/mvx-fee-market.wasm"
 
 	sovereignForgeShardID = 1
 	chainConfigIndex      = 6
@@ -93,10 +93,10 @@ func deployBridgeSetup(
 	for _, key := range blsKeys {
 		registerArgs := "register" +
 			"@" + key
-		chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, chainConfigAddress, chainSim.ZeroValue, registerArgs, uint64(20_000_000))
+		chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, chainConfigAddress, chainSim.ZeroValue, registerArgs, uint64(10_000_000))
 	}
 
-	chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, sovereignForgeAddress, chainSim.ZeroValue, "completeSetupPhase", uint64(50_000_000))
+	chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, sovereignForgeAddress, chainSim.ZeroValue, "completeSetupPhase", uint64(70_000_000))
 
 	return &ArgsBridgeSetup{
 		SovereignForgeAddress: sovereignForgeAddress,
@@ -129,7 +129,7 @@ func deploySovereignSCSetup(
 		_ = cs.GenerateBlocks(1)
 
 		chainConfigTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", chainConfigWasmPath)
-		esdtSafeTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@31", esdtSafeWasmPath)                                                   // random prefix
+		esdtSafeTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(wallet.Bytes)+"@31", esdtSafeWasmPath)              // random prefix
 		feeMarketTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(esdtSafeTemplateAddress)+"@00", feeMarketWasmPath) // no fee
 		headerVerifierTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", headerVerifierWasmPath)
 
@@ -179,9 +179,9 @@ func deployPhaseTwo(
 	nativeTokenName := "SovToken"
 	issueCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
 	registerNativeTokenArgs := "registerNativeToken" +
-		"@" + lengthOn4Bytes(len(nativeTokenTicker)) + hex.EncodeToString([]byte(nativeTokenTicker)) +
-		lengthOn4Bytes(len(nativeTokenName)) + hex.EncodeToString([]byte(nativeTokenName))
-	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, issueCost, registerNativeTokenArgs, uint64(80_000_000))
+		"@" + hex.EncodeToString([]byte(nativeTokenTicker)) +
+		"@" + hex.EncodeToString([]byte(nativeTokenName))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, esdtSafeAddress, issueCost, registerNativeTokenArgs, uint64(80_000_000))
 	_ = cs.GenerateBlocks(2)
 	nativeESDT := readNativeESDT(t, cs, esdtSafeAddress)
 
