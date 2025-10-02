@@ -20,4 +20,5 @@ type RegisteredBlsKey struct {
 	ID    []byte
 	Key   []byte
 	Owner []byte
+	Nonce uint64
 }
