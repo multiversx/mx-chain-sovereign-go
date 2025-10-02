@@ -100,7 +100,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 	for _, token := range tokens {
 		// register sovereign token identifier
 		// this will issue a new token on main chain and create a mapper between the identifiers
-		registerSovereignToken(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
+		registerSovereignToken(t, cs, bridgeData, wallet, &nonce, token)
 		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), token.Type.String())
 
 		// create random receiver addresses in a shard
@@ -112,7 +112,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 		// -------------
 		// for (dynamic) SFT/MetaESDT the contract will create one more token and keep it forever
 		// because if the same token is received 2nd time, the contract will just add quantity, not create different token
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, nil)
+		txResult := executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],
@@ -180,7 +180,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 			Function: []byte("hello"),
 			Args:     [][]byte{{0x01}},
 		}
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
+		txResult := executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],
@@ -299,7 +299,7 @@ func TestChainSimulator_DepositAndExecuteMainChainToken(t *testing.T) {
 		}
 		// execute operations received from sovereign chain
 		// expecting the token to be transferred from esdt-safe contract to wallet address
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, accountAddrBytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{executeToken}, accountAddrBytes, nil)
+		txResult := executeOperation(t, cs, bridgeData, accountAddrBytes, []chainSim.ArgsDepositToken{executeToken}, accountAddrBytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(executeToken), esdtSafeAddr, big.NewInt(0))
 		waitIfCrossShardProcessing(cs, esdtSafeAddrShard, chainSim.GetShardForAddress(cs, account.addrBech32))
@@ -374,7 +374,7 @@ func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T)
 	for _, token := range tokens {
 		// register sovereign token identifier
 		// this will issue a new token on main chain and create a mapper between the identifiers
-		registerSovereignToken(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
+		registerSovereignToken(t, cs, bridgeData, wallet, &nonce, token)
 		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), token.Type.String())
 
 		// get contract from next shard
@@ -389,7 +389,7 @@ func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T)
 			Args:     [][]byte{{0x00}},
 		}
 		// the executed operation in hello contract is expected to fail, tokens will be minted and then burned
-		txResult := executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
+		txResult := executeOperation(t, cs, bridgeData, receiver.Bytes, []chainSim.ArgsDepositToken{token}, wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 		receivedToken := chainSim.ArgsDepositToken{
 			Identifier: tokensMapper[token.Identifier],
@@ -494,7 +494,7 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 		receiver := receiverContracts[shardId]
 
 		// the executed operation in hello contract should work
-		txResult = executeOperation(t, cs, bridgeData.OwnerAccount.Wallet, receiver.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
+		txResult = executeOperation(t, cs, bridgeData, receiver.Bytes, make([]chainSim.ArgsDepositToken, 0), wallet.Bytes, trnsData)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
 	}
 }
@@ -685,12 +685,12 @@ func createNftArgs(tokenIdentifier string, initialSupply *big.Int, name string) 
 func registerSovereignToken(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
+	bridgeData *ArgsBridgeSetup,
 	wallet dtos.WalletAddress,
 	nonce *uint64,
-	esdtSafeAddress []byte,
 	token chainSim.ArgsDepositToken,
 ) {
-	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(esdtSafeAddress)
+	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
 	// deposit main chain -> sovereign chain
@@ -701,12 +701,12 @@ func registerSovereignToken(
 		Nonce:      uint64(0),
 		Amount:     issueCost,
 	}
-	txResult := deposit(t, cs, wallet.Bytes, nonce, esdtSafeAddress, []chainSim.ArgsDepositToken{egldPaymentToken}, wallet.Bytes, nil)
+	txResult := deposit(t, cs, wallet.Bytes, nonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{egldPaymentToken}, wallet.Bytes, nil)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 	waitIfCrossShardProcessing(cs, esdtSafeAddrShard, chainSim.GetShardForAddress(cs, wallet.Bech32))
 	chainSim.RequireBalance(t, cs, esdtSafeAddr, issueCost)
 
-	registerTokens(t, cs, wallet.Bytes, nonce, esdtSafeAddress, token)
+	registerTokenOperation(t, cs, bridgeData, wallet.Bytes, token)
 }
 
 func deployReceiverContractInAllShards(t *testing.T, cs chainSim.ChainSimulator) map[uint32]dtos.WalletAddress {

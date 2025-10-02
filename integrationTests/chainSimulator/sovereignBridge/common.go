@@ -398,6 +398,28 @@ func createAggrSignature(
 	return aggrSignature
 }
 
+func registerBridgeOp(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	bridgeData *ArgsBridgeSetup,
+	operationBytes []byte,
+) []byte {
+	operationHash := hasher.Compute(string(operationBytes))
+	hashOfHashes := hasher.Compute(string(operationHash))
+	aggrSignature := createAggrSignature(t, *bridgeData, hashOfHashes)
+	bitmap := (1 << numOfKeys) - 1
+
+	registerBridgeOpsData := registerBridgeOpsFunc +
+		"@" + hex.EncodeToString(aggrSignature) +
+		"@" + hex.EncodeToString(hashOfHashes) +
+		"@" + fmt.Sprintf("%02X", bitmap) +
+		"@00" + // epoch
+		"@" + hex.EncodeToString(operationHash)
+	chainSim.SendTransactionWithSuccess(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.HeaderVerifierAddress, chainSim.ZeroValue, registerBridgeOpsData, uint64(100000000))
+
+	return hashOfHashes
+}
+
 func executeOperation(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
@@ -414,19 +436,7 @@ func executeOperation(
 		hex.EncodeToString(originalSender) + // sender address from other chain
 		getTransferDataArgs(transferData)
 	operationBytes, _ := hex.DecodeString(operation)
-
-	operationHash := hasher.Compute(string(operationBytes))
-	hashOfHashes := hasher.Compute(string(operationHash))
-	aggrSignature := createAggrSignature(t, *bridgeData, hashOfHashes)
-	bitmap := (1 << numOfKeys) - 1
-
-	registerBridgeOpsData := registerBridgeOpsFunc +
-		"@" + hex.EncodeToString(aggrSignature) +
-		"@" + hex.EncodeToString(hashOfHashes) +
-		"@" + fmt.Sprintf("%02X", bitmap) +
-		"@00" + // epoch
-		"@" + hex.EncodeToString(operationHash)
-	chainSim.SendTransactionWithSuccess(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.HeaderVerifierAddress, chainSim.ZeroValue, registerBridgeOpsData, uint64(100000000))
+	hashOfHashes := registerBridgeOp(t, cs, bridgeData, operationBytes)
 
 	executeBridgeOpsData := executeBridgeOpFunc +
 		"@" + hex.EncodeToString(hashOfHashes) +
@@ -474,31 +484,33 @@ func getTransferDataArgs(transferData *transferData) string {
 	return transferDataArgs
 }
 
-func registerTokens(
+func registerTokenOperation(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
-	wallet []byte,
-	nonce *uint64,
-	esdtSafeAddress []byte,
+	bridgeData *ArgsBridgeSetup,
+	originalSender []byte,
 	token chainSim.ArgsDepositToken,
 ) {
 	ticker := getTokenTicker(token.Identifier)
-
-	registerTokenArgs := registerTokenFunc +
-		"@" + generateRandomHash() +
-		"@" +
-		lengthOn4Bytes(len(token.Identifier)) + // length of identifier
+	operation := lengthOn4Bytes(len(token.Identifier)) + // length of identifier
 		hex.EncodeToString([]byte(token.Identifier)) + // identifier
 		fmt.Sprintf("%02x", uint32(token.Type)) + // type
 		lengthOn4Bytes(len(ticker)) + // length of name
 		hex.EncodeToString([]byte(ticker)) + // name
 		lengthOn4Bytes(len(ticker)) + // length of ticker
 		hex.EncodeToString([]byte(ticker)) + // ticker
-		"00000012" + // num decimals
+		"00000012" + // 18 decimals
 		getUint64Bytes(1) + // event nonce
-		hex.EncodeToString(wallet) + // sender address from other chain
+		hex.EncodeToString(originalSender) + // sender address from other chain
 		"00" // no transfer data
-	txResult := chainSim.SendTransaction(t, cs, wallet, nonce, esdtSafeAddress, chainSim.ZeroValue, registerTokenArgs, uint64(100_000_000))
+	operationBytes, _ := hex.DecodeString(operation)
+	hashOfHashes := registerBridgeOp(t, cs, bridgeData, operationBytes)
+
+	registerTokenArgs := registerTokenFunc +
+		"@" + hex.EncodeToString(hashOfHashes) +
+		"@" + operation
+
+	txResult := chainSim.SendTransaction(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, chainSim.ZeroValue, registerTokenArgs, uint64(100_000_000))
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	// wait for issue processing from metachain
