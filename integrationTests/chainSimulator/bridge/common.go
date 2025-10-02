@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	issuePaymentCost         = "50000000000000000" // esdt-safe contract without header-verifier checks
+	issuePaymentCost         = "50000000000000000"
 	enshrineEsdtSafeWasmPath = "testdata/enshrine-esdt-safe.wasm"
 	//enshrine esdt-safe contract without checks for prefix or issue cost paid for new tokens
 	simpleEnshrineEsdtSafeWasmPath = "testdata/simple-enshrine-esdt-safe.wasm"
