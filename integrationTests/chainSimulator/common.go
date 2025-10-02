@@ -354,7 +354,7 @@ func GetIssuedEsdtIdentifier(t *testing.T, cs ChainSimulator, ticker string, tok
 		}
 	}
 
-	require.Fail(t, "could not find the issued token")
+	require.Fail(t, "could not find the issued token", "ticker: %s", ticker)
 	return ""
 }
 
