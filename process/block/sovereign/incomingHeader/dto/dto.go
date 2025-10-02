@@ -29,7 +29,7 @@ const (
 	EventIDConfirmedChangeValidatorSet = "changeValidatorSet"
 
 	// EventIDConfirmedChangeRegisterToken identifies an event related to confirmed register token
-	EventIDConfirmedChangeRegisterToken = "registerToken"
+	EventIDConfirmedChangeRegisterToken = "register"
 
 	// EventIDConfirmedRegisterBlsKey identifies an event related to confirmed register bls key
 	EventIDConfirmedRegisterBlsKey = "registerBlsKey"
