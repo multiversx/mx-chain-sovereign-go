@@ -81,7 +81,7 @@ type transferData struct {
 // - set the fee-market address inside esdt-safe contract
 // - disable fee in fee-market contract
 // - unpause esdt-safe contract so deposit operations can start
-func deployBridgeSetup(
+func deploySovereignBridgeSetup(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	ownerAddress string,
@@ -494,7 +494,6 @@ func registerTokens(
 		hex.EncodeToString([]byte(ticker)) + // name
 		lengthOn4Bytes(len(ticker)) + // length of ticker
 		hex.EncodeToString([]byte(ticker)) + // ticker
-		//getUint64Bytes(18) + // num decimals
 		"00000012" + // num decimals
 		getUint64Bytes(1) + // event nonce
 		hex.EncodeToString(wallet) + // sender address from other chain
@@ -503,7 +502,7 @@ func registerTokens(
 	chainSim.RequireSuccessfulTransaction(t, txResult)
 
 	// wait for issue processing from metachain
-	err := cs.GenerateBlocks(1)
+	err := cs.GenerateBlocks(2)
 	require.Nil(t, err)
 }
 
@@ -511,38 +510,9 @@ func getTokenTicker(tokenIdentifier string) string {
 	return strings.Split(tokenIdentifier, "-")[1]
 }
 
-func waitIfCrossShardProcessing(cs chainSim.ChainSimulator, senderShard uint32, receivedShard uint32) {
-	if senderShard != receivedShard {
-		_ = cs.GenerateBlocks(3)
-	}
-}
-
 func getTokenIdentifier(token chainSim.ArgsDepositToken) string {
 	if token.Nonce == 0 {
 		return token.Identifier
 	}
 	return token.Identifier + "-" + fmt.Sprintf("%02x", token.Nonce)
-}
-
-func nextShardId(shardId *uint32) {
-	*shardId++
-	if *shardId > 2 {
-		*shardId = 0
-	}
-}
-
-func isNft(esdtType core.ESDTType) bool {
-	return esdtType == core.NonFungibleV2 ||
-		esdtType == core.DynamicNFT
-}
-
-func isMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.MetaFungible ||
-		esdtType == core.DynamicMeta
-}
-
-func isSftOrMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.SemiFungible ||
-		esdtType == core.DynamicSFT ||
-		isMeta(esdtType)
 }
