@@ -143,7 +143,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	// all pub key ids from genesis are in ascending order
 	allPubKeyIDs := make([][]byte, 8)
 	for idx := 0; idx < 8; idx++ {
-		allPubKeyIDs[idx] = []byte{byte(idx)}
+		allPubKeyIDs[idx] = []byte{byte(idx + 1)}
 	}
 
 	for epoch := 1; epoch <= 5; epoch++ {

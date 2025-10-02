@@ -15,6 +15,8 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/consensus/initializers"
+	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/subRounds"
 	"github.com/stretchr/testify/require"
 
@@ -74,6 +76,15 @@ func createSovSubRoundEndWithSelfLeader(
 	header data.HeaderHandler,
 ) sovEndRoundHandler {
 	container := consensusMocks.InitConsensusCore()
+	return baseCreateSovSubRoundEndWithSelfLeader(container, pool, bridgeHandler, header)
+}
+
+func baseCreateSovSubRoundEndWithSelfLeader(
+	container *spos.ConsensusCore,
+	pool sovereignBlock.OutGoingOperationsPool,
+	bridgeHandler bls.BridgeOperationsHandler,
+	header data.HeaderHandler,
+) sovEndRoundHandler {
 	sr := initSubroundEndRoundWithContainer(container, &statusHandler.AppStatusHandlerStub{})
 	sovEndRound, _ := blsSov.NewSovereignSubRoundEndRound(sr, pool, bridgeHandler)
 
@@ -117,8 +128,6 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 	)
 
 	t.Run("getMessageToVerifySig should return nil when CalculateHash method fails", func(t *testing.T) {
-		t.Parallel()
-
 		sovEndRound.SetHeader(nil)
 
 		msg := sovEndRound.GetMessageToVerifySig()
@@ -126,8 +135,6 @@ func TestSubroundEndRoundV2_GetMessageToVerifySig(t *testing.T) {
 	})
 
 	t.Run("getMessageToVerifySig should return the message on which the signature should be verified", func(t *testing.T) {
-		t.Parallel()
-
 		sovEndRound.SetHeader(&block.Header{Nonce: 1})
 		expectedMsg, _ := core.CalculateHash(sovEndRound.Marshalizer(), sovEndRound.Hasher(), sovEndRound.GetHeader())
 
@@ -343,6 +350,158 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		}
 		sovEndRound := createSovSubRoundEndWithSelfLeader(pool, bridgeHandler, sovHdr)
 		success := sovEndRound.DoSovereignEndRoundJob(currCtx)
+		wg.Wait()
+		require.True(t, success)
+		require.True(t, wasDataSent)
+		require.True(t, wasResetTimerCalled)
+		require.Equal(t, 1, getCallCt)
+	})
+
+	t.Run("outgoing operations found after andromeda", func(t *testing.T) {
+		t.Parallel()
+
+		outGoingDataHash := []byte("hash")
+		outGoingOpHash := []byte("hashOp")
+		outGoingOpData := []byte("bridgeOp")
+		aggregatedSig := []byte("aggregatedSig")
+		leaderSig := []byte("leaderSig")
+		pubKeysBitmap := []byte{0x1, 0x0}
+		getCallCt := 0
+		wasResetTimerCalled := false
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+		pool := &sovereign.OutGoingOperationsPoolMock{
+			GetCalled: func(hash []byte) *sovCore.BridgeOutGoingData {
+				require.Equal(t, outGoingDataHash, hash)
+
+				defer func() {
+					getCallCt++
+				}()
+
+				switch getCallCt {
+				case 0:
+					return &sovCore.BridgeOutGoingData{
+						Type: int32(block.OutGoingMbDeposit),
+						Hash: outGoingDataHash,
+						OutGoingOperations: []*sovCore.OutGoingOperation{
+							{
+								Hash: outGoingOpHash,
+								Data: outGoingOpData,
+							},
+						},
+					}
+				default:
+					require.Fail(t, "should not call get from pool anymore")
+				}
+
+				return nil
+			},
+			DeleteCalled: func(hash []byte) {
+				require.Equal(t, outGoingDataHash, hash)
+			},
+			AddCalled: func(data *sovCore.BridgeOutGoingData) {
+				require.Equal(t, &sovCore.BridgeOutGoingData{
+					Type: int32(block.OutGoingMbDeposit),
+					Hash: outGoingDataHash,
+					OutGoingOperations: []*sovCore.OutGoingOperation{
+						{
+							Hash: outGoingOpHash,
+							Data: outGoingOpData,
+						},
+					},
+					AggregatedSignature: aggregatedSig,
+					LeaderSignature:     leaderSig,
+					PubKeysBitmap:       pubKeysBitmap,
+				}, data)
+			},
+			ResetTimerCalled: func(hashes [][]byte) {
+				defer func() {
+					wg.Done()
+				}()
+
+				require.Equal(t, [][]byte{outGoingDataHash}, hashes)
+				wasResetTimerCalled = true
+			},
+		}
+
+		wasDataSent := false
+		currCtx := context.Background()
+		bridgeHandler := &sovereign.BridgeOperationsHandlerMock{
+			SendCalled: func(ctx context.Context, data *sovCore.BridgeOperations) (*sovCore.BridgeOperationsResponse, error) {
+				defer func() {
+					wg.Done()
+				}()
+
+				require.Equal(t, currCtx, ctx)
+				require.Equal(t, &sovCore.BridgeOperations{
+					Data: []*sovCore.BridgeOutGoingData{
+						{
+							Type: int32(block.OutGoingMbDeposit),
+							Hash: outGoingDataHash,
+							OutGoingOperations: []*sovCore.OutGoingOperation{
+								{
+									Hash: outGoingOpHash,
+									Data: outGoingOpData,
+								},
+							},
+							LeaderSignature:     leaderSig,
+							AggregatedSignature: aggregatedSig,
+							PubKeysBitmap:       pubKeysBitmap,
+						},
+					},
+				}, data)
+				wasDataSent = true
+				return &sovCore.BridgeOperationsResponse{}, nil
+			},
+		}
+
+		sovHdr := &block.SovereignChainHeader{
+			Header: &block.Header{
+				Nonce: 4,
+			},
+			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
+				{
+					// No extra data needed in this outgoing mb, since those are found in proof
+					OutGoingOperationsHash: outGoingDataHash,
+				},
+			},
+		}
+
+		enableEpochsHandler := &enableEpochsHandlerMock.EnableEpochsHandlerStub{
+			IsFlagEnabledInEpochCalled: func(flag core.EnableEpochFlag, epoch uint32) bool {
+				return true
+			},
+		}
+
+		proof := &block.HeaderProof{
+			PubKeysBitmap: pubKeysBitmap,
+		}
+		eqProofsPool := &dataRetriever.ProofsPoolMock{
+			GetProofByNonceCalled: func(headerNonce uint64, shardID uint32) (data.HeaderProofHandler, error) {
+				require.Equal(t, sovHdr.GetNonce(), headerNonce)
+				require.Equal(t, core.SovereignChainShardId, shardID)
+
+				return proof, nil
+			},
+		}
+
+		container := consensusMocks.InitConsensusCore()
+		container.SetEnableEpochsHandler(enableEpochsHandler)
+		container.SetEquivalentProofsPool(eqProofsPool)
+		sovEndRound := baseCreateSovSubRoundEndWithSelfLeader(container, pool, bridgeHandler, sovHdr)
+
+		// No extra signatures found in proof, should not succeed
+		success := sovEndRound.DoSovereignEndRoundJob(currCtx)
+		require.False(t, success)
+
+		// Add extra sigs proof data and it should work
+		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
+			block.OutGoingMbDeposit.String(): {
+				AggregatedSignature: aggregatedSig,
+				LeaderSignature:     leaderSig,
+			},
+		}
+		success = sovEndRound.DoSovereignEndRoundJob(currCtx)
 		wg.Wait()
 		require.True(t, success)
 		require.True(t, wasDataSent)
