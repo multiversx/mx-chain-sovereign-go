@@ -99,14 +99,9 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 
 	nonce := GetNonce(t, nodeHandler, wallet.Bech32)
 
-	//tokenIdentifier, _ := issueAndRegisterToken(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress)
 	// Issue new fungible token
 	issueCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
-	supply, _ := big.NewInt(0).SetString("123000000000000000000", 10)
-	tokenName := "SovToken"
-	tokenTicker := "SVN"
-	numDecimals := 18
-	tokenIdentifier := chainSim.IssueFungible(t, cs, wallet.Bytes, &nonce, issueCost, tokenName, tokenTicker, numDecimals, supply)
+	tokenIdentifier := chainSim.IssueFungible(t, cs, wallet.Bytes, &nonce, issueCost, "SovToken", "SVN", 18, big.NewInt(100000))
 
 	creator, _ := hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
 	esdtToken := sovereign.EsdtToken{
@@ -207,10 +202,10 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 	err = cs.GenerateBlocks(5)
 	require.Nil(t, err)
 
-	// Wait for outgoing sovereignOutGoingOps to get unconfirmed and check we have one, which is also saved in storage
+	// Wait for outgoing sovereignOutGoingOps to get unconfirmed
 	time.Sleep(time.Second)
 
-	// Check number of remaining unconfirmed operations
+	// Check number of remaining unconfirmed operations, and the order
 	unconfirmedBridgeOutGoingData = outGoingOpsPool.GetUnconfirmedOperations()
 	require.Len(t, unconfirmedBridgeOutGoingData, 2)
 	require.Len(t, unconfirmedBridgeOutGoingData[0].OutGoingOperations, numOfRemainingTransfers)
@@ -233,7 +228,7 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 	err = cs.GenerateBlocks(5)
 	require.Nil(t, err)
 
-	// No outgoing sovereignOutGoingOps unconfirmed
+	// No unconfirmed operations
 	unconfirmedBridgeOutGoingData = outGoingOpsPool.GetUnconfirmedOperations()
 	require.Len(t, unconfirmedBridgeOutGoingData, 0)
 	require.Len(t, sovereignOutGoingOps, 0)
