@@ -51,7 +51,6 @@ def main():
     esdt_safe_init_params = sys.argv[3]
     fee_market_path = sys.argv[4]
     fee_market_init_params = sys.argv[5]
-    sov_registrar_path = sys.argv[6]
 
     current_path = os.getcwd()
     project = 'mx-chain-sovereign-go'
