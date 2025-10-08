@@ -85,19 +85,6 @@ def main():
     }
     push_genesis_contract(json_path, fee_market_genesis_contract)
 
-    # sov-registrar -----------------
-    sov_registrar_wasm_path = project_path + "/cmd/node/config/genesisContracts/sov-registrar.wasm"
-    copy_wasm_in_project(sov_registrar_wasm_path, sov_registrar_path)
-
-    sov_registrar_genesis_contract = {
-        "owner": owner_address,
-        "filename": "./config/genesisContracts/sov-registrar.wasm",
-        "init-parameters": "",
-        "vm-type": "0500",
-        "type": "reg"
-    }
-    push_genesis_contract(json_path, sov_registrar_genesis_contract)
-
 
 if __name__ == "__main__":
     main()
