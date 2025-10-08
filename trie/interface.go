@@ -38,6 +38,7 @@ type node interface {
 	getDirtyHashes(common.ModifiedHashes) error
 	getChildren(db common.TrieStorageInteractor) ([]node, error)
 	isValid() bool
+	getNodeData(common.KeyBuilder) ([]common.TrieNodeData, error)
 	setDirty(bool)
 	loadChildren(func([]byte) (node, error)) ([][]byte, []node, error)
 	getAllLeavesOnChannel(chan core.KeyValueHolder, common.KeyBuilder, common.TrieLeafParser, common.TrieStorageInteractor, marshal.Marshalizer, chan struct{}, context.Context) error
@@ -89,7 +90,7 @@ type epochStorer interface {
 
 type snapshotPruningStorer interface {
 	common.BaseStorer
-	GetFromOldEpochsWithoutAddingToCache(key []byte, epoch uint32) ([]byte, core.OptionalUint32, error)
+	GetFromOldEpochsWithoutAddingToCache(key []byte, maxEpochToSearchFrom uint32) ([]byte, core.OptionalUint32, error)
 	GetFromLastEpoch(key []byte) ([]byte, error)
 	PutInEpoch(key []byte, data []byte, epoch uint32) error
 	PutInEpochWithoutCache(key []byte, data []byte, epoch uint32) error

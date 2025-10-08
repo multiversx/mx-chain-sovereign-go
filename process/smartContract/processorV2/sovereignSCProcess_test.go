@@ -81,7 +81,7 @@ func createSovereignSmartContractProcessorArguments() scrCommon.ArgsNewSmartCont
 		BadTxForwarder:      &mock.IntermediateTransactionHandlerMock{},
 		TxFeeHandler:        &mock.FeeAccumulatorStub{},
 		TxLogsProcessor:     &mock.TxLogsProcessorStub{},
-		EconomicsFee:        &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:        &economicsmocks.EconomicsHandlerMock{},
 		TxTypeHandler:       txTypeHandler,
 		GasHandler:          &testscommon.GasHandlerStub{},
 		EnableEpochsHandler: sovEnableEpochsHandler,
@@ -188,6 +188,8 @@ func createSovBlockchainHook(
 		GasSchedule:              testscommon.NewGasScheduleNotifierMock(make(map[string]map[string]uint64)),
 		Counter:                  &testscommon.BlockChainHookCounterStub{},
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		EpochStartTrigger:        &testscommon.EpochStartTriggerStub{},
+		RoundHandler:             &testscommon.RoundHandlerMock{},
 	}
 
 	blockChainHook, _ := hooks.NewBlockChainHookImpl(args)

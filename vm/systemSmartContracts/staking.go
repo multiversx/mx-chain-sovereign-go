@@ -25,6 +25,11 @@ var log = logger.GetOrCreate("vm/systemsmartcontracts")
 const ownerKey = "owner"
 const nodesConfigKey = "nodesConfig"
 
+const (
+	idLogRegisterBlsKey   = "registerBlsKey"
+	idLogUnRegisterBlsKey = "unRegisterBlsKey"
+)
+
 type stakingSC struct {
 	eei                      vm.SystemEI
 	unBondPeriod             uint64
@@ -222,6 +227,15 @@ func (s *stakingSC) addToStakedNodes(value int64) {
 	s.setConfig(stakeConfig)
 }
 
+func (s *stakingSC) addToStakedNodesAndMainChainID(value int64) *StakingNodesConfig {
+	stakeConfig := s.getConfig()
+	stakeConfig.StakedNodes += value
+	stakeConfig.LatestMainChainID += uint32(value)
+	s.setConfig(stakeConfig)
+
+	return stakeConfig
+}
+
 func (s *stakingSC) removeFromStakedNodes() {
 	stakeConfig := s.getConfig()
 	if stakeConfig.StakedNodes > 0 {
@@ -377,7 +391,7 @@ func (s *stakingSC) unJail(args *vmcommon.ContractCallInput) vmcommon.ReturnCode
 	stakedData.UnJailedNonce = s.eei.BlockChainHook().CurrentNonce()
 	stakedData.Jailed = false
 
-	err = s.processStake(args.Arguments[0], stakedData, stakedData.NumJailed == 1)
+	err = s.processStake(args.Arguments[0], stakedData, stakedData.NumJailed == 1, false)
 	if err != nil {
 		return vmcommon.UserError
 	}
@@ -485,7 +499,7 @@ func (s *stakingSC) stake(args *vmcommon.ContractCallInput, onlyRegister bool) v
 	registrationData.OwnerAddress = args.Arguments[2]
 	registrationData.StakeValue.Set(s.stakeValue)
 	if !onlyRegister {
-		err = s.processStake(args.Arguments[0], registrationData, false)
+		err = s.processStake(args.Arguments[0], registrationData, false, true)
 		if err != nil {
 			return vmcommon.UserError
 		}
@@ -564,22 +578,50 @@ func (s *stakingSC) activeStakingFor(stakingData *StakedDataV2_0) {
 	stakingData.Waiting = false
 }
 
-func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool) error {
+func (s *stakingSC) processStake(blsKey []byte, registrationData *StakedDataV2_0, addFirst bool, newNode bool) error {
 	if s.enableEpochsHandler.IsFlagEnabled(common.StakingV4StartedFlag) {
-		return s.processStakeV2(registrationData)
+		return s.processStakeV2(blsKey, registrationData, newNode)
 	}
 
 	return s.processStakeV1(blsKey, registrationData, addFirst)
 }
 
-func (s *stakingSC) processStakeV2(registrationData *StakedDataV2_0) error {
+func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(
+	blsKey []byte,
+	registrationData *StakedDataV2_0,
+	stakingConfig *StakingNodesConfig,
+	newNode bool,
+) {
+	if !newNode {
+		return
+	}
+
+	if !s.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return
+	}
+
+	s.eei.AddLogEntry(&vmcommon.LogEntry{
+		Identifier: []byte(idLogRegisterBlsKey),
+		Topics: [][]byte{
+			blsKey,
+			registrationData.OwnerAddress,
+			big.NewInt(int64(registrationData.StakedNonce)).Bytes(),
+		},
+		Address: vm.StakingSCAddress,
+	})
+
+	registrationData.MainChainID = stakingConfig.LatestMainChainID
+}
+
+func (s *stakingSC) processStakeV2(blsKey []byte, registrationData *StakedDataV2_0, newNode bool) error {
 	if registrationData.Staked {
 		return nil
 	}
 
 	registrationData.RegisterNonce = s.eei.BlockChainHook().CurrentNonce()
-	s.addToStakedNodes(1)
+	stakingConfig := s.addToStakedNodesAndMainChainID(1)
 	s.activeStakingFor(registrationData)
+	s.addRegisterBlsKeyLogIfNeeded(blsKey, registrationData, stakingConfig, newNode)
 
 	return nil
 }
@@ -665,7 +707,25 @@ func (s *stakingSC) doUnStake(key []byte, registrationData *StakedDataV2_0) vmco
 		return vmcommon.UserError
 	}
 
+	s.addUnRegisterBlsKeyLogIfNeeded(key, registrationData)
+
 	return vmcommon.Ok
+}
+
+func (s *stakingSC) addUnRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationData *StakedDataV2_0) {
+	if !s.enableEpochsHandler.IsFlagEnabled(common.ConsensusModelSovereignFlag) {
+		return
+	}
+
+	s.eei.AddLogEntry(&vmcommon.LogEntry{
+		Identifier: []byte(idLogUnRegisterBlsKey),
+		Topics: [][]byte{
+			blsKey,
+			registrationData.OwnerAddress,
+			big.NewInt(int64(registrationData.UnStakedNonce)).Bytes(),
+		},
+		Address: vm.StakingSCAddress,
+	})
 }
 
 func (s *stakingSC) unBond(args *vmcommon.ContractCallInput) vmcommon.ReturnCode {

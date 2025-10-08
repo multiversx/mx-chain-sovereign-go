@@ -32,7 +32,7 @@ func createMockPreProcessorsContainerFactoryArguments() metachain.ArgPreProcesso
 		RequestHandler:               &testscommon.RequestHandlerStub{},
 		TxProcessor:                  &testscommon.TxProcessorMock{},
 		ScResultProcessor:            &testscommon.SmartContractResultsProcessorMock{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		GasHandler:                   &testscommon.GasHandlerStub{},
 		BlockTracker:                 &mock.BlockTrackerMock{},
 		PubkeyConverter:              createMockPubkeyConverter(),

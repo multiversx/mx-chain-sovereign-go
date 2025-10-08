@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -286,16 +287,16 @@ func createSovereignShardGenesisBlock(
 		return nil, nil, nil, err
 	}
 
-	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
 	deploySystemSCTxs, err := deploySystemSmartContracts(arg, metaProcessor.txProcessor, metaProcessor.systemSCs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	indexingData.DeploySystemScTxs = deploySystemSCTxs
+
+	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	stakingTxs, err := setSovereignStakedData(arg, metaProcessor, nodesListSplitter)
 	if err != nil {
@@ -430,7 +431,7 @@ func setSovereignStakedData(
 			return nil, genesis.ErrBLSKeyNotStaked
 		}
 
-		err = setGenesisNodeChainID(idx, arg.ValidatorAccounts, nodeInfo.PubKeyBytes())
+		err = setGenesisNodeChainID(idx+1, arg.ValidatorAccounts, nodeInfo.PubKeyBytes())
 		if err != nil {
 			return nil, err
 		}
@@ -459,15 +460,8 @@ func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []b
 		return err
 	}
 
-	valAcc.SetMainChainID(intToBytes(id))
+	valAcc.SetMainChainID(runType.UIntToBytes(uint32(id)))
 	return peerAccountsDB.SaveAccount(valAcc)
-}
-
-func intToBytes(n int) []byte {
-	if n == 0 {
-		return []byte{0x0}
-	}
-	return big.NewInt(int64(n)).Bytes()
 }
 
 func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {
