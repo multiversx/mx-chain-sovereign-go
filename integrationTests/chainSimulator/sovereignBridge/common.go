@@ -1,7 +1,6 @@
 package sovereignBridge
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -52,15 +51,15 @@ const (
 
 var hasher, _ = factory.NewHasher("sha256")
 
-type registeredBLSKeys struct {
-	secretKeys [][]byte
-	publicKeys [][]byte
+type registeredBLSKey struct {
+	secretKey []byte
+	publicKey []byte
 }
 
 // ArgsBridgeSetup holds the arguments for bridge setup
 type ArgsBridgeSetup struct {
 	ExecutionNonce        uint64
-	RegisteredBLSKeys     registeredBLSKeys
+	RegisteredBLSKeys     []registeredBLSKey
 	SovereignForgeAddress []byte
 	ChainConfigAddress    []byte
 	HeaderVerifierAddress []byte
@@ -104,10 +103,13 @@ func deploySovereignBridgeOnMainChain(
 
 	secretBlsKeys, publicBlsKeysHex, err := chainSimulator.GenerateBlsPrivateKeys(numOfKeys)
 	require.Nil(t, err)
-	publicBlsKeys := make([][]byte, 0)
-	for _, key := range publicBlsKeysHex {
+	registeredBLSKeys := make([]registeredBLSKey, 0)
+	for i, key := range publicBlsKeysHex {
 		pubKey, _ := hex.DecodeString(key)
-		publicBlsKeys = append(publicBlsKeys, pubKey)
+		registeredBLSKeys = append(registeredBLSKeys, registeredBLSKey{
+			secretKey: secretBlsKeys[i],
+			publicKey: pubKey,
+		})
 
 		registerArgs := "register" +
 			"@" + key
@@ -117,10 +119,7 @@ func deploySovereignBridgeOnMainChain(
 	chainSim.SendTransactionWithSuccess(t, cs, ownerAddrBytes, &nonce, sovereignForgeAddress, chainSim.ZeroValue, "completeSetupPhase", uint64(70_000_000))
 
 	return &ArgsBridgeSetup{
-		RegisteredBLSKeys: registeredBLSKeys{
-			secretKeys: secretBlsKeys,
-			publicKeys: publicBlsKeys,
-		},
+		RegisteredBLSKeys:     registeredBLSKeys,
 		SovereignForgeAddress: sovereignForgeAddress,
 		ChainConfigAddress:    chainConfigAddress,
 		HeaderVerifierAddress: headerVerifierAddress,
@@ -365,36 +364,52 @@ func getUint64Bytes(number uint64) string {
 	return hex.EncodeToString(nonceBytes)
 }
 
-func generateRandomHash() string {
-	randomBytes := make([]byte, 32)
-	_, _ = rand.Read(randomBytes)
-	return hex.EncodeToString(randomBytes)
-}
-
 func createAggrSignature(
 	t *testing.T,
-	bridgeData ArgsBridgeSetup,
+	registeredBLSKeys []registeredBLSKey,
 	hashOfHashes []byte,
 ) []byte {
 	suite := mcl.NewSuiteBLS12()
 	keyGenerator := signing.NewKeyGenerator(suite)
 
 	signatures := make([][]byte, 0)
-	for _, secretKey := range bridgeData.RegisteredBLSKeys.secretKeys {
-		privateKey, err := keyGenerator.PrivateKeyFromByteArray(secretKey)
+	publicKeys := make([][]byte, 0)
+	for _, bls := range registeredBLSKeys {
+		privateKey, err := keyGenerator.PrivateKeyFromByteArray(bls.secretKey)
 		require.NoError(t, err)
+
 		signer := singlesig.NewBlsSigner()
 		signature, err := signer.Sign(privateKey, hashOfHashes)
 		require.NoError(t, err)
+
 		signatures = append(signatures, signature)
+		publicKeys = append(publicKeys, bls.publicKey)
 	}
 
 	multisig, err := multisig.NewBLSMultisig(&mclMultiSig.BlsMultiSignerKOSK{}, keyGenerator)
 	require.NoError(t, err)
-	aggrSignature, err := multisig.AggregateSigs(bridgeData.RegisteredBLSKeys.publicKeys, signatures)
+
+	aggrSignature, err := multisig.AggregateSigs(publicKeys, signatures)
 	require.NoError(t, err)
 
 	return aggrSignature
+}
+
+func createRegisterBridgeOpData(
+	t *testing.T,
+	bridgeData *ArgsBridgeSetup,
+	hashOfHashes []byte,
+	operationHash []byte,
+) string {
+	aggrSignature := createAggrSignature(t, bridgeData.RegisteredBLSKeys, hashOfHashes)
+	bitmap := (1 << numOfKeys) - 1
+
+	return registerBridgeOpsFunc +
+		"@" + hex.EncodeToString(aggrSignature) +
+		"@" + hex.EncodeToString(hashOfHashes) +
+		"@" + fmt.Sprintf("%02X", bitmap) +
+		"@00" + // epoch
+		"@" + hex.EncodeToString(operationHash)
 }
 
 func registerBridgeOp(
@@ -405,15 +420,8 @@ func registerBridgeOp(
 ) []byte {
 	operationHash := hasher.Compute(string(operationBytes))
 	hashOfHashes := hasher.Compute(string(operationHash))
-	aggrSignature := createAggrSignature(t, *bridgeData, hashOfHashes)
-	bitmap := (1 << numOfKeys) - 1
 
-	registerBridgeOpsData := registerBridgeOpsFunc +
-		"@" + hex.EncodeToString(aggrSignature) +
-		"@" + hex.EncodeToString(hashOfHashes) +
-		"@" + fmt.Sprintf("%02X", bitmap) +
-		"@00" + // epoch
-		"@" + hex.EncodeToString(operationHash)
+	registerBridgeOpsData := createRegisterBridgeOpData(t, bridgeData, hashOfHashes, operationHash)
 	chainSim.SendTransactionWithSuccess(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.HeaderVerifierAddress, chainSim.ZeroValue, registerBridgeOpsData, uint64(100000000))
 
 	return hashOfHashes
