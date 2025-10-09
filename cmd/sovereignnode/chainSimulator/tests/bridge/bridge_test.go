@@ -110,10 +110,10 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositNativeESDTToken(
 	txFee, _ := big.NewInt(0).SetString(txResult.Fee, 10)
 	amountAfterFee := big.NewInt(0).Sub(chainSim.InitialAmount, txFee)
 
-	tokens, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
+	nativeBalance, _, err := nodeHandler.GetFacadeHandler().GetBalance(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
-	require.NotNil(t, tokens)
-	require.Equal(t, big.NewInt(0).Sub(amountAfterFee, amountToDeposit).String(), tokens[nativeESDT].GetValue().String())
+	require.NotNil(t, nativeBalance)
+	require.Equal(t, big.NewInt(0).Sub(amountAfterFee, amountToDeposit).String(), nativeBalance.String())
 
 	tokenSupply, err := nodeHandler.GetFacadeHandler().GetTokenSupply(nativeESDT)
 	require.Nil(t, err)
@@ -296,6 +296,7 @@ func depositMainChainToken(
 	time.Sleep(time.Second)
 
 	checkOutGoingOperation(t, cs)
+	confirmOutgoingOperations(t, cs)
 }
 
 func depositAndCheckTokens(
@@ -357,15 +358,20 @@ func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	require.Equal(t, expectedSavedTx, savedTx)
 
 	// Generate extra blocks after outgoing operations are created
-	err = cs.GenerateBlocks(5)
+	err = cs.GenerateBlocks(10)
 	require.Nil(t, err)
+}
 
-	// Confirm operation
-	err = nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().ConfirmOperation(outGoingOps[0].Hash, outGoingOp.Hash)
-	require.NoError(t, err)
+func confirmOutgoingOperations(t *testing.T, cs chainSim.ChainSimulator) {
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
 
-	err = cs.GenerateBlocks(5)
-	require.Nil(t, err)
+	for _, outGoingOp := range outGoingOps {
+		for _, operation := range outGoingOp.OutGoingOperations {
+			err := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().ConfirmOperation(outGoingOp.Hash, operation.Hash)
+			require.NoError(t, err)
+		}
+	}
 }
 
 func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) {

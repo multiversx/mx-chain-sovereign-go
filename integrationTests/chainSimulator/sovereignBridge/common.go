@@ -77,12 +77,9 @@ type transferData struct {
 }
 
 // This function will:
-// - deploy esdt-safe contract
-// - deploy fee-market contract
-// - set the fee-market address inside esdt-safe contract
-// - disable fee in fee-market contract
-// - unpause esdt-safe contract so deposit operations can start
-func deploySovereignBridgeSetup(
+// - deploy the base sovereign SCs setup on main chain
+// - deploy a new sovereign bridge on main chain
+func deploySovereignBridgeOnMainChain(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	ownerAddress string,
@@ -91,7 +88,7 @@ func deploySovereignBridgeSetup(
 
 	systemContractDeploy := chainSim.GetSysContactDeployAddressBytes(t, nodeHandler)
 
-	sovereignForgeAddress := deploySovereignSCSetup(t, cs, systemContractDeploy)
+	sovereignForgeAddress := deploySovereignBaseSetupOnMainChain(t, cs, systemContractDeploy)
 
 	ownerAddrBytes, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Decode(ownerAddress)
 	require.Nil(t, err)
@@ -137,7 +134,8 @@ func deploySovereignBridgeSetup(
 	}
 }
 
-func deploySovereignSCSetup(
+// This function will deploy the base sovereign smart contracts bridge setup on main chain
+func deploySovereignBaseSetupOnMainChain(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	systemContractDeploy []byte,

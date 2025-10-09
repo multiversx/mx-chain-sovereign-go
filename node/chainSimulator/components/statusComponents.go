@@ -13,6 +13,7 @@ import (
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
 	factoryMarshalizer "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	indexerFactory "github.com/multiversx/mx-chain-es-indexer-go/process/factory"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
@@ -136,6 +137,7 @@ func makeElasticIndexerArgs(external config.ExternalConfig, coreComponents proce
 	return indexerFactory.ArgsIndexerFactory{
 		Enabled:                  elasticSearchConfig.Enabled,
 		BulkRequestMaxSize:       elasticSearchConfig.BulkRequestMaxSizeInBytes,
+		NumWritesInParallel:      elasticSearchConfig.NumWritesInParallel,
 		Url:                      elasticSearchConfig.URL,
 		UserName:                 elasticSearchConfig.Username,
 		Password:                 elasticSearchConfig.Password,
