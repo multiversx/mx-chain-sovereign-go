@@ -110,10 +110,10 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositNativeESDTToken(
 	txFee, _ := big.NewInt(0).SetString(txResult.Fee, 10)
 	amountAfterFee := big.NewInt(0).Sub(chainSim.InitialAmount, txFee)
 
-	tokens, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(wallet.Bech32, coreAPI.AccountQueryOptions{})
+	nativeBalance, _, err := nodeHandler.GetFacadeHandler().GetBalance(wallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
-	require.NotNil(t, tokens)
-	require.Equal(t, big.NewInt(0).Sub(amountAfterFee, amountToDeposit).String(), tokens[nativeESDT].GetValue().String())
+	require.NotNil(t, nativeBalance)
+	require.Equal(t, big.NewInt(0).Sub(amountAfterFee, amountToDeposit).String(), nativeBalance.String())
 
 	tokenSupply, err := nodeHandler.GetFacadeHandler().GetTokenSupply(nativeESDT)
 	require.Nil(t, err)
