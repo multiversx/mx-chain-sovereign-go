@@ -287,7 +287,7 @@ func TransferESDTNFT(
 	RequireSuccessfulTransaction(t, txResult)
 }
 
-// TransferMultiESDTNFT will transfer the amount of NFT/SFT token to an address
+// TransferMultiESDTNFT will transfer NFT/SFT tokens to an address
 func TransferMultiESDTNFT(
 	t *testing.T,
 	cs ChainSimulator,

@@ -17,6 +17,7 @@ import (
 	"github.com/multiversx/mx-chain-go/errors"
 )
 
+// BridgeDataSignatures holds relevant bridge data information from sovereign chain to main chain
 type BridgeDataSignatures struct {
 	Hash      []byte
 	AggSig    []byte
@@ -195,6 +196,7 @@ func (sr *sovereignSubRoundEnd) sendUnconfirmedOperationsIfFound(ctx context.Con
 	go sr.sendOutGoingOperations(ctx, unconfirmedOperations)
 }
 
+// UpdateBridgeDataWithSignatures will update the outgoing operation from pool with its signatures from provided struct
 func UpdateBridgeDataWithSignatures(
 	bridgeDataSigs *BridgeDataSignatures,
 	outGoingOperationsPool bls.OutGoingOperationsPool,
