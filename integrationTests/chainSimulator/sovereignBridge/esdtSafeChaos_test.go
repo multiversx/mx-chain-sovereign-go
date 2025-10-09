@@ -58,7 +58,7 @@ func TestChainSimulator_ExecuteOperationBadNonce(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialAddress)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 
 	wallet, err := cs.GenerateAndMintWalletAddress(1, chainSim.InitialAmount)
@@ -77,10 +77,12 @@ func TestChainSimulator_ExecuteOperationBadNonce(t *testing.T) {
 	registerSovereignToken(t, cs, bridgeData, wallet, &nonce, sovereignToken)
 	mappedToken := chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(sovereignToken.Identifier), sovereignToken.Type.String())
 
-	numOfTransfers := 5
+	numOfTransfers := 4
 	numOfSuccessfulTransfers := 2
+	var lastNonce uint64
 	for i := 0; i < numOfTransfers; i++ {
 		if i == numOfSuccessfulTransfers {
+			lastNonce = bridgeData.ExecutionNonce
 			bridgeData.ExecutionNonce = 100 // set bad nonce
 		}
 
@@ -94,4 +96,10 @@ func TestChainSimulator_ExecuteOperationBadNonce(t *testing.T) {
 	}
 	chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(sovereignToken), esdtSafeAddr, big.NewInt(0))
 	chainSim.RequireAccountHasToken(t, cs, mappedToken, wallet.Bech32, big.NewInt(int64(numOfSuccessfulTransfers)))
+
+	bridgeData.ExecutionNonce = lastNonce
+	txResult := executeOperation(t, cs, bridgeData, wallet.Bytes, []chainSim.ArgsDepositToken{sovereignToken}, wallet.Bytes, nil)
+	chainSim.RequireSuccessfulTransaction(t, txResult)
+	chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(sovereignToken), esdtSafeAddr, big.NewInt(0))
+	chainSim.RequireAccountHasToken(t, cs, mappedToken, wallet.Bech32, big.NewInt(int64(numOfSuccessfulTransfers)+1))
 }

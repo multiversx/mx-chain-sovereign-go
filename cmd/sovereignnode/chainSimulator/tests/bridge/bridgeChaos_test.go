@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
 	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
 	"github.com/multiversx/mx-chain-go/config"
 	chainSim "github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
@@ -128,13 +127,10 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 	operations := depositEsdtTokenMultipleTimes(t, cs, esdtToken, wallet, &nonce, bridgeData.ESDTSafeAddress, &currentOpNonce, numOfTransfers)
 	sovereignOutGoingOps = append(sovereignOutGoingOps, operations...)
 
-	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{
-		PartsSeparator: "@",
-	})
 	dtaCodec, _ := dataCodec.NewDataCodec(serializer)
 
 	outGoingOpsPool := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler()
-	sovHeader, _ := nodeHandler.GetChainHandler().GetCurrentBlockHeader().(data.SovereignChainHeaderHandler)
+	sovHeader := common.GetCurrentSovereignHeader(nodeHandler)
 
 	outGoingMbHeaders := sovHeader.GetOutGoingMiniBlockHeaderHandlers()
 	require.Len(t, outGoingMbHeaders, 1)
@@ -158,9 +154,8 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 		outGoingOp := outGoingOperationsCopy[i]
 		err = outGoingOpsPool.ConfirmOperation(bridgeOutGoingData.Hash, outGoingOp.Hash)
 		require.NoError(t, err)
-
-		sovereignOutGoingOps = sovereignOutGoingOps[1:] // delete confirmed operations
 	}
+	sovereignOutGoingOps = sovereignOutGoingOps[numOpsToConfirm:] // delete confirmed operations
 
 	numOfRemainingTransfers := numOfTransfers - numOpsToConfirm
 
@@ -186,7 +181,7 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 	operations = depositEsdtTokenMultipleTimes(t, cs, esdtToken, wallet, &nonce, bridgeData.ESDTSafeAddress, &currentOpNonce, numOfExtraTransfers)
 	sovereignOutGoingOps = append(sovereignOutGoingOps, operations...)
 
-	sovHeader, _ = nodeHandler.GetChainHandler().GetCurrentBlockHeader().(data.SovereignChainHeaderHandler)
+	sovHeader = common.GetCurrentSovereignHeader(nodeHandler)
 	outGoingMbHeaders = sovHeader.GetOutGoingMiniBlockHeaderHandlers()
 	require.Len(t, outGoingMbHeaders, 1)
 
@@ -213,8 +208,7 @@ func TestSovereignChainSimulator_ValidateOutgoingOperationsOrder(t *testing.T) {
 
 	// Confirm all remaining outgoing operations
 	for _, bridgeOutGoingData := range unconfirmedBridgeOutGoingData {
-		outGoingOperationsCopy := getOutgoingOpsCopy(bridgeOutGoingData.OutGoingOperations)
-		for _, outGoingOp := range outGoingOperationsCopy {
+		for _, outGoingOp := range getOutgoingOpsCopy(bridgeOutGoingData.OutGoingOperations) {
 			serializedOperation, _ := dtaCodec.SerializeOperation(sovereignOutGoingOps[0])
 			require.Equal(t, outGoingOp.Data, serializedOperation)
 
