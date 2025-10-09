@@ -296,6 +296,7 @@ func depositMainChainToken(
 	time.Sleep(time.Second)
 
 	checkOutGoingOperation(t, cs)
+	confirmOutgoingOperations(t, cs)
 }
 
 func depositAndCheckTokens(
@@ -357,15 +358,20 @@ func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	require.Equal(t, expectedSavedTx, savedTx)
 
 	// Generate extra blocks after outgoing operations are created
-	err = cs.GenerateBlocks(5)
+	err = cs.GenerateBlocks(10)
 	require.Nil(t, err)
+}
 
-	// Confirm operation
-	err = nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().ConfirmOperation(outGoingOps[0].Hash, outGoingOp.Hash)
-	require.NoError(t, err)
+func confirmOutgoingOperations(t *testing.T, cs chainSim.ChainSimulator) {
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
 
-	err = cs.GenerateBlocks(5)
-	require.Nil(t, err)
+	for _, outGoingOp := range outGoingOps {
+		for _, operation := range outGoingOp.OutGoingOperations {
+			err := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().ConfirmOperation(outGoingOp.Hash, operation.Hash)
+			require.NoError(t, err)
+		}
+	}
 }
 
 func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) {
