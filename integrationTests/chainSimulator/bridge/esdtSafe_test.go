@@ -29,18 +29,20 @@ type wallet struct {
 
 // This test will:
 // - Generate a new wallet
-// - Generate one ESDT token for each type
+// - Generate one ESDT token for each type (sovereign token with prefix)
 // - For each token:
-//   - Deposit 0.05 EGLD main chain -> sovereign chain
-//   - Call registerToken in esdt-safe
-//   - Generate a receiver in a random shard & executeBridgeOp
-//   - Deposit 1 token to self main chain -> sovereign chain
+//   - Deposit 0.05 EGLD-000000 on esdt-safe in main chain (simulate deposit main to sovereign)
+//   - Call registerToken to register the token in esdt-safe (simulate register sovereign to main)
+//   - Generate a receiver in a random shard and execute a token transfer in esdt-safe (simulate deposit sovereign to main)
+//   - Deposit one token back to sovereign (simulate deposit main to sovereign)
+//
+// - For each token:
+//   - execute with SC call the previously transferred token in esdt-safe (simulate deposit sovereign to main with transfer data)
 //
 // NOTES:
 // - tokens are originated from sovereign chain and have prefix
 // - registerToken will issue a new token in main chain with same ticker
-// - esdt-safe contract in main chain will mint with executeOperation and burn when tokens are deposited back
-// - registerBridgeOp is skipped in contract execution
+// - esdt-safe contract in main chain will mint tokens on execute and burn when tokens are deposited back
 func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -78,7 +80,7 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialAddress)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -208,12 +210,12 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 // This test will:
 // - Generate wallets in different shards and issue one ESDT token
 // - For each wallet:
-// - Deposit 1 token to self
-// - ExecuteBridgeOp 1 token to self
+//   - Deposit one main chain token
+//   - ExecuteBridgeOp the main chain token
+//
 // NOTES:
 // - tokens are originated from main chain
 // - esdt-safe contract in main chain will save the tokens at deposit, then send from balance at executeOperation
-// - registerBridgeOp is skipped in contract execution
 func TestChainSimulator_DepositAndExecuteMainChainToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
@@ -251,7 +253,7 @@ func TestChainSimulator_DepositAndExecuteMainChainToken(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialAddress)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -347,7 +349,7 @@ func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T)
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialAddress)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -463,7 +465,7 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deploySovereignBridgeSetup(t, cs, initialAddress)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 
 	wallet, err := cs.GenerateAndMintWalletAddress(0, chainSim.InitialAmount)
 	require.Nil(t, err)
@@ -705,7 +707,7 @@ func registerSovereignToken(
 	waitIfCrossShardProcessing(cs, esdtSafeAddrShard, chainSim.GetShardForAddress(cs, wallet.Bech32))
 	chainSim.RequireBalance(t, cs, esdtSafeAddr, issueCost)
 
-	registerTokens(t, cs, wallet.Bytes, nonce, esdtSafeAddress, token)
+	registerToken(t, cs, wallet.Bytes, nonce, esdtSafeAddress, token)
 }
 
 func deployReceiverContractInAllShards(t *testing.T, cs chainSim.ChainSimulator) map[uint32]dtos.WalletAddress {

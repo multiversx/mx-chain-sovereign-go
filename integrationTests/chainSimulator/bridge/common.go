@@ -156,9 +156,9 @@ func enshrineEsdtSafeContract(
 }
 
 // This function will:
-// - deploy the full sovereign bridge contracts setup
-// - unpause esdt-safe contract so deposit operations can start
-func deploySovereignBridgeSetup(
+// - deploy the base sovereign SCs setup on main chain
+// - deploy a new sovereign bridge on main chain
+func deploySovereignBridgeOnMainChain(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	ownerAddress string,
@@ -167,7 +167,7 @@ func deploySovereignBridgeSetup(
 
 	systemContractDeploy := chainSim.GetSysContactDeployAddressBytes(t, nodeHandler)
 
-	sovereignForgeAddress := deploySovereignSCSetup(t, cs, systemContractDeploy)
+	sovereignForgeAddress := deploySovereignBaseSetupOnMainChain(t, cs, systemContractDeploy)
 
 	ownerAddrBytes, err := nodeHandler.GetCoreComponents().AddressPubKeyConverter().Decode(ownerAddress)
 	require.Nil(t, err)
@@ -206,7 +206,8 @@ func deploySovereignBridgeSetup(
 	}
 }
 
-func deploySovereignSCSetup(
+// This function will deploy the base sovereign smart contracts bridge setup on main chain
+func deploySovereignBaseSetupOnMainChain(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	systemContractDeploy []byte,
@@ -518,7 +519,7 @@ func getTransferDataArgs(transferData *transferData) string {
 	return transferDataArgs
 }
 
-func registerTokens(
+func registerToken(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	wallet []byte,
@@ -538,7 +539,6 @@ func registerTokens(
 		hex.EncodeToString([]byte(ticker)) + // name
 		lengthOn4Bytes(len(ticker)) + // length of ticker
 		hex.EncodeToString([]byte(ticker)) + // ticker
-		//getUint64Bytes(18) + // num decimals
 		"00000012" + // num decimals
 		getUint64Bytes(1) + // event nonce
 		hex.EncodeToString(wallet) + // sender address from other chain
