@@ -4,11 +4,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-go/vmhost"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -96,6 +98,8 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 
 	tokens := generateSovereignTokens()
 	tokensMapper := make(map[string]string)
+
+	testInvalidSignatureForRegisterOperation(t, cs, bridgeData)
 
 	// transfer sovereign chain -> main chain -> sovereign chain
 	// token originated from sovereign chain
@@ -206,6 +210,24 @@ func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 
 		nextShardId(&receiverShardId)
 	}
+}
+
+func testInvalidSignatureForRegisterOperation(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	bridgeData *ArgsBridgeSetup,
+) {
+	operationBytes := []byte("operation")
+	operationHash := hasher.Compute(string(operationBytes))
+	hashOfHashes := hasher.Compute(string(operationHash))
+
+	registerBridgeOpsData := createRegisterBridgeOpData(t, bridgeData, hashOfHashes, operationHash)
+	opParts := strings.Split(registerBridgeOpsData, "@")
+	opParts[1] = hex.EncodeToString([]byte("bad signature"))
+	registerBridgeOpsData = strings.Join(opParts, "@")
+
+	txResult := chainSim.SendTransaction(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.HeaderVerifierAddress, chainSim.ZeroValue, registerBridgeOpsData, uint64(100000000))
+	chainSim.RequireSignalError(t, txResult, vmhost.ErrBlsVerify.Error())
 }
 
 // This test will:
