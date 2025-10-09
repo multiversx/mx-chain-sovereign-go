@@ -107,7 +107,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	if err != nil {
 		return nil, err
 	}
-	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedChangeRegisterToken, executedOpProc)
+	err = eventsProc.RegisterProcessor(dto.EventIDConfirmedRegisterToken, executedOpProc)
 	if err != nil {
 		return nil, err
 	}
