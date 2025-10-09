@@ -233,6 +233,7 @@ func (scf *statusComponentsFactory) makeElasticIndexerArgs() indexerFactory.Args
 	return indexerFactory.ArgsIndexerFactory{
 		Enabled:                  elasticSearchConfig.Enabled,
 		BulkRequestMaxSize:       elasticSearchConfig.BulkRequestMaxSizeInBytes,
+		NumWritesInParallel:      elasticSearchConfig.NumWritesInParallel,
 		Url:                      elasticSearchConfig.URL,
 		UserName:                 elasticSearchConfig.Username,
 		Password:                 elasticSearchConfig.Password,
