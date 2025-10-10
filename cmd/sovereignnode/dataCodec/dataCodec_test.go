@@ -359,7 +359,7 @@ func TestDataCodec_SerializeTokenProperties(t *testing.T) {
 			},
 			{
 				Name:  "num_decimals",
-				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+				Value: &abi.U32Value{Value: tokenProperties.NumDecimals},
 			},
 			{
 				Name:  "event_data",
@@ -386,8 +386,10 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 	t.Parallel()
 
 	blsKeyData := dto.RegisteredBlsKey{
-		ID:  []byte{0xf1},
-		Key: []byte("blsKey"),
+		ID:    []byte{0xf1},
+		Key:   []byte("blsKey"),
+		Owner: []byte("owner"),
+		Nonce: 4,
 	}
 	expectedABIStruct := &abi.StructValue{
 		Fields: []abi.Field{
@@ -398,6 +400,14 @@ func TestDataCodec_SerializeNewlyRegisteredKey(t *testing.T) {
 			{
 				Name:  "key",
 				Value: &abi.BytesValue{Value: blsKeyData.Key},
+			},
+			{
+				Name:  "owner",
+				Value: &abi.BytesValue{Value: blsKeyData.Owner},
+			},
+			{
+				Name:  "nonce",
+				Value: &abi.U64Value{Value: blsKeyData.Nonce},
 			},
 		},
 	}
