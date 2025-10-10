@@ -490,7 +490,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 		// TODO: MX-16830, we should check confirmed incoming events from multiple chains, maybe add extra chainID field
 		confirmBridgeOpEvent := &transaction.Event{
-			Identifier: []byte(dto.EventIDChangeValidatorSet),
+			Identifier: []byte(dto.EventIDConfirmedChangeValidatorSet),
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 

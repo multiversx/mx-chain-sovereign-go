@@ -11,12 +11,14 @@ type TokenProperties struct {
 	TokenType       core.ESDTType
 	Name            []byte
 	Ticker          []byte
-	NumDecimals     uint64
+	NumDecimals     uint32
 	EventData       *sovereign.EventData
 }
 
 // RegisteredBlsKey defines operation data for a newly registered validator in sovereign
 type RegisteredBlsKey struct {
-	ID  []byte
-	Key []byte
+	ID    []byte
+	Key   []byte
+	Owner []byte
+	Nonce uint64
 }
