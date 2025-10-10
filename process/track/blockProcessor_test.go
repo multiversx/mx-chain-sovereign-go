@@ -608,7 +608,7 @@ func TestGetNextHeader_ShouldReturnEmptySliceWhenPrevHeaderIsNil(t *testing.T) {
 	longestChainHeadersIndexes := make([]int, 0)
 	headersIndexes := make([]int, 0)
 	sortedHeaders := []data.HeaderHandler{&dataBlock.Header{Nonce: 1}}
-	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, nil, sortedHeaders, [][]byte{}, 0)
+	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, nil, sortedHeaders, [][]byte{}, 0, 0)
 
 	assert.Equal(t, 0, len(longestChainHeadersIndexes))
 }
@@ -623,7 +623,7 @@ func TestGetNextHeader_ShouldReturnEmptySliceWhenSortedHeadersHaveHigherNonces(t
 	headersIndexes := make([]int, 0)
 	prevHeader := &dataBlock.Header{}
 	sortedHeaders := []data.HeaderHandler{&dataBlock.Header{Nonce: 2}}
-	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, [][]byte{}, 0)
+	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, [][]byte{}, 0, 0)
 
 	assert.Equal(t, 0, len(longestChainHeadersIndexes))
 }
@@ -638,7 +638,7 @@ func TestGetNextHeader_ShouldReturnEmptySliceWhenHeaderConstructionIsNotValid(t 
 	headersIndexes := make([]int, 0)
 	prevHeader := &dataBlock.Header{}
 	sortedHeaders := []data.HeaderHandler{&dataBlock.Header{Nonce: 1}}
-	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, [][]byte{}, 0)
+	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, prevHeader, sortedHeaders, [][]byte{}, 0, 0)
 
 	assert.Equal(t, 0, len(longestChainHeadersIndexes))
 }
@@ -669,7 +669,7 @@ func TestGetNextHeader_ShouldReturnEmptySliceWhenHeaderFinalityIsNotChecked(t *t
 	}
 
 	sortedHeaders := []data.HeaderHandler{header2}
-	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, header1, sortedHeaders, [][]byte{}, 0)
+	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, header1, sortedHeaders, [][]byte{}, 0, 0)
 
 	assert.Equal(t, 0, len(longestChainHeadersIndexes))
 }
@@ -708,7 +708,7 @@ func TestGetNextHeader_ShouldWork(t *testing.T) {
 	}
 
 	sortedHeaders := []data.HeaderHandler{header2, header3}
-	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, header1, sortedHeaders, [][]byte{}, 0)
+	bp.GetNextHeader(&longestChainHeadersIndexes, headersIndexes, header1, sortedHeaders, [][]byte{}, 0, 0)
 
 	require.Equal(t, 1, len(longestChainHeadersIndexes))
 	assert.Equal(t, 0, longestChainHeadersIndexes[0])

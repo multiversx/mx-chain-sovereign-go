@@ -136,7 +136,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 
 	extendedShardHeaderHashes := [][]byte{[]byte("hash1"), []byte("hash2"), []byte("hash3")}
 	outGoingMbHeader1 := &block.OutGoingMiniBlockHeader{
-		Type:                                  block.OutGoingMbTx,
+		Type:                                  block.OutGoingMbDeposit,
 		Hash:                                  []byte("outGoingTxDataHash1"),
 		OutGoingOperationsHash:                []byte("outGoingOperationsHash1"),
 		AggregatedSignatureOutGoingOperations: []byte("aggregatedSig1"),

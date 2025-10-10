@@ -531,7 +531,7 @@ func getTokenPropertiesStruct(tokenProperties dto.TokenProperties) *abi.StructVa
 			},
 			{
 				Name:  "num_decimals",
-				Value: &abi.U64Value{Value: tokenProperties.NumDecimals},
+				Value: &abi.U32Value{Value: tokenProperties.NumDecimals},
 			},
 			{
 				Name:  "event_data",
@@ -563,6 +563,14 @@ func getRegisteredKeyData(keyData dto.RegisteredBlsKey) *abi.StructValue {
 			{
 				Name:  "key",
 				Value: &abi.BytesValue{Value: keyData.Key},
+			},
+			{
+				Name:  "owner",
+				Value: &abi.BytesValue{Value: keyData.Owner},
+			},
+			{
+				Name:  "nonce",
+				Value: &abi.U64Value{Value: keyData.Nonce},
 			},
 		},
 	}

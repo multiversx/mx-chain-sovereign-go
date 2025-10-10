@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
@@ -174,6 +175,11 @@ func (m *syncHeadersByHash) updateMapsAndRequestIfNeeded(
 		}
 	}
 
+	if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
+		m.crossHeaderRequester.RequestHeader([]byte(hash))
+		return true, hasRequestedProof
+	}
+
 	// if header is missing, do not request the proof
 	// if a proof is needed for the header, it will be requested when header is received
 	if hasHeader {
@@ -185,11 +191,6 @@ func (m *syncHeadersByHash) updateMapsAndRequestIfNeeded(
 		return false, hasRequestedProof
 	}
 
-	if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
-		m.crossHeaderRequester.RequestHeader([]byte(hash))
-		return true, hasRequestedProof
-	}
-
 	m.requestHandler.RequestShardHeader(shardId, []byte(hash))
 
 	return true, hasRequestedProof
@@ -197,6 +198,10 @@ func (m *syncHeadersByHash) updateMapsAndRequestIfNeeded(
 
 func (m *syncHeadersByHash) hasProof(shardID uint32, hash []byte, epoch uint32) bool {
 	if !m.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, epoch) {
+		return true
+	}
+
+	if m.crossHeaderRequester.ShouldSkipProofCheck(shardID) {
 		return true
 	}
 
