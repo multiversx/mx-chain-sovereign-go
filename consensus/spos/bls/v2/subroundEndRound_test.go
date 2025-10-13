@@ -713,7 +713,7 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 
 	extraAggSig := []byte("extraAggSig")
 	extraAggSigs := map[string][]byte{
-		block.OutGoingMbTx.String():                 extraAggSig,
+		block.OutGoingMbDeposit.String():            extraAggSig,
 		block.OutGoingMbChangeValidatorSet.String(): nil,
 	}
 
@@ -724,7 +724,7 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 	messenger := &consensusMocks.BroadcastMessengerMock{
 		BroadcastEquivalentProofCalled: func(proof data.HeaderProofHandler, pkBytes []byte) error {
 			require.Equal(t, map[string]data.ExtraSignatureDataHandler{
-				block.OutGoingMbTx.String(): &block.ExtraSignatureData{
+				block.OutGoingMbDeposit.String(): &block.ExtraSignatureData{
 					AggregatedSignature: extraAggSig,
 					LeaderSignature:     leaderExtraSig,
 				},
@@ -758,7 +758,7 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 		GetSubRoundEndExtraSignersHolderCalled: func() bls.SubRoundEndExtraSignersHolder {
 			return &subRounds.SubRoundEndExtraSignersHolderMock{
 				GetLeaderExtraSigCalled: func(header data.HeaderHandler, id string) ([]byte, error) {
-					require.Equal(t, block.OutGoingMbTx.String(), id)
+					require.Equal(t, block.OutGoingMbDeposit.String(), id)
 					return leaderExtraSig, nil
 				},
 			}

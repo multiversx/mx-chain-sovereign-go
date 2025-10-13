@@ -48,6 +48,7 @@ type blockProcessor struct {
 		shardID uint32,
 	)
 	removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc func(fromNonce uint64, shardID uint32)
+	checkHeaderFinalityForShardFunc                         func(header data.HeaderHandler, sortedHeaders []data.HeaderHandler, sortedHeadersHashes [][]byte, index int, shardID uint32) error
 }
 
 // NewBlockProcessor creates a block processor object which implements blockProcessorHandler interface
@@ -84,6 +85,7 @@ func NewBlockProcessor(arguments ArgBlockProcessor) (*blockProcessor, error) {
 	bp.requestHeaderWithShardAndNonceFunc = bp.requestHeaderWithShardAndNonce
 	bp.requestHeadersIfNothingNewIsReceivedFunc = bp.requestHeadersIfNothingNewIsReceived
 	bp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc = bp.removeHeaderHashIfStartOfEpochIsAndromedaActivation
+	bp.checkHeaderFinalityForShardFunc = bp.checkHeaderFinalityForShard
 
 	return &bp, nil
 }
@@ -280,7 +282,7 @@ func (bp *blockProcessor) ComputeLongestChain(shardID uint32, header data.Header
 
 	longestChainHeadersIndexes := make([]int, 0)
 	headersIndexes := make([]int, 0)
-	bp.getNextHeader(&longestChainHeadersIndexes, headersIndexes, header, sortedHeaders, sortedHeadersHashes, 0)
+	bp.getNextHeader(&longestChainHeadersIndexes, headersIndexes, header, sortedHeaders, sortedHeadersHashes, 0, shardID)
 
 	for _, index := range longestChainHeadersIndexes {
 		headers = append(headers, sortedHeaders[index])
@@ -297,6 +299,7 @@ func (bp *blockProcessor) getNextHeader(
 	sortedHeaders []data.HeaderHandler,
 	sortedHeadersHashes [][]byte,
 	index int,
+	shardID uint32,
 ) {
 	defer func() {
 		if len(headersIndexes) > len(*longestChainHeadersIndexes) {
@@ -319,15 +322,25 @@ func (bp *blockProcessor) getNextHeader(
 			continue
 		}
 
-		err = bp.checkHeaderFinality(currHeader, sortedHeaders, sortedHeadersHashes, i+1)
+		err = bp.checkHeaderFinalityForShardFunc(currHeader, sortedHeaders, sortedHeadersHashes, i+1, shardID)
 		if err != nil {
 			continue
 		}
 
 		headersIndexes = append(headersIndexes, i)
-		bp.getNextHeader(longestChainHeadersIndexes, headersIndexes, currHeader, sortedHeaders, sortedHeadersHashes, i+1)
+		bp.getNextHeader(longestChainHeadersIndexes, headersIndexes, currHeader, sortedHeaders, sortedHeadersHashes, i+1, shardID)
 		headersIndexes = headersIndexes[:len(headersIndexes)-1]
 	}
+}
+
+func (bp *blockProcessor) checkHeaderFinalityForShard(
+	header data.HeaderHandler,
+	sortedHeaders []data.HeaderHandler,
+	sortedHeadersHashes [][]byte,
+	index int,
+	_ uint32,
+) error {
+	return bp.checkHeaderFinality(header, sortedHeaders, sortedHeadersHashes, index)
 }
 
 func (bp *blockProcessor) checkHeaderFinality(

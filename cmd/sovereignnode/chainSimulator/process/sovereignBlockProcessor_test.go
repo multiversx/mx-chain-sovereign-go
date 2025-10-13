@@ -11,34 +11,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewSovereignBlockProcessorFactory(t *testing.T) {
+func TestNewSovereignBlockProcessor(t *testing.T) {
 	t.Parallel()
 
-	fact := NewSovereignBlockProcessorFactory()
+	fact := NewSovereignBlockProcessor()
 
 	require.False(t, fact.IsInterfaceNil())
-	require.IsType(t, new(sovereignBlockProcessorFactory), fact)
+	require.IsType(t, new(sovereignBlockProcessor), fact)
 }
 
-func TestNewSovereignBlockProcessorFactory_ProcessBlock(t *testing.T) {
+func TestSovereignBlockProcessor_ProcessBlock(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil block processor should error", func(t *testing.T) {
-		fact := NewSovereignBlockProcessorFactory()
+		fact := NewSovereignBlockProcessor()
 		header, block, err := fact.ProcessBlock(nil, &testscommon.HeaderHandlerStub{})
 		require.ErrorIs(t, err, process.ErrNilBlockProcessor)
 		require.Nil(t, header)
 		require.Nil(t, block)
 	})
 	t.Run("nil header handler should error", func(t *testing.T) {
-		fact := NewSovereignBlockProcessorFactory()
+		fact := NewSovereignBlockProcessor()
 		header, block, err := fact.ProcessBlock(&testscommon.BlockProcessorStub{}, nil)
 		require.ErrorIs(t, err, process.ErrNilHeaderHandler)
 		require.Nil(t, header)
 		require.Nil(t, block)
 	})
 	t.Run("should work", func(t *testing.T) {
-		fact := NewSovereignBlockProcessorFactory()
+		fact := NewSovereignBlockProcessor()
 
 		createWasCalled := false
 		processWasCalled := false
