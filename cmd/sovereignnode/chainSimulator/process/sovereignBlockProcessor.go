@@ -48,7 +48,7 @@ func (sbpf *sovereignBlockProcessor) ProcessBlock(blockProcessor process.BlockPr
 func (sbpf *sovereignBlockProcessor) ProcessHeaderProof(
 	header data.HeaderHandler,
 	proof data.HeaderProofHandler,
-	outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
+	outGoingOperationsPool sovereignBlock.ShardedOutGoingOperationPool,
 ) error {
 	sovHdr, castOk := header.(data.SovereignChainHeaderHandler)
 	if !castOk {
@@ -67,6 +67,7 @@ func (sbpf *sovereignBlockProcessor) ProcessHeaderProof(
 			AggSig:    extraSigData.GetAggregatedSignature(),
 			LeaderSig: extraSigData.GetLeaderSignature(),
 			Bitmap:    proof.GetPubKeysBitmap(),
+			ChainID:   outGoingMb.GetChainID(),
 		}, outGoingOperationsPool)
 		if err != nil {
 			return err

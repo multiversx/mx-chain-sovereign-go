@@ -34,7 +34,7 @@ func (bpf *blockProcessor) ProcessBlock(blockProcessor process.BlockProcessor, h
 func (bpf *blockProcessor) ProcessHeaderProof(
 	_ data.HeaderHandler,
 	_ data.HeaderProofHandler,
-	_ sovereignBlock.OutGoingOperationsPool,
+	_ sovereignBlock.ShardedOutGoingOperationPool,
 ) error {
 	return nil
 }

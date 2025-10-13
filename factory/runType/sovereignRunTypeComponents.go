@@ -245,7 +245,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		accountsParser:                          sovereignAccountsParser,
 		accountsCreator:                         accountsCreator,
 		vmContextCreator:                        sovVMContextCreator,
-		outGoingOperationsPoolHandler:           sovereignFactory.NewOutGoingOperationPool(expiryTime),
+		outGoingOperationsPoolHandler:           sovereignFactory.NewShardedOutGoingOperationPool(expiryTime),
 		dataCodecHandler:                        rcf.dataCodec,
 		topicsCheckerHandler:                    rcf.topicsChecker,
 		shardCoordinatorCreator:                 sharding.NewSovereignShardCoordinatorFactory(),

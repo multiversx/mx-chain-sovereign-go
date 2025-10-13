@@ -39,7 +39,7 @@ func createArgs() ArgsIncomingHeaderProcessor {
 		TxPool:                 &testscommon.ShardedDataStub{},
 		Marshaller:             testMarshaller,
 		Hasher:                 &hashingMocks.HasherMock{},
-		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool: &sovTests.ShardedOutGoingOperationsPoolMock{},
 		DataCodec: &sovTests.DataCodecMock{
 			DeserializeTokenDataCalled: func(_ []byte) (*sovereign.EsdtTokenData, error) {
 				return &sovereign.EsdtTokenData{
@@ -338,8 +338,8 @@ func TestIncomingHeaderHandler_AddHeaderErrorCases(t *testing.T) {
 		}
 
 		numConfirmedOperations := 0
-		args.OutGoingOperationsPool = &sovTests.OutGoingOperationsPoolMock{
-			ConfirmOperationCalled: func(hashOfHashes []byte, hash []byte) error {
+		args.OutGoingOperationsPool = &sovTests.ShardedOutGoingOperationsPoolMock{
+			ConfirmOperationCalled: func(hashOfHashes []byte, hash []byte, chainID dtoSov.ChainID) error {
 				numConfirmedOperations++
 				return nil
 			},
@@ -774,8 +774,8 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	}
 
 	wasOutGoingOpConfirmed := false
-	args.OutGoingOperationsPool = &sovTests.OutGoingOperationsPoolMock{
-		ConfirmOperationCalled: func(hashOfHashes []byte, hash []byte) error {
+	args.OutGoingOperationsPool = &sovTests.ShardedOutGoingOperationsPoolMock{
+		ConfirmOperationCalled: func(hashOfHashes []byte, hash []byte, chainID dtoSov.ChainID) error {
 			require.Equal(t, topic3[0], []byte(dto.TopicIDConfirmedOutGoingOperation))
 			require.Equal(t, topic3[1], hashOfHashes)
 			require.Equal(t, topic3[2], hash)

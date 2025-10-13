@@ -24,7 +24,7 @@ type RunTypeComponentsStub struct {
 	NodesCoordinatorWithRaterFactory            nodesCoordinator.NodesCoordinatorWithRaterFactory
 	RequestHandlerFactory                       requestHandlers.RequestHandlerCreator
 	AccountCreator                              state.AccountFactory
-	OutGoingOperationsPool                      sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPool                      sovereignBlock.ShardedOutGoingOperationPool
 	DataCodec                                   sovereign.DataCodecHandler
 	TopicsChecker                               sovereign.TopicsCheckerHandler
 	RequestersContainerFactoryCreatorField      requesterscontainer.RequesterContainerFactoryCreator
@@ -40,7 +40,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		NodesCoordinatorWithRaterFactory:            nodesCoordinator.NewIndexHashedNodesCoordinatorWithRaterFactory(),
 		RequestHandlerFactory:                       requestHandlers.NewResolverRequestHandlerFactory(),
 		AccountCreator:                              &stateMock.AccountsFactoryStub{},
-		OutGoingOperationsPool:                      &sovereignMocks.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool:                      &sovereignMocks.ShardedOutGoingOperationsPoolMock{},
 		DataCodec:                                   &sovereignMocks.DataCodecMock{},
 		TopicsChecker:                               &sovereignMocks.TopicsCheckerMock{},
 		RequestersContainerFactoryCreatorField:      requesterscontainer.NewShardRequestersContainerFactoryCreator(),
@@ -60,7 +60,7 @@ func NewSovereignRunTypeComponentsStub() *RunTypeComponentsStub {
 		NodesCoordinatorWithRaterFactory:            &testscommon.NodesCoordinatorFactoryMock{},
 		RequestHandlerFactory:                       requestHandlerFactory,
 		AccountCreator:                              &stateMock.AccountsFactoryStub{},
-		OutGoingOperationsPool:                      &sovereignMocks.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool:                      &sovereignMocks.ShardedOutGoingOperationsPoolMock{},
 		DataCodec:                                   &sovereignMocks.DataCodecMock{},
 		TopicsChecker:                               &sovereignMocks.TopicsCheckerMock{},
 		RequestersContainerFactoryCreatorField:      requesterscontainer.NewSovereignShardRequestersContainerFactoryCreator(),
@@ -95,7 +95,7 @@ func (r *RunTypeComponentsStub) AccountsCreator() state.AccountFactory {
 }
 
 // OutGoingOperationsPoolHandler -
-func (r *RunTypeComponentsStub) OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool {
+func (r *RunTypeComponentsStub) OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool {
 	return r.OutGoingOperationsPool
 }
 

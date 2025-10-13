@@ -50,7 +50,7 @@ type BlocksProcessor interface {
 	ProcessHeaderProof(
 		header chainData.HeaderHandler,
 		proof chainData.HeaderProofHandler,
-		outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
+		outGoingOperationsPool sovereignBlock.ShardedOutGoingOperationPool,
 	) error
 	IsInterfaceNil() bool
 }

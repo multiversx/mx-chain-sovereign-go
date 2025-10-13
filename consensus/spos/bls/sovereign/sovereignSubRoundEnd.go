@@ -10,10 +10,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	sovData "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/errors"
 )
 
@@ -23,18 +26,19 @@ type BridgeDataSignatures struct {
 	AggSig    []byte
 	LeaderSig []byte
 	Bitmap    []byte
+	ChainID   dto.ChainID
 }
 
 type sovereignSubRoundEnd struct {
 	bls.SubRoundEndHandler
-	outGoingOperationsPool bls.OutGoingOperationsPool
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool
 	bridgeOpHandler        bls.BridgeOperationsHandler
 }
 
 // NewSovereignSubRoundEndRound creates a new sovereign end subround
 func NewSovereignSubRoundEndRound(
 	subroundBlock bls.SubRoundEndHandler,
-	outGoingOperationsPool bls.OutGoingOperationsPool,
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool,
 	bridgeOpHandler bls.BridgeOperationsHandler,
 ) (*sovereignSubRoundEnd, error) {
 	if check.IfNil(subroundBlock) {
@@ -138,6 +142,7 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 		AggSig:    extraSigData.AggregatedSignatureOutGoingTxData,
 		LeaderSig: extraSigData.LeaderSignatureOutGoingTxData,
 		Bitmap:    cnsDta.PubKeysBitmap,
+		ChainID:   outGoingMBHeader.GetChainID(),
 	}, sr.outGoingOperationsPool,
 	)
 	if err != nil {
@@ -199,10 +204,11 @@ func (sr *sovereignSubRoundEnd) sendUnconfirmedOperationsIfFound(ctx context.Con
 // UpdateBridgeDataWithSignatures will update the outgoing operation from pool with its signatures from provided struct
 func UpdateBridgeDataWithSignatures(
 	bridgeDataSigs *BridgeDataSignatures,
-	outGoingOperationsPool bls.OutGoingOperationsPool,
+	outGoingOperationsPool sovData.ShardedOutGoingOperationPool,
 ) (*sovereign.BridgeOutGoingData, error) {
+	chainID := bridgeDataSigs.ChainID
 	hash := bridgeDataSigs.Hash
-	currBridgeData := outGoingOperationsPool.Get(hash)
+	currBridgeData := outGoingOperationsPool.Get(hash, chainID)
 	if currBridgeData == nil {
 		return nil, fmt.Errorf("%w in UpdateBridgeDataWithSignatures for hash: %s",
 			errors.ErrOutGoingOperationsNotFound, hex.EncodeToString(hash))
@@ -212,8 +218,8 @@ func UpdateBridgeDataWithSignatures(
 	currBridgeData.AggregatedSignature = bridgeDataSigs.AggSig
 	currBridgeData.PubKeysBitmap = bridgeDataSigs.Bitmap
 
-	outGoingOperationsPool.Delete(hash)
-	outGoingOperationsPool.Add(currBridgeData)
+	outGoingOperationsPool.Delete(hash, chainID)
+	outGoingOperationsPool.Add(currBridgeData, chainID)
 	return currBridgeData, nil
 }
 
@@ -240,6 +246,7 @@ func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesBeforeAndromed
 			AggSig:    outGoingMBHdr.GetAggregatedSignatureOutGoingOperations(),
 			LeaderSig: outGoingMBHdr.GetLeaderSignatureOutGoingOperations(),
 			Bitmap:    pubKeysBitmap,
+			ChainID:   outGoingMBHdr.GetChainID(),
 		}, sr.outGoingOperationsPool)
 		if err != nil {
 			log.Error("sovereignSubRoundEnd.doSovereignEndRoundJob.updateBridgeDataWithSignatures", "error", err)
@@ -274,6 +281,7 @@ func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesAfterAndromeda
 			AggSig:    extraSigData.GetAggregatedSignature(),
 			LeaderSig: extraSigData.GetLeaderSignature(),
 			Bitmap:    proof.GetPubKeysBitmap(),
+			ChainID:   outGoingMBHdr.GetChainID(),
 		}, sr.outGoingOperationsPool)
 		if err != nil {
 			log.Error("sovereignSubRoundEnd.getCurrentOperationsWithSignatures.updateBridgeDataWithSignatures", "error", err)
@@ -312,12 +320,9 @@ func (sr *sovereignSubRoundEnd) sendOutGoingOperations(ctx context.Context, data
 }
 
 func (sr *sovereignSubRoundEnd) resetOutGoingOpTimer(data []*sovereign.BridgeOutGoingData) {
-	hashes := make([][]byte, len(data))
-	for idx, dta := range data {
-		hashes[idx] = dta.Hash
+	for _, dta := range data {
+		sr.outGoingOperationsPool.ResetTimer([][]byte{dta.Hash}, dto.ChainID(dta.ChainID))
 	}
-
-	sr.outGoingOperationsPool.ResetTimer(hashes)
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

@@ -80,7 +80,7 @@ func createArgsSovSubRoundsFactory() sovereign.ArgsSovereignSubRoundsFactory {
 		Worker:                 worker,
 		OutportHandler:         nil,
 		BaseSubRoundsFactory:   baseFactory,
-		OutGoingOperationsPool: &sovTests.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool: &sovTests.ShardedOutGoingOperationsPoolMock{},
 		BridgeOpHandler:        &sovTests.BridgeOperationsHandlerMock{},
 	}
 }
