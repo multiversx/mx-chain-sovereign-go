@@ -9,6 +9,7 @@ type SovereignConfig struct {
 	OutGoingBridge                   OutGoingBridge                   `toml:"OutGoingBridge"`
 	NotifierConfig                   NotifierConfig                   `toml:"NotifierConfig"`
 	ETHNotifierConfig                ETHNotifierConfig                `toml:"ETHNotifierConfig"`
+	SUINotifierConfig                SUINotifierConfig                `toml:"SUINotifierConfig"`
 	GenesisConfig                    GenesisConfig                    `toml:"GenesisConfig"`
 	OutGoingBridgeCertificate        OutGoingBridgeCertificate
 }
@@ -80,6 +81,33 @@ type WebSocketConfig struct {
 	WithAcknowledge    bool   `toml:"WithAcknowledge"`
 	AcknowledgeTimeout int    `toml:"AcknowledgeTimeout"`
 	Version            uint32 `toml:"Version"`
+}
+
+// SUINotifierConfig holds SUI notifier general config
+type SUINotifierConfig struct {
+	Enabled bool `toml:"Enabled"`
+
+	MarshallerType string `toml:"MarshallerType"`
+	HasherType     string `toml:"HasherType"`
+
+	PoolingTime        uint8  `toml:"PoolingTime"`
+	BatchSize          uint64 `toml:"BatchSize"`
+	StartingCheckpoint uint64 `toml:"StartingCheckpoint"`
+
+	SubscribedEvents []SUISubscribedEvent `toml:"SubscribedEvents"`
+	ClientConfig     SUIClientConfig      `toml:"ClientConfig"`
+}
+
+// SUISubscribedEvent holds subscribed SUI events to be received via ws
+type SUISubscribedEvent struct {
+	EventType string `toml:"EventType"`
+	Value     string `toml:"Value"`
+}
+
+// SUIClientConfig holds SUI client connection urls
+type SUIClientConfig struct {
+	RPCUrl string `toml:"RPCUrl"`
+	WSUrl  string `toml:"WSUrl"`
 }
 
 // GenesisConfig should hold all sovereign genesis related configs

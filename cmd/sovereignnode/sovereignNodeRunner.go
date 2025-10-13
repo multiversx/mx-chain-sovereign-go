@@ -33,6 +33,8 @@ import (
 	notifierCfg "github.com/multiversx/mx-chain-sovereign-notifier-go/config"
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
+	config2 "github.com/multiversx/sui-chain-sovereign-notifier-go/config"
+	factory2 "github.com/multiversx/sui-chain-sovereign-notifier-go/factory"
 
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
@@ -1882,6 +1884,17 @@ func createNotifierWSReceiverServicesIfNeeded(
 		closers = append(closers, ethNotifier)
 	}
 
+	if config.SUINotifierConfig.Enabled {
+		log.Info("running with SUI notifier attached")
+		suiNotifier, err := createSUINotifier(config.SUINotifierConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		notifiers = append(notifiers, suiNotifier)
+		closers = append(closers, suiNotifier)
+	}
+
 	sovereignNotifierBootstrapper, err := startSovereignNotifierBootstrapper(
 		incomingHeaderHandler,
 		notifiers,
@@ -1983,6 +1996,39 @@ func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, e
 	}()
 
 	return ethNotifier, nil
+}
+
+func createSUINotifier(config config.SUINotifierConfig) (factory2.SUIClient, error) {
+	subEvents := make([]config2.SubscribedEvent, 0)
+	for _, cfg := range config.SubscribedEvents {
+		subEvents = append(subEvents, config2.SubscribedEvent{
+			EventType: cfg.EventType,
+			Value:     cfg.Value,
+		})
+	}
+	//github.com/multiversx/sui-chain-sovereign-notifier-go 200cf1294e4b143ee2f543b9669468efc04981fc
+	suiNotifier, err := factory2.CreateSUIClientNotifier(config2.Config{
+		MarshallerType:     config.MarshallerType,
+		HasherType:         config.HasherType,
+		PoolingTime:        config.PoolingTime,
+		BatchSize:          config.BatchSize,
+		StartingCheckpoint: config.StartingCheckpoint,
+		SubscribedEvents:   subEvents,
+		ClientConfig:       config2.SUIClientConfig{},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		for {
+			err = suiNotifier.Start(context.Background())
+			log.LogIfError(err)
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
+	return suiNotifier, nil
 }
 
 func startSovereignNotifierBootstrapper(
