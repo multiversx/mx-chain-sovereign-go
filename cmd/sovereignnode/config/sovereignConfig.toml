@@ -157,8 +157,8 @@
     ]
 
     [ClientConfig]
-    RPCUrl =  "https://fullnode.mainnet.sui.io" # "https://sui-mainnet-endpoint.blockvision.org"
-    WSUrl = "wss://rpc-mainnet.suiscan.xyz/websocket"
+        RPCUrl =  "https://fullnode.mainnet.sui.io" # "https://sui-mainnet-endpoint.blockvision.org"
+        WSUrl = "wss://rpc-mainnet.suiscan.xyz/websocket"
 
 
 [GenesisConfig]
