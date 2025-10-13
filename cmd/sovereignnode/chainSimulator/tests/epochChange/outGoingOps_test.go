@@ -39,7 +39,10 @@ func getBridgeDataFromPrevBlock(
 	outGoingMBHdr := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(mbType))
 	require.NotNil(t, outGoingMBHdr)
 
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
+	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(
+		outGoingMBHdr.GetOutGoingOperationsHash(),
+		outGoingMBHdr.GetChainID(),
+	)
 	require.NotEmpty(t, bridgeData.AggregatedSignature)
 	require.NotEmpty(t, bridgeData.LeaderSignature)
 	require.NotEmpty(t, bridgeData.PubKeysBitmap)

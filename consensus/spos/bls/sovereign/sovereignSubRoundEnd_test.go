@@ -83,7 +83,7 @@ func createSovSubRoundEndWithSelfLeader(
 
 func baseCreateSovSubRoundEndWithSelfLeader(
 	container *spos.ConsensusCore,
-	pool sovereignBlock.OutGoingOperationsPool,
+	pool sovereignBlock.ShardedOutGoingOperationPool,
 	bridgeHandler bls.BridgeOperationsHandler,
 	header data.HeaderHandler,
 ) sovEndRoundHandler {
@@ -372,8 +372,8 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		wasResetTimerCalled := false
 		wg := sync.WaitGroup{}
 		wg.Add(2)
-		pool := &sovereign.OutGoingOperationsPoolMock{
-			GetCalled: func(hash []byte) *sovCore.BridgeOutGoingData {
+		pool := &sovereign.ShardedOutGoingOperationsPoolMock{
+			GetCalled: func(hash []byte, chainID dto.ChainID) *sovCore.BridgeOutGoingData {
 				require.Equal(t, outGoingDataHash, hash)
 
 				defer func() {
@@ -398,10 +398,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 
 				return nil
 			},
-			DeleteCalled: func(hash []byte) {
+			DeleteCalled: func(hash []byte, chainID dto.ChainID) {
 				require.Equal(t, outGoingDataHash, hash)
 			},
-			AddCalled: func(data *sovCore.BridgeOutGoingData) {
+			AddCalled: func(data *sovCore.BridgeOutGoingData, chainID dto.ChainID) {
 				require.Equal(t, &sovCore.BridgeOutGoingData{
 					Type: int32(block.OutGoingMbDeposit),
 					Hash: outGoingDataHash,
@@ -416,7 +416,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 					PubKeysBitmap:       pubKeysBitmap,
 				}, data)
 			},
-			ResetTimerCalled: func(hashes [][]byte) {
+			ResetTimerCalled: func(hashes [][]byte, chainID dto.ChainID) {
 				defer func() {
 					wg.Done()
 				}()

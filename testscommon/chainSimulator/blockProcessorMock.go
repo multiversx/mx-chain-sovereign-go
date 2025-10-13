@@ -13,7 +13,7 @@ type BlockProcessorMock struct {
 	ProcessHeaderProofCalled func(
 		header data.HeaderHandler,
 		proof data.HeaderProofHandler,
-		outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
+		outGoingOperationsPool sovereignBlock.ShardedOutGoingOperationPool,
 	) error
 }
 
@@ -29,7 +29,7 @@ func (mock *BlockProcessorMock) ProcessBlock(blockProcessor process.BlockProcess
 func (mock *BlockProcessorMock) ProcessHeaderProof(
 	header data.HeaderHandler,
 	proof data.HeaderProofHandler,
-	outGoingOperationsPool sovereignBlock.OutGoingOperationsPool,
+	outGoingOperationsPool sovereignBlock.ShardedOutGoingOperationPool,
 ) error {
 	if mock.ProcessHeaderProofCalled != nil {
 		return mock.ProcessHeaderProofCalled(header, proof, outGoingOperationsPool)
