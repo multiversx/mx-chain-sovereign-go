@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -39,6 +40,7 @@ type SubscribedEvent struct {
 }
 
 type ArgsOutgoingOperations struct {
+	MapChainIDs      map[dto.ChainID]struct{}
 	SubscribedEvents []SubscribedEvent
 	DataCodec        DataCodecHandler
 	TopicsChecker    TopicsCheckerHandler
@@ -52,6 +54,7 @@ type outgoingOperations struct {
 	peerAccountsDB   state.AccountsAdapter
 
 	opFormatters map[string]opFormatterData
+	mapChainIDs  map[dto.ChainID]struct{}
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -80,6 +83,7 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		topicsChecker:    args.TopicsChecker,
 		peerAccountsDB:   args.PeerAccountsDB,
 		opFormatters:     opFormatters,
+		mapChainIDs:      args.MapChainIDs,
 	}, nil
 }
 
@@ -212,15 +216,15 @@ func addHandlerIfSubscribed(
 
 // CreateOutgoingTxsData collects relevant outgoing events(based on subscribed addresses and topics) for bridge from the
 // logs and creates outgoing data that needs to be signed by validators to bridge tokens
-func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
+func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[dto.ChainID]map[block.OutGoingMBType][][]byte, error) {
 	outgoingEvents := op.createOutgoingEvents(logs)
 	if len(outgoingEvents) == 0 {
-		return make(map[block.OutGoingMBType][][]byte), nil
+		return make(map[dto.ChainID]map[block.OutGoingMBType][][]byte, 0), nil
 	}
 
-	txsData := make(map[block.OutGoingMBType][][]byte)
+	txsData := make(map[dto.ChainID]map[block.OutGoingMBType][][]byte, 0)
 	for i, event := range outgoingEvents {
-		operation, mbType, err := op.getOperationData(event)
+		chainID, operation, mbType, err := op.getOperationData(event)
 		if err != nil {
 			log.Error("outgoingOperations.CreateOutgoingTxsData error",
 				"tx hash", logs[i].TxHash,
@@ -230,7 +234,13 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[b
 			return nil, err
 		}
 
-		txsData[mbType] = append(txsData[mbType], operation)
+		if _, found := txsData[chainID]; !found {
+			txsData[chainID] = map[block.OutGoingMBType][][]byte{
+				mbType: {operation},
+			}
+		} else {
+			txsData[chainID][mbType] = append(txsData[chainID][mbType], operation)
+		}
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
@@ -282,19 +292,20 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, block.OutGoingMBType, error) {
+func (op *outgoingOperations) getOperationData(event data.EventHandler) (dto.ChainID, []byte, block.OutGoingMBType, error) {
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
-		return nil, block.OutGoingMBType(0), errEventIDNotFound
+		return 0, nil, block.OutGoingMBType(0), errEventIDNotFound
 	}
 
+	// TODO: MX-16831 Here, we should have contracts emitting chain id
 	opData, err := opFormatter.handler.CreateOperationData(event)
-	return opData, opFormatter.mbType, err
+	return dto.MVX, opData, opFormatter.mbType, err
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change
-func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error) {
+func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) (map[dto.ChainID][][]byte, error) {
 	validatorsID := make([][]byte, len(pubKeys))
 
 	for idx, pubKey := range pubKeys {
@@ -306,10 +317,20 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		validatorsID[idx] = peerAcc.GetMainChainID()
 	}
 
-	return proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
+	changeValidatorSetData, err := proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make(map[dto.ChainID][][]byte)
+	for chainID := range op.mapChainIDs {
+		ret[chainID] = [][]byte{changeValidatorSetData}
+	}
+
+	return ret, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

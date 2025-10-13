@@ -44,6 +44,11 @@ type extendedShardHeaderRequestHandler interface {
 	RequestExtendedShardHeader(hash []byte)
 }
 
+type outGoingOpData struct {
+	mbType      block.OutGoingMBType
+	outGoingOps [][]byte
+}
+
 type sovereignChainBlockProcessor struct {
 	*shardProcessor
 	validatorStatisticsProcessor process.ValidatorStatisticsProcessor
@@ -379,13 +384,19 @@ func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperatio
 		return err
 	}
 
+	allChainsOutGoingOpChangeValidatorSet := make(map[dto.ChainID]map[block.OutGoingMBType][][]byte)
+	for chainID, outGoingOps := range outGoingOperationChangeValidatorSet {
+		allChainsOutGoingOpChangeValidatorSet[chainID] = map[block.OutGoingMBType][][]byte{
+			block.OutGoingMbChangeValidatorSet: outGoingOps,
+		}
+	}
+
 	// Leader will only set outgoing mini-block header in proposed epoch start block.
 	// The rest of the mini-blocks, will be created and processed by all participants on ProcessBlock
 	return scbp.createAndSetOutGoingMiniBlock(
 		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
+		allChainsOutGoingOpChangeValidatorSet,
 		body,
-		block.OutGoingMbChangeValidatorSet,
 	)
 }
 
@@ -1178,10 +1189,10 @@ func (scbp *sovereignChainBlockProcessor) processEpochStartMetaBlock(
 	finalMiniBlocks := make([]*block.MiniBlock, 0)
 	finalMiniBlocks = append(finalMiniBlocks, rewardMiniBlocks...)
 	finalMiniBlocks = append(finalMiniBlocks, validatorMiniBlocks...)
-	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet)
+	finalMiniBlocks = append(finalMiniBlocks, outGoingMbChangeValidatorSet...)
 	body.MiniBlocks = finalMiniBlocks
 
-	scbp.txCoordinator.AddTxsFromMiniBlocks([]*block.MiniBlock{outGoingMbChangeValidatorSet})
+	scbp.txCoordinator.AddTxsFromMiniBlocks(outGoingMbChangeValidatorSet)
 
 	return scbp.applyBodyToHeaderForEpochChange(header, body)
 }
@@ -1215,29 +1226,7 @@ func (scbp *sovereignChainBlockProcessor) createEpochStartDataCrossChain(sovHdr 
 func (scbp *sovereignChainBlockProcessor) computeAndVerifyEpochChangeOutGoingOperations(
 	header *block.SovereignChainHeader,
 	body *block.Body,
-) (*block.MiniBlock, error) {
-	outGoingMB, computedOutGoingMbHash, err := scbp.computeEpochChangeOutGoingMBHeaderAndHash(header, body)
-	if err != nil {
-		return nil, err
-	}
-
-	receivedOutGoingMbHash, err := scbp.computeReceivedOutGoingMBHeaderHash(header)
-	if err != nil {
-		return nil, err
-	}
-
-	if !bytes.Equal(computedOutGoingMbHash, receivedOutGoingMbHash) {
-		return nil, fmt.Errorf("%w, computedOutGoingMbHash: %x, receivedOutGoingMbHash: %x",
-			errOutGoingBlockHashMismatch, computedOutGoingMbHash, receivedOutGoingMbHash)
-	}
-
-	return outGoingMB, nil
-}
-
-func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndHash(
-	header *block.SovereignChainHeader,
-	body *block.Body,
-) (*block.MiniBlock, []byte, error) {
+) ([]*block.MiniBlock, error) {
 	scbp.nodesCoordinator.EpochStartPrepare(header, body)
 
 	_, pubKeys, err := scbp.nodesCoordinator.GetConsensusValidatorsPublicKeys(
@@ -1247,18 +1236,47 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 		header.GetEpoch(),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	outGoingOperationChangeValidatorSet, err := scbp.outgoingOperationsFormatter.CreateOutGoingChangeValidatorData(pubKeys, header.GetEpoch())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
+	outGoingMBs := make([]*block.MiniBlock, 0)
+	for chainID, outGoingData := range outGoingOperationChangeValidatorSet {
+		outGoingMB, computedOutGoingMbHash, err := scbp.computeEpochChangeOutGoingMBHeaderAndHash(header, outGoingData, chainID)
+		if err != nil {
+			return nil, err
+		}
+
+		receivedOutGoingMbHash, err := scbp.computeReceivedOutGoingMBHeaderHash(header, chainID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !bytes.Equal(computedOutGoingMbHash, receivedOutGoingMbHash) {
+			return nil, fmt.Errorf("%w, computedOutGoingMbHash: %x, receivedOutGoingMbHash: %x, chain id: %s",
+				errOutGoingBlockHashMismatch, computedOutGoingMbHash, receivedOutGoingMbHash, chainID.String())
+		}
+
+		outGoingMBs = append(outGoingMBs, outGoingMB)
+	}
+
+	return outGoingMBs, nil
+}
+
+func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndHash(
+	header *block.SovereignChainHeader,
+	outGoingOperations [][]byte,
+	chainID dto.ChainID,
+) (*block.MiniBlock, []byte, error) {
 	outGoingMbChangeValidatorSet, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(
 		header,
-		[][]byte{outGoingOperationChangeValidatorSet},
+		outGoingOperations,
 		block.OutGoingMbChangeValidatorSet,
+		chainID,
 	)
 
 	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbChangeValidatorSet)
@@ -1267,6 +1285,7 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+		ChainID:                chainID,
 		Type:                   block.OutGoingMbChangeValidatorSet,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,
@@ -1282,14 +1301,16 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 
 func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 	header *block.SovereignChainHeader,
+	chainID dto.ChainID,
 ) ([]byte, error) {
-	receivedOutGoingMB := header.GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbChangeValidatorSet))
+	receivedOutGoingMB := header.GetOutGoingMiniBlockHeaderHandlerToChain(int32(block.OutGoingMbChangeValidatorSet), chainID)
 	if check.IfNil(receivedOutGoingMB) {
-		return nil, fmt.Errorf("%w for %s in func computeReceivedOutGoingMBHeaderHash",
-			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingMbChangeValidatorSet.String())
+		return nil, fmt.Errorf("%w for %s in func computeReceivedOutGoingMBHeaderHash, chainID: %s",
+			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingMbChangeValidatorSet.String(), chainID.String())
 	}
 
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
+		ChainID:                chainID,
 		Type:                   block.OutGoingMbChangeValidatorSet,
 		Hash:                   receivedOutGoingMB.GetHash(),
 		OutGoingOperationsHash: receivedOutGoingMB.GetOutGoingOperationsHash(),
@@ -1634,39 +1655,60 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 		return err
 	}
 
-	for mbType, outGoingOps := range outGoingOperations {
-		err = scbp.createAndSetOutGoingMiniBlock(
-			headerHandler,
-			outGoingOps,
-			blockBody,
-			mbType,
-		)
-		if err != nil {
-			return err
+	return scbp.createAndSetOutGoingMiniBlock(
+		headerHandler,
+		outGoingOperations,
+		blockBody,
+	)
+}
+
+func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlock(
+	headerHandler data.HeaderHandler,
+	outGoingOperations map[dto.ChainID]map[block.OutGoingMBType][][]byte,
+	blockBody *block.Body,
+) error {
+	if len(outGoingOperations) == 0 {
+		return nil
+	}
+
+	for chainID, outGoingOpsInMBs := range outGoingOperations {
+		for _, outGoingOpDta := range getSortedOutGoingMBTypeOperations(outGoingOpsInMBs) {
+			outGoingMb, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(headerHandler, outGoingOpDta.outGoingOps, outGoingOpDta.mbType, chainID)
+			err := scbp.setOutGoingMiniBlock(headerHandler, blockBody, outGoingMb, outGoingOperationsHash, outGoingOpDta.mbType, chainID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlock(
-	headerHandler data.HeaderHandler,
-	outGoingOperations [][]byte,
-	blockBody *block.Body,
-	mbType block.OutGoingMBType,
-) error {
-	if len(outGoingOperations) == 0 {
-		return nil
+func getSortedOutGoingMBTypeOperations(outGoingOpsInMBs map[block.OutGoingMBType][][]byte) []outGoingOpData {
+	ret := make([]outGoingOpData, 0)
+	if len(outGoingOpsInMBs) == 0 {
+		return ret
 	}
 
-	outGoingMb, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(headerHandler, outGoingOperations, mbType)
-	return scbp.setOutGoingMiniBlock(headerHandler, blockBody, outGoingMb, outGoingOperationsHash, mbType)
+	for mbType, outGoingOps := range outGoingOpsInMBs {
+		ret = append(ret, outGoingOpData{
+			mbType:      mbType,
+			outGoingOps: outGoingOps,
+		})
+	}
+
+	sort.SliceStable(ret, func(i, j int) bool {
+		return ret[i].mbType < ret[j].mbType
+	})
+
+	return ret
 }
 
 func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 	headerHandler data.HeaderHandler,
 	outGoingOperations [][]byte,
 	mbType block.OutGoingMBType,
+	chainID dto.ChainID,
 ) (*block.MiniBlock, []byte) {
 	outGoingOpHashes := make([][]byte, len(outGoingOperations))
 	aggregatedOutGoingOperations := make([]byte, 0)
@@ -1687,8 +1729,10 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 	}
 
 	outGoingOperationsHash := scbp.operationsHasher.Compute(string(aggregatedOutGoingOperations))
+	// TODO: MX-16830 Here, this is not ok, we need a chained/sharded outgoing pool since we can have the same operation hash
 	scbp.outGoingOperationsPool.Add(&sovCore.BridgeOutGoingData{
 		Type:               int32(mbType),
+		ChainID:            int32(chainID),
 		Hash:               outGoingOperationsHash,
 		OutGoingOperations: outGoingOperationsData,
 		PubKeysBitmap:      headerHandler.GetPubKeysBitmap(),
@@ -1727,6 +1771,7 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	outGoingMb *block.MiniBlock,
 	outGoingOperationsHash []byte,
 	mbType block.OutGoingMBType,
+	chainID dto.ChainID,
 ) error {
 	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMb)
 	if err != nil {
@@ -1739,6 +1784,7 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+		ChainID:                chainID,
 		Type:                   mbType,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,

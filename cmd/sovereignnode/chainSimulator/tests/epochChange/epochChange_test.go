@@ -11,6 +11,7 @@ import (
 	apiData "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	coreDTO "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -106,6 +107,11 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					coreDTO.MVX.String(): {StartRound: 4},
+					coreDTO.ETH.String(): {StartRound: 5},
+				}
+
 				sovConfig = cfg.GeneralConfig.SovereignConfig
 			},
 			CreateRunTypeComponents: func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error) {
@@ -223,18 +229,20 @@ func checkEpochChangeHeader(
 	require.True(t, currentHeader.IsStartOfEpochBlock())
 
 	mbs := currentHeader.GetMiniBlockHeaderHandlers()
-	require.Len(t, mbs, 3)
+	require.Len(t, mbs, 4)
 
 	require.Equal(t, block.RewardsBlock, block.Type(mbs[0].GetTypeInt32()))
 	require.Equal(t, block.PeerBlock, block.Type(mbs[1].GetTypeInt32()))
 	require.Equal(t, block.TxBlock, block.Type(mbs[2].GetTypeInt32()))
+	require.Equal(t, block.TxBlock, block.Type(mbs[3].GetTypeInt32()))
 
 	require.Equal(t, mbs[0].GetTxCount(), uint32(7))  // consensus group reward txs = 6 + 1 reward tx protocol sustainability
 	require.Equal(t, mbs[1].GetTxCount(), uint32(18)) // 18 validators in total => 18 peer block updates
-	require.Equal(t, mbs[2].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set
+	require.Equal(t, mbs[2].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for mvx chain
+	require.Equal(t, mbs[3].GetTxCount(), uint32(1))  // 1 outgoing operation for change validator set for eth chain
 
 	require.Equal(t, core.MainChainShardId, mbs[2].GetReceiverShardID())
-	require.Equal(t, uint32(26), currentHeader.GetTxCount())
+	require.Equal(t, uint32(27), currentHeader.GetTxCount())
 
 	unComputedRootHash := nodeHandler.GetCoreComponents().Hasher().Compute("uncomputed root hash")
 	require.NotEqual(t, unComputedRootHash, currentHeader.GetRootHash())
@@ -353,21 +361,24 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 	allPossiblePubKeyIDs [][]byte,
 ) {
 	outGoingMBHdrs := common.GetCurrentSovereignHeader(nodeHandler).GetOutGoingMiniBlockHeaderHandlers()
+	// TODO: MX-16830 We should actually have 2 outgoing mbs here for 2 chains: mvx and eth
 	require.Len(t, outGoingMBHdrs, 1)
 
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
-	require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.Type)
-	require.Equal(t, currentHeader.GetEpoch(), bridgeData.Epoch)
-	require.Len(t, bridgeData.OutGoingOperations, 1)
+	for _, outGoingMBHdr := range outGoingMBHdrs {
+		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
+		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.Type)
+		require.Equal(t, currentHeader.GetEpoch(), bridgeData.Epoch)
+		require.Len(t, bridgeData.OutGoingOperations, 1)
 
-	outGoingBridgeDataValidators := &sovereignData.BridgeOutGoingDataValidatorSetChange{}
-	err := proto.Unmarshal(bridgeData.OutGoingOperations[0].Data, outGoingBridgeDataValidators)
-	require.Nil(t, err)
-	require.Len(t, outGoingBridgeDataValidators.PubKeyIDs, 6) // 6 validator ids
-	require.Subset(t, allPossiblePubKeyIDs, outGoingBridgeDataValidators.PubKeyIDs)
+		outGoingBridgeDataValidators := &sovereignData.BridgeOutGoingDataValidatorSetChange{}
+		err := proto.Unmarshal(bridgeData.OutGoingOperations[0].Data, outGoingBridgeDataValidators)
+		require.Nil(t, err)
+		require.Len(t, outGoingBridgeDataValidators.PubKeyIDs, 6) // 6 validator ids
+		require.Subset(t, allPossiblePubKeyIDs, outGoingBridgeDataValidators.PubKeyIDs)
 
-	currValIDs := getCurrentValidatorIDs(t, nodeHandler, currentHeader)
-	require.ElementsMatch(t, currValIDs, outGoingBridgeDataValidators.PubKeyIDs)
+		currValIDs := getCurrentValidatorIDs(t, nodeHandler, currentHeader)
+		require.ElementsMatch(t, currValIDs, outGoingBridgeDataValidators.PubKeyIDs)
+	}
 }
 
 func getCurrentValidatorIDs(
