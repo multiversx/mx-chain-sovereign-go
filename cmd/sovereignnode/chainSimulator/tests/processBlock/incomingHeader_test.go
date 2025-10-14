@@ -501,7 +501,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 		// TODO: We should check confirmed incoming events from multiple chains when we have different incoming header
 		// handlers for other chains as well
 		confirmBridgeOpEvent := &transaction.Event{
-			Identifier: []byte(dto.EventIDChangeValidatorSet),
+			Identifier: []byte(dto.EventIDConfirmedChangeValidatorSet),
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 

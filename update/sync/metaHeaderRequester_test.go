@@ -53,3 +53,12 @@ func TestMetaHeaderRequester_RequestHeader(t *testing.T) {
 	headerRequester.RequestHeader(headerHash)
 	require.True(t, wasHeaderRequested)
 }
+
+func TestMetaHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
+	t.Parallel()
+
+	headerRequester, _ := NewMetaHeaderRequester(&testscommon.RequestHandlerStub{})
+	require.False(t, headerRequester.ShouldSkipProofCheck(0))
+	require.False(t, headerRequester.ShouldSkipProofCheck(1))
+	require.False(t, headerRequester.ShouldSkipProofCheck(core.MetachainShardId))
+}
