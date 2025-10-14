@@ -165,7 +165,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, devFeesInEpoch.Bytes())
 
 	staking.StakeNodes(t, cs, nodeHandler, 10)
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8) // 10 newly staked nodes and 8 nodes from genesis
+	checkOutGoingMiniBlockRegisterValidatorToMultipleChains(t, nodeHandler) // 10 newly staked nodes and 8 nodes from genesis
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
 
@@ -297,44 +297,48 @@ func checkEpochChangeRewardsMB(
 	require.Empty(t, owners)
 }
 
-func checkOutGoingMiniBlockRegisterValidator(
+func checkOutGoingMiniBlockRegisterValidatorToMultipleChains(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
 ) {
 	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
-
 	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
 	require.Nil(t, err)
 
 	outGoingMBHdrs := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlers()
-	require.Len(t, outGoingMBHdrs, 1)
+	require.Len(t, outGoingMBHdrs, 2)
 
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash(), coreDTO.MVX)
-	require.Equal(t, int32(block.OutGoingMbTx), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
-
-	serializer, _ := abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"})
-
-	blsKeys := make([][]byte, 0)
-	assignedMainChainIDs := make([][]byte, 0)
-
-	latestMainChainID := 8 // 8 nodes from genesis
-	expectedMainChainIDs := make([][]byte, 0)
-	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, serializer, op.Data)
-		blsKeys = append(blsKeys, registeredData.Key)
-		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
-
-		latestMainChainID++
-		expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
+	chainsMapToSendOutGoingMB := map[coreDTO.ChainID]struct{}{
+		coreDTO.MVX: {},
+		coreDTO.ETH: {},
 	}
 
-	auctionNodes := getAuctionListKeys(t, nodeHandler)
-	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.ElementsMatch(t, blsKeys, auctionNodes)
+	for chainID := range chainsMapToSendOutGoingMB {
+		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash(), chainID)
+		require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
+		require.Len(t, bridgeData.OutGoingOperations, 10) // 10 newly staked nodes
+
+		blsKeys := make([][]byte, 0)
+		assignedMainChainIDs := make([][]byte, 0)
+
+		latestMainChainID := 8 // 8 nodes from genesis
+		expectedMainChainIDs := make([][]byte, 0)
+		for _, op := range bridgeData.OutGoingOperations {
+			registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+			blsKeys = append(blsKeys, registeredData.Key)
+			assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+
+			latestMainChainID++
+			expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
+		}
+
+		auctionNodes := getAuctionListKeys(t, nodeHandler)
+		require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
+		require.ElementsMatch(t, blsKeys, auctionNodes)
+	}
 }
 
-func deserializeRegisteredBlsKeyData(t *testing.T, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
+func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
 	id := &abi.BytesValue{}
 	blsKey := &abi.BytesValue{}
 	owner := &abi.BytesValue{}

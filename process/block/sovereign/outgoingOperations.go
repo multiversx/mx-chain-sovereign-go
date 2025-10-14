@@ -55,6 +55,8 @@ type outgoingOperations struct {
 
 	opFormatters map[string]opFormatterData
 	mapChainIDs  map[dto.ChainID]struct{}
+
+	allChainsEvents map[string]struct{}
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in
@@ -84,6 +86,10 @@ func NewOutgoingOperationsFormatter(args ArgsOutgoingOperations) (*outgoingOpera
 		peerAccountsDB:   args.PeerAccountsDB,
 		opFormatters:     opFormatters,
 		mapChainIDs:      args.MapChainIDs,
+		allChainsEvents: map[string]struct{}{
+			topicIDRegisterBlsKey:   {},
+			topicIDUnRegisterBlsKey: {},
+		},
 	}, nil
 }
 
@@ -234,13 +240,7 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 			return nil, err
 		}
 
-		if _, found := txsData[chainID]; !found {
-			txsData[chainID] = map[block.OutGoingMBType][][]byte{
-				mbType: {operation},
-			}
-		} else {
-			txsData[chainID][mbType] = append(txsData[chainID][mbType], operation)
-		}
+		addOpsToMap(operations, txsData, mbType)
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
@@ -248,9 +248,18 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 	return txsData, nil
 }
 
-func addOpsToMap(operations map[dto.ChainID][]byte, allOperations map[dto.ChainID][][]byte) {
+func addOpsToMap(
+	operations map[dto.ChainID][]byte,
+	allOperations map[dto.ChainID]map[block.OutGoingMBType][][]byte,
+	mbType block.OutGoingMBType) {
 	for chainID, operation := range operations {
-		allOperations[chainID] = append(allOperations[chainID], operation)
+		if _, found := allOperations[chainID]; !found {
+			allOperations[chainID] = map[block.OutGoingMBType][][]byte{
+				mbType: {operation},
+			}
+		} else {
+			allOperations[chainID][mbType] = append(allOperations[chainID][mbType], operation)
+		}
 	}
 }
 
@@ -306,7 +315,7 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (map[dto
 		return nil, 0, errEventIDNotFound
 	}
 
-	opData, err := opFormatter.CreateOperationData(event)
+	opData, err := opFormatter.handler.CreateOperationData(event)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -316,8 +325,8 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (map[dto
 }
 
 func (op *outgoingOperations) getChainsToSendOutGoingOp(eventID string, opData []byte) map[dto.ChainID][]byte {
-	if eventID != topicIDRegisterBlsKey {
-		// TODO: MX-16831 Here, we should have contracts emitting chain id
+	if _, found := op.allChainsEvents[eventID]; !found {
+		// TODO: MX-16831 Here, we should have contracts emitting chain ids
 		return map[dto.ChainID][]byte{
 			dto.MVX: opData,
 		}

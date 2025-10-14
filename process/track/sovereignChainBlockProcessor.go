@@ -145,7 +145,7 @@ func (scbp *sovereignChainBlockProcessor) checkHeaderFinalityForShard(
 	index int,
 	shardID uint32,
 ) error {
-	if shardID == core.MainChainShardId {
+	if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
 		return nil
 	}
 
