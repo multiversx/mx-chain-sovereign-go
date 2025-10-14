@@ -95,7 +95,7 @@ type SUINotifierConfig struct {
 	StartingCheckpoint uint64 `toml:"StartingCheckpoint"`
 
 	SubscribedEvents []SUISubscribedEvent `toml:"SubscribedEvents"`
-	ClientConfig     SUIClientConfig      `toml:"ClientConfig"`
+	SUIClientConfig  SUIClientConfig      `toml:"SUIClientConfig"`
 }
 
 // SUISubscribedEvent holds subscribed SUI events to be received via ws

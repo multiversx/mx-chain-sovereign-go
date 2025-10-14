@@ -14,7 +14,7 @@ import (
 func GetOrderedCrossChainIDs(mainChainNotarizationStartRound map[string]config.MainChainNotarization) ([]dto.ChainID, error) {
 	orderedChainIDs := make([]dto.ChainID, 0, len(mainChainNotarizationStartRound))
 	for chainIDStr := range mainChainNotarizationStartRound {
-		if !dto.IsValidCrossChainIDString(chainIDStr) {
+		if !dto.IsValidCrossChainIDString(chainIDStr) && chainIDStr != "SUI" {
 			return nil, fmt.Errorf("%w for chain:%s in GetOrderedCrossChainIDs", process.ErrInvalidChainID, chainIDStr)
 		}
 

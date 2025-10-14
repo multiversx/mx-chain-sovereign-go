@@ -2006,6 +2006,9 @@ func createSUINotifier(config config.SUINotifierConfig) (factory2.SUIClient, err
 			Value:     cfg.Value,
 		})
 	}
+
+	log.Error("dsadsa", "rpc", config.SUIClientConfig.RPCUrl, "ws ", config.SUIClientConfig.WSUrl)
+
 	//github.com/multiversx/sui-chain-sovereign-notifier-go 200cf1294e4b143ee2f543b9669468efc04981fc
 	suiNotifier, err := factory2.CreateSUIClientNotifier(config2.Config{
 		MarshallerType:     config.MarshallerType,
@@ -2014,7 +2017,10 @@ func createSUINotifier(config config.SUINotifierConfig) (factory2.SUIClient, err
 		BatchSize:          config.BatchSize,
 		StartingCheckpoint: config.StartingCheckpoint,
 		SubscribedEvents:   subEvents,
-		ClientConfig:       config2.SUIClientConfig{},
+		ClientConfig: config2.SUIClientConfig{
+			RPCUrl: config.SUIClientConfig.RPCUrl,
+			WSUrl:  config.SUIClientConfig.WSUrl,
+		},
 	})
 	if err != nil {
 		return nil, err
