@@ -52,3 +52,11 @@ func TestExtendedHeaderRequester_RequestHeader(t *testing.T) {
 	headerRequester.RequestHeader(headerHash)
 	require.True(t, wasHeaderRequested)
 }
+
+func TestExtendedHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
+	t.Parallel()
+
+	headerRequester, _ := NewExtendedHeaderRequester(&testscommon.ExtendedShardHeaderRequestHandlerStub{})
+	require.False(t, headerRequester.ShouldSkipProofCheck(0))
+	require.True(t, headerRequester.ShouldSkipProofCheck(core.MainChainShardId))
+}

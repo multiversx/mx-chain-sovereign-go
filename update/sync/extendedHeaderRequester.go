@@ -32,6 +32,11 @@ func (ehr *extendedHeaderRequester) RequestHeader(hash []byte) {
 	ehr.requestHandler.RequestExtendedShardHeader(hash)
 }
 
+// ShouldSkipProofCheck returns true if the shard id is main chain
+func (ehr *extendedHeaderRequester) ShouldSkipProofCheck(shardId uint32) bool {
+	return shardId == core.MainChainShardId
+}
+
 // IsInterfaceNil checks if underlying pointer is nil
 func (ehr *extendedHeaderRequester) IsInterfaceNil() bool {
 	return ehr == nil

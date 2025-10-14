@@ -16,17 +16,12 @@ func TestNewRegisterTokenOpFormatter(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil data codec, should return error", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(nil, &sovereign.TopicsCheckerMock{})
+		opFormatter, err := NewRegisterTokenOpFormatter(nil)
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
-	t.Run("nil topics checker, should return error", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, nil)
-		require.Nil(t, opFormatter)
-		require.Equal(t, errMx.ErrNilTopicsChecker, err)
-	})
 	t.Run("should work", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{})
+		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
 		require.Nil(t, err)
 		require.False(t, opFormatter.IsInterfaceNil())
 	})
@@ -72,7 +67,7 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 		},
 	}
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec, &sovereign.TopicsCheckerMock{})
+	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec)
 	formattedData, err := opFormatter.CreateOperationData(txEvent)
 	require.Nil(t, err)
 	require.Equal(t, formattedData, serializedData)
@@ -81,7 +76,7 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
 	t.Parallel()
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{})
+	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
 	topics := [][]byte{
 		[]byte("registerToken"),
 		[]byte("tokenID"),

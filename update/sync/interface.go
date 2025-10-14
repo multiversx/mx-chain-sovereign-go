@@ -4,6 +4,7 @@ package sync
 type CrossHeaderRequester interface {
 	ShouldRequestHeader(shardId uint32) bool
 	RequestHeader(hash []byte)
+	ShouldSkipProofCheck(shardId uint32) bool
 	IsInterfaceNil() bool
 }
 
