@@ -40,16 +40,18 @@ func (iep *incomingEventsProcessor) ProcessIncomingEvents(events []data.EventHan
 	confirmedBridgeOps := make([]*dto.ConfirmedBridgeOp, 0, len(events))
 
 	for idx, event := range events {
+		eventID := string(event.GetIdentifier())
+
 		iep.mut.RLock()
-		handler, found := iep.handlers[string(event.GetIdentifier())]
+		handler, found := iep.handlers[eventID]
 		iep.mut.RUnlock()
 		if !found {
-			return nil, dto.ErrInvalidIncomingEventIdentifier
+			return nil, fmt.Errorf("%w, id:%s", dto.ErrInvalidIncomingEventIdentifier, eventID)
 		}
 
 		res, err := handler.ProcessEvent(event)
 		if err != nil {
-			return nil, fmt.Errorf("%w, event idx = %d", err, idx)
+			return nil, fmt.Errorf("%w, event id: %s, event idx = %d", err, eventID, idx)
 		}
 
 		if res.SCR != nil {

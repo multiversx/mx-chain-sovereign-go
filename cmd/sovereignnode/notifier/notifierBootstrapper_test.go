@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
+	coreSov "github.com/multiversx/mx-chain-core-go/core/sovereign"
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/testscommon"
 	"github.com/stretchr/testify/require"
 
@@ -27,7 +27,7 @@ import (
 func createArgs() ArgsNotifierBootstrapper {
 	return ArgsNotifierBootstrapper{
 		IncomingHeaderHandler: &sovereign.IncomingHeaderSubscriberStub{},
-		SovereignNotifier:     &testscommon.SovereignNotifierStub{},
+		SovereignNotifiers:    []SovereignNotifier{&testscommon.SovereignNotifierStub{}},
 		ForkDetector:          &mock.ForkDetectorStub{},
 		Bootstrapper:          &processMocks.BootstrapperStub{},
 		RoundDuration:         100,
@@ -50,10 +50,10 @@ func TestNewNotifierBootstrapper(t *testing.T) {
 	})
 	t.Run("nil sovereign notifier", func(t *testing.T) {
 		args := createArgs()
-		args.SovereignNotifier = nil
+		args.SovereignNotifiers[0] = nil
 		nb, err := NewNotifierBootstrapper(args)
 		require.Nil(t, nb)
-		require.Equal(t, errNilSovereignNotifier, err)
+		require.ErrorIs(t, err, errNilSovereignNotifier)
 	})
 	t.Run("nil fork detector", func(t *testing.T) {
 		args := createArgs()
@@ -98,8 +98,8 @@ func TestNotifierBootstrapper_Start(t *testing.T) {
 	}
 
 	registerCalledCt := atomic.Int64{}
-	args.SovereignNotifier = &testscommon.SovereignNotifierStub{
-		RegisterHandlerCalled: func(handler notifierProcess.IncomingHeaderSubscriber) error {
+	args.SovereignNotifiers[0] = &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
 			require.Equal(t, args.IncomingHeaderHandler, handler)
 			registerCalledCt.Add(1)
 			return nil
@@ -167,6 +167,66 @@ func TestNotifierBootstrapper_Start(t *testing.T) {
 	}
 }
 
+func TestNotifierBootstrapper_StartWithMultipleNotifiers(t *testing.T) {
+	t.Parallel()
+
+	args := createArgs()
+
+	wasRegisteredToStateSync := false
+	args.Bootstrapper = &processMocks.BootstrapperStub{
+		AddSyncStateListenerCalled: func(f func(bool)) {
+			require.Contains(t, getFunctionName(f), "(*notifierBootstrapper).receivedSyncState")
+			wasRegisteredToStateSync = true
+		},
+	}
+
+	registerCalledCt1 := atomic.Int64{}
+	args.SovereignNotifiers[0] = &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
+			require.Equal(t, args.IncomingHeaderHandler, handler)
+			registerCalledCt1.Add(1)
+			return nil
+		},
+	}
+	registerCalledCt2 := atomic.Int64{}
+	args.SovereignNotifiers = append(args.SovereignNotifiers, &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
+			require.Equal(t, args.IncomingHeaderHandler, handler)
+			registerCalledCt2.Add(1)
+			return nil
+		},
+	})
+
+	getHighestNonceCalledCt := atomic.Int64{}
+	args.ForkDetector = &mock.ForkDetectorStub{
+		GetHighestFinalBlockNonceCalled: func() uint64 {
+			defer func() {
+				getHighestNonceCalledCt.Add(1)
+			}()
+
+			return uint64(getHighestNonceCalledCt.Load())
+		},
+	}
+
+	nb, _ := NewNotifierBootstrapper(args)
+	require.True(t, wasRegisteredToStateSync)
+
+	nb.Start()
+
+	defer func() {
+		err := nb.Close()
+		require.Nil(t, err)
+	}()
+
+	for i := int64(0); i < roundsThreshold+1; i++ {
+		nb.receivedSyncState(true)
+		time.Sleep(time.Millisecond * 50)
+	}
+
+	require.Equal(t, int64(1), registerCalledCt1.Load())
+	require.Equal(t, int64(1), registerCalledCt2.Load())
+}
+
 func TestNotifierBootstrapper_Start_ConcurrencyTest(t *testing.T) {
 	t.Parallel()
 
@@ -222,8 +282,8 @@ func TestNotifierBootstrapper_StartWithRegisterFailing(t *testing.T) {
 	args.RoundDuration = 10
 
 	registerCalledCt := atomic.Int64{}
-	args.SovereignNotifier = &testscommon.SovereignNotifierStub{
-		RegisterHandlerCalled: func(handler notifierProcess.IncomingHeaderSubscriber) error {
+	args.SovereignNotifiers[0] = &testscommon.SovereignNotifierStub{
+		RegisterHandlerCalled: func(handler coreSov.IncomingHeaderSubscriber) error {
 			require.Equal(t, args.IncomingHeaderHandler, handler)
 
 			defer func() {

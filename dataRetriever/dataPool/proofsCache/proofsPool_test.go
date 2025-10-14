@@ -10,6 +10,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	coreDTO "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -60,6 +61,16 @@ func TestNewProofsPool(t *testing.T) {
 
 	pp := proofscache.NewProofsPool(cleanupDelta, bucketSize)
 	require.False(t, pp.IsInterfaceNil())
+}
+
+func TestProofsPool_HasProofForCrossChainHeaders(t *testing.T) {
+	t.Parallel()
+
+	pp := proofscache.NewProofsPool(cleanupDelta, bucketSize)
+
+	for chainID := range coreDTO.ValidChains {
+		require.True(t, pp.HasProof(uint32(chainID), nil))
+	}
 }
 
 func TestProofsPool_ShouldWork(t *testing.T) {
