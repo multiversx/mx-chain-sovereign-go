@@ -7,6 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -22,7 +23,7 @@ import (
 func createEvents() []SubscribedEvent {
 	return []SubscribedEvent{
 		{
-			Identifier: []byte("deposit"),
+			Identifier: []byte(topicIDDeposit),
 			Addresses: map[string]string{
 				"decodedAddr": "encodedAddr",
 			},
@@ -114,7 +115,7 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 func createArgsOutGoingOpsFormatterWithEvents() ArgsOutgoingOperations {
 	events := []SubscribedEvent{
 		{
-			Identifier: []byte("deposit"),
+			Identifier: []byte(topicIDDeposit),
 			Addresses: map[string]string{
 				"addr1": "addr1",
 				"addr2": "addr2",
@@ -200,7 +201,7 @@ func TestOutgoingOperations_CreateOutgoingTxsDataErrorCases(t *testing.T) {
 				Events: []*transactionData.Event{
 					{
 						Address:    []byte("addr1"),
-						Identifier: []byte("deposit"),
+						Identifier: []byte(topicIDDeposit),
 						Topics:     [][]byte{[]byte("topic1"), []byte("topic1"), []byte("topic1"), []byte("topic1"), []byte("topic1")},
 						Data:       []byte("data"),
 					},
@@ -292,12 +293,12 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 	addr1 := []byte("addr1")
 	addr2 := []byte("addr2")
 
-	identifier1 := []byte("deposit")
+	identifier1 := []byte(topicIDDeposit)
 	identifier2 := []byte("send")
 
 	tokenData1 := []byte("tokenData1")
 	topic1 := [][]byte{
-		[]byte("deposit"),
+		[]byte(topicIDDeposit),
 		[]byte("rcv1"),
 		[]byte("token1"),
 		[]byte("nonce1"),
@@ -385,8 +386,10 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, map[dto.ChainID][][]byte{
-		dto.MVX: {operationBytes},
+	require.Equal(t, map[dto.ChainID]map[block.OutGoingMBType][][]byte{
+		dto.MVX: {
+			block.OutGoingMbDeposit : {operationBytes},
+		},
 	}, outgoingTxData)
 }
 
@@ -394,9 +397,9 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 	t.Parallel()
 
 	addr := []byte("addr")
-	identifier := []byte("deposit")
+	identifier := []byte(topicIDDeposit)
 	topics := [][]byte{
-		[]byte("deposit"),
+		[]byte(topicIDDeposit),
 		[]byte("receiver"),
 	}
 	eventData := []byte("eventData")
@@ -466,8 +469,10 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, map[dto.ChainID][][]byte{
-		dto.MVX: {operationBytes},
+	require.Equal(t, map[dto.ChainID]map[block.OutGoingMBType][][]byte{
+		dto.MVX: {
+			block.OutGoingMbDeposit: {operationBytes},
+		},
 	}, outgoingTxData)
 }
 

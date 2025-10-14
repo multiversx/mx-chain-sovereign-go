@@ -53,7 +53,7 @@ jobs:
           echo "CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" >> $GITHUB_ENV
 
           # Default target branches based on the PR base branch
-          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=MX-16890-merge-barnard-sovereign" >> $GITHUB_ENV
+          echo "MX_CHAIN_SIMULATOR_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
           echo "MX_CHAIN_TESTING_SUITE_TARGET_BRANCH=feat/sovereign" >> $GITHUB_ENV
 
           # Always set MX_CHAIN_SOVEREIGN_GO_TARGET_BRANCH based on the PR base branch
@@ -200,7 +200,7 @@ jobs:
           # Start ChainSimulator with minimal args to initialize configs
           INIT_LOG_FILE="/tmp/chainsim_init.log"
           echo "Starting ChainSimulator initialization process..."
-          ./chainsimulator ${{ matrix.is_sovereign && '--sovereign' || '' }} > $INIT_LOG_FILE 2>&1 &
+          ./chainsimulator --sovereign > $INIT_LOG_FILE 2>&1 &
           INIT_PROCESS_PID=$!
           
           # Verify the process is running
@@ -350,7 +350,7 @@ jobs:
         if: always()
         run: |
           branch="${{ env.BRANCH_NAME }}"
-          target="reports/chain-simulator/${branch}/${TS}"
+          target="reports/chain-simulator/${branch}/${{ matrix.is_sovereign && 'sov' || 'mvx' }}/${TS}"
           rclone copy r2_upload/ "r2:${REPORT_BUCKET}/${target}"
           echo "R2_REPORT_URL=${REPORT_BASE_URL}/${target}/index.html" >> $GITHUB_ENV          
 
@@ -470,10 +470,8 @@ jobs:
               message = `
               ${verdict}
             
-              📊 **MultiversX Automated Test Report:** [View Report](${backupUrl})
-              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
-            
               📊 **MultiversX Automated Test Report:** [View Report](${r2Url})
+              [${{ matrix.is_sovereign && 'sovereign chain simulator' || 'normal chain simulator' }}]
 
               🔄 **Build Details:**
               - **mx-chain-sovereign-go Commit Hash:** \`${commitHash}\`

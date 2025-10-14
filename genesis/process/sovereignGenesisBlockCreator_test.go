@@ -502,15 +502,15 @@ func TestSovereignGenesisBlockCreator_setSovereignStakedDataAndCheckMainChainID(
 
 	acc1, err := getPeerAccount(args.ValidatorAccounts, initialNode1.PubKeyBytesValue)
 	require.Nil(t, err)
-	require.Equal(t, []byte{0x0}, acc1.GetMainChainID())
+	require.Equal(t, []byte{0x1}, acc1.GetMainChainID())
 
 	acc2, err := getPeerAccount(args.ValidatorAccounts, initialNode2.PubKeyBytesValue)
 	require.Nil(t, err)
-	require.Equal(t, []byte{0x1}, acc2.GetMainChainID())
+	require.Equal(t, []byte{0x2}, acc2.GetMainChainID())
 
 	acc3, err := getPeerAccount(args.ValidatorAccounts, initialNode3.PubKeyBytesValue)
 	require.Nil(t, err)
-	require.Equal(t, []byte{0x2}, acc3.GetMainChainID())
+	require.Equal(t, []byte{0x3}, acc3.GetMainChainID())
 }
 
 func TestSovereignGenesisBlockCreator_InitSystemAccountCalled(t *testing.T) {
