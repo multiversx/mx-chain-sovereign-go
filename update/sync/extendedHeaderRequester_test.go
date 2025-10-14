@@ -58,5 +58,5 @@ func TestExtendedHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
 
 	headerRequester, _ := NewExtendedHeaderRequester(&testscommon.ExtendedShardHeaderRequestHandlerStub{})
 	require.False(t, headerRequester.ShouldSkipProofCheck(0))
-	require.True(t, headerRequester.ShouldSkipProofCheck(core.MainChainShardId))
+	require.True(t, headerRequester.ShouldSkipProofCheck(uint32(dtoSov.MVX)))
 }
