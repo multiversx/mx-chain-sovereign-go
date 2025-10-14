@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/process"
@@ -31,7 +32,9 @@ func TestExtendedHeaderRequester_ShouldRequestHeader(t *testing.T) {
 	require.False(t, headerRequester.ShouldRequestHeader(0))
 	require.False(t, headerRequester.ShouldRequestHeader(1))
 	require.False(t, headerRequester.ShouldRequestHeader(core.MetachainShardId))
-	require.True(t, headerRequester.ShouldRequestHeader(core.MainChainShardId))
+	for chainID := range dtoSov.ValidChains {
+		require.True(t, headerRequester.ShouldRequestHeader(uint32(chainID)))
+	}
 }
 
 func TestExtendedHeaderRequester_RequestHeader(t *testing.T) {
@@ -55,5 +58,5 @@ func TestExtendedHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
 
 	headerRequester, _ := NewExtendedHeaderRequester(&testscommon.ExtendedShardHeaderRequestHandlerStub{})
 	require.False(t, headerRequester.ShouldSkipProofCheck(0))
-	require.True(t, headerRequester.ShouldSkipProofCheck(core.MainChainShardId))
+	require.True(t, headerRequester.ShouldSkipProofCheck(uint32(dtoSov.MVX)))
 }

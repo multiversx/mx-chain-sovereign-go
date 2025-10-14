@@ -43,6 +43,8 @@ import (
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 )
 
+var orderedChainIDs = []dto.ChainID{dto.MVX}
+
 func createSovereignChainShardTrackerMockArguments() track.ArgShardTracker {
 	argsHeaderValidator := blproc.ArgsHeaderValidator{
 		Hasher:              &hashingMocks.HasherMock{},
@@ -111,7 +113,7 @@ func createSovChainBaseBlockProcessorArgs(
 		},
 	}
 
-	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
+	arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt, orderedChainIDs)
 	arguments.RequestHandler, _ = requestHandlers.NewSovereignResolverRequestHandler(rrh)
 
 	return arguments
@@ -275,7 +277,7 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 		sbt, _ := track.NewShardBlockTrack(shardArguments)
 
 		arguments := CreateMockArguments(createComponentHolderMocks())
-		arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt)
+		arguments.BlockTracker, _ = track.NewSovereignChainShardBlockTrack(sbt, orderedChainIDs)
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
 		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
 
@@ -340,7 +342,8 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 			switch poolAddCt {
 			case 0:
 				require.Equal(t, &sovereignCore.BridgeOutGoingData{
-					Hash: bridgeOpsHash,
+					ChainID: int32(dto.MVX),
+					Hash:    bridgeOpsHash,
 					OutGoingOperations: []*sovereignCore.OutGoingOperation{
 						{
 							Hash: bridgeOp1Hash,
@@ -373,6 +376,9 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		EpochSystemSCProcessor:       &testscommon.EpochStartSystemSCStub{},
 		EpochEconomics:               &mock.EpochEconomicsStub{},
 		SCToProtocol:                 &mock.SCToProtocolStub{},
+		MainChainNotarizationStartRound: map[string]config.MainChainNotarization{
+			dto.MVX.String(): {StartRound: 0},
+		},
 	})
 
 	sovChainHdr := &block.SovereignChainHeader{
@@ -383,7 +389,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 	}
 	processedMb := &block.MiniBlock{
 		ReceiverShardID: core.SovereignChainShardId,
-		SenderShardID:   core.MainChainShardId,
+		SenderShardID:   uint32(dto.MVX),
 	}
 	blockBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{processedMb},
@@ -395,7 +401,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 
 	expectedOutGoingMb := &block.MiniBlock{
 		TxHashes:        [][]byte{bridgeOp1Hash, bridgeOp2Hash},
-		ReceiverShardID: core.MainChainShardId,
+		ReceiverShardID: uint32(dto.MVX),
 		SenderShardID:   arguments.BootstrapComponents.ShardCoordinator().SelfId(),
 	}
 	expectedBlockBody := &block.Body{
@@ -413,6 +419,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Hash:                   expectedOutGoingMbHash,
 				OutGoingOperationsHash: bridgeOpsHash,
 			},
@@ -442,7 +449,7 @@ func TestSovereignChainBlockProcessor_RestoreBlockIntoPoolsShouldWorkWhenHeaderN
 	expectedBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
 			{
-				SenderShardID:   core.MainChainShardId,
+				SenderShardID:   uint32(dto.MVX),
 				ReceiverShardID: core.SovereignChainShardId,
 				TxHashes:        [][]byte{[]byte("txHash1")},
 			},
@@ -472,7 +479,8 @@ func TestSovereignChainBlockProcessor_RestoreBlockIntoPoolsShouldWorkWhenHeaderN
 		RemoveLastSelfNotarizedHeadersCalled: func() {
 			wasLastSelfNotarizedHeaderRemoved = true
 		},
-		RemoveLastCrossNotarizedHeadersCalled: func() {
+		RemoveLastCrossNotarizedHeadersCalled: func(chainID dto.ChainID) {
+			require.Equal(t, dto.MVX, chainID)
 			wasLastCrossNotarizedHeaderRemoved = true
 		},
 	}
@@ -512,7 +520,7 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 	expectedBody := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
 			{
-				SenderShardID:   core.MainChainShardId,
+				SenderShardID:   uint32(dto.MVX),
 				ReceiverShardID: core.SovereignChainShardId,
 				TxHashes:        [][]byte{[]byte("txHash1")},
 			},
@@ -551,7 +559,8 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 		RemoveLastSelfNotarizedHeadersCalled: func() {
 			wasLastSelfNotarizedHeaderRemoved = true
 		},
-		RemoveLastCrossNotarizedHeadersCalled: func() {
+		RemoveLastCrossNotarizedHeadersCalled: func(chainID dto.ChainID) {
+			require.Equal(t, dto.MVX, chainID)
 			wasLastCrossNotarizedHeaderRemoved = true
 		},
 	}
@@ -603,7 +612,7 @@ func testRestoreBlockIntoPools(t *testing.T, withExtendedHeader bool) {
 
 	sovHdr := createSovHeaderForRestoreBlocksTest(expectedBody, extendedHeaderHash)
 	if !withExtendedHeader {
-		sovHdr.ExtendedShardHeaderHashes = nil
+		sovHdr.ChainsData = nil
 	}
 
 	retrievedHdr, err := dataPool.Headers().GetHeaderByHash(extendedHeaderHash)
@@ -644,7 +653,12 @@ func createSovHeaderForRestoreBlocksTest(body *block.Body, extendedHeaderHash []
 		Header: &block.Header{
 			MiniBlockHeaders: []block.MiniBlockHeader{miniBlockHeader},
 		},
-		ExtendedShardHeaderHashes: [][]byte{extendedHeaderHash},
+		ChainsData: []block.ChainData{
+			{
+				ChainID:                   dto.MVX,
+				ExtendedShardHeaderHashes: [][]byte{extendedHeaderHash},
+			},
+		},
 	}
 }
 
@@ -905,7 +919,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			MiniBlocks: []*block.MiniBlock{
 				{
 					TxHashes:        [][]byte{outGoingOpHash},
-					ReceiverShardID: core.MainChainShardId,
+					ReceiverShardID: uint32(dto.MVX),
 					SenderShardID:   core.SovereignChainShardId,
 				},
 			},
@@ -923,12 +937,16 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 				Epoch:    nextEpoch,
 				RandSeed: []byte("rndSeed"),
 			},
+			EpochStart: block.EpochStartSovereign{
+				LastFinalizedCrossChainHeader: make([]block.EpochStartCrossChainData, 0),
+			},
 			IsStartOfEpoch: true,
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
 					Type:                   block.OutGoingMbChangeValidatorSet,
 					Hash:                   outGoingMBHash,
 					OutGoingOperationsHash: outGoingOpsHash,
+					ChainID:                dto.MVX,
 				},
 			},
 		}
@@ -1318,7 +1336,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		expectedOutGoingMB := &block.MiniBlock{
 
 			TxHashes:        [][]byte{outGoingOpHash},
-			ReceiverShardID: core.MainChainShardId,
+			ReceiverShardID: uint32(dto.MVX),
 			SenderShardID:   core.SovereignChainShardId,
 		}
 
@@ -1329,6 +1347,7 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		)
 		sovHeader.OutGoingMiniBlockHeaders = []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Type:                   block.OutGoingMbChangeValidatorSet,
 				Hash:                   outGoingMBHash,
 				OutGoingOperationsHash: outGoingOpsHash,

@@ -1,11 +1,5 @@
 package interceptedBlocks
 
-import (
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/sharding"
-)
-
 type interceptedSovereignBlockHeader struct {
 	*InterceptedHeader
 }
@@ -17,16 +11,12 @@ func NewSovereignInterceptedBlockHeader(arg *ArgInterceptedBlockHeader) (*interc
 		return nil, err
 	}
 
+	interceptedHdr.acceptedCrossShardIDs = getSovereignRunTypeAcceptedCrossShardIDs()
 	sovInterceptedBlock := &interceptedSovereignBlockHeader{
 		interceptedHdr,
 	}
 
-	sovInterceptedBlock.mbHeadersChecker = sovInterceptedBlock
 	return sovInterceptedBlock, nil
-}
-
-func (isbh *interceptedSovereignBlockHeader) checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator) error {
-	return checkMiniBlocksHeaders(mbHeaders, coordinator, core.MainChainShardId)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

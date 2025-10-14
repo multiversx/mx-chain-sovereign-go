@@ -7,10 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
@@ -18,7 +20,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
-	"github.com/stretchr/testify/require"
 )
 
 func createSovHdrProcArgs() *ArgsSovereignHeaderInterceptorProcessor {
@@ -280,7 +281,7 @@ func TestSovereignHeaderInterceptorProcessor_Save(t *testing.T) {
 		t.Parallel()
 
 		extendedHdrHash := []byte("hash")
-		extendedHeader := &block.ShardHeaderExtended{}
+		extendedHeader := &block.ShardHeaderExtended{SourceChainID: dto.MVX}
 		wasHdrAdded := false
 
 		args := createSovHdrProcArgs()
@@ -291,7 +292,7 @@ func TestSovereignHeaderInterceptorProcessor_Save(t *testing.T) {
 			},
 			GetHeaderByNonceAndShardIdCalled: func(hdrNonce uint64, shardId uint32) ([]data.HeaderHandler, [][]byte, error) {
 				require.Equal(t, extendedHeader.GetNonce(), hdrNonce)
-				require.Equal(t, core.MainChainShardId, shardId)
+				require.Equal(t, uint32(extendedHeader.GetSourceChainID()), shardId)
 				return nil, [][]byte{extendedHdrHash, []byte("another hash")}, nil
 			},
 		}

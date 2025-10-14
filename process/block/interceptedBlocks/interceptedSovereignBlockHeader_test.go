@@ -6,9 +6,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/interceptedBlocks"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSovereignInterceptedBlockHeader(t *testing.T) {
@@ -49,15 +51,17 @@ func TestInterceptedSovereignMiniBlock_checkMiniBlocksHeaders(t *testing.T) {
 	err := sovInterceptedBlock.CheckMiniBlocksHeaders(miniBlockHeaders, args.ShardCoordinator)
 	require.Nil(t, err)
 
-	err = miniBlockHeaders[0].SetReceiverShardID(core.MainChainShardId)
-	require.Nil(t, err)
-	err = sovInterceptedBlock.CheckMiniBlocksHeaders(miniBlockHeaders, args.ShardCoordinator)
-	require.Nil(t, err)
+	for chainID := range dto.ValidChains {
+		err = miniBlockHeaders[0].SetReceiverShardID(uint32(chainID))
+		require.Nil(t, err)
+		err = sovInterceptedBlock.CheckMiniBlocksHeaders(miniBlockHeaders, args.ShardCoordinator)
+		require.Nil(t, err)
 
-	err = miniBlockHeaders[0].SetSenderShardID(core.MainChainShardId)
-	require.Nil(t, err)
-	err = sovInterceptedBlock.CheckMiniBlocksHeaders(miniBlockHeaders, args.ShardCoordinator)
-	require.Nil(t, err)
+		err = miniBlockHeaders[0].SetSenderShardID(uint32(chainID))
+		require.Nil(t, err)
+		err = sovInterceptedBlock.CheckMiniBlocksHeaders(miniBlockHeaders, args.ShardCoordinator)
+		require.Nil(t, err)
+	}
 
 	err = miniBlockHeaders[0].SetReceiverShardID(core.MetachainShardId)
 	require.Nil(t, err)

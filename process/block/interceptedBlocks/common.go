@@ -4,8 +4,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 )
@@ -142,13 +143,13 @@ func checkShardData(sd data.ShardDataHandler, coordinator sharding.Coordinator) 
 	return nil
 }
 
-func checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator, acceptedCrossShardID uint32) error {
+func checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator sharding.Coordinator, acceptedCrossShardIDs map[uint32]struct{}) error {
 	for _, mbHeader := range mbHeaders {
 		isWrongSenderShardId := mbHeader.GetSenderShardID() >= coordinator.NumberOfShards() &&
-			mbHeader.GetSenderShardID() != acceptedCrossShardID &&
+			!isShardIDValid(mbHeader.GetSenderShardID(), acceptedCrossShardIDs) &&
 			mbHeader.GetSenderShardID() != core.AllShardId
 		isWrongDestinationShardId := mbHeader.GetReceiverShardID() >= coordinator.NumberOfShards() &&
-			mbHeader.GetReceiverShardID() != acceptedCrossShardID &&
+			!isShardIDValid(mbHeader.GetReceiverShardID(), acceptedCrossShardIDs) &&
 			mbHeader.GetReceiverShardID() != core.AllShardId
 		isWrongShardId := isWrongSenderShardId || isWrongDestinationShardId
 		if isWrongShardId {
@@ -161,4 +162,24 @@ func checkMiniBlocksHeaders(mbHeaders []data.MiniBlockHeaderHandler, coordinator
 	}
 
 	return nil
+}
+
+func isShardIDValid(shardID uint32, acceptedCrossShardIDs map[uint32]struct{}) bool {
+	_, found := acceptedCrossShardIDs[shardID]
+	return found
+}
+
+func getSovereignRunTypeAcceptedCrossShardIDs() map[uint32]struct{} {
+	crossChainIDs := make(map[uint32]struct{})
+	for chainID := range dto.ValidChains {
+		crossChainIDs[uint32(chainID)] = struct{}{}
+	}
+
+	return crossChainIDs
+}
+
+func getNormalRunTypeChainAcceptedCrossShardID() map[uint32]struct{} {
+	return map[uint32]struct{}{
+		core.MetachainShardId: {},
+	}
 }

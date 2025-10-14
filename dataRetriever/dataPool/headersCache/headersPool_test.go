@@ -11,10 +11,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool/headersCache"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool/headersCache"
 )
 
 func TestNewHeadersCacher(t *testing.T) {
@@ -105,7 +107,7 @@ func TestHeadersPool_AddHeaderInShard(t *testing.T) {
 	)
 
 	nonce := uint64(4)
-	shardId := core.MainChainShardId
+	shardId := uint32(sovDto.MVX)
 	headers, hashes, err := headersCacher.GetHeadersByNonceAndShardId(nonce, shardId)
 	require.Equal(t, headersCache.ErrHeaderNotFound, err)
 	require.Empty(t, headers)

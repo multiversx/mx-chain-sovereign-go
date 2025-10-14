@@ -3,9 +3,12 @@ package storageBootstrap
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
@@ -13,8 +16,6 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSovereignChainShardStorageBootstrapper(t *testing.T) {
@@ -63,7 +64,7 @@ func TestSovereignShardBootstrapFactory_applyCrossNotarizedHeaders(t *testing.T)
 	wasCrossChainHdrTracked := false
 	baseArgs.BlockTracker = &testscommon.BlockTrackerStub{
 		AddCrossNotarizedHeaderCalled: func(shardID uint32, crossNotarizedHeader data.HeaderHandler, crossNotarizedHeaderHash []byte) {
-			require.Equal(t, core.MainChainShardId, shardID)
+			require.Equal(t, uint32(sovDto.MVX), shardID)
 			require.Equal(t, extendedHdr, crossNotarizedHeader)
 			require.Equal(t, extendedHdrhash, crossNotarizedHeaderHash)
 			wasCrossChainHdrNotarized = true
@@ -101,7 +102,7 @@ func TestSovereignShardBootstrapFactory_applyCrossNotarizedHeaders(t *testing.T)
 		{
 			Hash:    extendedHdrhash,
 			Nonce:   4,
-			ShardId: core.MainChainShardId,
+			ShardId: uint32(sovDto.MVX),
 		},
 	}
 	err := scssb.applyCrossNotarizedHeaders(crossNotarizedHeaders)
@@ -116,7 +117,7 @@ func TestSovereignShardBootstrapFactory_cleanupNotarizedStorageForHigherNoncesIf
 			Header: &block.Header{},
 		},
 	}
-	testCleanupNotarizedStorageForHigherNoncesIfExist(t, core.MainChainShardId, extendedHeader, NewSovereignShardStorageBootstrapperFactory())
+	testCleanupNotarizedStorageForHigherNoncesIfExist(t, uint32(sovDto.MVX), extendedHeader, NewSovereignShardStorageBootstrapperFactory())
 }
 
 func TestSovereignShardBootstrapFactory_cleanupNotarizedStorage(t *testing.T) {
@@ -145,7 +146,12 @@ func TestSovereignShardBootstrapFactory_cleanupNotarizedStorage(t *testing.T) {
 			SoftwareVersion: process.SovereignHeaderVersion,
 		},
 
-		ExtendedShardHeaderHashes: [][]byte{extendedHdrhash},
+		ChainsData: []block.ChainData{
+			{
+				ChainID:                   sovDto.MVX,
+				ExtendedShardHeaderHashes: [][]byte{extendedHdrhash},
+			},
+		},
 	}
 
 	wasExtendedHeaderRemoved := false

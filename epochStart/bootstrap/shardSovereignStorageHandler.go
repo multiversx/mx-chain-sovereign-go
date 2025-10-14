@@ -8,6 +8,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
@@ -101,16 +103,37 @@ func (ssh *sovereignShardStorageHandler) saveLastCrossChainNotarizedHeaders(
 	sovBlock data.MetaHeaderHandler,
 	headers map[string]data.HeaderHandler,
 ) ([]bootstrapStorage.BootstrapHeaderInfo, error) {
-	log.Debug("sovereignShardStorageHandler.saveLastCrossChainNotarizedHeaders")
+	crossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0)
 
-	lastCrossChainNotarizedData, err := getEpochStartShardData(sovBlock, core.MainChainShardId)
-	if errors.Is(err, epochStart.ErrEpochStartDataForShardNotFound) {
-		log.Debug("no cross chain header has been notarized yet")
-		return []bootstrapStorage.BootstrapHeaderInfo{}, nil
-	} else if err != nil {
-		return nil, err
+	for _, chainData := range sovBlock.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
+		chainID := chainData.GetShardID()
+		log.Debug("sovereignShardStorageHandler.saveLastCrossChainNotarizedHeaders", "chainID", chainID)
+
+		lastCrossChainNotarizedData, err := getEpochStartShardData(sovBlock, chainID)
+		if errors.Is(err, epochStart.ErrEpochStartDataForShardNotFound) {
+			log.Debug("no cross chain header has been notarized yet", "chainID", dtoSov.ChainID_name[int32(chainID)])
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		chainBootStrapData, err := ssh.saveLastCrossChainNotarizedHeader(lastCrossChainNotarizedData, headers)
+		if err != nil {
+			return nil, err
+		}
+
+		crossNotarizedHeaders = append(crossNotarizedHeaders, *chainBootStrapData)
 	}
 
+	return crossNotarizedHeaders, nil
+}
+
+func (ssh *sovereignShardStorageHandler) saveLastCrossChainNotarizedHeader(
+	lastCrossChainNotarizedData data.EpochStartShardDataHandler,
+	headers map[string]data.HeaderHandler,
+) (*bootstrapStorage.BootstrapHeaderInfo, error) {
 	lastCrossChainHeaderHash := lastCrossChainNotarizedData.GetHeaderHash()
 	log.Debug("sovereignShardStorageHandler.saveLastCrossChainNotarizedHeaders",
 		"hash", lastCrossChainHeaderHash,
@@ -130,20 +153,17 @@ func (ssh *sovereignShardStorageHandler) saveLastCrossChainNotarizedHeaders(
 		)
 	}
 
-	err = ssh.saveExtendedHeaderToStorage(extendedShardHeader, lastCrossChainHeaderHash)
+	err := ssh.saveExtendedHeaderToStorage(extendedShardHeader, lastCrossChainHeaderHash)
 	if err != nil {
 		return nil, err
 	}
 
-	crossNotarizedHeaders := make([]bootstrapStorage.BootstrapHeaderInfo, 0)
-	crossNotarizedHeaders = append(crossNotarizedHeaders, bootstrapStorage.BootstrapHeaderInfo{
-		ShardId: core.MainChainShardId,
+	return &bootstrapStorage.BootstrapHeaderInfo{
+		ShardId: uint32(extendedShardHeader.GetSourceChainID()),
 		Nonce:   lastCrossChainNotarizedData.GetNonce(),
 		Hash:    lastCrossChainHeaderHash,
 		Epoch:   lastCrossChainNotarizedData.GetEpoch(),
-	})
-
-	return crossNotarizedHeaders, nil
+	}, nil
 }
 
 func (bsh *sovereignShardStorageHandler) saveExtendedHeaderToStorage(extendedShardHeader data.HeaderHandler, headerHash []byte) error {

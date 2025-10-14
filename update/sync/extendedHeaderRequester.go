@@ -1,8 +1,8 @@
 package sync
 
 import (
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/process"
 )
@@ -24,7 +24,7 @@ func NewExtendedHeaderRequester(requestHandler ExtendedShardHeaderRequestHandler
 
 // ShouldRequestHeader returns true if the shard id is main chain
 func (ehr *extendedHeaderRequester) ShouldRequestHeader(shardId uint32) bool {
-	return shardId == core.MainChainShardId
+	return dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardId))
 }
 
 // RequestHeader requests extended shard header by hash
@@ -34,7 +34,7 @@ func (ehr *extendedHeaderRequester) RequestHeader(hash []byte) {
 
 // ShouldSkipProofCheck returns true if the shard id is main chain
 func (ehr *extendedHeaderRequester) ShouldSkipProofCheck(shardId uint32) bool {
-	return shardId == core.MainChainShardId
+	return dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardId))
 }
 
 // IsInterfaceNil checks if underlying pointer is nil

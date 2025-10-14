@@ -3,6 +3,7 @@ package track
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -16,6 +17,7 @@ type blockNotarizerHandler interface {
 	GetNotarizedHeader(shardID uint32, offset uint64) (data.HeaderHandler, []byte, error)
 	InitNotarizedHeaders(startHeaders map[uint32]data.HeaderHandler) error
 	RemoveLastNotarizedHeader()
+	RemoveLastNotarizedHeaderForShard(shardID uint32)
 	RestoreNotarizedHeadersToGenesis()
 	IsInterfaceNil() bool
 }

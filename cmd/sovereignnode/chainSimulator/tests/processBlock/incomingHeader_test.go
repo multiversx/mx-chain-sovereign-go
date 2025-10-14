@@ -45,8 +45,8 @@ const (
 
 type sovChainBlockTracer interface {
 	proc.BlockTracker
-	ComputeLongestExtendedShardChainFromLastNotarized() ([]data.HeaderHandler, [][]byte, error)
-	IsGenesisLastCrossNotarizedHeader() bool
+	ComputeLongestExtendedShardChainFromLastNotarized(chainID sovDto.ChainID) ([]data.HeaderHandler, [][]byte, error)
+	IsGenesisLastCrossNotarizedHeader(chainID sovDto.ChainID) bool
 }
 
 // This test will simulate an incoming header.
@@ -162,7 +162,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		// We just received header in pool and notified all subscribed components, header has not been processed + committed.
 		// We check how leader will compute the longest incoming header chain
 		extendedHeaderHash := getExtendedHeaderHash(t, nodeHandler, incomingHdr)
-		longestChain, longestChainHdrHashes, err := sovBlockTracker.ComputeLongestExtendedShardChainFromLastNotarized()
+		longestChain, longestChainHdrHashes, err := sovBlockTracker.ComputeLongestExtendedShardChainFromLastNotarized(sovDto.MVX)
 		require.Nil(t, err)
 
 		if currIncomingHeaderRound < startRound {
@@ -189,31 +189,35 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase1(t *testing.T) {
 		require.Nil(t, err)
 
 		currentSovHeader := common.GetCurrentSovereignHeader(nodeHandler)
-		lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
+		lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(uint32(sovDto.MVX))
 		require.Nil(t, err)
 
 		// Check tracker and blockchain hook state for incoming processed data
 		if currIncomingHeaderRound <= 99 {
 			require.Zero(t, lastCrossNotarizedHeader.GetRound())
-			require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
-			require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
+			require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+			require.Empty(t, currentSovHeader.GetChainDataHandlers())
 		} else if currIncomingHeaderRound == 100 { // pre-genesis incoming header is notarized
 			require.Equal(t, uint64(100), lastCrossNotarizedHeader.GetRound())
-			require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
-			require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
+			require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+			require.Empty(t, currentSovHeader.GetChainDataHandlers())
 		} else { // since genesis main-chain header, each incoming header is instantly notarized (0 block finality)
 			if currentSovHeader.IsStartOfEpochBlock() { // epoch start block, no incoming header process is added to sovereign block
 				require.Equal(t, currIncomingHeaderRound-1, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
-				require.Empty(t, currentSovHeader.GetExtendedShardHeaderHashes())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+				require.Empty(t, currentSovHeader.GetChainDataHandlers())
 			} else if prevSovHdr.IsStartOfEpochBlock() { // prev sov block was epoch start, should have 2 accumulated incoming headers
 				require.Equal(t, currIncomingHeaderRound, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
-				require.Equal(t, [][]byte{previousExtendedHeaderHash, extendedHeaderHash}, currentSovHeader.GetExtendedShardHeaderHashes())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+				require.Len(t, currentSovHeader.GetChainDataHandlers(), 1)
+				require.Equal(t, sovDto.MVX, currentSovHeader.GetChainDataHandlers()[0].GetChainID())
+				require.Equal(t, [][]byte{previousExtendedHeaderHash, extendedHeaderHash}, currentSovHeader.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 			} else { // normal processing, in each sovereign block, there is an extended header hash
 				require.Equal(t, currIncomingHeaderRound, lastCrossNotarizedHeader.GetRound())
-				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
-				require.Equal(t, [][]byte{extendedHeaderHash}, currentSovHeader.GetExtendedShardHeaderHashes())
+				require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
+				require.Len(t, currentSovHeader.GetChainDataHandlers(), 1)
+				require.Equal(t, sovDto.MVX, currentSovHeader.GetChainDataHandlers()[0].GetChainID())
+				require.Equal(t, [][]byte{extendedHeaderHash}, currentSovHeader.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 			}
 		}
 
@@ -262,7 +266,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	sovBlockTracker := getSovereignBlockTracker(t, nodeHandler)
-	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 
 	incomingHdrNonce := startRound - 1
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
@@ -276,7 +280,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 		require.Nil(t, err)
 
 		currentSovBlock := common.GetCurrentSovereignHeader(nodeHandler)
-		require.Empty(t, currentSovBlock.GetExtendedShardHeaderHashes())
+		require.Empty(t, currentSovBlock.GetChainDataHandlers())
 
 		checkLastCrossNotarizedRound(t, sovBlockTracker, lastCrossNotarizedRound)
 	}
@@ -297,9 +301,11 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase2(t *testing.T) {
 		currentSovBlock := common.GetCurrentSovereignHeader(nodeHandler)
 		if i%3 == 0 {
 			extendedHeaderHash := getExtendedHeaderHash(t, nodeHandler, incomingHdr)
-			require.Equal(t, [][]byte{extendedHeaderHash}, currentSovBlock.GetExtendedShardHeaderHashes())
+			require.Len(t, currentSovBlock.GetChainDataHandlers(), 1)
+			require.Equal(t, sovDto.MVX, currentSovBlock.GetChainDataHandlers()[0].GetChainID())
+			require.Equal(t, [][]byte{extendedHeaderHash}, currentSovBlock.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 		} else {
-			require.Empty(t, currentSovBlock.GetExtendedShardHeaderHashes())
+			require.Empty(t, currentSovBlock.GetChainDataHandlers())
 		}
 	}
 
@@ -367,7 +373,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	sovBlockTracker := getSovereignBlockTracker(t, nodeHandler)
-	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.True(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 
 	incomingHdrNonce := startRound - 3
 	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
@@ -386,7 +392,7 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 	checkLastCrossNotarizedRound(t, sovBlockTracker, lastCrossNotarizedRound)
 
 	currentSovBlock := common.GetCurrentSovereignHeader(nodeHandler)
-	require.Empty(t, currentSovBlock.GetExtendedShardHeaderHashes())
+	require.Empty(t, currentSovBlock.GetChainDataHandlers())
 
 	prevSovBlock := currentSovBlock
 	extendedHeaderHashes := make([][]byte, 0)
@@ -404,16 +410,20 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 			currentSovBlock = common.GetCurrentSovereignHeader(nodeHandler)
 
 			if currentSovBlock.IsStartOfEpochBlock() {
-				require.Empty(t, currentSovBlock.GetExtendedShardHeaderHashes())
+				require.Empty(t, currentSovBlock.GetChainDataHandlers())
 			} else if prevSovBlock.IsStartOfEpochBlock() {
-				require.Len(t, currentSovBlock.GetExtendedShardHeaderHashes(), 6)
-				require.Equal(t, extendedHeaderHashes, currentSovBlock.GetExtendedShardHeaderHashes())
+				require.Len(t, currentSovBlock.GetChainDataHandlers(), 1)
+				require.Equal(t, sovDto.MVX, currentSovBlock.GetChainDataHandlers()[0].GetChainID())
+				require.Len(t, currentSovBlock.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes(), 6)
+				require.Equal(t, extendedHeaderHashes, currentSovBlock.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 
 				lastCrossNotarizedRound += 6
 				extendedHeaderHashes = make([][]byte, 0)
 			} else {
-				require.Len(t, currentSovBlock.GetExtendedShardHeaderHashes(), 3)
-				require.Equal(t, extendedHeaderHashes, currentSovBlock.GetExtendedShardHeaderHashes())
+				require.Len(t, currentSovBlock.GetChainDataHandlers(), 1)
+				require.Equal(t, sovDto.MVX, currentSovBlock.GetChainDataHandlers()[0].GetChainID())
+				require.Len(t, currentSovBlock.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes(), 3)
+				require.Equal(t, extendedHeaderHashes, currentSovBlock.GetChainDataHandlers()[0].GetExtendedShardHeaderHashes())
 
 				lastCrossNotarizedRound += 3
 				extendedHeaderHashes = make([][]byte, 0)
@@ -637,8 +647,8 @@ func getSovereignBlockTracker(t *testing.T, nodeHandler process.NodeHandler) sov
 }
 
 func checkLastCrossNotarizedRound(t *testing.T, sovBlockTracker sovChainBlockTracer, lastCrossNotarizedRound uint64) {
-	lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(core.MainChainShardId)
+	lastCrossNotarizedHeader, _, err := sovBlockTracker.GetLastCrossNotarizedHeader(uint32(sovDto.MVX))
 	require.Nil(t, err)
 	require.Equal(t, lastCrossNotarizedRound, lastCrossNotarizedHeader.GetRound())
-	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader())
+	require.False(t, sovBlockTracker.IsGenesisLastCrossNotarizedHeader(sovDto.MVX))
 }

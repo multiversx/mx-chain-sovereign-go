@@ -8,14 +8,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/factory"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func getStoredBootstrapData(
@@ -138,6 +140,7 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 	hash1 := []byte("hash1")
 	lastFinalizedCrossChainHeaderHash := []byte("lastFinalizedCrossChainHeaderHash")
 	lastFinalizedCrossChainHeader := &block.ShardHeaderExtended{
+		SourceChainID: dtoSov.MVX,
 		Header: &block.HeaderV2{
 			Header: &block.Header{
 				Epoch: 1,
@@ -153,12 +156,14 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 			Epoch: 2,
 		},
 		EpochStart: block.EpochStartSovereign{
-			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
-				ShardID:    core.MainChainShardId,
-				Epoch:      1,
-				Round:      4,
-				Nonce:      4,
-				HeaderHash: lastFinalizedCrossChainHeaderHash,
+			LastFinalizedCrossChainHeader: []block.EpochStartCrossChainData{
+				{
+					ShardID:    uint32(dtoSov.MVX),
+					Epoch:      1,
+					Round:      4,
+					Nonce:      4,
+					HeaderHash: lastFinalizedCrossChainHeaderHash,
+				},
 			},
 		},
 	}
@@ -193,7 +198,7 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 		},
 		LastCrossNotarizedHeaders: []bootstrapStorage.BootstrapHeaderInfo{
 			{
-				ShardId: core.MainChainShardId,
+				ShardId: uint32(dtoSov.MVX),
 				Epoch:   lastFinalizedCrossChainHeader.GetEpoch(),
 				Nonce:   lastFinalizedCrossChainHeader.GetNonce(),
 				Hash:    lastFinalizedCrossChainHeaderHash,
