@@ -38,6 +38,7 @@ func NewSovereignChainBlockProcessor(blockProcessor *blockProcessor) (*sovereign
 	scbp.requestHeaderWithShardAndNonceFunc = scbp.requestHeaderWithShardAndNonce
 	scbp.requestHeadersIfNothingNewIsReceivedFunc = scbp.requestHeadersIfNothingNewIsReceived
 	scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivationFunc = scbp.removeHeaderHashIfStartOfEpochIsAndromedaActivation
+	scbp.checkHeaderFinalityForShardFunc = scbp.checkHeaderFinalityForShard
 	scbp.blockFinality = 0
 
 	extendedShardHeaderRequester, ok := scbp.requestHandler.(extendedShardHeaderRequestHandler)
@@ -135,4 +136,18 @@ func (scbp *sovereignChainBlockProcessor) removeHeaderHashIfStartOfEpochIsAndrom
 	if isHeaderStartOfEpochForAndromedaActivation {
 		scbp.headersPool.RemoveHeaderByHash(headerHash)
 	}
+}
+
+func (scbp *sovereignChainBlockProcessor) checkHeaderFinalityForShard(
+	header data.HeaderHandler,
+	sortedHeaders []data.HeaderHandler,
+	sortedHeadersHashes [][]byte,
+	index int,
+	shardID uint32,
+) error {
+	if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
+		return nil
+	}
+
+	return scbp.checkHeaderFinality(header, sortedHeaders, sortedHeadersHashes, index)
 }

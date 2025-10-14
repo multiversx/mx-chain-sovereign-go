@@ -13,6 +13,7 @@ type ElasticSearchConfig struct {
 	Enabled                   bool
 	IndexerCacheSize          int
 	BulkRequestMaxSizeInBytes int
+	NumWritesInParallel       int
 	URL                       string
 	UseKibana                 bool
 	Username                  string
