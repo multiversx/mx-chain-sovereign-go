@@ -1308,9 +1308,10 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	require.False(t, wasDataSent)
 
 	// Header's outgoing mb is updated with signatures from consensus message
-	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbDeposit))
-	require.Equal(t, leaderSig, outGoingMb.GetLeaderSignatureOutGoingOperations())
-	require.Equal(t, aggregatedSig, outGoingMb.GetAggregatedSignatureOutGoingOperations())
+	outGoingMBs := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlersWithType(int32(block.OutGoingMbDeposit))
+	require.Len(t, outGoingMBs, 1)
+	require.Equal(t, leaderSig, outGoingMBs[0].GetLeaderSignatureOutGoingOperations())
+	require.Equal(t, aggregatedSig, outGoingMBs[0].GetAggregatedSignatureOutGoingOperations())
 
 	// Internal outgoing pool is updated with signatures as well
 	updatedPoolData := pool.Get([]byte("hashOfHashes"), dto.MVX)

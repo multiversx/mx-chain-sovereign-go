@@ -31,7 +31,7 @@
         StartRound = 11
 
     [MainChainNotarization.ETH]
-        StartRound = 23246607
+        StartRound = 12
 
     #[MainChainNotarization.SUI]
     #    StartRound = 13
