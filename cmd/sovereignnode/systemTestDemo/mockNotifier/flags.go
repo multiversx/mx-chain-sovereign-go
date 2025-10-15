@@ -5,6 +5,11 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	chainMVX = "mvx"
+	chainETH = "eth"
+)
+
 var (
 	logLevel = cli.StringFlag{
 		Name: "log-level",
@@ -27,5 +32,10 @@ var (
 		Name:  "certificate-pk",
 		Usage: "The path for sovereign grpc bridge private key certificate file.",
 		Value: "~/MultiversX/testnet/node/config/private_key.pem",
+	}
+	notifiers = cli.StringSliceFlag{
+		Name:  "notifiers",
+		Usage: "Chains from which the mocked data should be sent",
+		Value: &cli.StringSlice{chainMVX, chainETH},
 	}
 )

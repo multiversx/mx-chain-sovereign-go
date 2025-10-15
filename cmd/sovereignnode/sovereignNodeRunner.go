@@ -1975,9 +1975,11 @@ func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, e
 	}
 
 	go func() {
-		err = ethNotifier.Start(context.Background())
-		log.LogIfError(err)
-		time.Sleep(time.Second * 5)
+		for {
+			err = ethNotifier.Start(context.Background())
+			log.LogIfError(err)
+			time.Sleep(time.Second * 5)
+		}
 	}()
 
 	return ethNotifier, nil
