@@ -30,8 +30,8 @@ func (creator *suiExtendedHeaderCreator) CreateNewExtendedHeader(proof []byte) (
 	return &block.ShardHeaderExtended{
 		Header: &block.HeaderV2{
 			Header: &block.Header{
-				Nonce: suiCheckpoint.SequenceNumber,
-				Round: suiCheckpoint.SequenceNumber,
+				Nonce: suiCheckpoint.IncomingNonce,
+				Round: suiCheckpoint.IncomingNonce,
 				// TODO: MX-17145 maybe extend ShardHeaderExtended from core to return on GetShardID the source chain
 				ShardID: uint32(dto.SUI),
 			},

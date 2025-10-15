@@ -1,7 +1,7 @@
 module github.com/multiversx/mx-chain-go
 
 replace (
-	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014131147-639f07d87ea4
+	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014115342-0b2b6cc25e07
 	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250827090449-a68b23b996fb
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250715144941-88820f3a7c28
 )
@@ -53,7 +53,7 @@ require (
 	github.com/multiversx/mx-chain-sovereign-bridge-go v0.0.0-20250610105734-30b3338debcf
 	github.com/multiversx/mx-chain-sovereign-notifier-go v0.0.0-20251014131823-69824e16ea92
 	github.com/multiversx/mx-sdk-abi-go v0.3.0
-	github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251013134307-49136eb5e624
+	github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251015090016-ee54b9439c3a
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6

@@ -451,8 +451,8 @@ github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829111718-0d0d
 github.com/multiversx/eth-chain-sovereign-notifier-go v0.0.0-20250829111718-0d0d58a128ba/go.mod h1:N2mapkK1jUdcFyVOA68FGZREWSl8SqjNrslXHnHhBf8=
 github.com/multiversx/mx-chain-communication-go v1.3.0 h1:ziNM1dRuiR/7al2L/jGEA/a/hjurtJ/HEqgazHNt9P8=
 github.com/multiversx/mx-chain-communication-go v1.3.0/go.mod h1:gDVWn6zUW6aCN1YOm/FbbT5MUmhgn/L1Rmpl8EoH3Yg=
-github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014131147-639f07d87ea4 h1:ePwk7F7oCQrHN5zCCxpJX/GcMlzUSwe2dQqKKi7rQLg=
-github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014131147-639f07d87ea4/go.mod h1:gzJ7SoSd5vxHT7JDv9EruA+7r1kn47AAKdF7XblSqDY=
+github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014115342-0b2b6cc25e07 h1:KnqSN0SYMsS5GDb4L+C5DuyjASj0luhbGYsD0+Gdgmg=
+github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251014115342-0b2b6cc25e07/go.mod h1:gzJ7SoSd5vxHT7JDv9EruA+7r1kn47AAKdF7XblSqDY=
 github.com/multiversx/mx-chain-crypto-go v1.3.0 h1:0eK2bkDOMi8VbSPrB1/vGJSYT81IBtfL4zw+C4sWe/k=
 github.com/multiversx/mx-chain-crypto-go v1.3.0/go.mod h1:nPIkxxzyTP8IquWKds+22Q2OJ9W7LtusC7cAosz7ojM=
 github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250827090449-a68b23b996fb h1:SfVyTWSfxrx4FarxVJZ5JJ+DtDza8hQkPtnx2n0hbR0=
@@ -483,8 +483,8 @@ github.com/multiversx/mx-sdk-abi-go v0.3.0 h1:WX7OUhYZbgaSvP4HE23DjFv5SMZ1/5F4Vp
 github.com/multiversx/mx-sdk-abi-go v0.3.0/go.mod h1:++ds6BB47LrXl8a9N2VGRBzHCfl6kkxRCHb31a5z61g=
 github.com/multiversx/protobuf v1.3.2 h1:RaNkxvGTGbA0lMcnHAN24qE1G1i+Xs5yHA6MDvQ4mSM=
 github.com/multiversx/protobuf v1.3.2/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXPKa29o=
-github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251013134307-49136eb5e624 h1:kgWUODZ0IXiUBwzzmdlfQjb3HuN0B7UwB5FwfxLAfTc=
-github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251013134307-49136eb5e624/go.mod h1:IbUtzObqqTG1g/XOlST/E4HZp73umLDQKM1HNgFBcF0=
+github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251015090016-ee54b9439c3a h1:PBd+XVrkWRXojzl5SZDp9LA6k0N14Ibto9XAJ+egrbw=
+github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251015090016-ee54b9439c3a/go.mod h1:IbUtzObqqTG1g/XOlST/E4HZp73umLDQKM1HNgFBcF0=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86/go.mod h1:kHJEU3ofeGjhHklVoIGuVj85JJwZ6kWPaJwCIxgnFmo=

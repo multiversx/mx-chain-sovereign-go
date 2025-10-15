@@ -34,7 +34,7 @@
         StartRound = 12
 
     [MainChainNotarization.SUI]
-        StartRound = 13
+        StartRound = 1
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.
@@ -159,7 +159,7 @@
         # Check docs here: https://docs.sui.io/guides/developer/sui-101/using-events#filtering-event-queries
         # Event type = All/MoveEventType/Sender, etc.
         # Value = json-rpc parameter
-        { EventType = "MoveEventType", value = "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderPlacessd" }
+        { EventType = "MoveEventType", value = "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderPlacsessd" }
     ]
 
     [SUINotifierConfig.SUIClientConfig]
