@@ -528,7 +528,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 		hashOfOperation := unconfirmedOps[0].OutGoingOperations[0].Hash
 
 		confirmBridgeOpEvent := &transaction.Event{
-			Identifier: []byte(dto.EventIDChangeValidatorSet),
+			Identifier: []byte(dto.EventIDConfirmedChangeValidatorSet),
 			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
 		}
 
