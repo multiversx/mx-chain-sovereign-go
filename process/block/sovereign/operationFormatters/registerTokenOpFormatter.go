@@ -23,31 +23,23 @@ const (
 )
 
 type registerTokenOpFormatter struct {
-	*opFormatterHelper
 	dataCodec DataCodecHandler
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
-func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*registerTokenOpFormatter, error) {
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
-	if check.IfNil(topicsChecker) {
-		return nil, errMx.ErrNilTopicsChecker
-	}
 
 	return &registerTokenOpFormatter{
-		opFormatterHelper: &opFormatterHelper{
-			dataCodec:     dataCodec,
-			topicsChecker: topicsChecker,
-		},
 		dataCodec: dataCodec,
 	}, nil
 }
 
 // CreateOperationData will create register token operation data
 func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
-	evData, err := op.checkAndGetEventData(event)
+	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +73,7 @@ func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, event
 		TokenType:       core.ESDTType(tokenType),
 		Name:            topics[topicIdxName],
 		Ticker:          topics[topicIdxTicker],
-		NumDecimals:     numDecimals,
+		NumDecimals:     uint32(numDecimals),
 		EventData:       eventData,
 	}, nil
 }

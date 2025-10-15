@@ -2,6 +2,7 @@ package sovereign
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	coreDTO "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -10,7 +11,7 @@ import (
 // OutgoingOperationsFormatter collects relevant outgoing events for bridge from the logs and creates outgoing data
 // that needs to be signed by validators to bridge tokens
 type OutgoingOperationsFormatter interface {
-	CreateOutgoingTxsData(logs []*data.LogData) (map[coreDTO.ChainID][][]byte, error)
+	CreateOutgoingTxsData(logs []*data.LogData) (map[coreDTO.ChainID]map[block.OutGoingMBType][][]byte, error)
 	CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) (map[coreDTO.ChainID][][]byte, error)
 	IsInterfaceNil() bool
 }
