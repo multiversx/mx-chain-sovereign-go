@@ -156,7 +156,7 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 func createMapMainChainNotarization(mainChainNotarizationStartRound map[string]config.MainChainNotarization) (map[string]*chainStartRoundCfg, error) {
 	ret := make(map[string]*chainStartRoundCfg)
 	for sourceChainID, cfg := range mainChainNotarizationStartRound {
-		if !dtoSov.IsValidCrossChainIDString(sourceChainID) && sourceChainID != dtoSov.SUI.String() {
+		if !dtoSov.IsValidCrossChainIDString(sourceChainID) {
 			return nil, fmt.Errorf("%w: %s", errSourceChainNotSupported, sourceChainID)
 		}
 

@@ -34,7 +34,7 @@
         StartRound = 12
 
     [MainChainNotarization.SUI]
-        StartRound = 1
+        StartRound = 13
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.

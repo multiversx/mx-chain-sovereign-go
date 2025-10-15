@@ -44,31 +44,25 @@ func (schv *sovereignChainHeaderValidator) calculateHeaderHash(headerHandler dat
 
 // IsHeaderConstructionValid verifies if current header is constructed correctly on top of previous header
 func (schv *sovereignChainHeaderValidator) IsHeaderConstructionValid(currHeader, prevHeader data.HeaderHandler) error {
-	extendedHdr, isExtendedHeader := currHeader.(data.ShardHeaderExtendedHandler)
-	if isExtendedHeader && extendedHdr.GetSourceChainID() == dto.SUI {
-		log.Error("SUI")
-		return nil
-	}
-
 	err := schv.checkHdrRoundAndNonce(currHeader, prevHeader)
 	if err != nil {
 		return err
 	}
 
-	if isETHChainHdr(currHeader) {
+	if isETHOrSUIChainHdr(currHeader) {
 		return nil
 	}
 
 	return schv.checkHdrHashes(currHeader, prevHeader)
 }
 
-func isETHChainHdr(currHeader data.HeaderHandler) bool {
+func isETHOrSUIChainHdr(currHeader data.HeaderHandler) bool {
 	extendedHdr, isExtendedHeader := currHeader.(data.ShardHeaderExtendedHandler)
 	if !isExtendedHeader {
 		return false
 	}
 
-	return extendedHdr.GetSourceChainID() == dto.ETH
+	return extendedHdr.GetSourceChainID() == dto.ETH || extendedHdr.GetSourceChainID() == dto.SUI
 }
 
 // IsInterfaceNil returns if underlying object is true
