@@ -539,6 +539,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 
 		currentHeaderETH, headerHashETH = createETHIncomingHeader(nodeHandler, &incomingHdrNonceETH, []*transaction.Event{confirmBridgeOpEvent})
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHashETH, currentHeaderETH)
+		require.Nil(t, err)
 	}
 }
 
