@@ -15,7 +15,7 @@ func TestNewRatingsDataFactory(t *testing.T) {
 func TestRatingsDataFactory_CreateRatingsData(t *testing.T) {
 	factory := NewRatingsDataFactory()
 
-	ratingsDataArg := createDymmyRatingsData()
+	ratingsDataArg := createDummyRatingsData()
 	ratingsDataArg.Config = createDummyRatingsConfig()
 	blockCreator, err := factory.CreateRatingsData(ratingsDataArg)
 	require.Nil(t, err)

@@ -3,6 +3,7 @@ package interceptorscontainer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
@@ -90,6 +91,11 @@ func (sicf *sovereignShardInterceptorsContainerFactory) Create() (process.Interc
 	}
 
 	err = sicf.generateSovereignExtendedHeaderInterceptors()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = sicf.generateEquivalentProofsInterceptor()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -187,17 +193,23 @@ func (sicf *sovereignShardInterceptorsContainerFactory) generateSovereignExtende
 
 	identifierHdr := factory.ExtendedHeaderProofTopic + shardC.CommunicationIdentifier(shardC.SelfId())
 
+	interceptedDataVerifier, err := sicf.interceptedDataVerifierFactory.Create(identifierHdr)
+	if err != nil {
+		return err
+	}
+
 	// only one intra shard header topic
 	interceptor, err := interceptors.NewSingleDataInterceptor(
 		interceptors.ArgSingleDataInterceptor{
-			Topic:                identifierHdr,
-			DataFactory:          hdrFactory,
-			Processor:            hdrProcessor,
-			Throttler:            sicf.globalThrottler,
-			AntifloodHandler:     sicf.antifloodHandler,
-			WhiteListRequest:     sicf.whiteListHandler,
-			CurrentPeerId:        sicf.mainMessenger.ID(),
-			PreferredPeersHolder: sicf.preferredPeersHolder,
+			Topic:                   identifierHdr,
+			DataFactory:             hdrFactory,
+			Processor:               hdrProcessor,
+			Throttler:               sicf.globalThrottler,
+			AntifloodHandler:        sicf.antifloodHandler,
+			WhiteListRequest:        sicf.whiteListHandler,
+			CurrentPeerId:           sicf.mainMessenger.ID(),
+			PreferredPeersHolder:    sicf.preferredPeersHolder,
+			InterceptedDataVerifier: interceptedDataVerifier,
 		},
 	)
 	if err != nil {
@@ -210,6 +222,16 @@ func (sicf *sovereignShardInterceptorsContainerFactory) generateSovereignExtende
 	}
 
 	return sicf.addInterceptorsToContainers([]string{identifierHdr}, []process.Interceptor{interceptor})
+}
+
+func (sicf *sovereignShardInterceptorsContainerFactory) generateEquivalentProofsInterceptor() error {
+	identifierEquivalentProofsShard := common.EquivalentProofsTopic + sicf.shardCoordinator.CommunicationIdentifier(core.SovereignChainShardId)
+	interceptorShard, err := sicf.createOneShardEquivalentProofsInterceptor(identifierEquivalentProofsShard)
+	if err != nil {
+		return err
+	}
+
+	return sicf.addInterceptorsToContainers([]string{identifierEquivalentProofsShard}, []process.Interceptor{interceptorShard})
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

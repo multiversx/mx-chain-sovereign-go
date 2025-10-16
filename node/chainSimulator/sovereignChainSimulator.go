@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 )
 

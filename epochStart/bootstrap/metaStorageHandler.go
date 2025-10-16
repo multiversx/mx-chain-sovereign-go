@@ -62,6 +62,8 @@ func NewMetaStorageHandler(args StorageHandlerArgs) (*metaStorageHandler, error)
 		currentEpoch:                    args.CurrentEpoch,
 		uint64Converter:                 args.Uint64Converter,
 		nodesCoordinatorRegistryFactory: args.NodesCoordinatorRegistryFactory,
+		proofsPool:                      args.ProofsPool,
+		enableEpochsHandler:             args.EnableEpochsHandler,
 	}
 
 	return &metaStorageHandler{baseStorageHandler: base}, nil

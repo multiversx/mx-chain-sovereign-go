@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	commonMock "github.com/multiversx/mx-chain-go/common/mock"
 	"github.com/multiversx/mx-chain-go/consensus/broadcast"
 	"github.com/multiversx/mx-chain-go/consensus/mock"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
 	"github.com/stretchr/testify/require"
@@ -20,12 +23,13 @@ func createDefaultShardChainArgs() broadcast.ShardChainMessengerArgs {
 			Messenger:                  &p2pmocks.MessengerStub{},
 			ShardCoordinator:           &mock.ShardCoordinatorMock{},
 			PeerSignatureHandler:       &mock.PeerSignatureHandler{},
-			HeadersSubscriber:          &testscommon.HeadersCacherStub{},
+			HeadersSubscriber:          &processMock.HeadersCacherStub{},
 			InterceptorsContainer:      &testscommon.InterceptorsContainerStub{},
 			MaxDelayCacheSize:          1,
 			MaxValidatorDelayCacheSize: 1,
-			AlarmScheduler:             &mock.AlarmSchedulerStub{},
+			AlarmScheduler:             &commonMock.AlarmSchedulerStub{},
 			KeysHandler:                &testscommon.KeysHandlerStub{},
+			DelayedBroadcaster:         &consensus.DelayedBroadcasterMock{},
 		},
 	}
 }
@@ -41,4 +45,15 @@ func TestSovereignChainMessengerFactory_CreateShardChainMessenger(t *testing.T) 
 	require.Nil(t, err)
 	require.NotNil(t, msg)
 	require.Equal(t, "*broadcast.sovereignChainMessenger", fmt.Sprintf("%T", msg))
+}
+
+func TestSovereignChainMessengerFactory_CreateDelayedBlockBroadcaster(t *testing.T) {
+	t.Parallel()
+
+	f := NewSovereignShardChainMessengerFactory()
+	args := createDefaultDelayedBlockBroadcasterArgs()
+	dbb, err := f.CreateDelayedBlockBroadcaster(args)
+	require.Nil(t, err)
+	require.NotNil(t, dbb)
+	require.Equal(t, "*broadcast.sovereignDelayedBroadcastData", fmt.Sprintf("%T", dbb))
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool/headersCache"
 	"github.com/multiversx/mx-chain-go/process"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/database"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
@@ -25,7 +26,7 @@ import (
 func createMockHeadersSyncHandlerArgs() ArgsNewHeadersSyncHandler {
 	return ArgsNewHeadersSyncHandler{
 		StorageService:   &storageStubs.ChainStorerStub{},
-		Cache:            &testscommon.HeadersCacherStub{},
+		Cache:            &processMock.HeadersCacherStub{},
 		Marshalizer:      &mock.MarshalizerFake{},
 		Hasher:           &hashingMocks.HasherMock{},
 		EpochHandler:     &mock.EpochStartTriggerStub{},

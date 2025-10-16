@@ -1,6 +1,9 @@
 package disabled
 
-import "github.com/multiversx/mx-chain-core-go/data/sovereign"
+import (
+	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
+)
 
 type dataCodec struct {
 }
@@ -32,6 +35,16 @@ func (dc *dataCodec) DeserializeTokenData(_ []byte) (*sovereign.EsdtTokenData, e
 
 // SerializeOperation returns nothing
 func (dc *dataCodec) SerializeOperation(_ sovereign.Operation) ([]byte, error) {
+	return make([]byte, 0), nil
+}
+
+// SerializeTokenProperties returns nothing
+func (dc *dataCodec) SerializeTokenProperties(_ dto.TokenProperties) ([]byte, error) {
+	return make([]byte, 0), nil
+}
+
+// SerializeNewlyRegisteredKey returns nothing
+func (dc *dataCodec) SerializeNewlyRegisteredKey(_ dto.RegisteredBlsKey) ([]byte, error) {
 	return make([]byte, 0), nil
 }
 

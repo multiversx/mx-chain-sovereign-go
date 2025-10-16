@@ -13,8 +13,8 @@ func NewChainHandlerFactory() ChainHandlerFactory {
 }
 
 // CreateChainHandler creates a new chain handler for normal chain simulator
-func (pf *processorFactory) CreateChainHandler(nodeHandler process.NodeHandler) (ChainHandler, error) {
-	return process.NewBlocksCreator(nodeHandler, process.NewBlockProcessorFactory())
+func (pf *processorFactory) CreateChainHandler(nodeHandler process.NodeHandler, monitor process.HeartbeatMonitorWithSet) (ChainHandler, error) {
+	return process.NewBlocksCreator(nodeHandler, process.NewBlockProcessor(), monitor)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

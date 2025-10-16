@@ -27,24 +27,25 @@ const timeSpanForBadHeaders = time.Minute
 // ArgsEpochStartInterceptorContainer holds the arguments needed for creating a new epoch start interceptors
 // container factory
 type ArgsEpochStartInterceptorContainer struct {
-	CoreComponents          process.CoreComponentsHolder
-	CryptoComponents        process.CryptoComponentsHolder
-	Config                  config.Config
-	ShardCoordinator        sharding.Coordinator
-	MainMessenger           process.TopicHandler
-	FullArchiveMessenger    process.TopicHandler
-	DataPool                dataRetriever.PoolsHolder
-	WhiteListHandler        update.WhiteListHandler
-	WhiteListerVerifiedTxs  update.WhiteListHandler
-	AddressPubkeyConv       core.PubkeyConverter
-	NonceConverter          typeConverters.Uint64ByteSliceConverter
-	ChainID                 []byte
-	ArgumentsParser         process.ArgumentsParser
-	HeaderIntegrityVerifier process.HeaderIntegrityVerifier
-	RequestHandler          process.RequestHandler
-	SignaturesHandler       process.SignaturesHandler
-	NodeOperationMode       common.NodeOperation
-	AccountFactory          state.AccountFactory
+	CoreComponents                 process.CoreComponentsHolder
+	CryptoComponents               process.CryptoComponentsHolder
+	Config                         config.Config
+	ShardCoordinator               sharding.Coordinator
+	MainMessenger                  process.TopicHandler
+	FullArchiveMessenger           process.TopicHandler
+	DataPool                       dataRetriever.PoolsHolder
+	WhiteListHandler               update.WhiteListHandler
+	WhiteListerVerifiedTxs         update.WhiteListHandler
+	AddressPubkeyConv              core.PubkeyConverter
+	NonceConverter                 typeConverters.Uint64ByteSliceConverter
+	ChainID                        []byte
+	ArgumentsParser                process.ArgumentsParser
+	HeaderIntegrityVerifier        process.HeaderIntegrityVerifier
+	RequestHandler                 process.RequestHandler
+	SignaturesHandler              process.SignaturesHandler
+	NodeOperationMode              common.NodeOperation
+	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
+	AccountFactory                 state.AccountFactory
 }
 
 // NewEpochStartInterceptorsContainer will return a real interceptors container factory, but with many disabled components
@@ -119,35 +120,36 @@ func CreateEpochStartContainerFactoryArgs(args ArgsEpochStartInterceptorContaine
 	hardforkTrigger := disabledFactory.HardforkTrigger()
 
 	return &interceptorscontainer.CommonInterceptorsContainerFactoryArgs{
-		CoreComponents:               args.CoreComponents,
-		CryptoComponents:             cryptoComponents,
-		Accounts:                     accountsAdapter,
-		ShardCoordinator:             args.ShardCoordinator,
-		NodesCoordinator:             nodesCoordinator,
-		MainMessenger:                args.MainMessenger,
-		FullArchiveMessenger:         args.FullArchiveMessenger,
-		Store:                        storer,
-		DataPool:                     args.DataPool,
-		MaxTxNonceDeltaAllowed:       common.MaxTxNonceDeltaAllowed,
-		TxFeeHandler:                 feeHandler,
-		BlockBlackList:               blackListHandler,
-		HeaderSigVerifier:            headerSigVerifier,
-		HeaderIntegrityVerifier:      args.HeaderIntegrityVerifier,
-		ValidityAttester:             validityAttester,
-		EpochStartTrigger:            epochStartTrigger,
-		WhiteListHandler:             args.WhiteListHandler,
-		WhiteListerVerifiedTxs:       args.WhiteListerVerifiedTxs,
-		AntifloodHandler:             antiFloodHandler,
-		ArgumentsParser:              args.ArgumentsParser,
-		PreferredPeersHolder:         disabled.NewPreferredPeersHolder(),
-		SizeCheckDelta:               uint32(sizeCheckDelta),
-		RequestHandler:               args.RequestHandler,
-		PeerSignatureHandler:         cryptoComponents.PeerSignatureHandler(),
-		SignaturesHandler:            args.SignaturesHandler,
-		HeartbeatExpiryTimespanInSec: args.Config.HeartbeatV2.HeartbeatExpiryTimespanInSec,
-		MainPeerShardMapper:          peerShardMapper,
-		FullArchivePeerShardMapper:   fullArchivePeerShardMapper,
-		HardforkTrigger:              hardforkTrigger,
-		NodeOperationMode:            args.NodeOperationMode,
+		CoreComponents:                 args.CoreComponents,
+		CryptoComponents:               cryptoComponents,
+		Accounts:                       accountsAdapter,
+		ShardCoordinator:               args.ShardCoordinator,
+		NodesCoordinator:               nodesCoordinator,
+		MainMessenger:                  args.MainMessenger,
+		FullArchiveMessenger:           args.FullArchiveMessenger,
+		Store:                          storer,
+		DataPool:                       args.DataPool,
+		MaxTxNonceDeltaAllowed:         common.MaxTxNonceDeltaAllowed,
+		TxFeeHandler:                   feeHandler,
+		BlockBlackList:                 blackListHandler,
+		HeaderSigVerifier:              headerSigVerifier,
+		HeaderIntegrityVerifier:        args.HeaderIntegrityVerifier,
+		ValidityAttester:               validityAttester,
+		EpochStartTrigger:              epochStartTrigger,
+		WhiteListHandler:               args.WhiteListHandler,
+		WhiteListerVerifiedTxs:         args.WhiteListerVerifiedTxs,
+		AntifloodHandler:               antiFloodHandler,
+		ArgumentsParser:                args.ArgumentsParser,
+		PreferredPeersHolder:           disabled.NewPreferredPeersHolder(),
+		SizeCheckDelta:                 uint32(sizeCheckDelta),
+		RequestHandler:                 args.RequestHandler,
+		PeerSignatureHandler:           cryptoComponents.PeerSignatureHandler(),
+		SignaturesHandler:              args.SignaturesHandler,
+		HeartbeatExpiryTimespanInSec:   args.Config.HeartbeatV2.HeartbeatExpiryTimespanInSec,
+		MainPeerShardMapper:            peerShardMapper,
+		FullArchivePeerShardMapper:     fullArchivePeerShardMapper,
+		HardforkTrigger:                hardforkTrigger,
+		NodeOperationMode:              args.NodeOperationMode,
+		InterceptedDataVerifierFactory: args.InterceptedDataVerifierFactory,
 	}, nil
 }

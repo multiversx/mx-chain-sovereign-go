@@ -28,7 +28,7 @@ func createSovereignDefaultValidatorInfo(
 ) state.ShardValidatorsInfoMapHandler {
 	shardID := core.SovereignChainShardId
 
-	cGrShard := uint32(nodesConfigProvider.ConsensusGroupSize(shardID))
+	cGrShard := uint32(nodesConfigProvider.ConsensusGroupSizeForShardAndEpoch(shardID, 0))
 	nbBlocksSelectedNodeInShard := nbBlocksPerShard * cGrShard / eligibleNodesPerShard
 
 	var nbBlocksSelected uint32

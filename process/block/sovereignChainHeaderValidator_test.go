@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/mock"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,8 +25,9 @@ func TestNewSovereignChainHeaderValidator_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	argsHeaderValidator := block.ArgsHeaderValidator{
-		Hasher:      &mock.HasherStub{},
-		Marshalizer: &mock.MarshalizerMock{},
+		Hasher:              &mock.HasherStub{},
+		Marshalizer:         &mock.MarshalizerMock{},
+		EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 	hv, _ := block.NewHeaderValidator(argsHeaderValidator)
 
@@ -41,8 +43,9 @@ func TestGetHeaderHash_ShouldWork(t *testing.T) {
 		t.Parallel()
 
 		argsHeaderValidator := block.ArgsHeaderValidator{
-			Hasher:      &mock.HasherStub{},
-			Marshalizer: &mock.MarshalizerMock{},
+			Hasher:              &mock.HasherStub{},
+			Marshalizer:         &mock.MarshalizerMock{},
+			EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		}
 		hv, _ := block.NewHeaderValidator(argsHeaderValidator)
 		schv, _ := block.NewSovereignChainHeaderValidator(hv)
@@ -57,8 +60,9 @@ func TestGetHeaderHash_ShouldWork(t *testing.T) {
 		t.Parallel()
 
 		argsHeaderValidator := block.ArgsHeaderValidator{
-			Hasher:      &hashingMocks.HasherMock{},
-			Marshalizer: &mock.MarshalizerMock{},
+			Hasher:              &hashingMocks.HasherMock{},
+			Marshalizer:         &mock.MarshalizerMock{},
+			EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		}
 		hv, _ := block.NewHeaderValidator(argsHeaderValidator)
 		schv, _ := block.NewSovereignChainHeaderValidator(hv)
@@ -79,8 +83,9 @@ func TestGetHeaderHash_ShouldWork(t *testing.T) {
 		t.Parallel()
 
 		argsHeaderValidator := block.ArgsHeaderValidator{
-			Hasher:      &hashingMocks.HasherMock{},
-			Marshalizer: &mock.MarshalizerMock{},
+			Hasher:              &hashingMocks.HasherMock{},
+			Marshalizer:         &mock.MarshalizerMock{},
+			EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		}
 		hv, _ := block.NewHeaderValidator(argsHeaderValidator)
 		schv, _ := block.NewSovereignChainHeaderValidator(hv)

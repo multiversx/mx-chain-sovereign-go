@@ -51,5 +51,5 @@ stopObserver() {
 
 cleanObserver() {
     echo "Removing Docker container for Observer..."
-    docker remove $CONTAINER_NAME
+    docker rm $CONTAINER_NAME
 }

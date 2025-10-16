@@ -28,14 +28,14 @@ func newSovereignHashValidatorShuffler(baseShuffler NodesShuffler) (*sovereignHa
 
 // UpdateNodeLists will update node lists w.r.t to metachain original shuffling, only adjusted to work for one shard
 func (ss *sovereignHashValidatorShuffler) UpdateNodeLists(args ArgsUpdateNodes) (*ResUpdateNodes, error) {
-	ss.updateShufflerConfig(args.Epoch)
+	ss.UpdateShufflerConfig(args.Epoch, args.ChainParameters)
 	eligibleAfterReshard := copyValidatorMap(args.Eligible)
 	waitingAfterReshard := copyValidatorMap(args.Waiting)
 
-	args.AdditionalLeaving = removeDupplicates(args.UnStakeLeaving, args.AdditionalLeaving)
+	args.AdditionalLeaving = removeDuplicates(args.UnStakeLeaving, args.AdditionalLeaving)
 
 	ss.mutShufflerParams.RLock()
-	nodesPerShard := ss.nodesShard
+	nodesPerShard := args.ChainParameters.ShardMinNumNodes
 	nodesMeta := uint32(0)
 	ss.mutShufflerParams.RUnlock()
 

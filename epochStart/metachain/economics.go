@@ -224,9 +224,9 @@ func (e *economics) printEconomicsData(
 
 	var rewardsForLeaders *big.Int
 	if metaBlock.GetEpoch() > e.stakingV2EnableEpoch {
-		rewardsForLeaders = core.GetIntTrimmedPercentageOfValue(metaBlock.GetAccumulatedFeesInEpoch(), e.rewardsHandler.LeaderPercentage())
+		rewardsForLeaders = core.GetIntTrimmedPercentageOfValue(metaBlock.GetAccumulatedFeesInEpoch(), e.rewardsHandler.LeaderPercentageInEpoch(metaBlock.GetEpoch()))
 	} else {
-		rewardsForLeaders = core.GetApproximatePercentageOfValue(metaBlock.GetAccumulatedFeesInEpoch(), e.rewardsHandler.LeaderPercentage())
+		rewardsForLeaders = core.GetApproximatePercentageOfValue(metaBlock.GetAccumulatedFeesInEpoch(), e.rewardsHandler.LeaderPercentageInEpoch(metaBlock.GetEpoch()))
 	}
 
 	maxSupplyLength := len(prevEpochEconomics.GetTotalSupply().String())
@@ -254,7 +254,7 @@ func (e *economics) printEconomicsData(
 		e.newDisplayLine("reward per block", "(8)",
 			e.alignRight(rwdPerBlock.String(), maxSupplyLength)),
 		e.newDisplayLine("percent for protocol sustainability", "(9)",
-			e.alignRight(fmt.Sprintf("%.6f", e.rewardsHandler.ProtocolSustainabilityPercentage()), maxSupplyLength)),
+			e.alignRight(fmt.Sprintf("%.6f", e.rewardsHandler.ProtocolSustainabilityPercentageInEpoch(metaBlock.GetEpoch())), maxSupplyLength)),
 		e.newDisplayLine("reward for protocol sustainability", "(4 * 9)",
 			e.alignRight(rewardsForProtocolSustainability.String(), maxSupplyLength)),
 	}
@@ -283,10 +283,10 @@ func (e *economics) newDisplayLine(values ...string) *display.LineData {
 // compute the rewards for protocol sustainability - percentage from total rewards
 func (e *economics) computeRewardsForProtocolSustainability(totalRewards *big.Int, epoch uint32) *big.Int {
 	if epoch > e.stakingV2EnableEpoch {
-		return core.GetIntTrimmedPercentageOfValue(totalRewards, e.rewardsHandler.ProtocolSustainabilityPercentage())
+		return core.GetIntTrimmedPercentageOfValue(totalRewards, e.rewardsHandler.ProtocolSustainabilityPercentageInEpoch(epoch))
 	}
 
-	return core.GetApproximatePercentageOfValue(totalRewards, e.rewardsHandler.ProtocolSustainabilityPercentage())
+	return core.GetApproximatePercentageOfValue(totalRewards, e.rewardsHandler.ProtocolSustainabilityPercentageInEpoch(epoch))
 }
 
 // adjustment for rewards given for each proposed block taking protocol sustainability rewards into consideration
@@ -320,9 +320,9 @@ func (e *economics) adjustRewardsPerBlockWithLeaderPercentage(
 	var rewardsForLeaders *big.Int
 	if epoch > e.stakingV2EnableEpoch {
 		accumulatedFeesForValidators.Sub(accumulatedFeesForValidators, developerFees)
-		rewardsForLeaders = core.GetIntTrimmedPercentageOfValue(accumulatedFeesForValidators, e.rewardsHandler.LeaderPercentage())
+		rewardsForLeaders = core.GetIntTrimmedPercentageOfValue(accumulatedFeesForValidators, e.rewardsHandler.LeaderPercentageInEpoch(epoch))
 	} else {
-		rewardsForLeaders = core.GetApproximatePercentageOfValue(accumulatedFeesForValidators, e.rewardsHandler.LeaderPercentage())
+		rewardsForLeaders = core.GetApproximatePercentageOfValue(accumulatedFeesForValidators, e.rewardsHandler.LeaderPercentageInEpoch(epoch))
 	}
 
 	averageLeaderRewardPerBlock := big.NewInt(0).Div(rewardsForLeaders, big.NewInt(0).SetUint64(blocksInEpoch))

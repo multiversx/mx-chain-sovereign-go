@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/interceptedBlocks"
 )
@@ -22,7 +23,7 @@ func NewInterceptedSovereignShardHeaderDataFactory(argument *ArgInterceptedDataF
 }
 
 // Create creates instances of InterceptedData by unmarshalling provided buffer
-func (ishdf *interceptedSovereignShardHeaderDataFactory) Create(buff []byte) (process.InterceptedData, error) {
+func (ishdf *interceptedSovereignShardHeaderDataFactory) Create(buff []byte, _ core.PeerID) (process.InterceptedData, error) {
 	arg := ishdf.createArgsInterceptedBlockHeader(buff)
 	return interceptedBlocks.NewSovereignInterceptedBlockHeader(arg)
 }

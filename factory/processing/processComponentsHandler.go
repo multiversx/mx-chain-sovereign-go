@@ -316,6 +316,22 @@ func (mpc *managedProcessComponents) BlockProcessor() process.BlockProcessor {
 	return mpc.processComponents.blockProcessor
 }
 
+// BlockchainHook returns the block chain hook
+func (m *managedProcessComponents) BlockchainHook() process.BlockChainHookWithAccountsAdapter {
+	m.mutProcessComponents.RLock()
+	defer m.mutProcessComponents.RUnlock()
+
+	if m.processComponents == nil {
+		return nil
+	}
+
+	if check.IfNil(m.processComponents.vmFactoryForProcessing) {
+		return nil
+	}
+
+	return m.processComponents.vmFactoryForProcessing.BlockChainHookImpl()
+}
+
 // BlackListHandler returns the black list handler
 func (mpc *managedProcessComponents) BlackListHandler() process.TimeCacher {
 	mpc.mutProcessComponents.RLock()

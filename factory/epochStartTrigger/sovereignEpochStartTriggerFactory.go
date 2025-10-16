@@ -41,6 +41,7 @@ func (f *sovereignEpochStartTriggerFactory) CreateEpochStartTrigger(args factory
 	argsSovTrigger := metachain.ArgsSovereignTrigger{
 		ArgsNewMetaEpochStartTrigger: metaTriggerArgs,
 		ValidatorInfoSyncer:          peerMiniBlockSyncer,
+		EnableEpochsHandler:          args.CoreData.EnableEpochsHandler(),
 	}
 
 	return metachain.NewSovereignTrigger(argsSovTrigger)
