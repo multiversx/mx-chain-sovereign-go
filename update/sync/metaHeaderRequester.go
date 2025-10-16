@@ -3,6 +3,7 @@ package sync
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -29,6 +30,11 @@ func (mhr *metaHeaderRequester) ShouldRequestHeader(shardId uint32) bool {
 // RequestHeader requests meta header by hash
 func (mhr *metaHeaderRequester) RequestHeader(hash []byte) {
 	mhr.requestHandler.RequestMetaHeader(hash)
+}
+
+// ShouldSkipProofCheck returns always false
+func (mhr *metaHeaderRequester) ShouldSkipProofCheck(_ uint32) bool {
+	return false
 }
 
 // IsInterfaceNil checks if underlying pointer is nil

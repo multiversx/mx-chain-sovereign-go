@@ -2174,7 +2174,7 @@ func (sc *scProcessor) penalizeUserIfNeeded(
 		return
 	}
 
-	isTooMuchProvided := isTooMuchGasProvided(gasProvidedForProcessing, vmOutput.GasRemaining)
+	isTooMuchProvided := isTooMuchGasProvided(gasProvidedForProcessing, vmOutput.GasRemaining, sc.economicsFee)
 	if !isTooMuchProvided {
 		return
 	}
@@ -2203,13 +2203,17 @@ func (sc *scProcessor) penalizeUserIfNeeded(
 	vmOutput.GasRemaining = 0
 }
 
-func isTooMuchGasProvided(gasProvided uint64, gasRemained uint64) bool {
+func isTooMuchGasProvided(
+	gasProvided uint64,
+	gasRemained uint64,
+	economicsFee process.FeeHandler,
+) bool {
 	if gasProvided <= gasRemained {
 		return false
 	}
 
 	gasUsed := gasProvided - gasRemained
-	return gasProvided > gasUsed*process.MaxGasFeeHigherFactorAccepted
+	return gasProvided > gasUsed*economicsFee.MaxGasHigherFactorAccepted()
 }
 
 func (sc *scProcessor) createSCRsWhenError(

@@ -49,8 +49,6 @@ func NewSovereignIndexHashedNodesCoordinator(arguments ArgNodesCoordinator) (*so
 			nodesConfig:                     nodesConfig,
 			currentEpoch:                    arguments.Epoch,
 			savedStateKey:                   savedKey,
-			shardConsensusGroupSize:         arguments.ShardConsensusGroupSize,
-			metaConsensusGroupSize:          arguments.MetaConsensusGroupSize,
 			consensusGroupCacher:            arguments.ConsensusGroupCache,
 			shardIDAsObserver:               core.SovereignChainShardId,
 			shuffledOutHandler:              arguments.ShuffledOutHandler,
@@ -64,6 +62,7 @@ func NewSovereignIndexHashedNodesCoordinator(arguments ArgNodesCoordinator) (*so
 			genesisNodesSetupHandler:        arguments.GenesisNodesSetupHandler,
 			nodesCoordinatorRegistryFactory: arguments.NodesCoordinatorRegistryFactory,
 			numberOfShardsComputer:          newSovereignNumberOfShardsComputer(),
+			chainParametersHandler:          arguments.ChainParametersHandler,
 		},
 	}
 
@@ -105,9 +104,17 @@ func NewSovereignIndexHashedNodesCoordinator(arguments ArgNodesCoordinator) (*so
 }
 
 func checkSovereignArguments(arguments ArgNodesCoordinator) error {
-	if arguments.ShardConsensusGroupSize < 1 {
-		return ErrInvalidConsensusGroupSize
+	if check.IfNil(arguments.ChainParametersHandler) {
+		return ErrNilChainParametersHandler
 	}
+
+	for _, chainParam := range arguments.ChainParametersHandler.AllChainParameters() {
+		if chainParam.ShardConsensusGroupSize < 1 {
+			return fmt.Errorf("%w in checkSovereignArguments: %v, epoch: %d",
+				errInvalidConsensusGroupSize, chainParam.ShardConsensusGroupSize, chainParam.EnableEpoch)
+		}
+	}
+
 	if arguments.NbShards != 1 {
 		return ErrInvalidNumberOfShards
 	}
@@ -139,13 +146,18 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) setNodesPerShards(
 		return ErrNilInputNodesMap
 	}
 
+	currentChainParameters, err := ihnc.chainParametersHandler.ChainParametersForEpoch(epoch)
+	if err != nil {
+		return err
+	}
+
 	nbNodesShard := len(eligible[core.SovereignChainShardId])
-	if nbNodesShard < ihnc.shardConsensusGroupSize {
+	if nbNodesShard < int(currentChainParameters.ShardConsensusGroupSize) {
 		return ErrSmallShardEligibleListSize
 	}
 	numTotalEligible := uint64(nbNodesShard)
 
-	err := ihnc.baseSetNodesPerShard(nodesConfig, numTotalEligible, eligible, waiting, leaving, shuffledOut, epoch, lowWaitingList)
+	err = ihnc.baseSetNodesPerShard(nodesConfig, numTotalEligible, eligible, waiting, leaving, shuffledOut, epoch, lowWaitingList)
 	if err != nil {
 		return err
 	}
@@ -161,7 +173,7 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) ComputeConsensusGroup(
 	round uint64,
 	shardID uint32,
 	epoch uint32,
-) (validatorsGroup []Validator, err error) {
+) (leader Validator, validatorsGroup []Validator, err error) {
 	var selector RandomSelector
 	var eligibleList []Validator
 
@@ -172,20 +184,20 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) ComputeConsensusGroup(
 		"round", round)
 
 	if len(randomness) == 0 {
-		return nil, ErrNilRandomness
+		return nil, nil, ErrNilRandomness
 	}
 
 	ihnc.mutNodesConfig.RLock()
 	nodesConfig, ok := ihnc.nodesConfig[epoch]
 	if !ok {
 		ihnc.mutNodesConfig.RUnlock()
-		return nil, fmt.Errorf("%w epoch=%v", ErrEpochNodesConfigDoesNotExist, epoch)
+		return nil, nil, fmt.Errorf("%w epoch=%v", ErrEpochNodesConfigDoesNotExist, epoch)
 	}
 
 	if shardID != core.SovereignChainShardId {
 		log.Warn("shardID is not ok, expected a sovereign chain id", "shardID", shardID, "nbShards", nodesConfig.nbShards)
 		ihnc.mutNodesConfig.RUnlock()
-		return nil, ErrInvalidShardId
+		return nil, nil, ErrInvalidShardId
 	}
 	selector = nodesConfig.selectors[shardID]
 	eligibleList = nodesConfig.eligibleMap[shardID]
@@ -201,10 +213,10 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) GetConsensusValidatorsPublicKe
 	round uint64,
 	shardID uint32,
 	epoch uint32,
-) ([]string, error) {
-	consensusNodes, err := ihnc.ComputeConsensusGroup(randomness, round, shardID, epoch)
+) (string, []string, error) {
+	leader, consensusNodes, err := ihnc.ComputeConsensusGroup(randomness, round, shardID, epoch)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	pubKeys := make([]string, 0)
@@ -212,7 +224,7 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) GetConsensusValidatorsPublicKe
 		pubKeys = append(pubKeys, string(v.PubKey()))
 	}
 
-	return pubKeys, nil
+	return string(leader.PubKey()), pubKeys, nil
 }
 
 // EpochStartPrepare is not implemented for sovereign
@@ -256,6 +268,13 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) EpochStartPrepare(hdr data.Hea
 	unStakeLeavingList := ihnc.createSortedListFromMap(newNodesConfig.leavingMap)
 	additionalLeavingList := ihnc.createSortedListFromMap(additionalLeavingMap)
 
+	chainParamsForEpoch, err := ihnc.chainParametersHandler.ChainParametersForEpoch(newEpoch)
+	if err != nil {
+		log.Warn("indexHashedNodesCoordinator.EpochStartPrepare: could not compute chain params for epoch. "+
+			"Will use the current chain parameters", "epoch", newEpoch, "error", err)
+		chainParamsForEpoch = ihnc.chainParametersHandler.CurrentChainParameters()
+	}
+
 	shufflerArgs := ArgsUpdateNodes{
 		Eligible:          newNodesConfig.eligibleMap,
 		Waiting:           newNodesConfig.waitingMap,
@@ -266,6 +285,7 @@ func (ihnc *sovereignIndexHashedNodesCoordinator) EpochStartPrepare(hdr data.Hea
 		Rand:              randomness,
 		NbShards:          newNodesConfig.nbShards,
 		Epoch:             newEpoch,
+		ChainParameters:   chainParamsForEpoch,
 	}
 
 	resUpdateNodes, err := ihnc.shuffler.UpdateNodeLists(shufflerArgs)

@@ -16,6 +16,7 @@ type PeerAccountHandlerMock struct {
 	IncreaseValidatorIgnoredSignaturesValue uint32
 	PreviousList                            string
 	MainChainID                             []byte
+	BLSKey                                  []byte
 
 	IncreaseLeaderSuccessRateCalled              func(uint32)
 	DecreaseLeaderSuccessRateCalled              func(uint32)
@@ -71,7 +72,7 @@ func (p *PeerAccountHandlerMock) GetPreviousIndexInList() uint32 {
 
 // GetBLSPublicKey -
 func (p *PeerAccountHandlerMock) GetBLSPublicKey() []byte {
-	return nil
+	return p.BLSKey
 }
 
 // SetBLSPublicKey -

@@ -67,7 +67,7 @@ func getDefaultSmartContractResultPreProcessorCreatorArgs() preprocess.SmartCont
 		Accounts:                     &stateMock.AccountsStub{},
 		OnRequestSmartContractResult: requestTransaction,
 		GasHandler:                   &testscommon.GasHandlerStub{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		PubkeyConverter:              testscommon.NewPubkeyConverterMock(32),
 		BlockSizeComputation:         &testscommon.BlockSizeComputationStub{},
 		BalanceComputation:           &testscommon.BalanceComputationStub{},

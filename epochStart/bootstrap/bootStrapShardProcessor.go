@@ -19,6 +19,7 @@ import (
 	bootStrapFactory "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/heartbeat/validator"
+	"github.com/multiversx/mx-chain-go/process/interceptors/processor"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/storage/cache"
 	"github.com/multiversx/mx-chain-go/trie/factory"
@@ -82,6 +83,15 @@ func (bp *bootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*b
 		return epochStart.ErrWrongTypeAssertion
 	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
+	epochStartShardBlock, epochStartShardBlockHash, err := bp.syncLatestEpochStartShardBlock(epochStartData.GetEpoch(), ctx)
+	cancel()
+	if err != nil {
+		return err
+	}
+
+	bp.syncedHeaders[string(epochStartShardBlockHash)] = epochStartShardBlock
+
 	dts, err := bp.getDataToSync(
 		epochStartData,
 		shardNotarizedHeader,
@@ -108,6 +118,8 @@ func (bp *bootStrapShardProcessor) requestAndProcessForShard(peerMiniBlocks []*b
 		ManagedPeersHolder:              bp.cryptoComponentsHolder.ManagedPeersHolder(),
 		NodeProcessingMode:              bp.nodeProcessingMode,
 		StateStatsHandler:               bp.stateStatsHandler,
+		ProofsPool:                      bp.dataPool.Proofs(),
+		EnableEpochsHandler:             bp.enableEpochsHandler,
 		AdditionalStorageServiceCreator: bp.runTypeComponents.AdditionalStorageServiceCreator(),
 	}
 	storageHandlerComponent, err := NewShardStorageHandler(argsStorageHandler)
@@ -175,6 +187,7 @@ func (bp *bootStrapShardProcessor) createRequestHandler() (process.RequestHandle
 		FullArchivePreferredPeersHolder: disabled.NewPreferredPeersHolder(),
 		PeersRatingHandler:              disabled.NewDisabledPeersRatingHandler(),
 		SizeCheckDelta:                  0,
+		EnableEpochsHandler:             bp.enableEpochsHandler,
 	}
 	requestersFactory, err := requesterscontainer.NewMetaRequestersContainerFactory(requestersContainerArgs)
 	if err != nil {
@@ -231,7 +244,7 @@ func (bp *bootStrapShardProcessor) createResolversContainer() error {
 		Marshalizer:                         bp.coreComponentsHolder.InternalMarshalizer(),
 		DataPools:                           bp.dataPool,
 		Uint64ByteSliceConverter:            uint64ByteSlice.NewBigEndianConverter(),
-		NumConcurrentResolvingJobs:          10, // TODO: We need to take this from config
+		NumConcurrentResolvingJobs:          10,
 		NumConcurrentResolvingTrieNodesJobs: 3,
 		DataPacker:                          dataPacker,
 		TriesContainer:                      bp.trieContainer,
@@ -258,6 +271,10 @@ func (bp *bootStrapShardProcessor) createResolversContainer() error {
 func (bp *bootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) (map[string]data.HeaderHandler, error) {
 	hashesToRequest := make([][]byte, 0, len(meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers())+1)
 	shardIds := make([]uint32, 0, len(meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers())+1)
+	epochStartMetaHash, err := core.CalculateHash(bp.coreComponentsHolder.InternalMarshalizer(), bp.coreComponentsHolder.Hasher(), meta)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, epochStartData := range meta.GetEpochStartHandler().GetLastFinalizedHeaderHandlers() {
 		hashesToRequest = append(hashesToRequest, epochStartData.GetHeaderHash())
@@ -269,8 +286,13 @@ func (bp *bootStrapShardProcessor) syncHeadersFrom(meta data.MetaHeaderHandler) 
 		shardIds = append(shardIds, core.MetachainShardId)
 	}
 
+	// add the epoch start meta hash to the list to sync its proof
+	// TODO: this can be removed when the proof will be loaded from storage
+	hashesToRequest = append(hashesToRequest, epochStartMetaHash)
+	shardIds = append(shardIds, core.MetachainShardId)
+
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeToWaitForRequestedData)
-	err := bp.headersSyncer.SyncMissingHeadersByHash(shardIds, hashesToRequest, ctx)
+	err = bp.headersSyncer.SyncMissingHeadersByHash(shardIds, hashesToRequest, ctx)
 	cancel()
 	if err != nil {
 		return nil, err
@@ -354,6 +376,7 @@ func (bp *bootStrapShardProcessor) processNodesConfigFromStorage(pubKey []byte, 
 		EnableEpochsHandler:              bp.coreComponentsHolder.EnableEpochsHandler(),
 		NodesCoordinatorRegistryFactory:  bp.nodesCoordinatorRegistryFactory,
 		NodesCoordinatorWithRaterFactory: bp.runTypeComponents.NodesCoordinatorWithRaterCreator(),
+		ChainParametersHandler:           bp.coreComponentsHolder.ChainParametersHandler(),
 	}
 	bp.nodesConfigHandler, err = NewSyncValidatorStatus(argsNewValidatorStatusSyncers)
 	if err != nil {
@@ -420,22 +443,27 @@ func (bp *bootStrapShardProcessor) createEpochStartMetaSyncer() (epochStart.Star
 		thresholdForConsideringMetaBlockCorrect,
 		epochStartConfig.MinNumConnectedPeersToStart,
 		epochStartConfig.MinNumOfPeersToConsiderBlockValid,
+		bp.enableEpochsHandler,
+		bp.dataPool.Proofs(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	argsEpochStartSyncer := ArgsNewEpochStartMetaSyncer{
-		CoreComponentsHolder:    bp.coreComponentsHolder,
-		CryptoComponentsHolder:  bp.cryptoComponentsHolder,
-		RequestHandler:          bp.requestHandler,
-		Messenger:               bp.mainMessenger,
-		ShardCoordinator:        bp.shardCoordinator,
-		EconomicsData:           bp.economicsData,
-		WhitelistHandler:        bp.whiteListHandler,
-		StartInEpochConfig:      epochStartConfig,
-		HeaderIntegrityVerifier: bp.headerIntegrityVerifier,
-		MetaBlockProcessor:      metaBlockProcessor,
+		CoreComponentsHolder:           bp.coreComponentsHolder,
+		CryptoComponentsHolder:         bp.cryptoComponentsHolder,
+		RequestHandler:                 bp.requestHandler,
+		Messenger:                      bp.mainMessenger,
+		ShardCoordinator:               bp.shardCoordinator,
+		EconomicsData:                  bp.economicsData,
+		WhitelistHandler:               bp.whiteListHandler,
+		StartInEpochConfig:             epochStartConfig,
+		HeaderIntegrityVerifier:        bp.headerIntegrityVerifier,
+		MetaBlockProcessor:             metaBlockProcessor,
+		InterceptedDataVerifierFactory: bp.interceptedDataVerifierFactory,
+		ProofsPool:                     bp.dataPool.Proofs(),
+		ProofsInterceptorProcessor:     processor.NewEquivalentProofsInterceptorProcessor(),
 	}
 
 	return NewEpochStartMetaSyncer(argsEpochStartSyncer)

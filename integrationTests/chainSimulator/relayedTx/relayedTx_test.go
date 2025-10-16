@@ -73,10 +73,10 @@ func runRelayedV3TestsWithChainSimulator(
 ) {
 	startChainSimulator = simulator
 
+	t.Run("successful intra shard guarded move balance", testRelayedV3MoveBalance(0, 0, false, true))
 	t.Run("sender == relayer move balance should consume fee", testRelayedV3RelayedBySenderMoveBalance())
 	t.Run("receiver == relayer move balance should consume fee", testRelayedV3RelayedByReceiverMoveBalance())
 	t.Run("successful intra shard move balance", testRelayedV3MoveBalance(0, 0, false, false))
-	t.Run("successful intra shard guarded move balance", testRelayedV3MoveBalance(0, 0, false, true))
 	t.Run("successful intra shard move balance with extra gas", testRelayedV3MoveBalance(0, 0, true, false))
 	t.Run("successful cross shard move balance", testRelayedV3MoveBalance(0, 1, false, false))
 	t.Run("successful cross shard guarded move balance", testRelayedV3MoveBalance(0, 1, false, true))
@@ -121,7 +121,6 @@ func testRelayedV3MoveBalance(
 	guardedTx bool,
 ) func(t *testing.T) {
 	return func(t *testing.T) {
-
 		providedActivationEpoch := uint32(1)
 		alterConfigsFunc := func(cfg *config.Configs) {
 			cfg.EpochConfig.EnableEpochs.FixRelayedBaseCostEnableEpoch = providedActivationEpoch
@@ -1034,8 +1033,8 @@ func TestFixRelayedMoveBalanceWithChainSimulator(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	expectedFeeScCallBefore := "827294920000000"
-	expectedFeeScCallAfter := "885704920000000"
+	expectedFeeScCallBefore := "827295420000000"
+	expectedFeeScCallAfter := "885705420000000"
 	t.Run("sc call", testFixRelayedMoveBalanceWithChainSimulatorScCall(expectedFeeScCallBefore, expectedFeeScCallAfter))
 
 	expectedFeeMoveBalanceBefore := "809500000000000" // 506 * 1500 + 50000 + 500
@@ -1090,7 +1089,7 @@ func testFixRelayedMoveBalanceWithChainSimulatorScCall(
 		require.NoError(t, err)
 
 		// send relayed tx, fix still not active
-		innerTx = generateTransaction(owner.Bytes, 2, scAddressBytes, big.NewInt(0), txDataAdd, 3000000)
+		innerTx = generateTransaction(owner.Bytes, 2, scAddressBytes, big.NewInt(0), txDataAdd, 1230000)
 		marshalledTx, err = json.Marshal(innerTx)
 		require.NoError(t, err)
 		txData = []byte("relayedTx@" + hex.EncodeToString(marshalledTx))
@@ -1113,7 +1112,7 @@ func testFixRelayedMoveBalanceWithChainSimulatorScCall(
 		require.NoError(t, err)
 
 		// send relayed tx after fix
-		innerTx = generateTransaction(owner.Bytes, 3, scAddressBytes, big.NewInt(0), txDataAdd, 3000000)
+		innerTx = generateTransaction(owner.Bytes, 3, scAddressBytes, big.NewInt(0), txDataAdd, 1500000)
 		marshalledTx, err = json.Marshal(innerTx)
 		require.NoError(t, err)
 		txData = []byte("relayedTx@" + hex.EncodeToString(marshalledTx))

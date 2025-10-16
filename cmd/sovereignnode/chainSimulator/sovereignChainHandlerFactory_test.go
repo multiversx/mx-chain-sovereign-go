@@ -3,6 +3,8 @@ package chainSimulator
 import (
 	"testing"
 
+	heartbeatMonitor "github.com/multiversx/mx-chain-go/heartbeat"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/heartbeat"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	"github.com/multiversx/mx-chain-go/testscommon/chainSimulator"
 
@@ -20,15 +22,21 @@ func TestNewSovereignProcessorFactory(t *testing.T) {
 func TestNewSovereignProcessorFactory_CreateChainHandler(t *testing.T) {
 	t.Parallel()
 
-	t.Run("nil node handler should error", func(t *testing.T) {
+	t.Run("nil node handler, should error", func(t *testing.T) {
 		fact := NewSovereignChainHandlerFactory()
-		chainHandler, err := fact.CreateChainHandler(nil)
+		chainHandler, err := fact.CreateChainHandler(nil, heartbeat.NewHeartbeatMonitor())
 		require.Nil(t, chainHandler)
 		require.ErrorIs(t, err, process.ErrNilNodeHandler)
 	})
+	t.Run("nil heart beat monitor, should error", func(t *testing.T) {
+		fact := NewSovereignChainHandlerFactory()
+		chainHandler, err := fact.CreateChainHandler(&chainSimulator.NodeHandlerMock{}, nil)
+		require.Nil(t, chainHandler)
+		require.ErrorIs(t, err, heartbeatMonitor.ErrNilHeartbeatMonitor)
+	})
 	t.Run("should work", func(t *testing.T) {
 		fact := NewSovereignChainHandlerFactory()
-		chainHandler, err := fact.CreateChainHandler(&chainSimulator.NodeHandlerMock{})
+		chainHandler, err := fact.CreateChainHandler(&chainSimulator.NodeHandlerMock{}, heartbeat.NewHeartbeatMonitor())
 		require.Nil(t, err)
 		require.NotNil(t, chainHandler)
 	})

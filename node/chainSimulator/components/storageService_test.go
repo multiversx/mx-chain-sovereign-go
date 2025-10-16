@@ -38,6 +38,7 @@ func TestCreateStore(t *testing.T) {
 		dataRetriever.ResultsHashesByTxHashUnit,
 		dataRetriever.TrieEpochRootHashUnit,
 		dataRetriever.ShardHdrNonceHashDataUnit,
+		dataRetriever.ProofsUnit,
 		dataRetriever.ExtendedShardHeadersUnit,
 		dataRetriever.ExtendedShardHeadersNonceHashDataUnit,
 		dataRetriever.UnitType(101), // shard 2

@@ -18,12 +18,14 @@ import (
 	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/chainparametersnotifier"
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	factoryPubKey "github.com/multiversx/mx-chain-go/common/factory"
+	"github.com/multiversx/mx-chain-go/common/fieldsChecker"
 	"github.com/multiversx/mx-chain-go/common/forking"
+	"github.com/multiversx/mx-chain-go/common/graceperiod"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
-	"github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/epochStart/notifier"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/ntp"
@@ -74,6 +76,10 @@ type coreComponentsHolder struct {
 	processStatusHandler          common.ProcessStatusHandler
 	hardforkTriggerPubKey         []byte
 	enableEpochsHandler           common.EnableEpochsHandler
+	chainParametersSubscriber     process.ChainParametersSubscriber
+	chainParametersHandler        process.ChainParametersHandler
+	fieldsSizeChecker             common.FieldsSizeChecker
+	epochChangeGracePeriodHandler common.EpochChangeGracePeriodHandler
 }
 
 // ArgsCoreComponentsHolder will hold arguments needed for the core components holder
@@ -146,21 +152,45 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 	}
 
 	instance.watchdog = &watchdog.DisabledWatchdog{}
-	instance.alarmScheduler = &mock.AlarmSchedulerStub{}
+	instance.alarmScheduler = &testscommon.AlarmSchedulerStub{}
 	instance.syncTimer = &testscommon.SyncTimerStub{}
 
+	instance.epochStartNotifierWithConfirm = notifier.NewEpochStartSubscriptionHandler()
+	instance.chainParametersSubscriber = chainparametersnotifier.NewChainParametersNotifier()
+	chainParametersNotifier := chainparametersnotifier.NewChainParametersNotifier()
+	argsChainParametersHandler := sharding.ArgsChainParametersHolder{
+		EpochStartEventNotifier: instance.epochStartNotifierWithConfirm,
+		ChainParameters:         args.Config.GeneralSettings.ChainParametersByEpoch,
+		ChainParametersNotifier: chainParametersNotifier,
+	}
+	instance.chainParametersHandler, err = args.RunTypeCoreComponents.ChainParametersHolderFactory().CreateChainParametersHolder(argsChainParametersHandler)
+	if err != nil {
+		return nil, err
+	}
+
+	instance.epochChangeGracePeriodHandler, err = graceperiod.NewEpochChangeGracePeriod(args.Config.GeneralSettings.EpochChangeGracePeriodByEpoch)
+	if err != nil {
+		return nil, err
+	}
+
+	var nodesSetup config.NodesConfig
+	err = core.LoadJsonFile(&nodesSetup, args.NodesSetupPath)
+	if err != nil {
+		return nil, err
+	}
 	instance.genesisNodesSetup, err = args.RunTypeCoreComponents.GenesisNodesSetupFactoryCreator().CreateNodesSetup(&sharding.NodesSetupArgs{
-		NodesFilePath:            args.NodesSetupPath,
+		NodesConfig:              nodesSetup,
 		AddressPubKeyConverter:   instance.addressPubKeyConverter,
 		ValidatorPubKeyConverter: instance.validatorPubKeyConverter,
 		GenesisMaxNumShards:      args.NumShards,
+		ChainParametersProvider:  instance.chainParametersHandler,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	roundDuration := time.Millisecond * time.Duration(instance.genesisNodesSetup.GetRoundDuration())
-	instance.roundHandler = NewManualRoundHandler(instance.genesisNodesSetup.GetStartTime(), roundDuration, args.InitialRound)
+	roundDuration := time.Millisecond * time.Duration(instance.chainParametersHandler.CurrentChainParameters().RoundDuration)
+	instance.roundHandler = NewManualRoundHandler(nodesSetup.StartTime, roundDuration, args.InitialRound)
 
 	instance.wasmVMChangeLocker = &sync.RWMutex{}
 	instance.txVersionChecker = versioning.NewTxVersionChecker(args.Config.GeneralSettings.MinTransactionVersion)
@@ -169,12 +199,13 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 	if err != nil {
 		return nil, err
 	}
-
 	argsEconomicsHandler := economics.ArgsNewEconomicsData{
 		TxVersionChecker:    instance.txVersionChecker,
 		Economics:           &args.EconomicsConfig,
 		EpochNotifier:       instance.epochNotifier,
 		EnableEpochsHandler: instance.enableEpochsHandler,
+		PubkeyConverter:     instance.addressPubKeyConverter,
+		ShardCoordinator:    testscommon.NewMultiShardsCoordinatorMock(instance.genesisNodesSetup.NumberOfShards()),
 	}
 
 	instance.economicsData, err = economics.NewEconomicsData(argsEconomicsHandler)
@@ -184,12 +215,10 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 	instance.apiEconomicsData = instance.economicsData
 
 	instance.ratingsData, err = args.RunTypeCoreComponents.RatingsDataFactoryCreator().CreateRatingsData(rating.RatingsDataArg{
-		Config:                   args.RatingConfig,
-		ShardConsensusSize:       args.ConsensusGroupSize,
-		MetaConsensusSize:        args.MetaChainConsensusGroupSize,
-		ShardMinNodes:            args.MinNodesPerShard,
-		MetaMinNodes:             args.MinNodesMeta,
-		RoundDurationMiliseconds: args.RoundDurationInMs,
+		EpochNotifier:             instance.epochNotifier,
+		Config:                    args.RatingConfig,
+		ChainParametersHolder:     instance.chainParametersHandler,
+		RoundDurationMilliseconds: args.RoundDurationInMs,
 	})
 	if err != nil {
 		return nil, err
@@ -201,10 +230,6 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 	}
 
 	instance.nodesShuffler, err = nodesCoordinator.NewHashValidatorsShuffler(&nodesCoordinator.NodesShufflerArgs{
-		NodesShard:           args.MinNodesPerShard,
-		NodesMeta:            args.MinNodesMeta,
-		Hysteresis:           0,
-		Adaptivity:           false,
 		ShuffleBetweenShards: true,
 		MaxNodesEnableConfig: args.EnableEpochsConfig.MaxNodesChangeEnableEpoch,
 		EnableEpochsHandler:  instance.enableEpochsHandler,
@@ -220,7 +245,6 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 		return nil, err
 	}
 
-	instance.epochStartNotifierWithConfirm = notifier.NewEpochStartSubscriptionHandler()
 	instance.chanStopNodeProcess = args.ChanStopNodeProcess
 	instance.genesisTime = time.Unix(instance.genesisNodesSetup.GetStartTime(), 0)
 	instance.chainID = args.Config.GeneralSettings.ChainID
@@ -238,6 +262,12 @@ func CreateCoreComponents(args ArgsCoreComponentsHolder) (*coreComponentsHolder,
 		return nil, err
 	}
 	instance.hardforkTriggerPubKey = pubKeyBytes
+
+	fchecker, err := fieldsChecker.NewFieldsSizeChecker(instance.chainParametersHandler, hasher)
+	if err != nil {
+		return nil, err
+	}
+	instance.fieldsSizeChecker = fchecker
 
 	instance.collectClosableComponents()
 
@@ -428,6 +458,26 @@ func (c *coreComponentsHolder) HardforkTriggerPubKey() []byte {
 // EnableEpochsHandler will return the enable epoch handler
 func (c *coreComponentsHolder) EnableEpochsHandler() common.EnableEpochsHandler {
 	return c.enableEpochsHandler
+}
+
+// ChainParametersSubscriber will return the chain parameters subscriber
+func (c *coreComponentsHolder) ChainParametersSubscriber() process.ChainParametersSubscriber {
+	return c.chainParametersSubscriber
+}
+
+// ChainParametersHandler will return the chain parameters handler
+func (c *coreComponentsHolder) ChainParametersHandler() process.ChainParametersHandler {
+	return c.chainParametersHandler
+}
+
+// FieldsSizeChecker will return the fields size checker component
+func (c *coreComponentsHolder) FieldsSizeChecker() common.FieldsSizeChecker {
+	return c.fieldsSizeChecker
+}
+
+// EpochChangeGracePeriodHandler will return the epoch change grace period handler
+func (c *coreComponentsHolder) EpochChangeGracePeriodHandler() common.EpochChangeGracePeriodHandler {
+	return c.epochChangeGracePeriodHandler
 }
 
 func (c *coreComponentsHolder) collectClosableComponents() {

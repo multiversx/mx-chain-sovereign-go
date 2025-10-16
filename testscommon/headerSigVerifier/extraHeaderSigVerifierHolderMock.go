@@ -3,12 +3,13 @@ package headerSigVerifier
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-go/process"
 )
 
 // ExtraHeaderSigVerifierHolderMock -
 type ExtraHeaderSigVerifierHolderMock struct {
-	VerifyAggregatedSignatureCalled      func(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error
+	VerifyAggregatedSignatureCalled      func(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error
 	VerifyLeaderSignatureCalled          func(header data.HeaderHandler, leaderPubKey crypto.PublicKey) error
 	RemoveLeaderSignatureCalled          func(header data.HeaderHandler) error
 	RemoveAllSignaturesCalled            func(header data.HeaderHandler) error
@@ -16,9 +17,9 @@ type ExtraHeaderSigVerifierHolderMock struct {
 }
 
 // VerifyAggregatedSignature -
-func (mock *ExtraHeaderSigVerifierHolderMock) VerifyAggregatedSignature(header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
+func (mock *ExtraHeaderSigVerifierHolderMock) VerifyAggregatedSignature(proof data.HeaderProofHandler, header data.HeaderHandler, multiSigVerifier crypto.MultiSigner, pubKeysSigners [][]byte) error {
 	if mock.VerifyAggregatedSignatureCalled != nil {
-		return mock.VerifyAggregatedSignatureCalled(header, multiSigVerifier, pubKeysSigners)
+		return mock.VerifyAggregatedSignatureCalled(proof, header, multiSigVerifier, pubKeysSigners)
 	}
 	return nil
 }

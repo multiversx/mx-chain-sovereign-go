@@ -32,6 +32,7 @@ const (
 	getRegisteredNFTsPath          = "/:address/registered-nfts"
 	getESDTNFTDataPath             = "/:address/nft/:tokenIdentifier/nonce/:nonce"
 	getGuardianData                = "/:address/guardian-data"
+	iterateKeysPath                = "/iterate-keys"
 	getAliasAddressPath            = "/alias-address"
 	getMvxAddressPath              = "/mvx-address"
 	urlParamOnFinalBlock           = "onFinalBlock"
@@ -42,6 +43,9 @@ const (
 	urlParamHintEpoch              = "hintEpoch"
 	urlParamWithKeys               = "withKeys"
 )
+
+// maxUint64 is represented on 20 characters as a string
+const maxNumCharsForNonceAsString = 20
 
 // addressFacadeHandler defines the methods to be implemented by a facade for handling address requests
 type addressFacadeHandler interface {
@@ -59,6 +63,7 @@ type addressFacadeHandler interface {
 	GetESDTsWithRole(address string, role string, options api.AccountQueryOptions) ([]string, api.BlockInfo, error)
 	GetAllESDTTokens(address string, options api.AccountQueryOptions) (map[string]*esdt.ESDigitalToken, api.BlockInfo, error)
 	GetKeyValuePairs(address string, options api.AccountQueryOptions) (map[string]string, api.BlockInfo, error)
+	IterateKeys(address string, numKeys uint, iteratorState [][]byte, options api.AccountQueryOptions) (map[string]string, [][]byte, api.BlockInfo, error)
 	GetGuardianData(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error)
 	IsDataTrieMigrated(address string, options api.AccountQueryOptions) (bool, error)
 	IsInterfaceNil() bool
@@ -137,6 +142,11 @@ func NewAddressGroup(facade addressFacadeHandler) (*addressGroup, error) {
 			Path:    getKeysPath,
 			Method:  http.MethodGet,
 			Handler: ag.getKeyValuePairs,
+		},
+		{
+			Path:    iterateKeysPath,
+			Method:  http.MethodPost,
+			Handler: ag.iterateKeys,
 		},
 		{
 			Path:    getESDTBalancePath,
@@ -399,7 +409,7 @@ func (ag *addressGroup) getGuardianData(c *gin.Context) {
 	shared.RespondWithSuccess(c, gin.H{"guardianData": guardianData, "blockInfo": blockInfo})
 }
 
-// addressGroup returns all the key-value pairs for the given address
+// getKeyValuePairs returns all the key-value pairs for the given address
 func (ag *addressGroup) getKeyValuePairs(c *gin.Context) {
 	addr, options, err := extractBaseParams(c)
 	if err != nil {
@@ -414,6 +424,47 @@ func (ag *addressGroup) getKeyValuePairs(c *gin.Context) {
 	}
 
 	shared.RespondWithSuccess(c, gin.H{"pairs": value, "blockInfo": blockInfo})
+}
+
+// IterateKeysRequest defines the request structure for iterating keys
+type IterateKeysRequest struct {
+	Address       string   `json:"address"`
+	NumKeys       uint     `json:"numKeys"`
+	IteratorState [][]byte `json:"iteratorState"`
+}
+
+// iterateKeys iterates keys for the given address
+func (ag *addressGroup) iterateKeys(c *gin.Context) {
+	var iterateKeysRequest = &IterateKeysRequest{}
+	err := c.ShouldBindJSON(&iterateKeysRequest)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrValidation, err)
+		return
+	}
+
+	if len(iterateKeysRequest.Address) == 0 {
+		shared.RespondWithValidationError(c, errors.ErrValidation, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := extractAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrIterateKeys, err)
+		return
+	}
+
+	value, newIteratorState, blockInfo, err := ag.getFacade().IterateKeys(
+		iterateKeysRequest.Address,
+		iterateKeysRequest.NumKeys,
+		iterateKeysRequest.IteratorState,
+		options,
+	)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrIterateKeys, err)
+		return
+	}
+
+	shared.RespondWithSuccess(c, gin.H{"pairs": value, "newIteratorState": newIteratorState, "blockInfo": blockInfo})
 }
 
 // getESDTBalance returns the balance for the given address and esdt token
@@ -657,6 +708,9 @@ func extractGetESDTNFTDataParams(c *gin.Context) (string, string, *big.Int, api.
 	nonceAsStr := c.Param("nonce")
 	if nonceAsStr == "" {
 		return "", "", nil, api.AccountQueryOptions{}, errors.ErrNonceInvalid
+	}
+	if len(nonceAsStr) > maxNumCharsForNonceAsString {
+		return "", "", nil, api.AccountQueryOptions{}, fmt.Errorf("%w: nonce too long, num chars %v, max num chars %v", errors.ErrNonceInvalid, len(nonceAsStr), maxNumCharsForNonceAsString)
 	}
 
 	nonceAsBigInt, okConvert := big.NewInt(0).SetString(nonceAsStr, 10)
