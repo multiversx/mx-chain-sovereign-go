@@ -31,7 +31,7 @@ import (
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 )
 
-func (pcf *processComponentsFactory) createAPITransactionEvaluator() (factory.TransactionEvaluator, process.VirtualMachinesContainerFactory, error) {
+func (pcf *processComponentsFactory) createAPITransactionEvaluator(epochStartTrigger process.EpochStartTriggerHandler) (factory.TransactionEvaluator, process.VirtualMachinesContainerFactory, error) {
 	simulationAccountsDB, err := transactionEvaluator.NewSimulationAccountsDB(pcf.state.AccountsAdapterAPI())
 	if err != nil {
 		return nil, nil, err
@@ -51,7 +51,7 @@ func (pcf *processComponentsFactory) createAPITransactionEvaluator() (factory.Tr
 		return nil, nil, err
 	}
 
-	txSimulatorProcessorArgs, vmContainerFactory, txTypeHandler, err := pcf.createArgsTxSimulatorProcessor(simulationAccountsDB, vmOutputCacher, txLogsProcessor)
+	txSimulatorProcessorArgs, vmContainerFactory, txTypeHandler, err := pcf.createArgsTxSimulatorProcessor(simulationAccountsDB, vmOutputCacher, txLogsProcessor, epochStartTrigger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,12 +93,13 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessor(
 	accountsAdapter state.AccountsAdapter,
 	vmOutputCacher storage.Cacher,
 	txLogsProcessor process.TransactionLogProcessor,
+	epochStartTrigger process.EpochStartTriggerHandler,
 ) (transactionEvaluator.ArgsTxSimulator, process.VirtualMachinesContainerFactory, process.TxTypeHandler, error) {
 	shardID := pcf.bootstrapComponents.ShardCoordinator().SelfId()
 	if shardID == core.MetachainShardId {
-		return pcf.createArgsTxSimulatorProcessorForMeta(accountsAdapter, vmOutputCacher, txLogsProcessor)
+		return pcf.createArgsTxSimulatorProcessorForMeta(accountsAdapter, vmOutputCacher, txLogsProcessor, epochStartTrigger)
 	} else {
-		return pcf.createArgsTxSimulatorProcessorShard(accountsAdapter, vmOutputCacher, txLogsProcessor)
+		return pcf.createArgsTxSimulatorProcessorShard(accountsAdapter, vmOutputCacher, txLogsProcessor, epochStartTrigger)
 	}
 }
 
@@ -106,6 +107,7 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorForMeta(
 	accountsAdapter state.AccountsAdapter,
 	vmOutputCacher storage.Cacher,
 	txLogsProcessor process.TransactionLogProcessor,
+	epochStartTrigger process.EpochStartTriggerHandler,
 ) (transactionEvaluator.ArgsTxSimulator, process.VirtualMachinesContainerFactory, process.TxTypeHandler, error) {
 	args := transactionEvaluator.ArgsTxSimulator{}
 
@@ -156,6 +158,8 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorForMeta(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counters.NewDisabledCounter(),
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		RoundHandler:             pcf.coreData.RoundHandler(),
+		EpochStartTrigger:        epochStartTrigger,
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -293,6 +297,7 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 	accountsAdapter state.AccountsAdapter,
 	vmOutputCacher storage.Cacher,
 	txLogsProcessor process.TransactionLogProcessor,
+	epochStartTrigger process.EpochStartTriggerHandler,
 ) (transactionEvaluator.ArgsTxSimulator, process.VirtualMachinesContainerFactory, process.TxTypeHandler, error) {
 	args := transactionEvaluator.ArgsTxSimulator{}
 
@@ -360,6 +365,8 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 		GasSchedule:              pcf.gasSchedule,
 		Counter:                  counter,
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
+		RoundHandler:             pcf.coreData.RoundHandler(),
+		EpochStartTrigger:        epochStartTrigger,
 	}
 
 	blockChainHookImpl, err := pcf.runTypeComponents.BlockChainHookHandlerCreator().CreateBlockChainHookHandler(argsHook)
@@ -434,29 +441,29 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 	argsParser := smartContract.NewArgumentParser()
 
 	scProcArgs := scrCommon.ArgsNewSmartContractProcessor{
-		VmContainer:             vmContainer,
-		ArgsParser:              argsParser,
-		Hasher:                  pcf.coreData.Hasher(),
-		Marshalizer:             pcf.coreData.InternalMarshalizer(),
-		AccountsDB:              accountsAdapter,
-		BlockChainHook:          vmFactory.BlockChainHookImpl(),
-		BuiltInFunctions:        builtInFuncFactory.BuiltInFunctionContainer(),
-		PubkeyConv:              pcf.coreData.AddressPubKeyConverter(),
-		ShardCoordinator:        pcf.bootstrapComponents.ShardCoordinator(),
-		ScrForwarder:            scForwarder,
-		TxFeeHandler:            &processDisabled.FeeHandler{},
-		EconomicsFee:            pcf.coreData.EconomicsData(),
-		TxTypeHandler:           txTypeHandler,
-		GasHandler:              gasHandler,
-		GasSchedule:             pcf.gasSchedule,
-		TxLogsProcessor:         txLogsProcessor,
-		EnableEpochsHandler:     pcf.coreData.EnableEpochsHandler(),
-		EnableRoundsHandler:     pcf.coreData.EnableRoundsHandler(),
-		BadTxForwarder:          badTxInterim,
-		VMOutputCacher:          vmOutputCacher,
-		WasmVMChangeLocker:      pcf.coreData.WasmVMChangeLocker(),
-		IsGenesisProcessing:     false,
-		EpochNotifier:           pcf.epochNotifier,
+		VmContainer:         vmContainer,
+		ArgsParser:          argsParser,
+		Hasher:              pcf.coreData.Hasher(),
+		Marshalizer:         pcf.coreData.InternalMarshalizer(),
+		AccountsDB:          accountsAdapter,
+		BlockChainHook:      vmFactory.BlockChainHookImpl(),
+		BuiltInFunctions:    builtInFuncFactory.BuiltInFunctionContainer(),
+		PubkeyConv:          pcf.coreData.AddressPubKeyConverter(),
+		ShardCoordinator:    pcf.bootstrapComponents.ShardCoordinator(),
+		ScrForwarder:        scForwarder,
+		TxFeeHandler:        &processDisabled.FeeHandler{},
+		EconomicsFee:        pcf.coreData.EconomicsData(),
+		TxTypeHandler:       txTypeHandler,
+		GasHandler:          gasHandler,
+		GasSchedule:         pcf.gasSchedule,
+		TxLogsProcessor:     txLogsProcessor,
+		EnableEpochsHandler: pcf.coreData.EnableEpochsHandler(),
+		EnableRoundsHandler: pcf.coreData.EnableRoundsHandler(),
+		BadTxForwarder:      badTxInterim,
+		VMOutputCacher:      vmOutputCacher,
+		WasmVMChangeLocker:  pcf.coreData.WasmVMChangeLocker(),
+		IsGenesisProcessing: false,
+		EpochNotifier:       pcf.epochNotifier,
 	}
 
 	scProcessor, err := pcf.runTypeComponents.SCProcessorCreator().CreateSCProcessor(scProcArgs)

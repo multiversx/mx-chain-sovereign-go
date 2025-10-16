@@ -75,11 +75,6 @@ func CreateNode(
 
 	genesisTime := runType.UnixToTime(coreComponents.GenesisNodesSetup().GetStartTime())
 
-	consensusGroupSize, err := consensusComponents.ConsensusGroupSize()
-	if err != nil {
-		return nil, err
-	}
-
 	var nd NodeHandler
 	options := []Option{
 		WithRunTypeComponents(runTypeComponents),
@@ -96,7 +91,6 @@ func CreateNode(
 		WithNetworkComponents(networkComponents),
 		WithInitialNodesPubKeys(coreComponents.GenesisNodesSetup().InitialNodesPubKeys()),
 		WithRoundDuration(coreComponents.GenesisNodesSetup().GetRoundDuration()),
-		WithConsensusGroupSize(consensusGroupSize),
 		WithGenesisTime(genesisTime),
 		WithConsensusType(config.Consensus.Type),
 		WithBootstrapRoundIndex(bootstrapRoundIndex),

@@ -12,7 +12,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-sdk-abi-go/abi"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -99,6 +102,8 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 					},
 				}
 
+				newCfg.AndromedaEnableEpoch = 1
+				cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[:1]
 				protocolSustainabilityAddress = cfg.EconomicsConfig.RewardsSettings.RewardsConfigByEpoch[0].ProtocolSustainabilityAddress
 				cfg.EpochConfig.EnableEpochs = newCfg
 				sovConfig = cfg.GeneralConfig.SovereignConfig
@@ -135,18 +140,13 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	trie := nodeHandler.GetStateComponents().TriesContainer().Get([]byte(dataRetriever.PeerAccountsUnit.String()))
 	require.NotNil(t, trie)
 
-	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
-	err = cs.GenerateBlocksUntilEpochIsReached(40)
-	require.Nil(t, err)
-	require.Equal(t, uint32(40), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
-
 	// all pub key ids from genesis are in ascending order
 	allPubKeyIDs := make([][]byte, 8)
 	for idx := 0; idx < 8; idx++ {
-		allPubKeyIDs[idx] = []byte{0x0, byte(idx)}
+		allPubKeyIDs[idx] = []byte{byte(idx + 1)}
 	}
 
-	for epoch := 41; epoch <= 45; epoch++ {
+	for epoch := 1; epoch <= 5; epoch++ {
 		err = cs.GenerateBlocksUntilEpochIsReached(int32(epoch))
 		require.Nil(t, err)
 
@@ -159,6 +159,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, devFeesInEpoch.Bytes())
 
 	staking.StakeNodes(t, cs, nodeHandler, 10)
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8) // 10 newly staked nodes and 8 nodes from genesis
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
 
@@ -174,9 +175,10 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.NotEmpty(t, accFeesInEpoch)
 	require.NotEmpty(t, devFeesInEpoch)
 
-	// we currently do not have any implemented mechanism to assign a new ID for a newly staked pub key,
-	// so the new value is empty. Assignment should come in a future implementation and this test should fail.
-	allPubKeyIDs = append(allPubKeyIDs, []byte{})
+	// Add newly assigned IDs from the 10 staked nodes
+	for idx := 8; idx <= 18; idx++ {
+		allPubKeyIDs = append(allPubKeyIDs, []byte{byte(idx)})
+	}
 
 	currentEpoch := nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch()
 	for epoch := currentEpoch + 1; epoch < currentEpoch+6; epoch++ {
@@ -203,6 +205,11 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 		require.NotEmpty(t, accFeesTotal.Bytes())
 		require.Empty(t, devFeesTotal.Bytes())
 	}
+
+	// Generate enough blocks so that we achieve > 1500 trie storage reads (from MaxNumberOfTrieReadsPerTx gasSchedule cfg)
+	err = cs.GenerateBlocksUntilEpochIsReached(45)
+	require.Nil(t, err)
+	require.Equal(t, uint32(45), nodeHandler.GetCoreComponents().EpochNotifier().CurrentEpoch())
 }
 
 func checkEpochChangeHeader(
@@ -281,6 +288,64 @@ func checkEpochChangeRewardsMB(
 	require.Empty(t, owners)
 }
 
+func deserializeRegisteredBlsKeyData(t *testing.T, nodeHandler process.NodeHandler, serializer dataCodec.AbiSerializer, data []byte) *dto.RegisteredBlsKey {
+	id := &abi.BytesValue{}
+	blsKey := &abi.BytesValue{}
+	owner := &abi.BytesValue{}
+	nonce := &abi.U64Value{}
+
+	abiStruct := &abi.StructValue{
+		Fields: []abi.Field{
+			{
+				Name:  "id",
+				Value: id,
+			},
+			{
+				Name:  "key",
+				Value: blsKey,
+			},
+			{
+				Name:  "owner",
+				Value: owner,
+			},
+			{
+				Name:  "nonce",
+				Value: nonce,
+			},
+		},
+	}
+
+	err := serializer.Deserialize(hex.EncodeToString(data), []any{abiStruct})
+	require.Nil(t, err)
+	require.NotNil(t, blsKey)
+	require.Equal(t, staking.GetBLSKeyOwner(t, nodeHandler, blsKey.Value), owner.Value)
+	require.NotZero(t, id)
+
+	return &dto.RegisteredBlsKey{
+		ID:    id.Value,
+		Key:   blsKey.Value,
+		Owner: owner.Value,
+		Nonce: nonce.Value,
+	}
+}
+
+func getAuctionListKeys(t *testing.T, nodeHandler process.NodeHandler) [][]byte {
+	auctionList, err := nodeHandler.GetFacadeHandler().AuctionListApi()
+	require.Nil(t, err)
+
+	blsKeys := make([][]byte, 0)
+	for _, auctionData := range auctionList {
+		for _, node := range auctionData.Nodes {
+			blsKey, err := hex.DecodeString(node.BlsKey)
+			require.Nil(t, err)
+
+			blsKeys = append(blsKeys, blsKey)
+		}
+	}
+
+	return blsKeys
+}
+
 func checkOutGoingMiniBlockChangeValidatorSet(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
@@ -310,7 +375,7 @@ func getCurrentValidatorIDs(
 	nodeHandler process.NodeHandler,
 	currentHeader data.HeaderHandler,
 ) [][]byte {
-	valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
+	_, valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
 		currentHeader.GetRandSeed(),
 		currentHeader.GetRound(),
 		core.SovereignChainShardId,
@@ -346,9 +411,9 @@ func getConsensusOwnersBalances(t *testing.T, nodeHandler process.NodeHandler) m
 	currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
 	nodesCoordinator := nodeHandler.GetProcessComponents().NodesCoordinator()
 
-	validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
+	_, validators, err := headerCheck.ComputeConsensusGroup(currentHeader, nodesCoordinator)
 	require.Nil(t, err)
-	require.Len(t, validators, nodesCoordinator.ConsensusGroupSize(core.SovereignChainShardId))
+	require.Len(t, validators, nodesCoordinator.ConsensusGroupSizeForShardAndEpoch(core.SovereignChainShardId, currentHeader.GetEpoch()))
 
 	allOwnersBalance := make(map[string]*big.Int)
 	for _, validator := range validators {

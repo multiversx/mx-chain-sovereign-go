@@ -12,14 +12,18 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
+	"github.com/multiversx/mx-chain-go/testscommon/state"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetShardHeaderShouldErrNilCacher(t *testing.T) {
@@ -1800,7 +1804,7 @@ func TestGetTransactionHandlerShouldGetTransactionFromPool(t *testing.T) {
 	storageService := &storageStubs.ChainStorerStub{}
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					return txFromPool, true
 				},
@@ -1843,7 +1847,7 @@ func TestGetTransactionHandlerShouldGetTransactionFromStorage(t *testing.T) {
 	}
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, false
 				},
@@ -1871,7 +1875,7 @@ func TestGetTransactionHandlerFromPool_Errors(t *testing.T) {
 
 	shardedDataCacherNotifier := testscommon.NewShardedDataStub()
 	shardedDataCacherNotifier.ShardDataStoreCalled = func(cacheID string) storage.Cacher {
-		return testscommon.NewCacherMock()
+		return cache.NewCacherMock()
 	}
 
 	t.Run("nil sharded cache", func(t *testing.T) {
@@ -1922,7 +1926,7 @@ func TestGetTransactionHandlerFromPoolShouldErrTxNotFound(t *testing.T) {
 
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, false
 				},
@@ -1948,7 +1952,7 @@ func TestGetTransactionHandlerFromPoolShouldErrInvalidTxInPool(t *testing.T) {
 
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, true
 				},
@@ -1975,7 +1979,7 @@ func TestGetTransactionHandlerFromPoolShouldWorkWithPeek(t *testing.T) {
 
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					return txFromPool, true
 				},
@@ -2026,7 +2030,7 @@ func TestGetTransactionHandlerFromPoolShouldWorkWithPeekFallbackToSearchFirst(t 
 	peekCalled := false
 	shardedDataCacherNotifier := &testscommon.ShardedDataStub{
 		ShardDataStoreCalled: func(cacheId string) (c storage.Cacher) {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				PeekCalled: func(key []byte) (value interface{}, ok bool) {
 					peekCalled = true
 					return nil, false
@@ -2459,5 +2463,52 @@ func TestGetExtendedHeaderFromStorageWithNonce(t *testing.T) {
 		require.Equal(t, process.ErrUnmarshalWithoutSuccess, err)
 		require.Nil(t, headerHash)
 		require.Nil(t, header)
+	})
+}
+
+func TestGetPeerAccount(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil acc db", func(t *testing.T) {
+		peerAcc, err := process.GetPeerAccount([]byte("key"), nil)
+		require.Nil(t, peerAcc)
+		require.Equal(t, process.ErrNilPeerAccountsAdapter, err)
+	})
+	t.Run("load account fails", func(t *testing.T) {
+		expectedErr := errors.New("load account fails")
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				return nil, expectedErr
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount([]byte("key"), peerAccDB)
+		require.Nil(t, peerAcc)
+		require.Equal(t, expectedErr, err)
+	})
+	t.Run("account is not peer account", func(t *testing.T) {
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				return &state.AccountWrapMock{}, nil
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount([]byte("key"), peerAccDB)
+		require.Nil(t, peerAcc)
+		require.Equal(t, process.ErrWrongTypeAssertion, err)
+	})
+	t.Run("should work", func(t *testing.T) {
+		blsKey := []byte("blsKey")
+		peerAccMock := &state.PeerAccountHandlerMock{BLSKey: blsKey}
+		peerAccDB := &state.AccountsStub{
+			LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+				require.Equal(t, blsKey, container)
+				return peerAccMock, nil
+			},
+		}
+
+		peerAcc, err := process.GetPeerAccount(blsKey, peerAccDB)
+		require.Nil(t, err)
+		require.Equal(t, peerAccMock, peerAcc)
 	})
 }

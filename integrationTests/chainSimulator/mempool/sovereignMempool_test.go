@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/process"
 )
 
 func TestMempoolWithSovereignChainSimulator_Selection(t *testing.T) {
@@ -14,7 +15,7 @@ func TestMempoolWithSovereignChainSimulator_Selection(t *testing.T) {
 	simulator := startSovereignChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection(t, simulator)
+	testSelection(t, simulator, process.TxCacheSelectionMaxNumTxsSovereign, process.TxCacheSelectionMaxNumTxsSovereign)
 }
 
 func TestMempoolWithSovereignChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T) {
@@ -25,7 +26,7 @@ func TestMempoolWithSovereignChainSimulator_Selection_WhenUsersHaveZeroBalance_W
 	simulator := startSovereignChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t, simulator)
+	testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxsSovereign)
 }
 
 func TestMempoolWithSovereignChainSimulator_Selection_WhenInsufficientBalanceForFee_WithRelayedV3(t *testing.T) {
@@ -36,7 +37,7 @@ func TestMempoolWithSovereignChainSimulator_Selection_WhenInsufficientBalanceFor
 	simulator := startSovereignChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
 
-	testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t, simulator)
+	testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxsSovereign)
 }
 
 func TestMempoolWithSovereignChainSimulator_Eviction(t *testing.T) {

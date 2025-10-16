@@ -42,7 +42,7 @@ func createMockPreProcessorsContainerFactoryArguments() data.ArgPreProcessorsCon
 		ScProcessor:                  &testscommon.SCProcessorMock{},
 		ScResultProcessor:            &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor:           &testscommon.RewardTxProcessorMock{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		GasHandler:                   &testscommon.GasHandlerStub{},
 		BlockTracker:                 &mock.BlockTrackerMock{},
 		BlockSizeComputation:         &testscommon.BlockSizeComputationStub{},

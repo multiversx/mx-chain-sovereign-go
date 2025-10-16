@@ -113,7 +113,7 @@ func (sct *sovereignChainTransactions) computeSortedTxs(
 		return nil, process.ErrNilTxDataPool
 	}
 
-	sortedTransactionsProvider := createSortedTransactionsProvider(txShardPool)
+	sortedTransactionsProvider := createSortedTransactionsProvider(txShardPool, process.TxCacheSelectionMaxNumTxsSovereign)
 	session, err := NewSelectionSession(ArgsSelectionSession{
 		AccountsAdapter:       sct.accounts,
 		TransactionsProcessor: sct.txProcessor,

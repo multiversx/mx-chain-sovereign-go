@@ -3,6 +3,12 @@ package bootstrap
 import (
 	"fmt"
 	"path/filepath"
+	"time"
+
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	interceptorFactory "github.com/multiversx/mx-chain-go/process/interceptors/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
 
 	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
 	"github.com/multiversx/mx-chain-go/common"
@@ -22,27 +28,24 @@ import (
 	storageFactory "github.com/multiversx/mx-chain-go/storage/factory"
 	"github.com/multiversx/mx-chain-go/storage/latestData"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
-
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("factory")
 
 // BootstrapComponentsFactoryArgs holds the arguments needed to create a bootstrap components factory
 type BootstrapComponentsFactoryArgs struct {
-	Config               config.Config
-	RoundConfig          config.RoundConfig
-	PrefConfig           config.Preferences
-	ImportDbConfig       config.ImportDbConfig
-	FlagsConfig          config.ContextFlagsConfig
-	WorkingDir           string
-	CoreComponents       factory.CoreComponentsHolder
-	CryptoComponents     factory.CryptoComponentsHolder
-	NetworkComponents    factory.NetworkComponentsHolder
-	StatusCoreComponents factory.StatusCoreComponentsHolder
-	RunTypeComponents    factory.RunTypeComponentsHolder
+	Config                         config.Config
+	RoundConfig                    config.RoundConfig
+	PrefConfig                     config.Preferences
+	ImportDbConfig                 config.ImportDbConfig
+	FlagsConfig                    config.ContextFlagsConfig
+	WorkingDir                     string
+	CoreComponents                 factory.CoreComponentsHolder
+	CryptoComponents               factory.CryptoComponentsHolder
+	NetworkComponents              factory.NetworkComponentsHolder
+	StatusCoreComponents           factory.StatusCoreComponentsHolder
+	InterceptedDataVerifierFactory process.InterceptedDataVerifierFactory
+	RunTypeComponents              factory.RunTypeComponentsHolder
 }
 
 type bootstrapComponentsFactory struct {
@@ -227,6 +230,12 @@ func (bcf *bootstrapComponentsFactory) Create() (*bootstrapComponents, error) {
 		return nil, err
 	}
 
+	// create a new instance of interceptedDataVerifier which will be used for bootstrap only
+	interceptedDataVerifierFactory := interceptorFactory.NewInterceptedDataVerifierFactory(interceptorFactory.InterceptedDataVerifierFactoryArgs{
+		CacheSpan:   time.Duration(bcf.config.InterceptedDataVerifier.CacheSpanInSec) * time.Second,
+		CacheExpiry: time.Duration(bcf.config.InterceptedDataVerifier.CacheExpiryInSec) * time.Second,
+	})
+
 	epochStartBootstrapArgs := bootstrap.ArgsEpochStartBootstrap{
 		CoreComponentsHolder:            bcf.coreComponents,
 		CryptoComponentsHolder:          bcf.cryptoComponents,
@@ -253,6 +262,8 @@ func (bcf *bootstrapComponentsFactory) Create() (*bootstrapComponents, error) {
 		NodeProcessingMode:              common.GetNodeProcessingMode(&bcf.importDbConfig),
 		StateStatsHandler:               bcf.statusCoreComponents.StateStatsHandler(),
 		NodesCoordinatorRegistryFactory: nodesCoordinatorRegistryFactory,
+		EnableEpochsHandler:             bcf.coreComponents.EnableEpochsHandler(),
+		InterceptedDataVerifierFactory:  interceptedDataVerifierFactory,
 		RunTypeComponents:               bcf.runTypeComponents,
 	}
 

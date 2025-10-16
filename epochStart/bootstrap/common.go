@@ -126,6 +126,9 @@ func checkArguments(args ArgsEpochStartBootstrap) error {
 	if check.IfNil(args.NodesCoordinatorRegistryFactory) {
 		return fmt.Errorf("%s: %w", baseErrorMessage, nodesCoordinator.ErrNilNodesCoordinatorRegistryFactory)
 	}
+	if check.IfNil(args.EnableEpochsHandler) {
+		return fmt.Errorf("%s: %w", baseErrorMessage, epochStart.ErrNilEnableEpochsHandler)
+	}
 	if check.IfNil(args.RunTypeComponents) {
 		return fmt.Errorf("%s: %w", baseErrorMessage, errors.ErrNilRunTypeComponents)
 	}

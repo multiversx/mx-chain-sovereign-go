@@ -33,9 +33,22 @@
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.
     # If no confirmation of bridged data is received after this time, next leader should retry sending data.
     TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 90
-    
+
+    # The subscribed events represent a set of events on the sovereign chain that, when detected, trigger an outgoing
+    # operation towards the main chain. This operation is materialized as a transaction on the main chain. The outgoing
+    # bridge service that processes these events must be able to recognize them and construct the corresponding
+    # transactions according to the target chain and bridge contracts.
     SubscribedEvents = [
-        { Identifier = "deposit", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] }
+        # Subscribtion to make cross chain transfers from sovereign to main chain
+        { Identifier = "deposit", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        # Subscribtion to generate a token registration to be bridged from sovereign to main chain
+        { Identifier = "registerToken", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        # Subscribtion to send event(bls key + assigned ID) from sovereign to main chain when a new bls key is staked in sovereign
+        # Address that emits these events should be vm StakingSCAddress
+        { Identifier = "registerBlsKey", Addresses = ["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7"] },
+        # Subscribtion to send event(bls key + assigned ID) from sovereign to main chain when a new bls key is unStaked in sovereign
+        # Address that emits these events should be vm StakingSCAddress
+        { Identifier = "unRegisterBlsKey", Addresses = ["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7"] }
     ]
 
 [OutGoingBridge]
@@ -57,7 +70,10 @@
     SubscribedEvents = [
         { Identifier = "deposit", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         { Identifier = "execute", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
-        { Identifier = "changeValidatorSet", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] }
+        { Identifier = "changeValidatorSet", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        { Identifier = "registerToken", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        { Identifier = "registerBlsKey", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        { Identifier = "unRegisterBlsKey", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] }
     ]
 
     [NotifierConfig.WebSocket]

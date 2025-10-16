@@ -7,11 +7,13 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/dataRetriever"
 	factoryInterceptors "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -20,8 +22,10 @@ import (
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	epochStartMocks "github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks/epochStart"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	updateMock "github.com/multiversx/mx-chain-go/update/mock"
 )
 
 func createSovBootStrapProc() *sovereignBootStrapShardProcessor {
@@ -29,6 +33,14 @@ func createSovBootStrapProc() *sovereignBootStrapShardProcessor {
 	args.RunTypeComponents = mock.NewSovereignRunTypeComponentsStub()
 	epochStartProvider, _ := NewEpochStartBootstrap(args)
 	epochStartProvider.requestHandler = &testscommon.RequestHandlerStub{}
+	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
+		TrieNodesCalled: func() storage.Cacher {
+			return nil
+		},
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
+		},
+	}
 	return &sovereignBootStrapShardProcessor{
 		&sovereignChainEpochStartBootstrap{
 			epochStartProvider,
@@ -74,7 +86,7 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 	}
 	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
 		TrieNodesCalled: func() storage.Cacher {
-			return &testscommon.CacherStub{
+			return &cache.CacherStub{
 				GetCalled: func(key []byte) (value interface{}, ok bool) {
 					return nil, true
 				},
@@ -90,7 +102,13 @@ func TestBootStrapSovereignShardProcessor_requestAndProcessForShard(t *testing.T
 			epochStartProvider,
 		},
 	}
-
+	epochStartProvider.dataPool = &dataRetrieverMock.PoolsHolderStub{
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
+		},
+	}
+	// TODO: Here MX-16975 check if this new behavior is proven useful when nodes syncing works
+	epochStartProvider.epochStartShardHeaderSyncer = &updateMock.PendingEpochStartShardHeaderStub{}
 	err := sovProc.requestAndProcessForShard(make([]*block.MiniBlock, 0))
 	require.Nil(t, err)
 }
@@ -143,6 +161,58 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 	syncedHeaders := map[string]data.HeaderHandler{
 		"hash": &block.SovereignChainHeader{},
 	}
+
+	currentHeaderHash, _ := core.CalculateHash(
+		sovProc.coreComponentsHolder.InternalMarshalizer(),
+		sovProc.coreComponentsHolder.Hasher(),
+		sovHdr,
+	)
+
+	headersSyncedCt := 0
+	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
+		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
+			require.Equal(t, []uint32{core.SovereignChainShardId, core.MainChainShardId, core.SovereignChainShardId}, shardIDs)
+			require.Equal(t, [][]byte{currentHeaderHash, lastCrossChainHeaderHash, prevEpochStartHash}, headersHashes)
+			headersSyncedCt++
+			return nil
+		},
+		GetHeadersCalled: func() (map[string]data.HeaderHandler, error) {
+			return syncedHeaders, nil
+		},
+	}
+
+	res, err := sovProc.syncHeadersFrom(sovHdr)
+	require.Nil(t, err)
+	require.Equal(t, res, syncedHeaders)
+	require.Equal(t, 1, headersSyncedCt)
+}
+
+func TestBootStrapSovereignShardProcessor_syncHeadersFromStorage(t *testing.T) {
+	t.Parallel()
+
+	sovProc := createSovBootStrapProc()
+
+	prevEpochStartHash := []byte("prevEpochStartHash")
+	lastCrossChainHeaderHash := []byte("lastCrossChainHeaderHash")
+	sovHdr := &block.SovereignChainHeader{
+		Header: &block.Header{
+			Epoch: 4,
+		},
+		EpochStart: block.EpochStartSovereign{
+			Economics: block.Economics{
+				PrevEpochStartHash: prevEpochStartHash,
+			},
+			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
+				ShardID:    core.MainChainShardId,
+				HeaderHash: lastCrossChainHeaderHash,
+			},
+		},
+	}
+
+	syncedHeaders := map[string]data.HeaderHandler{
+		"hash": &block.SovereignChainHeader{},
+	}
+
 	headersSyncedCt := 0
 	sovProc.headersSyncer = &epochStartMocks.HeadersByHashSyncerStub{
 		SyncMissingHeadersByHashCalled: func(shardIDs []uint32, headersHashes [][]byte, ctx context.Context) error {
@@ -156,15 +226,10 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 		},
 	}
 
-	res, err := sovProc.syncHeadersFrom(sovHdr)
+	res, err := sovProc.syncHeadersFromStorage(sovHdr, 0, 0, DefaultTimeToWaitForRequestedData)
 	require.Nil(t, err)
 	require.Equal(t, res, syncedHeaders)
 	require.Equal(t, 1, headersSyncedCt)
-
-	res, err = sovProc.syncHeadersFromStorage(sovHdr, 0, 0, DefaultTimeToWaitForRequestedData)
-	require.Nil(t, err)
-	require.Equal(t, res, syncedHeaders)
-	require.Equal(t, 2, headersSyncedCt)
 }
 
 func TestBootStrapSovereignShardProcessor_processNodesConfigFromStorage(t *testing.T) {
@@ -251,21 +316,22 @@ func TestBootStrapSovereignShardProcessor_createEpochStartInterceptorsContainers
 	sovProc.dataPool = dataRetrieverMock.NewPoolsHolderMock()
 
 	args := factoryInterceptors.ArgsEpochStartInterceptorContainer{
-		CoreComponents:          sovProc.coreComponentsHolder,
-		CryptoComponents:        sovProc.cryptoComponentsHolder,
-		Config:                  sovProc.generalConfig,
-		ShardCoordinator:        sovProc.shardCoordinator,
-		MainMessenger:           sovProc.mainMessenger,
-		FullArchiveMessenger:    sovProc.fullArchiveMessenger,
-		DataPool:                dataRetrieverMock.NewPoolsHolderMock(),
-		WhiteListHandler:        sovProc.whiteListHandler,
-		WhiteListerVerifiedTxs:  sovProc.whiteListerVerifiedTxs,
-		ArgumentsParser:         sovProc.argumentsParser,
-		HeaderIntegrityVerifier: sovProc.headerIntegrityVerifier,
-		RequestHandler:          sovProc.requestHandler,
-		SignaturesHandler:       sovProc.mainMessenger,
-		NodeOperationMode:       sovProc.nodeOperationMode,
-		AccountFactory:          sovProc.runTypeComponents.AccountsCreator(),
+		CoreComponents:                 sovProc.coreComponentsHolder,
+		CryptoComponents:               sovProc.cryptoComponentsHolder,
+		Config:                         sovProc.generalConfig,
+		ShardCoordinator:               sovProc.shardCoordinator,
+		MainMessenger:                  sovProc.mainMessenger,
+		FullArchiveMessenger:           sovProc.fullArchiveMessenger,
+		DataPool:                       dataRetrieverMock.NewPoolsHolderMock(),
+		WhiteListHandler:               sovProc.whiteListHandler,
+		WhiteListerVerifiedTxs:         sovProc.whiteListerVerifiedTxs,
+		ArgumentsParser:                sovProc.argumentsParser,
+		HeaderIntegrityVerifier:        sovProc.headerIntegrityVerifier,
+		RequestHandler:                 sovProc.requestHandler,
+		SignaturesHandler:              sovProc.mainMessenger,
+		NodeOperationMode:              sovProc.nodeOperationMode,
+		AccountFactory:                 sovProc.runTypeComponents.AccountsCreator(),
+		InterceptedDataVerifierFactory: sovProc.interceptedDataVerifierFactory,
 	}
 	mainContainer, fullContainer, err := sovProc.createEpochStartInterceptorsContainers(args)
 	require.Nil(t, err)

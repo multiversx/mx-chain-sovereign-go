@@ -60,7 +60,7 @@ func TestSovereignInterceptedShardHeaderDataFactory_Create(t *testing.T) {
 	require.Nil(t, err)
 
 	sovFactory, _ := NewSovereignInterceptedShardHeaderDataFactory(args)
-	interceptedData, err := sovFactory.Create(headerBytes)
+	interceptedData, err := sovFactory.Create(headerBytes, "")
 	require.Nil(t, err)
 
 	interceptedSovHeader, castOk := interceptedData.(process.ExtendedHeaderValidatorHandler)

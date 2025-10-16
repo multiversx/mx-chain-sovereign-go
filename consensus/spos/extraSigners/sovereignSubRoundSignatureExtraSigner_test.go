@@ -17,13 +17,13 @@ func TestNewSovereignSubRoundSignatureOutGoingTxData(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil signing handler, should return error", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundSignatureExtraSigner(nil, block.OutGoingMbTx)
+		sovSigHandler, err := NewSovereignSubRoundSignatureExtraSigner(nil, block.OutGoingMbDeposit)
 		require.Equal(t, spos.ErrNilSigningHandler, err)
 		require.True(t, check.IfNil(sovSigHandler))
 	})
 
 	t.Run("should work", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx)
+		sovSigHandler, err := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit)
 		require.Nil(t, err)
 		require.False(t, sovSigHandler.IsInterfaceNil())
 	})
@@ -60,7 +60,7 @@ func TestSovereignSubRoundSignatureOutGoingTxData_CreateSignatureShare(t *testin
 			return expectedSigShare, nil
 		},
 	}
-	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(signingHandler, block.OutGoingMbTx)
+	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(signingHandler, block.OutGoingMbDeposit)
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		sigShare, err := sovSigHandler.CreateSignatureShare(sovHdr.Header, selfIndex, selfPubKey)
@@ -92,7 +92,7 @@ func TestSovereignSubRoundSignatureOutGoingTxData_AddSigShareToConsensusMessage(
 		SignatureShare: []byte("sigShare"),
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx)
+	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit)
 
 	err := sovSigHandler.AddSigShareToConsensusMessage([]byte("sigShareOutGoingTxData"), nil)
 	require.Equal(t, errors.ErrNilConsensusMessage, err)
@@ -102,7 +102,7 @@ func TestSovereignSubRoundSignatureOutGoingTxData_AddSigShareToConsensusMessage(
 	require.Equal(t, &consensus.Message{
 		SignatureShare: []byte("sigShare"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbTx.String(): {
+			block.OutGoingMbDeposit.String(): {
 				SignatureShareOutGoingTxData: []byte("sigShareOutGoingTxData"),
 			},
 		},
@@ -115,7 +115,7 @@ func TestSovereignSubRoundSignatureOutGoingTxData_StoreSignatureShare(t *testing
 	cnsMsg := &consensus.Message{
 		SignatureShare: []byte("sigShare"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbTx.String(): {
+			block.OutGoingMbDeposit.String(): {
 				SignatureShareOutGoingTxData: []byte("sigShareOutGoingTxData"),
 			},
 		},
@@ -126,14 +126,14 @@ func TestSovereignSubRoundSignatureOutGoingTxData_StoreSignatureShare(t *testing
 	signHandler := &cnsTest.SigningHandlerStub{
 		StoreSignatureShareCalled: func(index uint16, sig []byte) error {
 			require.Equal(t, expectedIdx, index)
-			require.Equal(t, cnsMsg.ExtraSignatures[block.OutGoingMbTx.String()].SignatureShareOutGoingTxData, sig)
+			require.Equal(t, cnsMsg.ExtraSignatures[block.OutGoingMbDeposit.String()].SignatureShareOutGoingTxData, sig)
 
 			wasSigStored = true
 			return nil
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(signHandler, block.OutGoingMbTx)
+	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(signHandler, block.OutGoingMbDeposit)
 
 	err := sovSigHandler.StoreSignatureShare(expectedIdx, nil)
 	require.Equal(t, errors.ErrNilConsensusMessage, err)
@@ -146,6 +146,6 @@ func TestSovereignSubRoundSignatureOutGoingTxData_StoreSignatureShare(t *testing
 func TestSovereignSubRoundSignatureOutGoingTxData_Identifier(t *testing.T) {
 	t.Parallel()
 
-	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbTx)
-	require.Equal(t, block.OutGoingMbTx.String(), sovSigHandler.Identifier())
+	sovSigHandler, _ := NewSovereignSubRoundSignatureExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit)
+	require.Equal(t, block.OutGoingMbDeposit.String(), sovSigHandler.Identifier())
 }

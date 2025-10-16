@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewMetaHeaderRequester(t *testing.T) {
@@ -47,4 +48,13 @@ func TestMetaHeaderRequester_RequestHeader(t *testing.T) {
 	headerRequester, _ := NewMetaHeaderRequester(requester)
 	headerRequester.RequestHeader(headerHash)
 	require.True(t, wasHeaderRequested)
+}
+
+func TestMetaHeaderRequester_ShouldSkipProofCheck(t *testing.T) {
+	t.Parallel()
+
+	headerRequester, _ := NewMetaHeaderRequester(&testscommon.RequestHandlerStub{})
+	require.False(t, headerRequester.ShouldSkipProofCheck(0))
+	require.False(t, headerRequester.ShouldSkipProofCheck(1))
+	require.False(t, headerRequester.ShouldSkipProofCheck(core.MetachainShardId))
 }

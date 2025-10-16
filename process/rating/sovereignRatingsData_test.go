@@ -11,7 +11,7 @@ import (
 )
 
 func createSovereignRatingsDataArgs() RatingsDataArg {
-	ratingsDataArg := createDymmyRatingsData()
+	ratingsDataArg := createDummyRatingsData()
 	ratingsDataArg.Config = createDummyRatingsConfig()
 	ratingsDataArg.Config.MetaChain = config.MetaChain{}
 
@@ -26,7 +26,7 @@ func TestNewSovereignRatingsData(t *testing.T) {
 		srd, err := NewSovereignRatingsData(args)
 		require.Nil(t, err)
 		require.NotNil(t, srd)
-		require.Equal(t, srd.shardRatingsStepData, srd.metaRatingsStepData)
+		require.Equal(t, srd.currentRatingsStepData.shardRatingsStepData, srd.currentRatingsStepData.metaRatingsStepData)
 	})
 
 	t.Run("error checking sovereign ratings config", func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestNewSovereignRatingsData(t *testing.T) {
 
 	t.Run("error computing rating step", func(t *testing.T) {
 		args := createSovereignRatingsDataArgs()
-		args.Config.ShardChain.ProposerDecreaseFactor = math.MinInt32
+		args.Config.ShardChain.RatingStepsByEpoch[0].ProposerDecreaseFactor = math.MinInt32
 		srd, err := NewSovereignRatingsData(args)
 		require.True(t, strings.Contains(err.Error(), process.ErrOverflow.Error()))
 		require.Nil(t, srd)

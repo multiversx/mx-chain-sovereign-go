@@ -3,6 +3,8 @@ package chainSimulator
 import (
 	"path"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCommon "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
 	sovChainSimConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/configs"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
@@ -16,6 +18,7 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	chainSimulatorConfigs "github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	chainSimProc "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 )
@@ -71,6 +74,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 	args.GenerateGenesisFile = func(args chainSimulatorConfigs.ArgsChainSimulatorConfigs, configs *config.Configs) (*dtos.InitialWalletKeys, error) {
 		return sovChainSimConfig.GenerateSovereignGenesisFile(args, configs)
 	}
+	args.AddProofsFunc = addProofsInSovereign
 
 	return chainSimulator.NewSovereignChainSimulator(*args.ArgsChainSimulator)
 }
@@ -113,4 +117,16 @@ func createSovereignRunTypeCoreComponents(sovereignEpochConfig config.SovereignE
 	}
 
 	return managedRunTypeCoreComponents, nil
+}
+
+func addProofsInSovereign(nodes map[uint32]chainSimProc.NodeHandler) {
+	nodeHandler := nodes[core.SovereignChainShardId]
+
+	proof := &block.HeaderProof{
+		HeaderShardId: core.SovereignChainShardId,
+		HeaderHash:    nodeHandler.GetChainHandler().GetGenesisHeaderHash(),
+	}
+
+	proofsPool := nodes[core.SovereignChainShardId].GetDataComponents().Datapool().Proofs()
+	_ = proofsPool.AddProof(proof)
 }

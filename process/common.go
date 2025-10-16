@@ -18,10 +18,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/dataRetriever"
-	"github.com/multiversx/mx-chain-go/state"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/state"
 )
 
 var log = logger.GetOrCreate("process")
@@ -449,6 +450,24 @@ func GetMetaHeaderFromPoolWithNonce(
 	return hdr, hash, nil
 }
 
+// GetSovereignHeaderFromPoolWithNonce method returns a sovereign block header from pool with a given nonce
+func GetSovereignHeaderFromPoolWithNonce(
+	nonce uint64,
+	headersCacher dataRetriever.HeadersPool,
+) (data.MetaHeaderHandler, []byte, error) {
+	obj, hash, err := getHeaderFromPoolWithNonce(nonce, core.SovereignChainShardId, headersCacher)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	hdr, ok := obj.(data.MetaHeaderHandler)
+	if !ok {
+		return nil, nil, ErrWrongTypeAssertion
+	}
+
+	return hdr, hash, nil
+}
+
 // GetHeaderFromStorageWithNonce method returns a block header from storage with a given nonce and shardId
 func GetHeaderFromStorageWithNonce(
 	nonce uint64,
@@ -478,7 +497,7 @@ func GetShardHeaderFromStorageWithNonce(
 		storageService,
 		uint64Converter,
 		marshalizer,
-		dataRetriever.ShardHdrNonceHashDataUnit+dataRetriever.UnitType(shardId))
+		dataRetriever.GetHdrNonceHashDataUnit(shardId))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -907,6 +926,21 @@ func GetSortedStorageUpdates(account *vmcommon.OutputAccount) []*vmcommon.Storag
 	return storageUpdates
 }
 
+// GetHeader tries to get the header from pool first and if not found, searches for it through storer
+func GetHeader(
+	headerHash []byte,
+	headersPool dataRetriever.HeadersPool,
+	headersStorer dataRetriever.StorageService,
+	marshaller marshal.Marshalizer,
+	shardID uint32,
+) (data.HeaderHandler, error) {
+	if shardID == core.MetachainShardId {
+		return GetMetaHeader(headerHash, headersPool, marshaller, headersStorer)
+	}
+
+	return GetShardHeader(headerHash, headersPool, marshaller, headersStorer)
+}
+
 // UnmarshalHeader unmarshalls a block header
 func UnmarshalHeader(shardId uint32, marshalizer marshal.Marshalizer, headerBuffer []byte) (data.HeaderHandler, error) {
 	if shardId == core.MetachainShardId {
@@ -1104,4 +1138,23 @@ func CheckIfIndexesAreOutOfBound(
 	}
 
 	return nil
+}
+
+// GetPeerAccount returns the peer account from the db that is found for the given key
+func GetPeerAccount(key []byte, peerAccountsDB state.AccountsAdapter) (state.PeerAccountHandler, error) {
+	if check.IfNil(peerAccountsDB) {
+		return nil, ErrNilPeerAccountsAdapter
+	}
+
+	account, err := peerAccountsDB.LoadAccount(key)
+	if err != nil {
+		return nil, err
+	}
+
+	peerAcc, ok := account.(state.PeerAccountHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
+	}
+
+	return peerAcc, nil
 }

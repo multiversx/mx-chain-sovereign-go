@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
@@ -17,22 +18,28 @@ import (
 var log = logger.GetOrCreate("extra-signers")
 
 type sovereignSubRoundEndOutGoingTxData struct {
-	signingHandler consensus.SigningHandler
-	mbType         block.OutGoingMBType
+	signingHandler      consensus.SigningHandler
+	mbType              block.OutGoingMBType
+	enableEpochsHandler common.EnableEpochsHandler
 }
 
 // NewSovereignSubRoundEndExtraSigner creates a new extra signer for sovereign outgoing mini blocks in end subround
 func NewSovereignSubRoundEndExtraSigner(
 	signingHandler consensus.SigningHandler,
 	mbType block.OutGoingMBType,
+	enableEpochsHandler common.EnableEpochsHandler,
 ) (*sovereignSubRoundEndOutGoingTxData, error) {
 	if check.IfNil(signingHandler) {
 		return nil, spos.ErrNilSigningHandler
 	}
+	if check.IfNil(enableEpochsHandler) {
+		return nil, spos.ErrNilEnableEpochHandler
+	}
 
 	return &sovereignSubRoundEndOutGoingTxData{
-		signingHandler: signingHandler,
-		mbType:         mbType,
+		signingHandler:      signingHandler,
+		mbType:              mbType,
+		enableEpochsHandler: enableEpochsHandler,
 	}, nil
 }
 
@@ -108,9 +115,12 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SignAndSetLeaderSignature(header d
 		return nil
 	}
 
-	leaderMsgToSign := append(
-		outGoingMb.GetOutGoingOperationsHash(),
-		outGoingMb.GetAggregatedSignatureOutGoingOperations()...)
+	leaderMsgToSign := outGoingMb.GetOutGoingOperationsHash()
+
+	// In consensus v2 leader will only sign the outgoing op hash
+	if !sr.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
+		leaderMsgToSign = append(leaderMsgToSign, outGoingMb.GetAggregatedSignatureOutGoingOperations()...)
+	}
 
 	leaderSig, err := sr.signingHandler.CreateSignatureForPublicKey(leaderMsgToSign, leaderPubKey)
 	if err != nil {
@@ -152,6 +162,21 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 	}
 
 	return sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMb)
+}
+
+// GetLeaderExtraSig will return the leader extra sig from the header
+func (sr *sovereignSubRoundEndOutGoingTxData) GetLeaderExtraSig(header data.HeaderHandler) ([]byte, error) {
+	sovHeader, castOk := header.(data.SovereignChainHeaderHandler)
+	if !castOk {
+		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.GetLeaderExtraSig", errors.ErrWrongTypeAssertion)
+	}
+
+	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
+	if check.IfNil(outGoingMb) {
+		return nil, nil
+	}
+
+	return outGoingMb.GetLeaderSignatureOutGoingOperations(), nil
 }
 
 // AddLeaderAndAggregatedSignatures adds aggregated and leader signature in consensus message with provided data from header
