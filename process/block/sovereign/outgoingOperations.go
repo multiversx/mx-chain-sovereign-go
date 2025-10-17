@@ -8,13 +8,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"google.golang.org/protobuf/proto"
-
+	"github.com/multiversx/mx-chain-core-go/marshal/factory"
 	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	"github.com/multiversx/mx-chain-go/state"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 type opFormatterData struct {
@@ -212,15 +212,15 @@ func addHandlerIfSubscribed(
 
 // CreateOutgoingTxsData collects relevant outgoing events(based on subscribed addresses and topics) for bridge from the
 // logs and creates outgoing data that needs to be signed by validators to bridge tokens
-func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
-	outgoingEvents := op.createOutgoingEvents(logs)
+func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([]*dto.OutGoingOperation, error) {
+	outgoingEvents := op.collectOutGoingEvents(logs)
 	if len(outgoingEvents) == 0 {
-		return make(map[block.OutGoingMBType][][]byte), nil
+		return make([]*dto.OutGoingOperation, 0), nil
 	}
 
-	txsData := make(map[block.OutGoingMBType][][]byte)
+	operations := make([]*dto.OutGoingOperation, 0)
 	for i, event := range outgoingEvents {
-		operation, mbType, err := op.getOperationData(event)
+		operation, err := op.getOperationData(event)
 		if err != nil {
 			log.Error("outgoingOperations.CreateOutgoingTxsData error",
 				"tx hash", logs[i].TxHash,
@@ -230,15 +230,15 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[b
 			return nil, err
 		}
 
-		txsData[mbType] = append(txsData[mbType], operation)
+		operations = append(operations, operation)
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
 	// Task: MX-14720
-	return txsData, nil
+	return operations, nil
 }
 
-func (op *outgoingOperations) createOutgoingEvents(logs []*data.LogData) []data.EventHandler {
+func (op *outgoingOperations) collectOutGoingEvents(logs []*data.LogData) []data.EventHandler {
 	events := make([]data.EventHandler, 0)
 
 	for _, logData := range logs {
@@ -282,15 +282,18 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) ([]byte, block.OutGoingMBType, error) {
+func (op *outgoingOperations) getOperationData(event data.EventHandler) (*dto.OutGoingOperation, error) {
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
-		return nil, block.OutGoingMBType(0), errEventIDNotFound
+		return nil, errEventIDNotFound
 	}
 
 	opData, err := opFormatter.handler.CreateOperationData(event)
-	return opData, opFormatter.mbType, err
+	return &dto.OutGoingOperation{
+		MBType: opFormatter.mbType,
+		Data:   opData,
+	}, err
 }
 
 // CreateOutGoingChangeValidatorData will create the necessary outgoing data for validator set change
@@ -306,7 +309,9 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		validatorsID[idx] = peerAcc.GetMainChainID()
 	}
 
-	return proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
+	mrsh, _ := factory.NewMarshalizer(factory.GogoProtobuf)
+
+	return mrsh.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
