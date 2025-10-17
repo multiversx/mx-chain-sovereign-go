@@ -221,7 +221,7 @@ func TestSovereignGenesisBlockCreator_CreateGenesisBaseProcess(t *testing.T) {
 
 	sovereignIdxData := indexingData[core.SovereignChainShardId]
 	require.Len(t, sovereignIdxData.DeployInitialScTxs, reqNumDeployInitialScTxs)
-	require.Len(t, sovereignIdxData.DeploySystemScTxs, 4)
+	require.Len(t, sovereignIdxData.DeploySystemScTxs, 5)
 	require.Len(t, sovereignIdxData.DelegationTxs, 3)
 	require.Len(t, sovereignIdxData.StakingTxs, 0)
 	require.Greater(t, len(sovereignIdxData.ScrsTxs), 3)
@@ -327,6 +327,7 @@ func TestSovereignGenesisBlockCreator_initGenesisAccounts(t *testing.T) {
 			string(vm.ESDTSCAddress):              {},
 			string(vm.DelegationManagerSCAddress): {},
 			string(vm.FirstDelegationSCAddress):   {},
+			string(vm.AliasSCAddress):             {},
 		}
 
 		expectedCodeMetaData := &vmcommon.CodeMetadata{

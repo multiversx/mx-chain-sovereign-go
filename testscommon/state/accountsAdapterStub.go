@@ -3,7 +3,6 @@ package state
 import (
 	"context"
 	"errors"
-
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/state"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
@@ -40,6 +39,8 @@ type AccountsStub struct {
 	CloseCalled                   func() error
 	SetSyncerCalled               func(syncer state.AccountsDBSyncer) error
 	StartSnapshotIfNeededCalled   func() error
+	SaveAliasAddressCalled        func(request *vmcommon.AliasSaveRequest) error
+	RequestAddressCalled          func(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 }
 
 // CleanCache -
@@ -256,6 +257,24 @@ func (as *AccountsStub) Close() error {
 	}
 
 	return nil
+}
+
+// SaveAliasAddress -
+func (as *AccountsStub) SaveAliasAddress(request *vmcommon.AliasSaveRequest) error {
+	if as.SaveAliasAddressCalled != nil {
+		return as.SaveAliasAddressCalled(request)
+	}
+
+	return nil
+}
+
+// RequestAddress -
+func (as *AccountsStub) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	if as.RequestAddressCalled != nil {
+		return as.RequestAddressCalled(request)
+	}
+
+	return nil, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

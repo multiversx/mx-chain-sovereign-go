@@ -41,7 +41,7 @@ const minedWalletPrefixKeys = "mined-wallet"
 const nopattern = "nopattern"
 const desiredpattern = "[0-f]+"
 const noshard = -1
-const pubkeyHrp = "erd"
+const pubkeyHrp = core.OneAddressPrefix
 
 type key struct {
 	skBytes []byte

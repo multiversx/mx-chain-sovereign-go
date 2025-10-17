@@ -85,7 +85,7 @@ func TestNewSovereignVmContainerShardFactory_CreateVmContainerFactoryShard(t *te
 	require.Equal(t, "*containers.virtualMachinesContainer", fmt.Sprintf("%T", vmContainer))
 	require.Equal(t, "*shard.vmContainerFactory", fmt.Sprintf("%T", vmFactory))
 
-	require.Equal(t, 2, vmContainer.Len())
+	require.Equal(t, 3, vmContainer.Len())
 	svm, err := vmContainer.Get(testFactory.SystemVirtualMachine)
 	require.Nil(t, err)
 	require.NotNil(t, svm)

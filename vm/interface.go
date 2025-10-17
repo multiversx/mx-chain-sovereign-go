@@ -61,6 +61,7 @@ type SystemEI interface {
 	SetOwnerOperatingOnAccount(newOwner []byte) error
 	UpdateCodeDeployerAddress(scAddress string, newOwner []byte) error
 	ProcessBuiltInFunction(destination []byte, sender []byte, value *big.Int, input []byte, gasLimit uint64) error
+	RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 
 	IsInterfaceNil() bool
 }

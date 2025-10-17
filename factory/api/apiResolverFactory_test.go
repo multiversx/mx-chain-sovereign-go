@@ -634,7 +634,7 @@ func TestCreateApiResolver_createArgsSCQueryService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, argsScQueryService.VmContainer)
 
-		require.Equal(t, 2, argsScQueryService.VmContainer.Len())
+		require.Equal(t, 3, argsScQueryService.VmContainer.Len())
 
 		svm, err := argsScQueryService.VmContainer.Get(vmFactory.SystemVirtualMachine)
 		require.Nil(t, err)
@@ -645,8 +645,13 @@ func TestCreateApiResolver_createArgsSCQueryService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, wasmvm)
 		require.Equal(t, "*hostCore.vmHost", fmt.Sprintf("%T", wasmvm))
+
+		evm, err := argsScQueryService.VmContainer.Get(vmFactory.EVMVirtualMachine)
+		require.Nil(t, err)
+		require.NotNil(t, evm)
+		require.Equal(t, "*hostCore.vmHost", fmt.Sprintf("%T", evm))
 	})
-	t.Run("regular chain for shards should only add wasm vm", func(t *testing.T) {
+	t.Run("regular chain for shards should add wasm vm and evm", func(t *testing.T) {
 		t.Parallel()
 
 		args := createMockSCQueryElementArgs(0)
@@ -655,7 +660,7 @@ func TestCreateApiResolver_createArgsSCQueryService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, argsScQueryService.VmContainer)
 
-		require.Equal(t, 1, argsScQueryService.VmContainer.Len())
+		require.Equal(t, 2, argsScQueryService.VmContainer.Len())
 
 		svm, err := argsScQueryService.VmContainer.Get(vmFactory.SystemVirtualMachine)
 		require.NotNil(t, err)
@@ -665,6 +670,11 @@ func TestCreateApiResolver_createArgsSCQueryService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, wasmvm)
 		require.Equal(t, "*hostCore.vmHost", fmt.Sprintf("%T", wasmvm))
+
+		evm, err := argsScQueryService.VmContainer.Get(vmFactory.EVMVirtualMachine)
+		require.Nil(t, err)
+		require.NotNil(t, evm)
+		require.Equal(t, "*hostCore.vmHost", fmt.Sprintf("%T", evm))
 	})
 	t.Run("regular chain for meta should only add systemVM", func(t *testing.T) {
 		t.Parallel()

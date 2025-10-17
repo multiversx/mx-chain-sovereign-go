@@ -20,6 +20,7 @@ type BlockChainHookStub struct {
 	LastRandomSeedCalled                    func() []byte
 	LastEpochCalled                         func() uint32
 	GetStateRootHashCalled                  func() []byte
+	ChainIDCalled                           func() []byte
 	CurrentNonceCalled                      func() uint64
 	CurrentRoundCalled                      func() uint64
 	CurrentTimeStampCalled                  func() uint64
@@ -61,6 +62,8 @@ type BlockChainHookStub struct {
 	ExecuteSmartContractCallOnOtherVMCalled func(input *vmcommon.ContractCallInput) (*vmcommon.VMOutput, error)
 	SetVMContainerCalled                    func(vmContainer process.VirtualMachinesContainer) error
 	GetAccountsAdapterCalled                func() state.AccountsAdapter
+	SaveAliasAddressCalled                  func(request *vmcommon.AliasSaveRequest) error
+	RequestAddressCalled                    func(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 }
 
 // GetCode -
@@ -159,6 +162,15 @@ func (stub *BlockChainHookStub) LastEpoch() uint32 {
 func (stub *BlockChainHookStub) GetStateRootHash() []byte {
 	if stub.GetStateRootHashCalled != nil {
 		return stub.GetStateRootHashCalled()
+	}
+
+	return make([]byte, 0)
+}
+
+// ChainID -
+func (stub *BlockChainHookStub) ChainID() []byte {
+	if stub.ChainIDCalled != nil {
+		return stub.ChainIDCalled()
 	}
 
 	return make([]byte, 0)
@@ -517,4 +529,22 @@ func (stub *BlockChainHookStub) GetAccountsAdapter() state.AccountsAdapter {
 		return stub.GetAccountsAdapterCalled()
 	}
 	return nil
+}
+
+// SaveAliasAddress -
+func (stub *BlockChainHookStub) SaveAliasAddress(request *vmcommon.AliasSaveRequest) error {
+	if stub.SaveAliasAddressCalled != nil {
+		return stub.SaveAliasAddressCalled(request)
+	}
+
+	return nil
+}
+
+// RequestAddress -
+func (stub *BlockChainHookStub) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	if stub.RequestAddressCalled != nil {
+		return stub.RequestAddressCalled(request)
+	}
+
+	return nil, nil
 }

@@ -80,6 +80,8 @@ func TestSystemSCsAddressesAndSpecialAddresses(t *testing.T) {
 	require.NoError(t, err)
 	firstDelegationScAddress, err := addressEncoder.Encode(vm.FirstDelegationSCAddress)
 	require.NoError(t, err)
+	aliasScAddress, err := addressEncoder.Encode(vm.AliasSCAddress)
+	require.NoError(t, err)
 
 	genesisMintingAddressBytes, err := hex.DecodeString("f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0")
 	require.NoError(t, err)
@@ -101,6 +103,7 @@ func TestSystemSCsAddressesAndSpecialAddresses(t *testing.T) {
 		display.NewLineData(false, []string{"End of epoch address", endOfEpochAddress}),
 		display.NewLineData(false, []string{"Delegation manager", delegationManagerScAddress}),
 		display.NewLineData(false, []string{"First delegation", firstDelegationScAddress}),
+		display.NewLineData(false, []string{"Alias", aliasScAddress}),
 		display.NewLineData(false, []string{"Genesis Minting Address", genesisMintingAddress}),
 		display.NewLineData(false, []string{"System Account Address", systemAccountAddress}),
 		display.NewLineData(false, []string{"ESDT Global Settings Shard 0", esdtGlobalSettingsAddresses[0]}),
@@ -119,6 +122,7 @@ func TestSystemSCsAddressesAndSpecialAddresses(t *testing.T) {
 	assert.Equal(t, "erd1qqqqqqqqqqqqqqqpqqqqqqqqlllllllllllllllllllllllllllsr9gav8", endOfEpochAddress)
 	assert.Equal(t, "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6", delegationManagerScAddress)
 	assert.Equal(t, "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0llllsqkarq6", firstDelegationScAddress)
+	assert.Equal(t, "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9lllsm6xupm", aliasScAddress)
 	assert.Equal(t, "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu", contractDeployScAdress)
 	assert.Equal(t, "erd17rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rc0pu8s7rcqqkhty3", genesisMintingAddress)
 	assert.Equal(t, "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t", systemAccountAddress)

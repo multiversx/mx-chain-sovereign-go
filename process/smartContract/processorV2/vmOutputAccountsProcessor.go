@@ -48,6 +48,11 @@ func (oap *VMOutputAccountsProcessor) Run() (bool, []data.TransactionHandler, er
 
 	createdAsyncCallback := false
 	for _, outAcc := range outputAccounts {
+		err := oap.saveAliases(outAcc.Address)
+		if err != nil {
+			return false, nil, err
+		}
+
 		acc, err := oap.sc.scProcessorHelper.GetAccountFromAddress(outAcc.Address)
 		if err != nil {
 			return false, nil, err
@@ -280,4 +285,8 @@ func (oap *VMOutputAccountsProcessor) updateAccountBalanceStep(
 	}
 
 	return sumOfAllDiff, nil
+}
+
+func (oap *VMOutputAccountsProcessor) saveAliases(address []byte) error {
+	return state.GenerateAddresses(oap.sc.accounts, [][]byte{address}, core.MVXAddressIdentifier)
 }

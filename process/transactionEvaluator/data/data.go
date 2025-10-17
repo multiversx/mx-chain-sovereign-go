@@ -8,5 +8,10 @@ import (
 // SimulationResultsWithVMOutput is the data transfer object which will hold results for simulation a transaction's execution
 type SimulationResultsWithVMOutput struct {
 	transaction.SimulationResults
-	VMOutput *vmcommon.VMOutput `json:"-"`
+	ReturnData    [][]byte            `json:"returnData,omitempty"`
+	ReturnCode    vmcommon.ReturnCode `json:"returnCode,omitempty"`
+	ReturnMessage string              `json:"returnMessage,omitempty"`
+	Sender        string              `json:"sender,omitempty"`
+	Receiver      string              `json:"receiver,omitempty"`
+	VMOutput      *vmcommon.VMOutput  `json:"-"`
 }

@@ -92,13 +92,13 @@ export EXTRA_KEYS=1
 export ALWAYS_NEW_CHAINID=1
 
 # DEFAULT_CHAIN_ID represents the default chain ID
-export DEFAULT_CHAIN_ID="local-testnet"
+export DEFAULT_CHAIN_ID="999987"
 
 # ROUNDS_PER_EPOCH represents the number of rounds per epoch. If set to 0, it won't override the node's config
 export ROUNDS_PER_EPOCH=0
 
 # ADDRESS_HRP represents the human-readable prefix for addresses
-export ADDRESS_HRP="erd"
+export ADDRESS_HRP="one"
 
 # HYSTERESIS defines the hysteresis value for number of nodes in shard
 export HYSTERESIS=0.0

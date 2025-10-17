@@ -273,6 +273,26 @@ func (accountsDB *accountsDBApi) GetCodeWithBlockInfo(codeHash []byte, _ common.
 	return accountsDB.innerAccountsAdapter.GetCode(codeHash), blockInfo, nil
 }
 
+// SaveAliasAddress saves the given alias address
+func (accountsDB *accountsDBApi) SaveAliasAddress(request *vmcommon.AliasSaveRequest) error {
+	_, err := accountsDB.recreateTrieIfNecessary()
+	if err != nil {
+		return err
+	}
+
+	return accountsDB.innerAccountsAdapter.SaveAliasAddress(request)
+}
+
+// RequestAddress returns the requested address
+func (accountsDB *accountsDBApi) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	_, err := accountsDB.recreateTrieIfNecessary()
+	if err != nil {
+		return nil, err
+	}
+
+	return accountsDB.innerAccountsAdapter.RequestAddress(request)
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (accountsDB *accountsDBApi) IsInterfaceNil() bool {
 	return accountsDB == nil

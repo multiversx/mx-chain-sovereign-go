@@ -105,6 +105,11 @@ func (txProc *metaTxProcessor) ProcessTransaction(tx *transaction.Transaction) (
 		return 0, process.ErrNilTransaction
 	}
 
+	err := txProc.saveAliases(tx)
+	if err != nil {
+		return 0, err
+	}
+
 	acntSnd, acntDst, err := txProc.getAccounts(tx.SndAddr, tx.RcvAddr)
 	if err != nil {
 		return 0, err

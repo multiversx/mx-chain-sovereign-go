@@ -41,6 +41,7 @@ type SystemEIStub struct {
 	AddLogEntryCalled                   func(entry *vmcommon.LogEntry)
 	SetOwnerOperatingOnAccountCalled    func(newOwner []byte) error
 	UpdateCodeDeployerAddressCalled     func(scAddress string, newOwner []byte) error
+	RequestAddressCalled                func(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 }
 
 // AddLogEntry -
@@ -317,6 +318,15 @@ func (s *SystemEIStub) UpdateCodeDeployerAddress(scAddress string, newOwner []by
 	}
 
 	return nil
+}
+
+// RequestAddress -
+func (s *SystemEIStub) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	if s.RequestAddressCalled != nil {
+		return s.RequestAddressCalled(request)
+	}
+
+	return nil, nil
 }
 
 // IsInterfaceNil -

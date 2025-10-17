@@ -17,6 +17,7 @@ func TestUpdateSystemSCContractsCode(t *testing.T) {
 		string(vm.ESDTSCAddress):              {},
 		string(vm.DelegationManagerSCAddress): {},
 		string(vm.FirstDelegationSCAddress):   {},
+		string(vm.AliasSCAddress):             {},
 	}
 
 	expectedCodeMetaData := &vmcommon.CodeMetadata{

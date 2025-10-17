@@ -954,6 +954,11 @@ func (host *vmContext) GetCrtTransferIndex() uint32 {
 	return host.crtTransferIndex
 }
 
+// RequestAddress returns the requested address
+func (host *vmContext) RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error) {
+	return host.userAccountsDB.RequestAddress(request)
+}
+
 // IsInterfaceNil returns if the underlying implementation is nil
 func (host *vmContext) IsInterfaceNil() bool {
 	return host == nil

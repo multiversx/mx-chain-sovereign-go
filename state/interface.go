@@ -93,6 +93,8 @@ type AccountsAdapter interface {
 	SetSyncer(syncer AccountsDBSyncer) error
 	StartSnapshotIfNeeded() error
 	Close() error
+	SaveAliasAddress(request *vmcommon.AliasSaveRequest) error
+	RequestAddress(request *vmcommon.AddressRequest) (*vmcommon.AddressResponse, error)
 	IsInterfaceNil() bool
 }
 

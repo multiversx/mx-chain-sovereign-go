@@ -25,6 +25,12 @@ var ErrGetCodeHash = errors.New("get code hash error")
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
+// ErrGetAliasForAddress signals an error in getting the alias address for a mvx address
+var ErrGetAliasForAddress = errors.New("get alias for mvx address error")
+
+// ErrGetMvxAddressForAlias signals an error in getting the mvx address for an alias address
+var ErrGetMvxAddressForAlias = errors.New("get mvx address for alias address error")
+
 // ErrGetKeyValuePairs signals an error in getting the key-value pairs of a key for an account
 var ErrGetKeyValuePairs = errors.New("get key-value pairs error")
 
