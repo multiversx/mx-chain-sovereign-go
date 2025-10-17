@@ -33,6 +33,7 @@
     [MainChainNotarization.ETH]
         StartRound = 12
 
+    # TODO: Here for this start round, we should think of a smart method to map incoming nonce to actual cross chain data nonce
     [MainChainNotarization.SUI]
         StartRound = 13
 
@@ -166,6 +167,11 @@
         RPCUrl = "https://fullnode.mainnet.sui.io" # "https://sui-mainnet-endpoint.blockvision.org"
         WSUrl = "wss://rpc-mainnet.suiscan.xyz/websocket"
 
+    [SUINotifierConfig.StorerDB]
+        FilePath = "SUINonceStorage"
+        BatchDelaySeconds = 1
+        MaxBatchSize = 100
+        MaxOpenFiles = 10
 
 [GenesisConfig]
     # NativeESDT specifies the sovereign shard's native esdt currency

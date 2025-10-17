@@ -483,8 +483,8 @@ github.com/multiversx/mx-sdk-abi-go v0.3.0 h1:WX7OUhYZbgaSvP4HE23DjFv5SMZ1/5F4Vp
 github.com/multiversx/mx-sdk-abi-go v0.3.0/go.mod h1:++ds6BB47LrXl8a9N2VGRBzHCfl6kkxRCHb31a5z61g=
 github.com/multiversx/protobuf v1.3.2 h1:RaNkxvGTGbA0lMcnHAN24qE1G1i+Xs5yHA6MDvQ4mSM=
 github.com/multiversx/protobuf v1.3.2/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXPKa29o=
-github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251015090016-ee54b9439c3a h1:PBd+XVrkWRXojzl5SZDp9LA6k0N14Ibto9XAJ+egrbw=
-github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251015090016-ee54b9439c3a/go.mod h1:IbUtzObqqTG1g/XOlST/E4HZp73umLDQKM1HNgFBcF0=
+github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251017093030-83af8c8ba073 h1:jFf69IsOtv7mMLLnLLMZKRGV0iXYfXlBDKgoJsaMvSw=
+github.com/multiversx/sui-chain-sovereign-notifier-go v0.0.0-20251017093030-83af8c8ba073/go.mod h1:nRQ2d+4wvIYPXo6xNEKhl4m1NH+mp+zDHi84MF1e/qk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86/go.mod h1:kHJEU3ofeGjhHklVoIGuVj85JJwZ6kWPaJwCIxgnFmo=
