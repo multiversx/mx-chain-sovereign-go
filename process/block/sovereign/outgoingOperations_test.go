@@ -10,12 +10,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-core-go/marshal/factory"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+
 	"github.com/multiversx/mx-chain-go/errors"
 	sovTests "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/require"
 )
 
 func createEvents() []SubscribedEvent {
@@ -496,10 +497,8 @@ func TestOutgoingOperations_CreateOutGoingChangeValidatorData(t *testing.T) {
 	res, err := formatter.CreateOutGoingChangeValidatorData(pubKeys, 4)
 	require.Nil(t, err)
 
-	mrsh, _ := factory.NewMarshalizer(factory.GogoProtobuf)
-
 	resBridgeData := sovereign.BridgeOutGoingDataValidatorSetChange{}
-	err = mrsh.Unmarshal(&resBridgeData, res)
+	err = proto.Unmarshal(res, &resBridgeData)
 	require.Nil(t, err)
 	require.Equal(t, uint32(4), resBridgeData.GetEpoch())
 	require.Equal(t, [][]byte{[]byte("id1"), []byte("id2")}, resBridgeData.GetPubKeyIDs())

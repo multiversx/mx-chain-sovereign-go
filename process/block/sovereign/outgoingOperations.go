@@ -8,13 +8,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
-	"github.com/multiversx/mx-chain-core-go/marshal/factory"
-	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
-	"github.com/multiversx/mx-chain-go/state"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/state"
 )
 
 type opFormatterData struct {
@@ -309,9 +310,7 @@ func (op *outgoingOperations) CreateOutGoingChangeValidatorData(pubKeys []string
 		validatorsID[idx] = peerAcc.GetMainChainID()
 	}
 
-	mrsh, _ := factory.NewMarshalizer(factory.GogoProtobuf)
-
-	return mrsh.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
+	return proto.Marshal(&sovereign.BridgeOutGoingDataValidatorSetChange{
 		Epoch:     epoch,
 		PubKeyIDs: validatorsID,
 	})
