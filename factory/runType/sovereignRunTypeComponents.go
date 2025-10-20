@@ -289,6 +289,7 @@ func (rcf *sovereignRunTypeComponentsFactory) createOutGoingTxDataSigners() (bls
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
 
+	// Maybe here we should prepare code to iterate through chains?
 	for _, mbTypeValue := range dataBlock.OutGoingMBType_value {
 		mbType := dataBlock.OutGoingMBType(mbTypeValue)
 		extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()

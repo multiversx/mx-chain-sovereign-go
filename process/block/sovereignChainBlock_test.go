@@ -13,6 +13,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtaPool "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common/graceperiod"
@@ -311,11 +313,18 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 	bridgeOpsHash := outgoingOpsHasher.Compute(string(append(bridgeOp1Hash, bridgeOp2Hash...)))
 
 	outgoingOperationsFormatter := &sovereign.OutgoingOperationsFormatterMock{
-		CreateOutgoingTxDataCalled: func(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
+		CreateOutgoingTxDataCalled: func(logs []*data.LogData) ([]*dto.OutGoingOperation, error) {
 			require.Equal(t, expectedLogs, logs)
-			return map[block.OutGoingMBType][][]byte{
-					block.OutGoingMbDeposit: {bridgeOp1, bridgeOp2}},
-				nil
+			return []*dto.OutGoingOperation{
+				{
+					MBType: block.OutGoingMbDeposit,
+					Data:   bridgeOp1,
+				},
+				{
+					MBType: block.OutGoingMbDeposit,
+					Data:   bridgeOp2,
+				},
+			}, nil
 		},
 	}
 
@@ -857,6 +866,8 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		}
 
 		sovArgs := createArgsSovereignChainBlockProcessor(arguments)
+		sovArgs.OutGoingOperationsPool = dtaPool.NewOutGoingOperationPool(time.Second)
+
 		outGoingOp := []byte("outGoingOp")
 		sovArgs.OutgoingOperationsFormatter = &sovereign.OutgoingOperationsFormatterMock{
 			CreateOutGoingChangeValidatorDataCalled: func(pubKeys []string, epoch uint32) ([]byte, error) {
@@ -915,7 +926,6 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			IsStartOfEpoch: true,
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
-					Type:                   block.OutGoingMbChangeValidatorSet,
 					Hash:                   outGoingMBHash,
 					OutGoingOperationsHash: outGoingOpsHash,
 				},
@@ -930,6 +940,14 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		require.Equal(t, expectedSovHeader, hdr)
 		require.Nil(t, err)
 		require.Equal(t, expectedBusyIdleSequencePerCall, busyIdleCalled)
+
+		bridgeOp := sovArgs.OutGoingOperationsPool.Get(outGoingOpsHash)
+		require.NotNil(t, bridgeOp)
+		require.Equal(t, bridgeOp.OutGoingOperations, []*sovereignCore.OutGoingOperation{{
+			Type: int32(block.OutGoingMbChangeValidatorSet),
+			Hash: outGoingOpHash,
+			Data: outGoingOp,
+		}})
 	})
 	t.Run("should work with sovereign header", func(t *testing.T) {
 		currentEpoch := uint32(1)

@@ -1690,7 +1690,6 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 
 	outGoingOperationsHash := scbp.operationsHasher.Compute(string(aggregatedOutGoingOperations))
 	scbp.outGoingOperationsPool.Add(&sovCore.BridgeOutGoingData{
-		//Type:               int32(mbType),
 		Hash:               outGoingOperationsHash,
 		OutGoingOperations: outGoingOperationsData,
 		PubKeysBitmap:      headerHandler.GetPubKeysBitmap(),
