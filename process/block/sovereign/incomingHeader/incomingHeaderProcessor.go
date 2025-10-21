@@ -182,6 +182,7 @@ func (ihp *incomingHeaderProcessor) AddHeader(headerHash []byte, header sovereig
 
 	incomingHeaderNonce := header.GetNonce()
 	log.Info("received incoming header",
+		"chain", header.GetSourceChainID().String(),
 		"hash", hex.EncodeToString(headerHash),
 		"nonce", incomingHeaderNonce,
 	)
