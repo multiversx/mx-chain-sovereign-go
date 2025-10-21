@@ -381,10 +381,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 				switch getCallCt {
 				case 0:
 					return &sovCore.BridgeOutGoingData{
-						Type: int32(block.OutGoingMbDeposit),
 						Hash: outGoingDataHash,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
+								Type: int32(block.OutGoingMbDeposit),
 								Hash: outGoingOpHash,
 								Data: outGoingOpData,
 							},
@@ -401,10 +401,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			},
 			AddCalled: func(data *sovCore.BridgeOutGoingData) {
 				require.Equal(t, &sovCore.BridgeOutGoingData{
-					Type: int32(block.OutGoingMbDeposit),
 					Hash: outGoingDataHash,
 					OutGoingOperations: []*sovCore.OutGoingOperation{
 						{
+							Type: int32(block.OutGoingMbDeposit),
 							Hash: outGoingOpHash,
 							Data: outGoingOpData,
 						},
@@ -436,10 +436,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 				require.Equal(t, &sovCore.BridgeOperations{
 					Data: []*sovCore.BridgeOutGoingData{
 						{
-							Type: int32(block.OutGoingMbDeposit),
 							Hash: outGoingDataHash,
 							OutGoingOperations: []*sovCore.OutGoingOperation{
 								{
+									Type: int32(block.OutGoingMbDeposit),
 									Hash: outGoingOpHash,
 									Data: outGoingOpData,
 								},
@@ -527,10 +527,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		currentBridgeOutGoingData1 := &sovCore.BridgeOutGoingData{
-			Type: int32(block.OutGoingMbDeposit),
 			Hash: outGoingDataHash1,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
+					Type: int32(block.OutGoingMbDeposit),
 					Hash: outGoingOpHash1,
 					Data: outGoingOpData1,
 				},
@@ -542,10 +542,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 		}
 
 		currentBridgeOutGoingData2 := &sovCore.BridgeOutGoingData{
-			Type: int32(block.OutGoingMbChangeValidatorSet),
 			Hash: outGoingDataHash2,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
+					Type: int32(block.OutGoingMbChangeValidatorSet),
 					Hash: outGoingOpHash2,
 					Data: outGoingOpData2,
 				},
@@ -561,10 +561,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 				switch string(hash) {
 				case string(outGoingDataHash1):
 					return &sovCore.BridgeOutGoingData{
-						Type: int32(block.OutGoingMbDeposit),
 						Hash: outGoingDataHash1,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
+								Type: int32(block.OutGoingMbDeposit),
 								Hash: outGoingOpHash1,
 								Data: outGoingOpData1,
 							},
@@ -575,10 +575,10 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 					}
 				case string(outGoingDataHash2):
 					return &sovCore.BridgeOutGoingData{
-						Type: int32(block.OutGoingMbChangeValidatorSet),
 						Hash: outGoingDataHash2,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
+								Type: int32(block.OutGoingMbChangeValidatorSet),
 								Hash: outGoingOpHash2,
 								Data: outGoingOpData2,
 							},
@@ -622,13 +622,11 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
-					Type:                                  block.OutGoingMbDeposit,
 					OutGoingOperationsHash:                outGoingDataHash1,
 					AggregatedSignatureOutGoingOperations: aggregatedSig1,
 					LeaderSignatureOutGoingOperations:     leaderSig1,
 				},
 				{
-					Type:                                  block.OutGoingMbChangeValidatorSet,
 					OutGoingOperationsHash:                outGoingDataHash2,
 					AggregatedSignatureOutGoingOperations: aggregatedSig2,
 					LeaderSignatureOutGoingOperations:     leaderSig2,

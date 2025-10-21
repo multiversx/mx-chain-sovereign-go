@@ -1334,7 +1334,6 @@ func TestSovereignShardProcessor_ProcessBlock(t *testing.T) {
 		)
 		sovHeader.OutGoingMiniBlockHeaders = []*block.OutGoingMiniBlockHeader{
 			{
-				Type:                   block.OutGoingMbChangeValidatorSet,
 				Hash:                   outGoingMBHash,
 				OutGoingOperationsHash: outGoingOpsHash,
 			},

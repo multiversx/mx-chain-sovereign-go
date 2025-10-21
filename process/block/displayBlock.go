@@ -245,11 +245,12 @@ func (txc *transactionCounter) displayOutGoingTxData(
 		"Hash",
 		logger.DisplayByteSlice(outGoingMb.GetHash())}),
 	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"Type",
-		block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()}),
-	)
+	// TODO: Marius C: Here we should only output the chain id
+	//lines = append(lines, display.NewLineData(false, []string{
+	//	"",
+	//	"Type",
+	//	block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()}),
+	//)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"OutGoingTxDataHash",
