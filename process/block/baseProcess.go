@@ -291,7 +291,6 @@ func (bp *baseProcessor) requestHeadersIfMissing(
 	sortedHdrs []data.HeaderHandler,
 	shardId uint32,
 ) error {
-
 	prevHdr, _, err := bp.blockTracker.GetLastCrossNotarizedHeader(shardId)
 	if err != nil {
 		return err

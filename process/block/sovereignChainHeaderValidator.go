@@ -49,20 +49,20 @@ func (schv *sovereignChainHeaderValidator) IsHeaderConstructionValid(currHeader,
 		return err
 	}
 
-	if isETHChainHdr(currHeader) {
+	if isETHOrSUIChainHdr(currHeader) {
 		return nil
 	}
 
 	return schv.checkHdrHashes(currHeader, prevHeader)
 }
 
-func isETHChainHdr(currHeader data.HeaderHandler) bool {
+func isETHOrSUIChainHdr(currHeader data.HeaderHandler) bool {
 	extendedHdr, isExtendedHeader := currHeader.(data.ShardHeaderExtendedHandler)
 	if !isExtendedHeader {
 		return false
 	}
 
-	return extendedHdr.GetSourceChainID() == dto.ETH
+	return extendedHdr.GetSourceChainID() == dto.ETH || extendedHdr.GetSourceChainID() == dto.SUI
 }
 
 // IsInterfaceNil returns if underlying object is true

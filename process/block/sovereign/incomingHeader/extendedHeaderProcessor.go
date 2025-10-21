@@ -46,6 +46,12 @@ func newExtendedHeaderProcessor(
 		return nil, err
 	}
 
+	suiHeaderCreator := extendedHeader.NewSUIExtendedHeaderCreator()
+	err = container.Add(sovDto.SUI, suiHeaderCreator)
+	if err != nil {
+		return nil, err
+	}
+
 	return &extendedHeaderProcessor{
 		headersPool: headersPool,
 		txPool:      txPool,

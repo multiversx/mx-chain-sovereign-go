@@ -33,8 +33,9 @@
     [MainChainNotarization.ETH]
         StartRound = 12
 
-    #[MainChainNotarization.SUI]
-    #    StartRound = 13
+    # TODO: Here for this start round, we should think of a smart method to map incoming nonce to actual cross chain data nonce
+    [MainChainNotarization.SUI]
+        StartRound = 13
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.
@@ -131,6 +132,46 @@
 
     URL = "ws://127.0.0.1:8546"
 
+
+[SUINotifierConfig]
+    Enabled = true
+
+    # Possible values: sha256, keccak, blake2b. Should be compatible with sovereign nodes
+    HasherType = "blake2b"
+
+    # Possible values: json, gogo protobuf. Should be compatible with sovereign nodes
+    MarshallerType = "gogo protobuf"
+
+    # Defines the time interval (in seconds) between consecutive RPC fetch
+    # operations used to retrieve the latest Sui checkpoints.
+    # A smaller value ensures faster synchronization but may increase RPC load.
+    PoolingTime = 5
+
+    # Determines how many consecutive checkpoints are grouped together
+    # before being sent to the sovereign chain when no events are detected between them.
+    # It defines the sampling interval for checkpoint batching.
+    BatchSize = 10
+
+    # Specifies from which checkpoints onwards we should start sending data.
+    # If left to 0 (zero), it will start with the latest checkpoint
+    StartingCheckpoint = 0
+
+    SubscribedEvents =  [
+        # Check docs here: https://docs.sui.io/guides/developer/sui-101/using-events#filtering-event-queries
+        # Event type = All/MoveEventType/Sender, etc.
+        # Value = json-rpc parameter
+        { EventType = "MoveEventType", value = "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderPlacsessd" }
+    ]
+
+    [SUINotifierConfig.SUIClientConfig]
+        RPCUrl = "https://fullnode.mainnet.sui.io" # "https://sui-mainnet-endpoint.blockvision.org"
+        WSUrl = "wss://rpc-mainnet.suiscan.xyz/websocket"
+
+    [SUINotifierConfig.StorerDB]
+        FilePath = "SUINonceStorage"
+        BatchDelaySeconds = 1
+        MaxBatchSize = 100
+        MaxOpenFiles = 10
 
 [GenesisConfig]
     # NativeESDT specifies the sovereign shard's native esdt currency

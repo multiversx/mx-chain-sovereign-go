@@ -26,6 +26,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-go/storage"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-sovereign-bridge-go/cert"
 	factoryBridge "github.com/multiversx/mx-chain-sovereign-bridge-go/client"
@@ -33,6 +34,8 @@ import (
 	notifierCfg "github.com/multiversx/mx-chain-sovereign-notifier-go/config"
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
+	suiConfig "github.com/multiversx/sui-chain-sovereign-notifier-go/config"
+	suiFactory "github.com/multiversx/sui-chain-sovereign-notifier-go/factory"
 
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
@@ -539,11 +542,11 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
+	log.Error("RERERE", "dsa", managedCoreComponents.PathHandler().PathForStatic("0", "DBINonce"))
 	notifierServices, err := createNotifierWSReceiverServicesIfNeeded(
 		configs.SovereignExtraConfig,
 		incomingHeaderHandler,
-		managedCoreComponents.GenesisNodesSetup().GetRoundDuration(),
+		managedCoreComponents,
 		managedProcessComponents.ForkDetector(),
 		managedConsensusComponents.Bootstrapper(),
 		sigs,
@@ -1852,7 +1855,7 @@ func createWhiteListerVerifiedTxs(generalConfig *config.Config) (process.WhiteLi
 func createNotifierWSReceiverServicesIfNeeded(
 	config *config.SovereignConfig,
 	incomingHeaderHandler process.IncomingHeaderSubscriber,
-	roundDuration uint64,
+	managedCoreComponents process.CoreComponentsHolder,
 	forkDetector process.ForkDetector,
 	bootstrapper process.Bootstrapper,
 	sigStopNode chan os.Signal,
@@ -1882,10 +1885,21 @@ func createNotifierWSReceiverServicesIfNeeded(
 		closers = append(closers, ethNotifier)
 	}
 
+	if config.SUINotifierConfig.Enabled {
+		log.Info("running with SUI notifier attached")
+		suiNotifier, err := createSUINotifier(config.SUINotifierConfig, managedCoreComponents.PathHandler())
+		if err != nil {
+			return nil, err
+		}
+
+		notifiers = append(notifiers, suiNotifier)
+		closers = append(closers, suiNotifier)
+	}
+
 	sovereignNotifierBootstrapper, err := startSovereignNotifierBootstrapper(
 		incomingHeaderHandler,
 		notifiers,
-		roundDuration,
+		managedCoreComponents.GenesisNodesSetup().GetRoundDuration(),
 		forkDetector,
 		bootstrapper,
 		sigStopNode,
@@ -1983,6 +1997,51 @@ func createETHNotifier(config config.ETHNotifierConfig) (ethFactory.ETHClient, e
 	}()
 
 	return ethNotifier, nil
+}
+
+func createSUINotifier(config config.SUINotifierConfig, pathManager storage.PathManagerHandler) (suiFactory.SUIClient, error) {
+	subEvents := make([]suiConfig.SubscribedEvent, 0)
+	for _, cfg := range config.SubscribedEvents {
+		subEvents = append(subEvents, suiConfig.SubscribedEvent{
+			EventType: cfg.EventType,
+			Value:     cfg.Value,
+		})
+	}
+
+	suiNotifier, err := suiFactory.CreateSUIClientNotifier(suiConfig.Config{
+		MarshallerType:     config.MarshallerType,
+		HasherType:         config.HasherType,
+		PoolingTime:        config.PoolingTime,
+		BatchSize:          config.BatchSize,
+		StartingCheckpoint: config.StartingCheckpoint,
+		SubscribedEvents:   subEvents,
+		ClientConfig: suiConfig.SUIClientConfig{
+			RPCUrl: config.SUIClientConfig.RPCUrl,
+			WSUrl:  config.SUIClientConfig.WSUrl,
+		},
+		// TODO: We should also save this nonce on commit block
+		StorerDBConfig: suiConfig.StorerDBConfig{
+			FilePath: pathManager.PathForStatic(
+				fmt.Sprintf("%d", core.SovereignChainShardId),
+				config.SUIStorerDBConfig.FilePath),
+			BatchDelaySeconds: config.SUIStorerDBConfig.BatchDelaySeconds,
+			MaxBatchSize:      config.SUIStorerDBConfig.MaxBatchSize,
+			MaxOpenFiles:      config.SUIStorerDBConfig.MaxOpenFiles,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		for {
+			err = suiNotifier.Start(context.Background())
+			log.LogIfError(err)
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
+	return suiNotifier, nil
 }
 
 func startSovereignNotifierBootstrapper(
