@@ -179,7 +179,7 @@ func TestChainSimulator_SetEntireState(t *testing.T) {
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT = "WEGLD-bd4d79"
+				cfg.GeneralConfig.GeneralSettings.BaseTokenID = "WEGLD-bd4d79"
 			},
 		},
 	})
@@ -227,7 +227,7 @@ func TestChainSimulator_SetEntireStateWithRemoval(t *testing.T) {
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
-				cfg.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT = "WEGLD-bd4d79"
+				cfg.GeneralConfig.GeneralSettings.BaseTokenID = "WEGLD-bd4d79"
 			},
 		},
 	})
