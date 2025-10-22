@@ -5,23 +5,18 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/mock"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
-	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	"github.com/multiversx/mx-chain-go/testscommon"
-	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/factory"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
-	"github.com/multiversx/mx-chain-go/testscommon/outport"
 	"github.com/multiversx/mx-chain-go/testscommon/p2pmocks"
-	statusHandlerMock "github.com/multiversx/mx-chain-go/testscommon/statusHandler"
-	"github.com/multiversx/mx-chain-go/testscommon/subRoundsHolder"
-	"github.com/stretchr/testify/assert"
+	"github.com/multiversx/mx-chain-go/testscommon/pool"
 )
-
-var currentPid = core.PeerID("pid")
 
 func TestGetConsensusCoreFactory_InvalidTypeShouldErr(t *testing.T) {
 	t.Parallel()
@@ -41,114 +36,6 @@ func TestGetConsensusCoreFactory_BlsShouldWork(t *testing.T) {
 	assert.False(t, check.IfNil(csf))
 }
 
-func TestGetSubroundsFactory_BlsNilConsensusCoreShouldErr(t *testing.T) {
-	t.Parallel()
-
-	worker := &mock.SposWorkerMock{}
-	consensusType := consensus.BlsConsensusType
-	statusHandler := statusHandlerMock.NewAppStatusHandlerMock()
-	chainID := []byte("chain-id")
-	indexer := &outport.OutportStub{}
-	sf, err := sposFactory.GetSubroundsFactory(
-		nil,
-		&spos.ConsensusState{},
-		worker,
-		consensusType,
-		statusHandler,
-		indexer,
-		&testscommon.SentSignatureTrackerStub{},
-		chainID,
-		currentPid,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-		bls.NewSubRoundEndV2Creator(),
-	)
-
-	assert.Nil(t, sf)
-	assert.Equal(t, spos.ErrNilConsensusCore, err)
-}
-
-func TestGetSubroundsFactory_BlsNilStatusHandlerShouldErr(t *testing.T) {
-	t.Parallel()
-
-	consensusCore := mock.InitConsensusCore()
-	worker := &mock.SposWorkerMock{}
-	consensusType := consensus.BlsConsensusType
-	chainID := []byte("chain-id")
-	indexer := &outport.OutportStub{}
-	sf, err := sposFactory.GetSubroundsFactory(
-		consensusCore,
-		&spos.ConsensusState{},
-		worker,
-		consensusType,
-		nil,
-		indexer,
-		&testscommon.SentSignatureTrackerStub{},
-		chainID,
-		currentPid,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-		bls.NewSubRoundEndV2Creator(),
-	)
-
-	assert.Nil(t, sf)
-	assert.Equal(t, spos.ErrNilAppStatusHandler, err)
-}
-
-func TestGetSubroundsFactory_BlsShouldWork(t *testing.T) {
-	t.Parallel()
-
-	consensusCore := mock.InitConsensusCore()
-	worker := &mock.SposWorkerMock{}
-	consensusType := consensus.BlsConsensusType
-	statusHandler := statusHandlerMock.NewAppStatusHandlerMock()
-	chainID := []byte("chain-id")
-	indexer := &outport.OutportStub{}
-	sf, err := sposFactory.GetSubroundsFactory(
-		consensusCore,
-		&spos.ConsensusState{},
-		worker,
-		consensusType,
-		statusHandler,
-		indexer,
-		&testscommon.SentSignatureTrackerStub{},
-		chainID,
-		currentPid,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-		bls.NewSubRoundEndV2Creator(),
-	)
-	assert.Nil(t, err)
-	assert.False(t, check.IfNil(sf))
-}
-
-func TestGetSubroundsFactory_InvalidConsensusTypeShouldErr(t *testing.T) {
-	t.Parallel()
-
-	consensusType := "invalid"
-	sf, err := sposFactory.GetSubroundsFactory(
-		nil,
-		nil,
-		nil,
-		consensusType,
-		nil,
-		nil,
-		nil,
-		nil,
-		currentPid,
-		consensus.ConsensusModelV1,
-		&enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-		&subRoundsHolder.ExtraSignersHolderMock{},
-		bls.NewSubRoundEndV2Creator(),
-	)
-
-	assert.Nil(t, sf)
-	assert.Equal(t, sposFactory.ErrInvalidConsensusType, err)
-}
-
 func TestGetBroadcastMessenger_ShardShouldWork(t *testing.T) {
 	t.Parallel()
 
@@ -160,9 +47,9 @@ func TestGetBroadcastMessenger_ShardShouldWork(t *testing.T) {
 		return 0
 	}
 	peerSigHandler := &mock.PeerSignatureHandler{}
-	headersSubscriber := &testscommon.HeadersCacherStub{}
+	headersSubscriber := &pool.HeadersPoolStub{}
 	interceptosContainer := &testscommon.InterceptorsContainerStub{}
-	alarmSchedulerStub := &mock.AlarmSchedulerStub{}
+	alarmSchedulerStub := &testscommon.AlarmSchedulerStub{}
 
 	bm, err := sposFactory.GetBroadcastMessenger(
 		marshalizer,
@@ -192,9 +79,9 @@ func TestGetBroadcastMessenger_MetachainShouldWork(t *testing.T) {
 		return core.MetachainShardId
 	}
 	peerSigHandler := &mock.PeerSignatureHandler{}
-	headersSubscriber := &testscommon.HeadersCacherStub{}
+	headersSubscriber := &pool.HeadersPoolStub{}
 	interceptosContainer := &testscommon.InterceptorsContainerStub{}
-	alarmSchedulerStub := &mock.AlarmSchedulerStub{}
+	alarmSchedulerStub := &testscommon.AlarmSchedulerStub{}
 
 	bm, err := sposFactory.GetBroadcastMessenger(
 		marshalizer,
@@ -216,9 +103,9 @@ func TestGetBroadcastMessenger_MetachainShouldWork(t *testing.T) {
 func TestGetBroadcastMessenger_NilShardCoordinatorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	headersSubscriber := &testscommon.HeadersCacherStub{}
+	headersSubscriber := &pool.HeadersPoolStub{}
 	interceptosContainer := &testscommon.InterceptorsContainerStub{}
-	alarmSchedulerStub := &mock.AlarmSchedulerStub{}
+	alarmSchedulerStub := &testscommon.AlarmSchedulerStub{}
 
 	bm, err := sposFactory.GetBroadcastMessenger(
 		nil,
@@ -244,9 +131,9 @@ func TestGetBroadcastMessenger_InvalidShardIdShouldErr(t *testing.T) {
 	shardCoord.SelfIDCalled = func() uint32 {
 		return 37
 	}
-	headersSubscriber := &testscommon.HeadersCacherStub{}
+	headersSubscriber := &pool.HeadersPoolStub{}
 	interceptosContainer := &testscommon.InterceptorsContainerStub{}
-	alarmSchedulerStub := &mock.AlarmSchedulerStub{}
+	alarmSchedulerStub := &testscommon.AlarmSchedulerStub{}
 
 	bm, err := sposFactory.GetBroadcastMessenger(
 		nil,

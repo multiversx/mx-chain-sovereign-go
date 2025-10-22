@@ -369,22 +369,11 @@ func createDefaultBlockBody() *block.Body {
 }
 
 func createDefaultRewardsCreatorProxyArgs() RewardsCreatorProxyArgs {
-	rewardsTopUpGradientPoint, _ := big.NewInt(0).SetString("3000000000000000000000000", 10)
-
-	rewardsHandler := &economicsmocks.EconomicsHandlerStub{
-		RewardsTopUpGradientPointCalled: func() *big.Int {
-			return rewardsTopUpGradientPoint
-		},
-		RewardsTopUpFactorCalled: func() float64 {
-			return 0.25
-		},
-	}
-
 	return RewardsCreatorProxyArgs{
 		BaseRewardsCreatorArgs: getBaseRewardsArguments(),
 		StakingDataProvider:    &stakingcommon.StakingDataProviderStub{},
 		EconomicsDataProvider:  NewEpochEconomicsStatistics(),
-		RewardsHandler:         rewardsHandler,
+		RewardsHandler:         &economicsmocks.EconomicsHandlerMock{},
 	}
 }
 

@@ -41,7 +41,7 @@ func TestInterceptedSovereignMiniBlockDataFactory_Create(t *testing.T) {
 	buff, err := coreComp.IntMarsh.Marshal(miniBlock)
 	require.Nil(t, err)
 
-	interceptedData, err := mbDataFactory.Create(buff)
+	interceptedData, err := mbDataFactory.Create(buff, "")
 	require.Nil(t, err)
 	require.Equal(t, "*interceptedBlocks.interceptedSovereignMiniBlock", fmt.Sprintf("%T", interceptedData))
 }

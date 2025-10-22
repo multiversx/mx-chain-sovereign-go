@@ -7,29 +7,34 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool"
 	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
+	processMock "github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
+	dataRetrieverMocks "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-//------- NewDataPool
+// ------- NewDataPool
 
 func createMockDataPoolArgs() dataPool.DataPoolArgs {
 	return dataPool.DataPoolArgs{
 		Transactions:              testscommon.NewShardedDataStub(),
 		UnsignedTransactions:      testscommon.NewShardedDataStub(),
 		RewardTransactions:        testscommon.NewShardedDataStub(),
-		Headers:                   &testscommon.HeadersCacherStub{},
-		MiniBlocks:                testscommon.NewCacherStub(),
-		PeerChangesBlocks:         testscommon.NewCacherStub(),
-		TrieNodes:                 testscommon.NewCacherStub(),
-		TrieNodesChunks:           testscommon.NewCacherStub(),
+		Headers:                   &processMock.HeadersCacherStub{},
+		MiniBlocks:                cache.NewCacherStub(),
+		PeerChangesBlocks:         cache.NewCacherStub(),
+		TrieNodes:                 cache.NewCacherStub(),
+		TrieNodesChunks:           cache.NewCacherStub(),
 		CurrentBlockTransactions:  &mock.TxForCurrentBlockStub{},
 		CurrentEpochValidatorInfo: &mock.ValidatorInfoForCurrentEpochStub{},
-		SmartContracts:            testscommon.NewCacherStub(),
-		PeerAuthentications:       testscommon.NewCacherStub(),
-		Heartbeats:                testscommon.NewCacherStub(),
+		SmartContracts:            cache.NewCacherStub(),
+		PeerAuthentications:       cache.NewCacherStub(),
+		Heartbeats:                cache.NewCacherStub(),
 		ValidatorsInfo:            testscommon.NewShardedDataStub(),
+		Proofs:                    &dataRetrieverMocks.ProofsPoolMock{},
 	}
 }
 
@@ -195,7 +200,7 @@ func TestNewDataPool_OkValsShouldWork(t *testing.T) {
 
 	assert.Nil(t, err)
 	require.False(t, tdp.IsInterfaceNil())
-	//pointer checking
+	// pointer checking
 	assert.True(t, args.Transactions == tdp.Transactions())
 	assert.True(t, args.UnsignedTransactions == tdp.UnsignedTransactions())
 	assert.True(t, args.RewardTransactions == tdp.RewardTransactions())
@@ -220,7 +225,7 @@ func TestNewDataPool_Close(t *testing.T) {
 		t.Parallel()
 
 		args := createMockDataPoolArgs()
-		args.TrieNodes = &testscommon.CacherStub{
+		args.TrieNodes = &cache.CacherStub{
 			CloseCalled: func() error {
 				return expectedErr
 			},
@@ -234,7 +239,7 @@ func TestNewDataPool_Close(t *testing.T) {
 		t.Parallel()
 
 		args := createMockDataPoolArgs()
-		args.PeerAuthentications = &testscommon.CacherStub{
+		args.PeerAuthentications = &cache.CacherStub{
 			CloseCalled: func() error {
 				return expectedErr
 			},
@@ -251,13 +256,13 @@ func TestNewDataPool_Close(t *testing.T) {
 		paExpectedErr := errors.New("pa expected error")
 		args := createMockDataPoolArgs()
 		tnCalled, paCalled := false, false
-		args.TrieNodes = &testscommon.CacherStub{
+		args.TrieNodes = &cache.CacherStub{
 			CloseCalled: func() error {
 				tnCalled = true
 				return tnExpectedErr
 			},
 		}
-		args.PeerAuthentications = &testscommon.CacherStub{
+		args.PeerAuthentications = &cache.CacherStub{
 			CloseCalled: func() error {
 				paCalled = true
 				return paExpectedErr
@@ -275,13 +280,13 @@ func TestNewDataPool_Close(t *testing.T) {
 
 		args := createMockDataPoolArgs()
 		tnCalled, paCalled := false, false
-		args.TrieNodes = &testscommon.CacherStub{
+		args.TrieNodes = &cache.CacherStub{
 			CloseCalled: func() error {
 				tnCalled = true
 				return nil
 			},
 		}
-		args.PeerAuthentications = &testscommon.CacherStub{
+		args.PeerAuthentications = &cache.CacherStub{
 			CloseCalled: func() error {
 				paCalled = true
 				return nil

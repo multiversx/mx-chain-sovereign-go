@@ -2,6 +2,8 @@ package mainFactoryMocks
 
 import (
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -25,6 +27,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
@@ -106,6 +109,8 @@ type RunTypeComponentsStub struct {
 	TotalStakedValueFactoryField                trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactoryField                 genesis.VersionedHeaderFactory
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
+	HeaderSigVerifierFactoryField               headerSigVerifierFactory.HeaderSigVerifierFactory
+	ExtraSignersHolderField                     bls.ExtraSignersHolder
 }
 
 // NewRunTypeComponentsStub -
@@ -162,6 +167,8 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		OutportDataProviderFactoryField:             &testFactory.OutportDataProviderFactoryMock{},
 		VersionedHeaderFactoryField:                 &testscommon.VersionedHeaderFactoryStub{},
 		CrawlerAddressGetterField:                   &testFactory.CrawlerAddressGetterMock{},
+		HeaderSigVerifierFactoryField:               &testFactory.HeaderSignatureVerifyFactoryMock{},
+		ExtraSignersHolderField:                     holders.NewEmptyExtraSignersHolder(),
 	}
 }
 
@@ -458,6 +465,16 @@ func (r *RunTypeComponentsStub) VersionedHeaderFactory() genesis.VersionedHeader
 // CrawlerAddressGetter -
 func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
 	return r.CrawlerAddressGetterField
+}
+
+// HeaderSigVerifierFactory -
+func (r *RunTypeComponentsStub) HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory {
+	return r.HeaderSigVerifierFactoryField
+}
+
+// ExtraSignersHolder -
+func (r *RunTypeComponentsStub) ExtraSignersHolder() bls.ExtraSignersHolder {
+	return r.ExtraSignersHolderField
 }
 
 // IsInterfaceNil -

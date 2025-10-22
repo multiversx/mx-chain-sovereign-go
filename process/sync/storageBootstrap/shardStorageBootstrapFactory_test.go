@@ -7,6 +7,8 @@ import (
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
 	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
@@ -68,6 +70,8 @@ func getDefaultArgShardBootstrapper() ArgsShardStorageBootstrapper {
 			EpochNotifier:                &epochNotifier.EpochNotifierStub{},
 			ProcessedMiniBlocksTracker:   &testscommon.ProcessedMiniBlocksTrackerStub{},
 			AppStatusHandler:             statusHandler.NewAppStatusHandlerMock(),
+			EnableEpochsHandler:          &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			ProofsPool:                   &dataRetrieverMock.ProofsPoolMock{},
 		},
 	}
 

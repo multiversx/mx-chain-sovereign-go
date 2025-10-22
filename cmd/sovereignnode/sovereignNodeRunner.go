@@ -21,7 +21,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/closing"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -45,11 +44,8 @@ import (
 	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
-	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners"
-	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	dbLookupFactory "github.com/multiversx/mx-chain-go/dblookupext/factory"
 	"github.com/multiversx/mx-chain-go/facade"
@@ -402,6 +398,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedCoreComponents.EnableEpochsHandler(),
 		managedDataComponents.Datapool().CurrentEpochValidatorInfo(),
 		managedBootstrapComponents.NodesCoordinatorRegistryFactory(),
+		managedCoreComponents.ChainParametersHandler(),
 		managedRunTypeComponents.NodesCoordinatorWithRaterCreator(),
 	)
 	if err != nil {
@@ -977,33 +974,22 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 
-	extraSignersHolder, err := createOutGoingTxDataSigners(cryptoComponents.ConsensusSigningHandler())
-	if err != nil {
-		return nil, err
-	}
-
-	sovSubRoundEndCreator, err := bls.NewSovereignSubRoundEndCreator(runTypeComponents.OutGoingOperationsPoolHandler(), outGoingBridgeOpHandler)
-	if err != nil {
-		return nil, err
-	}
-
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                *snr.configs.GeneralConfig,
-		BootstrapRoundIndex:   snr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:        coreComponents,
-		NetworkComponents:     networkComponents,
-		CryptoComponents:      cryptoComponents,
-		DataComponents:        dataComponents,
-		ProcessComponents:     processComponents,
-		StateComponents:       stateComponents,
-		StatusComponents:      statusComponents,
-		StatusCoreComponents:  statusCoreComponents,
-		ScheduledProcessor:    scheduledProcessor,
-		IsInImportMode:        snr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog: snr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    extraSignersHolder,
-		SubRoundEndV2Creator:  sovSubRoundEndCreator,
+		Config:                  *snr.configs.GeneralConfig,
+		BootstrapRoundIndex:     snr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    statusCoreComponents,
+		ScheduledProcessor:      scheduledProcessor,
+		IsInImportMode:          snr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog:   snr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:       runTypeComponents,
+		OutGoingBridgeOpHandler: outGoingBridgeOpHandler,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -1021,50 +1007,6 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 	return managedConsensusComponents, nil
-}
-
-func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.ExtraSignersHolder, error) {
-	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
-	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
-	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
-
-	mbTypes := []block.OutGoingMBType{block.OutGoingMbTx, block.OutGoingMbChangeValidatorSet}
-
-	for _, mbType := range mbTypes {
-		extraSignerHandler := signingHandler.ShallowClone()
-
-		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
-		if err != nil {
-			return nil, err
-		}
-		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
-		if err != nil {
-			return nil, err
-		}
-
-		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
-		if err != nil {
-			return nil, err
-		}
-		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
-		if err != nil {
-			return nil, err
-		}
-
-		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType)
-		if err != nil {
-			return nil, err
-		}
-		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return holders.NewExtraSignersHolder(
-		startRoundExtraSignersHolder,
-		signRoundExtraSignersHolder,
-		endRoundExtraSignersHolder)
 }
 
 // CreateManagedHeartbeatV2Components is the managed heartbeatV2 components factory
@@ -1605,7 +1547,7 @@ func (snr *sovereignNodeRunner) CreateManagedCoreComponents(
 		ImportDbConfig:        *snr.configs.ImportDbConfig,
 		RatingsConfig:         *snr.configs.RatingsConfig,
 		EconomicsConfig:       *snr.configs.EconomicsConfig,
-		NodesFilename:         snr.configs.ConfigurationPathsHolder.Nodes,
+		NodesConfig:           *snr.configs.NodesConfig,
 		WorkingDirectory:      snr.configs.FlagsConfig.DbDir,
 		ChanStopNodeProcess:   chanStopNodeProcess,
 		RunTypeCoreComponents: runTypeCoreComponents,

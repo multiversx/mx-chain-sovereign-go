@@ -176,6 +176,9 @@ func TestNewShardProcessor(t *testing.T) {
 					HeadersCalled: func() dataRetriever.HeadersPool {
 						return nil
 					},
+					ProofsCalled: func() dataRetriever.ProofsPool {
+						return &dataRetrieverMock.ProofsPoolMock{}
+					},
 				}
 				return CreateMockArgumentsMultiShard(coreComponents, &dataCompCopy, bootstrapComponents, statusComponents)
 			},
@@ -454,7 +457,7 @@ func TestShardProcessor_ProcessBlockWithInvalidTransactionShouldErr(t *testing.T
 		ScProcessor:        &testscommon.SCProcessorMock{},
 		ScResultProcessor:  &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor: &testscommon.RewardTxProcessorMock{},
-		EconomicsFee: &economicsmocks.EconomicsHandlerStub{
+		EconomicsFee: &economicsmocks.EconomicsHandlerMock{
 			ComputeGasLimitCalled: func(tx data.TransactionWithFeeHandler) uint64 {
 				return 0
 			},
@@ -679,7 +682,7 @@ func TestShardProcessor_ProcessBlockWithErrOnProcessBlockTransactionsCallShouldR
 		ScProcessor:        &testscommon.SCProcessorMock{},
 		ScResultProcessor:  &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor: &testscommon.RewardTxProcessorMock{},
-		EconomicsFee: &economicsmocks.EconomicsHandlerStub{
+		EconomicsFee: &economicsmocks.EconomicsHandlerMock{
 			ComputeGasLimitCalled: func(tx data.TransactionWithFeeHandler) uint64 {
 				return 0
 			},
@@ -1441,6 +1444,9 @@ func TestShardProcessor_RequestEpochStartInfo(t *testing.T) {
 			TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 				return &testscommon.ShardedDataStub{}
 			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
+			},
 		}
 
 		args := CreateMockArguments(coreComponents, dataComponents, bootstrapComponents, statusComponents)
@@ -1492,6 +1498,9 @@ func TestShardProcessor_RequestEpochStartInfo(t *testing.T) {
 			},
 			TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 				return &testscommon.ShardedDataStub{}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 
@@ -1550,6 +1559,9 @@ func TestShardProcessor_RequestEpochStartInfo(t *testing.T) {
 			},
 			TransactionsCalled: func() dataRetriever.ShardedDataCacherNotifier {
 				return &testscommon.ShardedDataStub{}
+			},
+			ProofsCalled: func() dataRetriever.ProofsPool {
+				return &dataRetrieverMock.ProofsPoolMock{}
 			},
 		}
 
@@ -2594,7 +2606,7 @@ func TestShardProcessor_MarshalizedDataToBroadcastShouldWork(t *testing.T) {
 		ScProcessor:                  &testscommon.SCProcessorMock{},
 		ScResultProcessor:            &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor:           &testscommon.RewardTxProcessorMock{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		GasHandler:                   &testscommon.GasHandlerStub{},
 		BlockTracker:                 &mock.BlockTrackerMock{},
 		BlockSizeComputation:         &testscommon.BlockSizeComputationStub{},
@@ -2705,7 +2717,7 @@ func TestShardProcessor_MarshalizedDataMarshalWithoutSuccess(t *testing.T) {
 		ScProcessor:                  &testscommon.SCProcessorMock{},
 		ScResultProcessor:            &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor:           &testscommon.RewardTxProcessorMock{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		GasHandler:                   &testscommon.GasHandlerStub{},
 		BlockTracker:                 &mock.BlockTrackerMock{},
 		BlockSizeComputation:         &testscommon.BlockSizeComputationStub{},
@@ -3088,7 +3100,7 @@ func TestShardProcessor_CreateMiniBlocksShouldWorkWithIntraShardTxs(t *testing.T
 		ScProcessor:        &testscommon.SCProcessorMock{},
 		ScResultProcessor:  &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor: &testscommon.RewardTxProcessorMock{},
-		EconomicsFee: &economicsmocks.EconomicsHandlerStub{
+		EconomicsFee: &economicsmocks.EconomicsHandlerMock{
 			ComputeGasLimitCalled: func(tx data.TransactionWithFeeHandler) uint64 {
 				return 0
 			},
@@ -3293,7 +3305,7 @@ func TestShardProcessor_RestoreBlockIntoPoolsShouldWork(t *testing.T) {
 		ScProcessor:                  &testscommon.SCProcessorMock{},
 		ScResultProcessor:            &testscommon.SmartContractResultsProcessorMock{},
 		RewardsTxProcessor:           &testscommon.RewardTxProcessorMock{},
-		EconomicsFee:                 &economicsmocks.EconomicsHandlerStub{},
+		EconomicsFee:                 &economicsmocks.EconomicsHandlerMock{},
 		GasHandler:                   &testscommon.GasHandlerStub{},
 		BlockTracker:                 &mock.BlockTrackerMock{},
 		BlockSizeComputation:         &testscommon.BlockSizeComputationStub{},
@@ -4533,7 +4545,7 @@ func TestShardProcessor_updateStateStorage(t *testing.T) {
 	hdr1 := &block.Header{Nonce: 0, Round: 0}
 	hdr2 := &block.Header{Nonce: 1, Round: 1}
 	finalHeaders = append(finalHeaders, hdr1, hdr2)
-	sp.UpdateStateStorage(finalHeaders, &block.Header{})
+	sp.UpdateStateStorage(finalHeaders, &block.Header{}, []byte("hash"))
 
 	assert.True(t, pruneTrieWasCalled)
 	assert.True(t, cancelPruneWasCalled)
@@ -4608,7 +4620,9 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochStorageErro
 		},
 	}
 
-	header := &block.Header{Epoch: epochStartTrigger.Epoch() - 1, Round: epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod + 1}
+	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+	gracePeriod, _ := coreComponents.EpochChangeGracePeriodHandlerField.GetGracePeriodForEpoch(epochStartTrigger.Epoch())
+	header := &block.Header{Epoch: epochStartTrigger.Epoch() - 1, Round: epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod) + 1}
 	blockChain := &testscommon.ChainHandlerStub{
 		GetCurrentBlockHeaderCalled: func() data.HeaderHandler {
 			return header
@@ -4617,7 +4631,6 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochStorageErro
 			return &block.Header{Nonce: 0}
 		},
 	}
-	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
 	dataComponents.BlockChain = blockChain
 	arguments := CreateMockArguments(coreComponents, dataComponents, bootstrapComponents, statusComponents)
 	arguments.EpochStartTrigger = epochStartTrigger
@@ -4656,11 +4669,15 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback1Bl
 	forkDetector := &mock.ForkDetectorMock{SetRollBackNonceCalled: func(nonce uint64) {
 		nonceCalled = nonce
 	}}
+
+	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+	dataComponents.Storage = store
 	prevHash := []byte("prevHash")
+	gracePeriod, _ := coreComponents.EpochChangeGracePeriodHandlerField.GetGracePeriodForEpoch(epochStartTrigger.Epoch())
 	currHeader := &block.Header{
 		Nonce:    10,
 		Epoch:    epochStartTrigger.Epoch() - 1,
-		Round:    epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod + 1,
+		Round:    epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod) + 1,
 		PrevHash: prevHash}
 
 	blockChain := &testscommon.ChainHandlerStub{
@@ -4671,9 +4688,6 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback1Bl
 			return &block.Header{Nonce: 0}
 		},
 	}
-
-	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
-	dataComponents.Storage = store
 	dataComponents.BlockChain = blockChain
 	arguments := CreateMockArguments(coreComponents, dataComponents, bootstrapComponents, statusComponents)
 	arguments.EpochStartTrigger = epochStartTrigger
@@ -4684,7 +4698,7 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback1Bl
 	prevHeader := &block.Header{
 		Nonce: 8,
 		Epoch: epochStartTrigger.Epoch() - 1,
-		Round: epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod,
+		Round: epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod),
 	}
 
 	prevHeaderData, _ := coreComponents.InternalMarshalizer().Marshal(prevHeader)
@@ -4719,11 +4733,15 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback2Bl
 	forkDetector := &mock.ForkDetectorMock{SetRollBackNonceCalled: func(nonce uint64) {
 		nonceCalled = nonce
 	}}
+
+	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
+	dataComponents.Storage = store
+	gracePeriod, _ := coreComponents.EpochChangeGracePeriodHandlerField.GetGracePeriodForEpoch(epochStartTrigger.Epoch())
 	prevHash := []byte("prevHash")
 	header := &block.Header{
 		Nonce:    10,
 		Epoch:    epochStartTrigger.Epoch() - 1,
-		Round:    epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod + 2,
+		Round:    epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod) + 2,
 		PrevHash: prevHash}
 
 	blockChain := &testscommon.ChainHandlerStub{
@@ -4734,9 +4752,6 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback2Bl
 			return &block.Header{Nonce: 0}
 		},
 	}
-
-	coreComponents, dataComponents, bootstrapComponents, statusComponents := createComponentHolderMocks()
-	dataComponents.Storage = store
 	dataComponents.BlockChain = blockChain
 	arguments := CreateMockArguments(coreComponents, dataComponents, bootstrapComponents, statusComponents)
 	arguments.EpochStartTrigger = epochStartTrigger
@@ -4748,7 +4763,7 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback2Bl
 	prevHeader := &block.Header{
 		Nonce:    8,
 		Epoch:    epochStartTrigger.Epoch() - 1,
-		Round:    epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod + 1,
+		Round:    epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod) + 1,
 		PrevHash: prevPrevHash,
 	}
 	prevHeaderData, _ := coreComponents.InternalMarshalizer().Marshal(prevHeader)
@@ -4762,7 +4777,7 @@ func TestShardProcessor_checkEpochCorrectnessCrossChainInCorrectEpochRollback2Bl
 	prevPrevHeader := &block.Header{
 		Nonce:    7,
 		Epoch:    epochStartTrigger.Epoch() - 1,
-		Round:    epochStartTrigger.EpochFinalityAttestingRound() + process.EpochChangeGracePeriod,
+		Round:    epochStartTrigger.EpochFinalityAttestingRound() + uint64(gracePeriod),
 		PrevHash: prevPrevHash,
 	}
 	prevPrevHeaderData, _ := coreComponents.InternalMarshalizer().Marshal(prevPrevHeader)
@@ -4945,6 +4960,9 @@ func TestShardProcessor_CheckEpochCorrectnessShouldRemoveAndRequestStartOfEpochM
 					}
 				},
 			}
+		},
+		ProofsCalled: func() dataRetriever.ProofsPool {
+			return &dataRetrieverMock.ProofsPoolMock{}
 		},
 	}
 

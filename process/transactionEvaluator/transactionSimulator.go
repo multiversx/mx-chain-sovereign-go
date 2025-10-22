@@ -107,7 +107,10 @@ func (ts *transactionSimulator) ProcessTx(tx data.TransactionHandler, currentHea
 	txStatus := transaction.TxStatusPending
 	failReason := ""
 
-	ts.blockChainHook.SetCurrentHeader(currentHeader)
+	err := ts.blockChainHook.SetCurrentHeader(currentHeader)
+	if err != nil {
+		return nil, err
+	}
 
 	retCode, err := ts.txProcessor.ProcessTransaction(tx)
 	if err != nil {

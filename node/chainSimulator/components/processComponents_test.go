@@ -5,7 +5,16 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/endProcess"
+	"github.com/multiversx/mx-chain-core-go/hashing/blake2b"
+	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/stretchr/testify/require"
+
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
+	"github.com/multiversx/mx-chain-go/common/graceperiod"
 	commonRunType "github.com/multiversx/mx-chain-go/common/runType"
 	disabledStatistics "github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
@@ -17,6 +26,7 @@ import (
 	chainStorage "github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/bootstrapMocks"
+	"github.com/multiversx/mx-chain-go/testscommon/chainParameters"
 	"github.com/multiversx/mx-chain-go/testscommon/components"
 	"github.com/multiversx/mx-chain-go/testscommon/cryptoMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
@@ -35,13 +45,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	"github.com/multiversx/mx-chain-go/testscommon/storage"
 	updateMocks "github.com/multiversx/mx-chain-go/update/mock"
-
-	coreData "github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/endProcess"
-	"github.com/multiversx/mx-chain-core-go/hashing/blake2b"
-	"github.com/multiversx/mx-chain-core-go/hashing/keccak"
-	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/stretchr/testify/require"
 )
 
 const testingProtocolSustainabilityAddress = "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp"
@@ -61,9 +64,12 @@ var (
 )
 
 func createArgsProcessComponentsHolder() ArgsProcessComponentsHolder {
-	nodesSetup, _ := sharding.NewNodesSetup("../../../integrationTests/factory/testdata/nodesSetup.json", addrPubKeyConv, valPubKeyConv, 3)
+	var nodesConfig config.NodesConfig
+	_ = core.LoadJsonFile(&nodesConfig, "../../../integrationTests/factory/testdata/nodesSetup.json")
+	nodesSetup, _ := sharding.NewNodesSetup(nodesConfig, &chainParameters.ChainParametersHolderMock{}, addrPubKeyConv, valPubKeyConv, 3)
 	generalConfig := testscommon.GetGeneralConfig()
 	roundConfig := testscommon.GetDefaultRoundsConfig()
+	gracePeriod, _ := graceperiod.NewEpochChangeGracePeriod([]config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}})
 	args := ArgsProcessComponentsHolder{
 		Configs: config.Configs{
 			GeneralConfig: &generalConfig,
@@ -171,7 +177,7 @@ func createArgsProcessComponentsHolder() ArgsProcessComponentsHolder {
 			ValPubKeyConv:       valPubKeyConv,
 			NodesConfig:         nodesSetup,
 			EpochChangeNotifier: &epochNotifier.EpochNotifierStub{},
-			EconomicsHandler: &economicsmocks.EconomicsHandlerStub{
+			EconomicsHandler: &economicsmocks.EconomicsHandlerMock{
 				ProtocolSustainabilityAddressCalled: func() string {
 					return testingProtocolSustainabilityAddress
 				},
@@ -179,22 +185,23 @@ func createArgsProcessComponentsHolder() ArgsProcessComponentsHolder {
 					return big.NewInt(0).Mul(big.NewInt(1000000000000000000), big.NewInt(20000000))
 				},
 			},
-			Hash:                         blake2b.NewBlake2b(),
-			TxVersionCheckHandler:        &testscommon.TxVersionCheckerStub{},
-			RatingHandler:                &testscommon.RaterMock{},
-			EnableEpochsHandlerField:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-			EnableRoundsHandlerField:     &testscommon.EnableRoundsHandlerStub{},
-			EpochNotifierWithConfirm:     &updateMocks.EpochStartNotifierStub{},
-			RoundHandlerField:            &testscommon.RoundHandlerMock{},
-			RoundChangeNotifier:          &epochNotifier.RoundNotifierStub{},
-			ChanStopProcess:              make(chan endProcess.ArgEndProcess, 1),
-			TxSignHasherField:            keccak.NewKeccak(),
-			HardforkTriggerPubKeyField:   []byte("hardfork pub key"),
-			WasmVMChangeLockerInternal:   &sync.RWMutex{},
-			NodeTypeProviderField:        &nodeTypeProviderMock.NodeTypeProviderStub{},
-			RatingsConfig:                &testscommon.RatingsInfoMock{},
-			PathHdl:                      &testscommon.PathManagerStub{},
-			ProcessStatusHandlerInternal: &testscommon.ProcessStatusHandlerStub{},
+			Hash:                               blake2b.NewBlake2b(),
+			TxVersionCheckHandler:              &testscommon.TxVersionCheckerStub{},
+			RatingHandler:                      &testscommon.RaterMock{},
+			EnableEpochsHandlerField:           &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			EnableRoundsHandlerField:           &testscommon.EnableRoundsHandlerStub{},
+			EpochNotifierWithConfirm:           &updateMocks.EpochStartNotifierStub{},
+			RoundHandlerField:                  &testscommon.RoundHandlerMock{},
+			RoundChangeNotifier:                &epochNotifier.RoundNotifierStub{},
+			ChanStopProcess:                    make(chan endProcess.ArgEndProcess, 1),
+			TxSignHasherField:                  keccak.NewKeccak(),
+			HardforkTriggerPubKeyField:         []byte("hardfork pub key"),
+			WasmVMChangeLockerInternal:         &sync.RWMutex{},
+			NodeTypeProviderField:              &nodeTypeProviderMock.NodeTypeProviderStub{},
+			RatingsConfig:                      &testscommon.RatingsInfoMock{},
+			PathHdl:                            &testscommon.PathManagerStub{},
+			ProcessStatusHandlerInternal:       &testscommon.ProcessStatusHandlerStub{},
+			EpochChangeGracePeriodHandlerField: gracePeriod,
 		},
 		CryptoComponents: &mock.CryptoComponentsStub{
 			BlKeyGen: &cryptoMocks.KeyGenStub{},

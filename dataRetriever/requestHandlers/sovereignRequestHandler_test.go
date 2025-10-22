@@ -277,6 +277,9 @@ func TestSovereignResolverRequestHandler_RequestFromDifferentContainersShouldCal
 				return &dataRetrieverMocks.HeaderRequesterStub{}, nil
 			case common.ValidatorInfoTopic, factory.MiniBlocksTopic:
 				return &dataRetrieverMocks.HashSliceRequesterStub{}, nil
+			case common.EquivalentProofsTopic:
+				return &dataRetrieverMocks.EquivalentProofsRequesterStub{}, nil
+
 			}
 
 			require.Fail(t, "should not call on other topic")
@@ -334,5 +337,14 @@ func TestSovereignResolverRequestHandler_RequestFromDifferentContainersShouldCal
 
 	sovResolver.RequestMiniBlocks(core.SovereignChainShardId, [][]byte{[]byte("hash")})
 	require.Equal(t, 9, intraShardRequesterCt)
+	require.Zero(t, crossShardRequesterCt)
+
+	expectedTopic = common.EquivalentProofsTopic
+	sovResolver.RequestEquivalentProofByHash(core.SovereignChainShardId, []byte("hash"))
+	require.Equal(t, 10, intraShardRequesterCt)
+	require.Zero(t, crossShardRequesterCt)
+
+	sovResolver.RequestEquivalentProofByNonce(core.SovereignChainShardId, 0)
+	require.Equal(t, 11, intraShardRequesterCt)
 	require.Zero(t, crossShardRequesterCt)
 }

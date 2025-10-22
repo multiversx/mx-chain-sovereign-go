@@ -202,7 +202,7 @@ func getDefaultArgs() ArgsEpochStartBootstrap {
 			},
 			Requesters: generalCfg.Requesters,
 		},
-		EconomicsData: &economicsmocks.EconomicsHandlerStub{
+		EconomicsData: &economicsmocks.EconomicsHandlerMock{
 			MinGasPriceCalled: func() uint64 {
 				return 1
 			},
@@ -237,5 +237,6 @@ func getDefaultArgs() ArgsEpochStartBootstrap {
 		RunTypeComponents:               processMocks.NewRunTypeComponentsStub(),
 		StateStatsHandler:               disabled.NewStateStatistics(),
 		NodesCoordinatorRegistryFactory: &shardingMocks.NodesCoordinatorRegistryFactoryMock{},
+		EnableEpochsHandler:             &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 	}
 }

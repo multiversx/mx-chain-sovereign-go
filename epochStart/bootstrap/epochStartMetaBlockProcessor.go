@@ -11,6 +11,8 @@ import (
 	dataCore "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/factory"
@@ -25,15 +27,21 @@ const minNumConnectedPeers = 1
 var _ process.InterceptorProcessor = (*epochStartMetaBlockProcessor)(nil)
 
 type epochStartMetaBlockProcessor struct {
-	messenger                         Messenger
-	requestHandler                    RequestHandler
-	marshalizer                       marshal.Marshalizer
-	hasher                            hashing.Hasher
-	mutReceivedMetaBlocks             sync.RWMutex
-	mapReceivedMetaBlocks             map[string]dataCore.MetaHeaderHandler
-	mapMetaBlocksFromPeers            map[string][]core.PeerID
-	chanConsensusReached              chan bool
+	messenger           Messenger
+	requestHandler      RequestHandler
+	marshalizer         marshal.Marshalizer
+	hasher              hashing.Hasher
+	enableEpochsHandler common.EnableEpochsHandler
+	proofsPool          ProofsPool
+
+	mutReceivedMetaBlocks  sync.RWMutex
+	mapReceivedMetaBlocks  map[string]dataCore.MetaHeaderHandler
+	mapMetaBlocksFromPeers map[string][]core.PeerID
+
+	chanMetaBlockProofReached         chan bool
+	chanMetaBlockReached              chan bool
 	metaBlock                         dataCore.MetaHeaderHandler
+	metaBlockHash                     string
 	peerCountTarget                   int
 	minNumConnectedPeers              int
 	minNumOfPeersToConsiderBlockValid int
@@ -49,6 +57,8 @@ func NewEpochStartMetaBlockProcessor(
 	consensusPercentage uint8,
 	minNumConnectedPeersConfig int,
 	minNumOfPeersToConsiderBlockValidConfig int,
+	enableEpochsHandler common.EnableEpochsHandler,
+	proofsPool ProofsPool,
 ) (*epochStartMetaBlockProcessor, error) {
 	if check.IfNil(messenger) {
 		return nil, epochStart.ErrNilMessenger
@@ -71,6 +81,12 @@ func NewEpochStartMetaBlockProcessor(
 	if minNumOfPeersToConsiderBlockValidConfig < minNumPeersToConsiderMetaBlockValid {
 		return nil, epochStart.ErrNotEnoughNumOfPeersToConsiderBlockValid
 	}
+	if check.IfNil(enableEpochsHandler) {
+		return nil, epochStart.ErrNilEnableEpochsHandler
+	}
+	if check.IfNil(proofsPool) {
+		return nil, epochStart.ErrNilProofsPool
+	}
 
 	processor := &epochStartMetaBlockProcessor{
 		messenger:                         messenger,
@@ -79,11 +95,16 @@ func NewEpochStartMetaBlockProcessor(
 		hasher:                            hasher,
 		minNumConnectedPeers:              minNumConnectedPeersConfig,
 		minNumOfPeersToConsiderBlockValid: minNumOfPeersToConsiderBlockValidConfig,
+		enableEpochsHandler:               enableEpochsHandler,
 		mutReceivedMetaBlocks:             sync.RWMutex{},
 		mapReceivedMetaBlocks:             make(map[string]dataCore.MetaHeaderHandler),
 		mapMetaBlocksFromPeers:            make(map[string][]core.PeerID),
-		chanConsensusReached:              make(chan bool, 1),
+		chanMetaBlockProofReached:         make(chan bool, 1),
+		chanMetaBlockReached:              make(chan bool, 1),
+		proofsPool:                        proofsPool,
 	}
+
+	proofsPool.RegisterHandler(processor.receivedProof)
 
 	processor.epochStartPeerHandler = processor
 
@@ -138,18 +159,17 @@ func (e *epochStartMetaBlockProcessor) Save(data process.InterceptedData, fromCo
 		return nil
 	}
 
-	if !metaBlock.IsStartOfEpochBlock() {
-		log.Debug("received metablock is not of type epoch start", "error", epochStart.ErrNotEpochStartBlock)
-		return nil
-	}
-
 	mbHash := interceptedHdr.Hash()
 
-	log.Debug("received epoch start meta", "epoch", metaBlock.GetEpoch(), "from peer", fromConnectedPeer.Pretty())
-	e.mutReceivedMetaBlocks.Lock()
-	e.mapReceivedMetaBlocks[string(mbHash)] = metaBlock
-	e.addToPeerList(string(mbHash), fromConnectedPeer)
-	e.mutReceivedMetaBlocks.Unlock()
+	if metaBlock.IsStartOfEpochBlock() {
+		log.Debug("received epoch start meta block", "epoch", metaBlock.GetEpoch(), "from peer", fromConnectedPeer.Pretty())
+		e.mutReceivedMetaBlocks.Lock()
+		e.mapReceivedMetaBlocks[string(mbHash)] = metaBlock
+		e.addToPeerList(string(mbHash), fromConnectedPeer)
+		e.mutReceivedMetaBlocks.Unlock()
+
+		return nil
+	}
 
 	return nil
 }
@@ -183,33 +203,82 @@ func (e *epochStartMetaBlockProcessor) GetEpochStartMetaBlock(ctx context.Contex
 		}
 	}()
 
-	err = e.requestMetaBlock()
+	metaBlock, metaBlockHash, err := e.waitForMetaBlock(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	e.requestHandler.SetEpoch(metaBlock.GetEpoch())
+	if e.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, metaBlock.GetEpoch()) {
+		err = e.waitForMetaBlockProof(ctx, []byte(metaBlockHash))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return metaBlock, nil
+}
+
+func (e *epochStartMetaBlockProcessor) waitForMetaBlock(ctx context.Context) (dataCore.MetaHeaderHandler, string, error) {
+	err := e.requestMetaBlock()
+	if err != nil {
+		return nil, "", err
+	}
+
 	chanRequests := time.After(durationBetweenReRequests)
 	chanCheckMaps := time.After(durationBetweenChecks)
+
 	for {
 		select {
-		case <-e.chanConsensusReached:
-			return e.metaBlock, nil
+		case <-e.chanMetaBlockReached:
+			return e.metaBlock, e.metaBlockHash, nil
 		case <-ctx.Done():
 			return e.getMostReceivedMetaBlock()
 		case <-chanRequests:
 			err = e.requestMetaBlock()
 			if err != nil {
-				return nil, err
+				return nil, "", err
 			}
 			chanRequests = time.After(durationBetweenReRequests)
 		case <-chanCheckMaps:
-			e.checkMaps()
+			e.checkMetaBlockMaps()
 			chanCheckMaps = time.After(durationBetweenChecks)
 		}
 	}
 }
 
-func (e *epochStartMetaBlockProcessor) getMostReceivedMetaBlock() (dataCore.MetaHeaderHandler, error) {
+func (e *epochStartMetaBlockProcessor) waitForMetaBlockProof(
+	ctx context.Context,
+	metaBlockHash []byte,
+) error {
+	if e.proofsPool.HasProof(e.epochStartPeerHandler.getMetaChainShardID(), metaBlockHash) {
+		return nil
+	}
+
+	err := e.epochStartPeerHandler.requestProofForMetaBlock(metaBlockHash)
+	if err != nil {
+		return err
+	}
+
+	chanRequests := time.After(durationBetweenReRequests)
+
+	for {
+		select {
+		case <-e.chanMetaBlockProofReached:
+			return nil
+		case <-ctx.Done():
+			return epochStart.ErrTimeoutWaitingForMetaBlock
+		case <-chanRequests:
+			err = e.epochStartPeerHandler.requestProofForMetaBlock(metaBlockHash)
+			if err != nil {
+				return err
+			}
+			chanRequests = time.After(durationBetweenReRequests)
+		}
+	}
+}
+
+func (e *epochStartMetaBlockProcessor) getMostReceivedMetaBlock() (dataCore.MetaHeaderHandler, string, error) {
 	e.mutReceivedMetaBlocks.RLock()
 	defer e.mutReceivedMetaBlocks.RUnlock()
 
@@ -223,10 +292,10 @@ func (e *epochStartMetaBlockProcessor) getMostReceivedMetaBlock() (dataCore.Meta
 	}
 
 	if len(mostReceivedHash) == 0 {
-		return nil, epochStart.ErrTimeoutWaitingForMetaBlock
+		return nil, "", epochStart.ErrTimeoutWaitingForMetaBlock
 	}
 
-	return e.mapReceivedMetaBlocks[mostReceivedHash], nil
+	return e.mapReceivedMetaBlocks[mostReceivedHash], mostReceivedHash, nil
 }
 
 func (e *epochStartMetaBlockProcessor) requestMetaBlock() error {
@@ -241,27 +310,78 @@ func (e *epochStartMetaBlockProcessor) requestMetaBlock() error {
 	return nil
 }
 
-func (e *epochStartMetaBlockProcessor) checkMaps() {
+func (e *epochStartMetaBlockProcessor) requestProofForMetaBlock(metablockHash []byte) error {
+	numConnectedPeers := len(e.messenger.ConnectedPeers())
+	topic := common.EquivalentProofsTopic + core.CommunicationIdentifierBetweenShards(core.MetachainShardId, core.AllShardId)
+	err := e.requestHandler.SetNumPeersToQuery(topic, numConnectedPeers, numConnectedPeers)
+	if err != nil {
+		return err
+	}
+
+	e.requestHandler.RequestEquivalentProofByHash(core.MetachainShardId, metablockHash)
+
+	return nil
+}
+
+func (e *epochStartMetaBlockProcessor) receivedProof(proof dataCore.HeaderProofHandler) {
+	startOfEpochMetaBlock, hash, err := e.getMostReceivedMetaBlock()
+	if err != nil {
+		return
+	}
+
+	hashesMatchMostReceived := e.epochStartPeerHandler.hashMatches(hash, proof)
+	hashesMatchLocal := e.epochStartPeerHandler.hashMatches(e.metaBlockHash, proof)
+	if !hashesMatchMostReceived && !hashesMatchLocal {
+		return
+	}
+
+	metaBlock := e.metaBlock
+	if hashesMatchMostReceived {
+		metaBlock = startOfEpochMetaBlock
+	}
+
+	err = common.VerifyProofAgainstHeader(proof, metaBlock)
+	if err != nil {
+		return
+	}
+
+	e.chanMetaBlockProofReached <- true
+}
+
+func (e *epochStartMetaBlockProcessor) hashMatches(hash string, proof dataCore.HeaderProofHandler) bool {
+	return string(proof.GetHeaderHash()) == hash
+}
+
+func (e *epochStartMetaBlockProcessor) checkMetaBlockMaps() {
 	e.mutReceivedMetaBlocks.RLock()
 	defer e.mutReceivedMetaBlocks.RUnlock()
 
-	for hash, peersList := range e.mapMetaBlocksFromPeers {
-		log.Debug("metablock from peers", "num peers", len(peersList), "target", e.peerCountTarget, "hash", []byte(hash))
-		found := e.processEntry(peersList, hash)
-		if found {
-			break
-		}
+	hash, metaBlockFound := e.checkReceivedMetaBlock(e.mapMetaBlocksFromPeers)
+	if metaBlockFound {
+		e.metaBlock = e.mapReceivedMetaBlocks[hash]
+		e.metaBlockHash = hash
+		e.chanMetaBlockReached <- true
 	}
 }
 
-func (e *epochStartMetaBlockProcessor) processEntry(
+func (e *epochStartMetaBlockProcessor) checkReceivedMetaBlock(blocksFromPeers map[string][]core.PeerID) (string, bool) {
+	for hash, peersList := range blocksFromPeers {
+		log.Debug("metablock from peers", "num peers", len(peersList), "target", e.peerCountTarget, "hash", []byte(hash))
+
+		metaBlockFound := e.processMetaBlockEntry(peersList)
+		if metaBlockFound {
+			return hash, true
+		}
+	}
+
+	return "", false
+}
+
+func (e *epochStartMetaBlockProcessor) processMetaBlockEntry(
 	peersList []core.PeerID,
-	hash string,
 ) bool {
 	if len(peersList) >= e.peerCountTarget {
 		log.Info("got consensus for epoch start metablock", "len", len(peersList))
-		e.metaBlock = e.mapReceivedMetaBlocks[hash]
-		e.chanConsensusReached <- true
 		return true
 	}
 
@@ -281,6 +401,10 @@ func (e *epochStartMetaBlockProcessor) setNumPeers(
 
 func (e *epochStartMetaBlockProcessor) getTopic() string {
 	return factory.MetachainBlocksTopic
+}
+
+func (e *epochStartMetaBlockProcessor) getMetaChainShardID() uint32 {
+	return core.MetachainShardId
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -22,6 +22,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -54,6 +55,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	shardData "github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
@@ -65,6 +67,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/track"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
 	syncerFactory "github.com/multiversx/mx-chain-go/state/syncer/factory"
@@ -101,7 +104,7 @@ type P2PAntifloodHandler interface {
 	SetDebugger(debugger process.AntifloodDebugger) error
 	SetPeerValidatorMapper(validatorMapper process.PeerValidatorMapper) error
 	SetTopicsForAll(topics ...string)
-	ApplyConsensusSize(size int)
+	SetConsensusSizeNotifier(chainParametersNotifier process.ChainParametersSubscriber, shardID uint32)
 	BlacklistPeer(peer core.PeerID, reason string, duration time.Duration)
 	IsOriginatorEligibleForTopic(pid core.PeerID, topic string) error
 	Close() error
@@ -155,6 +158,7 @@ type CoreComponentsHolder interface {
 	GenesisNodesSetup() sharding.GenesisNodesSetupHandler
 	NodesShuffler() nodesCoordinator.NodesShuffler
 	EpochNotifier() process.EpochNotifier
+	ChainParametersSubscriber() process.ChainParametersSubscriber
 	EnableRoundsHandler() process.EnableRoundsHandler
 	RoundNotifier() process.RoundNotifier
 	EpochStartNotifierWithConfirm() EpochStartNotifierWithConfirm
@@ -169,6 +173,9 @@ type CoreComponentsHolder interface {
 	ProcessStatusHandler() common.ProcessStatusHandler
 	HardforkTriggerPubKey() []byte
 	EnableEpochsHandler() common.EnableEpochsHandler
+	ChainParametersHandler() process.ChainParametersHandler
+	FieldsSizeChecker() common.FieldsSizeChecker
+	EpochChangeGracePeriodHandler() common.EpochChangeGracePeriodHandler
 	IsInterfaceNil() bool
 }
 
@@ -346,6 +353,7 @@ type ProcessComponentsHolder interface {
 	ReceiptsRepository() ReceiptsRepository
 	SentSignaturesTracker() process.SentSignaturesTracker
 	EpochSystemSCProcessor() process.EpochStartSystemSCProcessor
+	BlockchainHook() process.BlockChainHookWithAccountsAdapter
 	IsInterfaceNil() bool
 }
 
@@ -370,6 +378,7 @@ type StateComponentsHolder interface {
 	TriesContainer() common.TriesHolder
 	TrieStorageManagers() map[string]common.StorageManager
 	MissingTrieNodesNotifier() common.MissingTrieNodesNotifier
+	TrieLeavesRetriever() common.TrieLeavesRetriever
 	Close() error
 	IsInterfaceNil() bool
 }
@@ -416,12 +425,19 @@ type ConsensusWorker interface {
 	StartWorking()
 	// AddReceivedMessageCall adds a new handler function for a received message type
 	AddReceivedMessageCall(messageType consensus.MessageType, receivedMessageCall func(ctx context.Context, cnsDta *consensus.Message) bool)
+	// ResetHandlers will reset all handlers for a message type
+	ResetHandlers(messageType consensus.MessageType)
 	// AddReceivedHeaderHandler adds a new handler function for a received header
 	AddReceivedHeaderHandler(handler func(data.HeaderHandler))
+	// RemoveAllReceivedHeaderHandlers removes all the functions handlers
+	RemoveAllReceivedHeaderHandlers()
+	// AddReceivedProofHandler adds a new handler function for a received proof
+	AddReceivedProofHandler(handler func(proofHandler consensus.ProofHandler))
+	ResetReceivedProofHandler()
 	// RemoveAllReceivedMessagesCalls removes all the functions handlers
 	RemoveAllReceivedMessagesCalls()
 	// ProcessReceivedMessage method redirects the received message to the channel which should handle it
-	ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedPeer core.PeerID, source p2p.MessageHandler) error
+	ProcessReceivedMessage(message p2p.MessageP2P, fromConnectedPeer core.PeerID, source p2p.MessageHandler) ([]byte, error)
 	// Extend does an extension for the subround with subroundId
 	Extend(subroundId int)
 	// GetConsensusStateChangedChannel gets the channel for the consensusStateChanged
@@ -430,10 +446,16 @@ type ConsensusWorker interface {
 	ExecuteStoredMessages()
 	// DisplayStatistics method displays statistics of worker at the end of the round
 	DisplayStatistics()
-	// ResetConsensusMessages resets at the start of each round all the previous consensus messages received
+	// ResetConsensusMessages resets at the start of each round all the previous consensus messages received and equivalent messages, keeping the provided proofs
 	ResetConsensusMessages()
+	// ResetConsensusRoundState resets the state of the consensus round
+	ResetConsensusRoundState()
+	// ResetInvalidSignersCache resets the invalid signers cache
+	ResetInvalidSignersCache()
 	// ReceivedHeader method is a wired method through which worker will receive headers from network
 	ReceivedHeader(headerHandler data.HeaderHandler, headerHash []byte)
+	// ReceivedProof will handle a received proof in consensus worker
+	ReceivedProof(proofHandler consensus.ProofHandler)
 	// IsInterfaceNil returns true if there is no value under the interface
 	IsInterfaceNil() bool
 }
@@ -456,7 +478,6 @@ type ConsensusComponentsHolder interface {
 	Chronology() consensus.ChronologyHandler
 	ConsensusWorker() ConsensusWorker
 	BroadcastMessenger() consensus.BroadcastMessenger
-	ConsensusGroupSize() (int, error)
 	Bootstrapper() process.Bootstrapper
 	IsInterfaceNil() bool
 }
@@ -654,6 +675,8 @@ type RunTypeComponentsHolder interface {
 	TotalStakedValueFactoryHandler() trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	VersionedHeaderFactory() genesis.VersionedHeaderFactory
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
+	HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory
+	ExtraSignersHolder() bls.ExtraSignersHolder
 	Create() error
 	Close() error
 	CheckSubcomponents() error
@@ -672,6 +695,7 @@ type RunTypeCoreComponentsHolder interface {
 	GenesisNodesSetupFactoryCreator() sharding.GenesisNodesSetupFactory
 	RatingsDataFactoryCreator() rating.RatingsDataFactory
 	EnableEpochsFactoryCreator() enablers.EnableEpochsFactory
+	ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory
 	Create() error
 	Close() error
 	CheckSubcomponents() error

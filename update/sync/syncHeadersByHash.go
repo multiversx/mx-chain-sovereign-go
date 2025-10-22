@@ -9,6 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/storage"
@@ -22,6 +24,7 @@ type syncHeadersByHash struct {
 	mapHeaders              map[string]data.HeaderHandler
 	mapHashes               map[string]struct{}
 	pool                    dataRetriever.HeadersPool
+	proofsPool              dataRetriever.ProofsPool
 	storage                 update.HistoryStorer
 	chReceivedAll           chan bool
 	marshalizer             marshal.Marshalizer
@@ -30,14 +33,17 @@ type syncHeadersByHash struct {
 	requestHandler          process.RequestHandler
 	crossHeaderRequester    CrossHeaderRequester
 	waitTimeBetweenRequests time.Duration
+	enableEpochsHandler     common.EnableEpochsHandler
 }
 
 // ArgsNewMissingHeadersByHashSyncer defines the arguments needed for the sycner
 type ArgsNewMissingHeadersByHashSyncer struct {
 	Storage              storage.Storer
 	Cache                dataRetriever.HeadersPool
+	ProofsPool           dataRetriever.ProofsPool
 	Marshalizer          marshal.Marshalizer
 	RequestHandler       process.RequestHandler
+	EnableEpochsHandler  common.EnableEpochsHandler
 	CrossHeaderRequester CrossHeaderRequester
 }
 
@@ -49,11 +55,17 @@ func NewMissingheadersByHashSyncer(args ArgsNewMissingHeadersByHashSyncer) (*syn
 	if check.IfNil(args.Cache) {
 		return nil, update.ErrNilCacher
 	}
+	if check.IfNil(args.ProofsPool) {
+		return nil, dataRetriever.ErrNilProofsPool
+	}
 	if check.IfNil(args.Marshalizer) {
 		return nil, dataRetriever.ErrNilMarshalizer
 	}
 	if check.IfNil(args.RequestHandler) {
 		return nil, process.ErrNilRequestHandler
+	}
+	if check.IfNil(args.EnableEpochsHandler) {
+		return nil, process.ErrNilEnableEpochsHandler
 	}
 	if check.IfNil(args.CrossHeaderRequester) {
 		return nil, errNilCrossHeaderRequester
@@ -64,6 +76,7 @@ func NewMissingheadersByHashSyncer(args ArgsNewMissingHeadersByHashSyncer) (*syn
 		mapHeaders:              make(map[string]data.HeaderHandler),
 		mapHashes:               make(map[string]struct{}),
 		pool:                    args.Cache,
+		proofsPool:              args.ProofsPool,
 		storage:                 args.Storage,
 		chReceivedAll:           make(chan bool),
 		requestHandler:          args.RequestHandler,
@@ -71,10 +84,12 @@ func NewMissingheadersByHashSyncer(args ArgsNewMissingHeadersByHashSyncer) (*syn
 		syncedAll:               false,
 		marshalizer:             args.Marshalizer,
 		waitTimeBetweenRequests: args.RequestHandler.RequestInterval(),
+		enableEpochsHandler:     args.EnableEpochsHandler,
 		crossHeaderRequester:    args.CrossHeaderRequester,
 	}
 
 	p.pool.RegisterHandler(p.receivedHeader)
+	p.proofsPool.RegisterHandler(p.receivedProof)
 
 	return p, nil
 }
@@ -90,33 +105,21 @@ func (m *syncHeadersByHash) SyncMissingHeadersByHash(shardIDs []uint32, headersH
 
 	for {
 		requestedHdrs := 0
+		requestedProofs := 0
 
 		m.mutMissingHdrs.Lock()
 		m.stopSyncing = false
 		for hash, shardId := range mapHashesToRequest {
-			if _, ok := m.mapHeaders[hash]; ok {
-				delete(mapHashesToRequest, hash)
-				continue
+			requestedHeader, requestedProof := m.updateMapsAndRequestIfNeeded(shardId, hash, mapHashesToRequest)
+			if requestedHeader {
+				requestedHdrs++
 			}
-
-			m.mapHashes[hash] = struct{}{}
-			header, ok := m.getHeaderFromPoolOrStorage([]byte(hash))
-			if ok {
-				m.mapHeaders[hash] = header
-				delete(mapHashesToRequest, hash)
-				continue
+			if requestedProof {
+				requestedProofs++
 			}
-
-			requestedHdrs++
-			if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
-				m.crossHeaderRequester.RequestHeader([]byte(hash))
-				continue
-			}
-
-			m.requestHandler.RequestShardHeader(shardId, []byte(hash))
 		}
 
-		if requestedHdrs == 0 {
+		if requestedHdrs == 0 && requestedProofs == 0 {
 			m.stopSyncing = true
 			m.syncedAll = true
 			m.mutMissingHdrs.Unlock()
@@ -143,6 +146,68 @@ func (m *syncHeadersByHash) SyncMissingHeadersByHash(shardIDs []uint32, headersH
 	}
 }
 
+func (m *syncHeadersByHash) updateMapsAndRequestIfNeeded(
+	shardId uint32,
+	hash string,
+	mapHashesToRequest map[string]uint32,
+) (bool, bool) {
+	hasProof := false
+	hasHeader := false
+	hasRequestedProof := false
+	if header, ok := m.mapHeaders[hash]; ok {
+		hasHeader = ok
+		hasProof = m.hasProof(shardId, []byte(hash), header.GetEpoch())
+		if hasProof {
+			delete(mapHashesToRequest, hash)
+			return false, false
+		}
+	}
+
+	m.mapHashes[hash] = struct{}{}
+	header, ok := m.getHeaderFromPoolOrStorage([]byte(hash))
+	if ok {
+		hasHeader = ok
+		hasProof = m.hasProof(shardId, []byte(hash), header.GetEpoch())
+		if hasProof {
+			m.mapHeaders[hash] = header
+			delete(mapHashesToRequest, hash)
+			return false, false
+		}
+	}
+
+	if m.crossHeaderRequester.ShouldRequestHeader(shardId) {
+		m.crossHeaderRequester.RequestHeader([]byte(hash))
+		return true, hasRequestedProof
+	}
+
+	// if header is missing, do not request the proof
+	// if a proof is needed for the header, it will be requested when header is received
+	if hasHeader {
+		if !hasProof {
+			hasRequestedProof = true
+			m.requestHandler.RequestEquivalentProofByHash(shardId, []byte(hash))
+		}
+
+		return false, hasRequestedProof
+	}
+
+	m.requestHandler.RequestShardHeader(shardId, []byte(hash))
+
+	return true, hasRequestedProof
+}
+
+func (m *syncHeadersByHash) hasProof(shardID uint32, hash []byte, epoch uint32) bool {
+	if !m.enableEpochsHandler.IsFlagEnabledInEpoch(common.AndromedaFlag, epoch) {
+		return true
+	}
+
+	if m.crossHeaderRequester.ShouldSkipProofCheck(shardID) {
+		return true
+	}
+
+	return m.proofsPool.HasProof(shardID, hash)
+}
+
 // receivedHeader is a callback function when a new header was received
 // it will further ask for missing transactions
 func (m *syncHeadersByHash) receivedHeader(hdrHandler data.HeaderHandler, hdrHash []byte) {
@@ -157,9 +222,45 @@ func (m *syncHeadersByHash) receivedHeader(hdrHandler data.HeaderHandler, hdrHas
 		return
 	}
 
+	if !m.hasProof(hdrHandler.GetShardID(), hdrHash, hdrHandler.GetEpoch()) {
+		go m.requestHandler.RequestEquivalentProofByHash(hdrHandler.GetShardID(), hdrHash)
+		m.mutMissingHdrs.Unlock()
+		return
+	}
+
 	if _, ok := m.mapHeaders[string(hdrHash)]; ok {
 		m.mutMissingHdrs.Unlock()
 		return
+	}
+
+	m.mapHeaders[string(hdrHash)] = hdrHandler
+	receivedAll := len(m.mapHashes) == len(m.mapHeaders)
+	m.mutMissingHdrs.Unlock()
+	if receivedAll {
+		m.chReceivedAll <- true
+	}
+}
+
+func (m *syncHeadersByHash) receivedProof(proofHandler data.HeaderProofHandler) {
+	m.mutMissingHdrs.Lock()
+	if m.stopSyncing {
+		m.mutMissingHdrs.Unlock()
+		return
+	}
+
+	hdrHash := proofHandler.GetHeaderHash()
+	if _, ok := m.mapHashes[string(hdrHash)]; !ok {
+		m.mutMissingHdrs.Unlock()
+		return
+	}
+
+	hdrHandler, ok := m.mapHeaders[string(hdrHash)]
+	if !ok {
+		hdrHandler, ok = m.getHeaderFromPoolOrStorage(hdrHash)
+		if !ok {
+			m.mutMissingHdrs.Unlock()
+			return
+		}
 	}
 
 	m.mapHeaders[string(hdrHash)] = hdrHandler

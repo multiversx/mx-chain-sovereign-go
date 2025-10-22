@@ -3,6 +3,8 @@ package sync_test
 import (
 	"testing"
 
+	dataRetrieverMock "github.com/multiversx/mx-chain-go/testscommon/dataRetriever"
+	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/process"
@@ -35,10 +37,12 @@ func TestSovereignForkDetectorFactory_CreateForkDetector(t *testing.T) {
 	require.NotNil(t, err)
 
 	args := sync.ForkDetectorFactoryArgs{
-		RoundHandler:    &testscommon.RoundHandlerMock{},
-		HeaderBlackList: &testscommon.TimeCacheStub{},
-		BlockTracker:    &testscommon.BlockTrackerStub{},
-		GenesisTime:     0,
+		RoundHandler:        &testscommon.RoundHandlerMock{},
+		HeaderBlackList:     &testscommon.TimeCacheStub{},
+		BlockTracker:        &testscommon.BlockTrackerStub{},
+		GenesisTime:         0,
+		EnableEpochsHandler: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+		ProofsPool:          &dataRetrieverMock.ProofsPoolMock{},
 	}
 	forkDetector, err = sfdf.CreateForkDetector(args)
 	require.Nil(t, err)
