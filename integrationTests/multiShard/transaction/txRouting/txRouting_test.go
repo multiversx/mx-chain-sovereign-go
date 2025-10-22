@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-crypto-go"
-	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/integrationTests"
 )
 
 func TestRoutingOfTransactionsInShards(t *testing.T) {
@@ -64,8 +66,8 @@ func TestRoutingOfTransactionsInShards(t *testing.T) {
 	checkTransactionsInPool(t, nodes, expectedNumTxs)
 }
 
-func generateTransactionsInAllConfigurations(nodes []*integrationTests.TestProcessorNode, numOfShards uint32) map[uint32][]*transaction.Transaction {
-	txs := make(map[uint32][]*transaction.Transaction)
+func generateTransactionsInAllConfigurations(nodes []*integrationTests.TestProcessorNode, numOfShards uint32) map[uint32][]data.TransactionHandler {
+	txs := make(map[uint32][]data.TransactionHandler)
 
 	for i := uint32(0); i < numOfShards; i++ {
 		senderNode := getNodeOnShard(i, nodes)
