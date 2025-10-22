@@ -1,4 +1,4 @@
-package bridge
+package esdtPrefixBridge
 
 import (
 	"crypto/rand"
