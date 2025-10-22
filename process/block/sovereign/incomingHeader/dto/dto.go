@@ -72,6 +72,7 @@ type EventsResult struct {
 	ConfirmedBridgeOps []*ConfirmedBridgeOp
 }
 
+// OutGoingOperation defines an outgoing operation
 type OutGoingOperation struct {
 	Nonce  uint64
 	MBType block.OutGoingMBType
