@@ -11,8 +11,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/common/runType"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
+	"github.com/multiversx/mx-chain-go/common/runType"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -36,7 +37,7 @@ func NewSovereignGenesisBlockCreator(gbc *genesisBlockCreator) (*sovereignGenesi
 		return nil, errNilGenesisBlockCreator
 	}
 
-	log.Debug("NewSovereignGenesisBlockCreator", "native esdt token", gbc.arg.Config.SovereignConfig.GenesisConfig.NativeESDT)
+	log.Debug("NewSovereignGenesisBlockCreator", "native esdt token", gbc.arg.Config.GeneralSettings.BaseTokenID)
 
 	return &sovereignGenesisBlockCreator{
 		genesisBlockCreator: gbc,

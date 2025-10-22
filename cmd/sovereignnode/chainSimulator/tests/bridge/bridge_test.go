@@ -64,7 +64,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositNativeESDTToken(
 				}
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
 				cfg.GeneralConfig.VirtualMachine.Execution.TransferAndExecuteByUserAddresses = []string{outGoingSubscribedAddress}
-				cfg.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT = nativeESDT
+				cfg.GeneralConfig.GeneralSettings.BaseTokenID = nativeESDT
 			},
 		},
 	})
