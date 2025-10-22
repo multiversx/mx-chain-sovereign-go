@@ -401,7 +401,7 @@ func createRegisterBridgeOpData(
 	operationHash []byte,
 ) string {
 	aggrSignature := createAggrSignature(t, bridgeData.RegisteredBLSKeys, hashOfHashes)
-	bitmap := (1 << numOfKeys) - 1
+	bitmap := (1 << len(bridgeData.RegisteredBLSKeys)) - 1
 
 	return registerBridgeOpsFunc +
 		"@" + hex.EncodeToString(aggrSignature) +
