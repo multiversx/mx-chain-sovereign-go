@@ -483,9 +483,6 @@ func GetGeneralConfig() config.Config {
 			OutGoingBridge: config.OutGoingBridge{
 				Hasher: "sha256",
 			},
-			GenesisConfig: config.GenesisConfig{
-				NativeESDT: "WEGLD-ab47da",
-			},
 			ExtendedShardHeaderStorage: config.StorageConfig{
 				Cache: config.CacheConfig{
 					Type:     "LRU",
