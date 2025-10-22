@@ -233,8 +233,8 @@ func testInvalidSignatureForRegisterOperation(
 // This test will:
 // - Generate wallets in different shards and issue one ESDT token
 // - For each wallet:
-//   - Deposit one main chain token
-//   - ExecuteBridgeOp the main chain token
+//   - call Deposit with one main chain token
+//   - call ExecuteBridgeOp with the main chain token
 //
 // NOTES:
 // - tokens are originated from main chain
