@@ -98,7 +98,3 @@
     [NotifierConfig.AddressPubKeyConverter]
         Length = 32
         Hrp = "erd"
-
-[GenesisConfig]
-    # NativeESDT specifies the sovereign shard's native esdt currency
-    NativeESDT = "WEGLD-a1b2c3"
