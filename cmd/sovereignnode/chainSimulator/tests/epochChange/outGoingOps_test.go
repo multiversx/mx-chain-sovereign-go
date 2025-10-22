@@ -41,13 +41,9 @@ func getBridgeDataFromPrevBlock(
 
 	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr[0].GetOutGoingOperationsHash())
 	require.True(t, len(bridgeData.OutGoingOperations) >= 1)
-	for _, outGoingOp := range bridgeData.OutGoingOperations {
-		if outGoingOp.Type == int32(mbType) {
-			require.NotEmpty(t, bridgeData.AggregatedSignature)
-			require.NotEmpty(t, bridgeData.LeaderSignature)
-			require.NotEmpty(t, bridgeData.PubKeysBitmap)
-		}
-	}
+	require.NotEmpty(t, bridgeData.AggregatedSignature)
+	require.NotEmpty(t, bridgeData.LeaderSignature)
+	require.NotEmpty(t, bridgeData.PubKeysBitmap)
 
 	return prevHdr.GetNonce(), bridgeData
 }

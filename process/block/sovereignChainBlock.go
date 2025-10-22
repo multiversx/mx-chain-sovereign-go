@@ -1288,7 +1288,7 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 	header *block.SovereignChainHeader,
 ) ([]byte, error) {
-	// TODO: MariusC, here, for multi chain we should iterate through all chains
+	// TODO: MariusC MX-17260 for multi chain we should iterate through all chains
 	receivedOutGoingMB := header.GetOutGoingMiniBlockHeaderHandlers()
 	if len(receivedOutGoingMB) == 0 {
 		return nil, fmt.Errorf("%w for %s in func computeReceivedOutGoingMBHeaderHash",
@@ -1738,7 +1738,6 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
-		//Type:                   mbType,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,
 	}

@@ -109,7 +109,8 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler,
 	cnsDta *consensus.Message,
 ) error {
-	mbType := block.OutGoingMBType(outGoingMBHeader.GetOutGoingMBTypeInt32()).String()
+	// TODO: Marius C. : MX-17260 Here AND everywhere else we should refactor extra sigs to be per chain
+	mbType := block.OutGoingMBType(outGoingMBHeader.GetChainID()).String()
 	extraSigData, found := cnsDta.ExtraSignatures[mbType]
 	if !found {
 		return fmt.Errorf("%w for type %s", bls.ErrExtraSigShareDataNotFound, mbType)
@@ -263,7 +264,7 @@ func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesAfterAndromeda
 
 	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
 	for idx, outGoingMBHdr := range outGoingMBHeaders {
-		mbType := block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()
+		mbType := block.OutGoingMBType(outGoingMBHdr.GetChainID()).String()
 		extraSigData, found := proof.GetExtraSignatureHandlers()[mbType]
 		if !found {
 			return nil, fmt.Errorf("%w for type %s in sovereignSubRoundEnd.getCurrentOperationsWithSignatures", bls.ErrExtraSigShareDataNotFound, mbType)

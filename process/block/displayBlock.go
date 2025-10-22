@@ -245,7 +245,7 @@ func (txc *transactionCounter) displayOutGoingTxData(
 		"Hash",
 		logger.DisplayByteSlice(outGoingMb.GetHash())}),
 	)
-	// TODO: Marius C: Here we should only output the chain id
+	// TODO: Marius C: MX-17260 Here we should output the chain id
 	//lines = append(lines, display.NewLineData(false, []string{
 	//	"",
 	//	"Type",
