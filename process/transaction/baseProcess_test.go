@@ -9,6 +9,10 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
@@ -20,9 +24,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func createMockBaseTxProcessor() *baseTxProcessor {
@@ -239,7 +240,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return false
 			},
 		}
@@ -253,7 +254,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return true
 			},
 		}
@@ -267,7 +268,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return false
 			},
 		}
@@ -280,7 +281,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return true
 			},
 		}
@@ -299,7 +300,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return true
 			},
 		}
@@ -318,7 +319,7 @@ func TestBaseTxProcessor_VerifyGuardian(t *testing.T) {
 
 		localBaseProc := baseProc
 		localBaseProc.txVersionChecker = &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *transaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return true
 			},
 		}

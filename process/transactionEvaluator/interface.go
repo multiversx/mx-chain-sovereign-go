@@ -1,15 +1,17 @@
 package transactionEvaluator
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/state"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
+
+	"github.com/multiversx/mx-chain-go/state"
 )
 
 // TransactionProcessor defines the operations needed to be done by a transaction processor
 type TransactionProcessor interface {
-	ProcessTransaction(transaction *transaction.Transaction) (vmcommon.ReturnCode, error)
+	ProcessTransaction(transaction data.TransactionHandler) (vmcommon.ReturnCode, error)
 	VerifyTransaction(transaction *transaction.Transaction) error
 	GetSenderAndReceiverAccounts(transaction *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
 	IsInterfaceNil() bool

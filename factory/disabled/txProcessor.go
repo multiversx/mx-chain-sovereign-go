@@ -1,6 +1,7 @@
 package disabled
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
@@ -12,7 +13,7 @@ type TxProcessor struct {
 }
 
 // ProcessTransaction does nothing as it is disabled
-func (txProc *TxProcessor) ProcessTransaction(_ *transaction.Transaction) (vmcommon.ReturnCode, error) {
+func (txProc *TxProcessor) ProcessTransaction(_ data.TransactionHandler) (vmcommon.ReturnCode, error) {
 	return 0, nil
 }
 
@@ -22,7 +23,7 @@ func (txProc *TxProcessor) VerifyTransaction(_ *transaction.Transaction) error {
 }
 
 // VerifyGuardian does nothing as it is disabled
-func (txProc *TxProcessor) VerifyGuardian(_ *transaction.Transaction, _ state.UserAccountHandler) error {
+func (txProc *TxProcessor) VerifyGuardian(_ data.TransactionHandler, _ state.UserAccountHandler) error {
 	return nil
 }
 

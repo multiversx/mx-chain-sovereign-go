@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 
@@ -153,7 +154,7 @@ func (tracker *noncesTracker) getThenIncrementNonce(address dtos.WalletAddress) 
 }
 
 func sendTransactions(t *testing.T, simulator testsChainSimulator.ChainSimulator, transactions []*transaction.Transaction) {
-	transactionsBySenderShard := make(map[int][]*transaction.Transaction)
+	transactionsBySenderShard := make(map[int][]data.TransactionHandler)
 	shardCoordinator := simulator.GetNodeHandler(0).GetShardCoordinator()
 
 	for _, tx := range transactions {

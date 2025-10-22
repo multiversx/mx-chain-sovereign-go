@@ -304,8 +304,8 @@ type NetworkComponentsHandler interface {
 
 // TransactionEvaluator defines the transaction evaluator actions
 type TransactionEvaluator interface {
-	SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
-	ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error)
+	SimulateTransactionExecution(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
+	ComputeTransactionGasLimit(tx data.TransactionHandler) (*transaction.CostResponse, error)
 	IsInterfaceNil() bool
 }
 

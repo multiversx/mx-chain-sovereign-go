@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -2736,46 +2737,46 @@ func (tpn *TestProcessorNode) initNode() {
 }
 
 // SendTransaction can send a transaction (it does the dispatching)
-func (tpn *TestProcessorNode) SendTransaction(tx *dataTransaction.Transaction) (string, error) {
-	encodedRcvAddr, err := TestAddressPubkeyConverter.Encode(tx.RcvAddr)
+func (tpn *TestProcessorNode) SendTransaction(tx data.TransactionHandler) (string, error) {
+	encodedRcvAddr, err := TestAddressPubkeyConverter.Encode(tx.GetRcvAddr())
 	if err != nil {
 		return "", err
 	}
 
-	encodedSndAddr, err := TestAddressPubkeyConverter.Encode(tx.SndAddr)
+	encodedSndAddr, err := TestAddressPubkeyConverter.Encode(tx.GetSndAddr())
 	if err != nil {
 		return "", err
 	}
 
 	guardianAddress := ""
-	if len(tx.GuardianAddr) == TestAddressPubkeyConverter.Len() {
-		guardianAddress = TestAddressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
+	if len(tx.GetGuardianAddr()) == TestAddressPubkeyConverter.Len() {
+		guardianAddress = TestAddressPubkeyConverter.SilentEncode(tx.GetGuardianAddr(), log)
 	}
 
 	relayerAddress := ""
-	if len(tx.RelayerAddr) == TestAddressPubkeyConverter.Len() {
-		relayerAddress = TestAddressPubkeyConverter.SilentEncode(tx.RelayerAddr, log)
+	if len(tx.GetRelayerAddr()) == TestAddressPubkeyConverter.Len() {
+		relayerAddress = TestAddressPubkeyConverter.SilentEncode(tx.GetRelayerAddr(), log)
 	}
-	createTxArgs := &external.ArgsCreateTransaction{
-		Nonce:               tx.Nonce,
-		Value:               tx.Value.String(),
-		Receiver:            encodedRcvAddr,
-		ReceiverUsername:    nil,
-		Sender:              encodedSndAddr,
-		SenderUsername:      nil,
-		GasPrice:            tx.GasPrice,
-		GasLimit:            tx.GasLimit,
-		DataField:           tx.Data,
-		SignatureHex:        hex.EncodeToString(tx.Signature),
-		ChainID:             string(tx.ChainID),
-		Version:             tx.Version,
-		Options:             tx.Options,
-		Guardian:            guardianAddress,
-		GuardianSigHex:      hex.EncodeToString(tx.GuardianSignature),
-		Relayer:             relayerAddress,
-		RelayerSignatureHex: hex.EncodeToString(tx.RelayerSignature),
+	createTxArgs := &dataTransaction.FrontendTransaction{
+		Nonce:             tx.GetNonce(),
+		Value:             tx.GetValue().String(),
+		Receiver:          encodedRcvAddr,
+		ReceiverUsername:  nil,
+		Sender:            encodedSndAddr,
+		SenderUsername:    nil,
+		GasPrice:          tx.GetGasPrice(),
+		GasLimit:          tx.GetGasLimit(),
+		Data:              tx.GetData(),
+		Signature:         hex.EncodeToString(tx.GetSignature()),
+		ChainID:           string(tx.GetChainID()),
+		Version:           tx.GetVersion(),
+		Options:           tx.GetOptions(),
+		GuardianAddr:      guardianAddress,
+		GuardianSignature: hex.EncodeToString(tx.GetGuardianSignature()),
+		RelayerAddr:       relayerAddress,
+		RelayerSignature:  hex.EncodeToString(tx.GetRelayerSignature()),
 	}
-	tx, txHash, err := tpn.Node.CreateTransaction(createTxArgs)
+	tx, txHash, err := tpn.Node.CreateTransaction(txToMap(createTxArgs))
 	if err != nil {
 		return "", err
 	}
@@ -2785,12 +2786,21 @@ func (tpn *TestProcessorNode) SendTransaction(tx *dataTransaction.Transaction) (
 		return "", err
 	}
 
-	_, err = tpn.Node.SendBulkTransactions([]*dataTransaction.Transaction{tx})
+	_, err = tpn.Node.SendBulkTransactions([]data.TransactionHandler{tx})
 	if err != nil {
 		return "", err
 	}
 
 	return hex.EncodeToString(txHash), err
+}
+
+func txToMap(tx *dataTransaction.FrontendTransaction) map[string]interface{} {
+	jsonBytes, _ := json.Marshal(tx)
+
+	var result map[string]interface{}
+	_ = json.Unmarshal(jsonBytes, &result)
+
+	return result
 }
 
 func (tpn *TestProcessorNode) addHandlersForCounters() {

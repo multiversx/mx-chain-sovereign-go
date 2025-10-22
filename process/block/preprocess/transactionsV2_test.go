@@ -763,7 +763,7 @@ func TestTransactions_CreateAndProcessMiniBlocksFromMeV2MissingTrieNode(t *testi
 	missingNodeErr := fmt.Errorf(core.GetNodeFromDBErrorString)
 	preprocessor := createTransactionPreprocessor()
 	preprocessor.txProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return vmcommon.ExecutionFailed, missingNodeErr
 		},
 	}
@@ -814,7 +814,7 @@ func TestTransactions_ProcessTransactionShouldWork(t *testing.T) {
 	var processTransactionErr error
 	preprocessor := createTransactionPreprocessor()
 	preprocessor.txProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return vmcommon.UserError, processTransactionErr
 		},
 	}

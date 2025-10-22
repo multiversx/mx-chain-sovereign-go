@@ -546,7 +546,7 @@ func createPreProcessorContainer() process.PreProcessorsContainer {
 		Accounts:         &stateMock.AccountsStub{},
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, nil
 			},
 		},
@@ -606,7 +606,7 @@ func createPreProcessorContainerWithDataPool(
 		Accounts:         accounts,
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, nil
 			},
 		},
@@ -907,7 +907,7 @@ func TestTransactionCoordinator_CreateMbsAndProcessCrossShardTransactions(t *tes
 		Accounts:         &stateMock.AccountsStub{},
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, nil
 			},
 		},
@@ -1219,7 +1219,7 @@ func TestTransactionCoordinator_CreateMbsAndProcessTransactionsFromMeNothingToPr
 		Accounts:        &stateMock.AccountsStub{},
 		RequestHandler:  &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, nil
 			},
 		},
@@ -1797,7 +1797,7 @@ func TestTransactionCoordinator_ProcessBlockTransactionProcessTxError(t *testing
 		Accounts:         accounts,
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, process.ErrHigherNonceInTransaction
 			},
 		},
@@ -1935,7 +1935,7 @@ func TestTransactionCoordinator_RequestMiniblocks(t *testing.T) {
 		Accounts:         accounts,
 		RequestHandler:   requestHandler,
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, nil
 			},
 		},
@@ -2053,16 +2053,16 @@ func TestShardProcessor_ProcessMiniBlockCompleteWithOkTxsShouldExecuteThemAndNot
 		Accounts:         accounts,
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				// execution, in this context, means moving the tx nonce to itx corresponding execution result variable
-				if bytes.Equal(transaction.Data, txHash1) {
-					tx1ExecutionResult = transaction.Nonce
+				if bytes.Equal(transaction.GetData(), txHash1) {
+					tx1ExecutionResult = transaction.GetNonce()
 				}
-				if bytes.Equal(transaction.Data, txHash2) {
-					tx2ExecutionResult = transaction.Nonce
+				if bytes.Equal(transaction.GetData(), txHash2) {
+					tx2ExecutionResult = transaction.GetNonce()
 				}
-				if bytes.Equal(transaction.Data, txHash3) {
-					tx3ExecutionResult = transaction.Nonce
+				if bytes.Equal(transaction.GetData(), txHash3) {
+					tx3ExecutionResult = transaction.GetNonce()
 				}
 
 				return 0, nil
@@ -2203,8 +2203,8 @@ func TestShardProcessor_ProcessMiniBlockCompleteWithErrorWhileProcessShouldCallR
 		Accounts:         accounts,
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
-				if bytes.Equal(transaction.Data, txHash2) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
+				if bytes.Equal(transaction.GetData(), txHash2) {
 					return 0, process.ErrHigherNonceInTransaction
 				}
 				return 0, nil

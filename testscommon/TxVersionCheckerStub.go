@@ -1,13 +1,14 @@
 package testscommon
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 // TxVersionCheckerStub -
 type TxVersionCheckerStub struct {
 	IsSignedWithHashCalled     func(tx *transaction.Transaction) bool
-	IsGuardedTransactionCalled func(tx *transaction.Transaction) bool
+	IsGuardedTransactionCalled func(tx data.TransactionHandler) bool
 	CheckTxVersionCalled       func(tx *transaction.Transaction) error
 }
 
@@ -20,7 +21,7 @@ func (tvcs *TxVersionCheckerStub) IsSignedWithHash(tx *transaction.Transaction) 
 }
 
 // IsGuardedTransaction will return true if transaction also holds a guardian signature
-func (tvcs *TxVersionCheckerStub) IsGuardedTransaction(tx *transaction.Transaction) bool {
+func (tvcs *TxVersionCheckerStub) IsGuardedTransaction(tx data.TransactionHandler) bool {
 	if tvcs.IsGuardedTransactionCalled != nil {
 		return tvcs.IsGuardedTransactionCalled(tx)
 	}

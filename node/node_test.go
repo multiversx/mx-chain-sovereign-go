@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -45,7 +46,6 @@ import (
 	heartbeatData "github.com/multiversx/mx-chain-go/heartbeat/data"
 	integrationTestsMock "github.com/multiversx/mx-chain-go/integrationTests/mock"
 	"github.com/multiversx/mx-chain-go/node"
-	"github.com/multiversx/mx-chain-go/node/external"
 	"github.com/multiversx/mx-chain-go/node/mock"
 	nodeMockFactory "github.com/multiversx/mx-chain-go/node/mock/factory"
 	"github.com/multiversx/mx-chain-go/process"
@@ -2119,23 +2119,23 @@ func TestGenerateTransaction_CorrectParamsShouldNotError(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func getDefaultTransactionArgs() *external.ArgsCreateTransaction {
-	return &external.ArgsCreateTransaction{
-		Nonce:            uint64(0),
-		Value:            new(big.Int).SetInt64(10).String(),
-		Receiver:         "rcv",
-		ReceiverUsername: []byte("rcvrUsername"),
-		Sender:           "snd",
-		SenderUsername:   []byte("sndrUsername"),
-		GasPrice:         uint64(10),
-		GasLimit:         uint64(20),
-		DataField:        []byte("-"),
-		SignatureHex:     hex.EncodeToString(bytes.Repeat([]byte{0}, 10)),
-		ChainID:          "chainID",
-		Version:          1,
-		Options:          0,
-		Guardian:         "",
-		GuardianSigHex:   "",
+func getDefaultTransactionArgs() *transaction.FrontendTransaction {
+	return &transaction.FrontendTransaction{
+		Nonce:             uint64(0),
+		Value:             new(big.Int).SetInt64(10).String(),
+		Receiver:          "rcv",
+		ReceiverUsername:  []byte("rcvrUsername"),
+		Sender:            "snd",
+		SenderUsername:    []byte("sndrUsername"),
+		GasPrice:          uint64(10),
+		GasLimit:          uint64(20),
+		Data:              []byte("-"),
+		Signature:         hex.EncodeToString(bytes.Repeat([]byte{0}, 10)),
+		ChainID:           "chainID",
+		Version:           1,
+		Options:           0,
+		GuardianAddr:      "",
+		GuardianSignature: "",
 	}
 }
 
@@ -2162,6 +2162,15 @@ func TestCreateTransaction_NilArgsShouldErr(t *testing.T) {
 	assert.Equal(t, node.ErrNilCreateTransactionArgs, err)
 }
 
+func txToMap(tx *transaction.FrontendTransaction) map[string]interface{} {
+	jsonBytes, _ := json.Marshal(tx)
+
+	var result map[string]interface{}
+	_ = json.Unmarshal(jsonBytes, &result)
+
+	return result
+}
+
 func TestCreateTransaction_NilAddrConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -2180,7 +2189,7 @@ func TestCreateTransaction_NilAddrConverterShouldErr(t *testing.T) {
 
 	coreComponents.AddrPubKeyConv = nil
 	txArgs := getDefaultTransactionArgs()
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.Nil(t, tx)
 	assert.Nil(t, txHash)
@@ -2212,7 +2221,7 @@ func TestCreateTransaction_NilAccountsAdapterShouldErr(t *testing.T) {
 	stateComponents.AccountsAPI = nil
 
 	txArgs := getDefaultTransactionArgs()
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.Nil(t, tx)
 	assert.Nil(t, txHash)
@@ -2241,8 +2250,8 @@ func TestCreateTransaction_InvalidSignatureShouldErr(t *testing.T) {
 	)
 
 	txArgs := getDefaultTransactionArgs()
-	txArgs.SignatureHex = "-"
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	txArgs.Signature = "-"
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.Nil(t, tx)
 	assert.Nil(t, txHash)
@@ -2287,26 +2296,26 @@ func TestCreateTransaction_ChainIDFieldChecks(t *testing.T) {
 	signature := hex.EncodeToString([]byte(strings.Repeat("s", 10)))
 	emptyChainID := ""
 	txArgs := getDefaultTransactionArgs()
-	txArgs.SignatureHex = signature
+	txArgs.Signature = signature
 	txArgs.ChainID = emptyChainID
-	_, _, err := n.CreateTransaction(txArgs)
+	_, _, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Equal(t, node.ErrInvalidChainIDInTransaction, err)
 
 	for i := 1; i < len(chainID); i++ {
 		newChainID := strings.Repeat("c", i)
 		txArgs = getDefaultTransactionArgs()
-		txArgs.SignatureHex = signature
+		txArgs.Signature = signature
 		txArgs.ChainID = newChainID
-		_, _, err = n.CreateTransaction(txArgs)
+		_, _, err = n.CreateTransaction(txToMap(txArgs))
 		assert.NoError(t, err)
 	}
 
 	newChainID := chainID + "additional text"
 	txArgs = getDefaultTransactionArgs()
-	txArgs.SignatureHex = signature
+	txArgs.Signature = signature
 	txArgs.ChainID = newChainID
 
-	_, _, err = n.CreateTransaction(txArgs)
+	_, _, err = n.CreateTransaction(txToMap(txArgs))
 	assert.Equal(t, node.ErrInvalidChainIDInTransaction, err)
 }
 
@@ -2345,9 +2354,9 @@ func TestCreateTransaction_InvalidTxVersionShouldErr(t *testing.T) {
 	txArgs := getDefaultTransactionArgs()
 	txArgs.Version = 0
 	txArgs.ChainID = ""
-	txArgs.SignatureHex = "617eff4f"
+	txArgs.Signature = "617eff4f"
 
-	_, _, err := n.CreateTransaction(txArgs)
+	_, _, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Equal(t, node.ErrInvalidTransactionVersion, err)
 }
 
@@ -2426,14 +2435,14 @@ func TestCreateTransaction_SenderShardIdIsInDifferentShardShouldNotValidate(t *t
 	txArgs.Value = value.String()
 	txArgs.Receiver = receiver
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.NotNil(t, tx)
 	assert.Equal(t, expectedHash, txHash)
 	assert.Nil(t, err)
-	assert.Equal(t, nonce, tx.Nonce)
-	assert.Equal(t, value, tx.Value)
-	assert.True(t, bytes.Equal([]byte(receiver), tx.RcvAddr))
+	assert.Equal(t, nonce, tx.GetNonce())
+	assert.Equal(t, value, tx.GetValue())
+	assert.True(t, bytes.Equal([]byte(receiver), tx.GetRcvAddr()))
 
 	err = n.ValidateTransaction(tx)
 	assert.True(t, errors.Is(err, node.ErrDifferentSenderShardId))
@@ -2489,18 +2498,18 @@ func TestCreateTransaction_SignatureLengthChecks(t *testing.T) {
 		signatureBytes := []byte(strings.Repeat("a", i))
 		signatureHex := hex.EncodeToString(signatureBytes)
 
-		txArgs.SignatureHex = signatureHex
+		txArgs.Signature = signatureHex
 
-		tx, _, err := n.CreateTransaction(txArgs)
+		tx, _, err := n.CreateTransaction(txToMap(txArgs))
 		assert.NotNil(t, tx)
 		assert.NoError(t, err)
-		assert.Equal(t, signatureBytes, tx.Signature)
+		assert.Equal(t, signatureBytes, tx.GetSignature())
 	}
 
 	signature := hex.EncodeToString([]byte(strings.Repeat("a", signatureLength+1)))
-	txArgs.SignatureHex = signature
+	txArgs.Signature = signature
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Equal(t, node.ErrInvalidSignatureLength, err)
@@ -2554,13 +2563,13 @@ func TestCreateTransaction_SenderLengthChecks(t *testing.T) {
 	for i := 0; i <= encodedAddressLen; i++ {
 		txArgs.Sender = strings.Repeat("s", i)
 
-		_, _, err := n.CreateTransaction(txArgs)
+		_, _, err := n.CreateTransaction(txToMap(txArgs))
 		assert.NoError(t, err)
 	}
 
 	txArgs.Sender = strings.Repeat("s", encodedAddressLen) + "additional"
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2615,13 +2624,13 @@ func TestCreateTransaction_ReceiverLengthChecks(t *testing.T) {
 	for i := 0; i <= encodedAddressLen; i++ {
 		txArgs.Receiver = strings.Repeat("r", i)
 
-		_, _, err := n.CreateTransaction(txArgs)
+		_, _, err := n.CreateTransaction(txToMap(txArgs))
 		assert.NoError(t, err)
 	}
 
 	txArgs.Receiver = strings.Repeat("r", encodedAddressLen) + "additional"
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2674,7 +2683,7 @@ func TestCreateTransaction_TooBigSenderUsernameShouldErr(t *testing.T) {
 	txArgs.ChainID = chainID
 	txArgs.SenderUsername = bytes.Repeat([]byte{0}, core.MaxUserNameLength+1)
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2727,7 +2736,7 @@ func TestCreateTransaction_TooBigReceiverUsernameShouldErr(t *testing.T) {
 	txArgs.ReceiverUsername = bytes.Repeat([]byte{0}, core.MaxUserNameLength+1)
 	txArgs.Value = "1" + strings.Repeat("0", maxLength+1)
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2777,10 +2786,10 @@ func TestCreateTransaction_DataFieldSizeExceedsMaxShouldErr(t *testing.T) {
 
 	txArgs := getDefaultTransactionArgs()
 	txArgs.ChainID = chainID
-	txArgs.DataField = bytes.Repeat([]byte{0}, core.MegabyteSize+1)
+	txArgs.Data = bytes.Repeat([]byte{0}, core.MegabyteSize+1)
 	txArgs.Value = "1" + strings.Repeat("0", maxLength+1)
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2832,7 +2841,7 @@ func TestCreateTransaction_TooLargeValueFieldShouldErr(t *testing.T) {
 	txArgs.ChainID = chainID
 	txArgs.Value = "1" + strings.Repeat("0", maxLength+1)
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.Nil(t, tx)
 	assert.Empty(t, txHash)
 	assert.Error(t, err)
@@ -2862,10 +2871,10 @@ func TestCreateTransaction_InvalidGuardianSigShouldErr(t *testing.T) {
 	)
 
 	txArgs := getDefaultTransactionArgs()
-	txArgs.SignatureHex = hex.EncodeToString(bytes.Repeat([]byte{0}, 1))
-	txArgs.GuardianSigHex = hex.EncodeToString(bytes.Repeat([]byte{0}, 32))
+	txArgs.Signature = hex.EncodeToString(bytes.Repeat([]byte{0}, 1))
+	txArgs.GuardianSignature = hex.EncodeToString(bytes.Repeat([]byte{0}, 32))
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.Nil(t, tx)
 	assert.Nil(t, txHash)
@@ -2901,11 +2910,11 @@ func TestCreateTransaction_InvalidGuardianAddressLenShouldErr(t *testing.T) {
 	)
 
 	txArgs := getDefaultTransactionArgs()
-	txArgs.SignatureHex = hex.EncodeToString(bytes.Repeat([]byte{0}, 8))
-	txArgs.GuardianSigHex = hex.EncodeToString(bytes.Repeat([]byte{0}, 8))
-	txArgs.Guardian = strings.Repeat("g", encodedAddressLen) + "additional"
+	txArgs.Signature = hex.EncodeToString(bytes.Repeat([]byte{0}, 8))
+	txArgs.GuardianSignature = hex.EncodeToString(bytes.Repeat([]byte{0}, 8))
+	txArgs.GuardianAddr = strings.Repeat("g", encodedAddressLen) + "additional"
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 	assert.Nil(t, tx)
 	assert.Nil(t, txHash)
@@ -2953,10 +2962,10 @@ func TestCreateTransaction_AddressPubKeyConverterDecode(t *testing.T) {
 		)
 
 		txArgs := getDefaultTransactionArgs()
-		txArgs.Guardian = guardian
-		txArgs.GuardianSigHex = guardianSig
+		txArgs.GuardianAddr = guardian
+		txArgs.GuardianSignature = guardianSig
 
-		tx, txHash, err := n.CreateTransaction(txArgs)
+		tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 		assert.Nil(t, tx)
 		assert.Nil(t, txHash)
@@ -2984,11 +2993,11 @@ func TestCreateTransaction_AddressPubKeyConverterDecode(t *testing.T) {
 		)
 
 		txArgs := getDefaultTransactionArgs()
-		txArgs.Guardian = guardian
-		txArgs.GuardianSigHex = guardianSig
+		txArgs.GuardianAddr = guardian
+		txArgs.GuardianSignature = guardianSig
 		txArgs.Receiver = strings.Repeat("r", minAddrLen+1)
 
-		tx, txHash, err := n.CreateTransaction(txArgs)
+		tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 
 		assert.Nil(t, tx)
 		assert.Nil(t, txHash)
@@ -3063,13 +3072,13 @@ func TestCreateTransaction_OkValsShouldWork(t *testing.T) {
 	txArgs.ChainID = coreComponents.ChainID()
 	txArgs.Version = coreComponents.MinTransactionVersion()
 
-	tx, txHash, err := n.CreateTransaction(txArgs)
+	tx, txHash, err := n.CreateTransaction(txToMap(txArgs))
 	assert.NotNil(t, tx)
 	assert.Equal(t, expectedHash, txHash)
 	assert.Nil(t, err)
-	assert.Equal(t, nonce, tx.Nonce)
-	assert.Equal(t, value, tx.Value)
-	assert.True(t, bytes.Equal([]byte(receiver), tx.RcvAddr))
+	assert.Equal(t, nonce, tx.GetNonce())
+	assert.Equal(t, value, tx.GetValue())
+	assert.True(t, bytes.Equal([]byte(receiver), tx.GetRcvAddr()))
 
 	err = n.ValidateTransaction(tx)
 	assert.Nil(t, err)
@@ -3160,7 +3169,7 @@ func TestCreateTransaction_TxSignedWithHashShouldErrVersionShoudBe2(t *testing.T
 	txArgs.Version = version
 	txArgs.Options = options
 
-	tx, _, err := n.CreateTransaction(txArgs)
+	tx, _, err := n.CreateTransaction(txToMap(txArgs))
 	require.Nil(t, err)
 	err = n.ValidateTransaction(tx)
 	assert.Equal(t, process.ErrInvalidTransactionVersion, err)
@@ -3258,7 +3267,7 @@ func TestCreateTransaction_TxSignedWithHashNoEnabledShouldErr(t *testing.T) {
 	txArgs.Version = version + 1
 	txArgs.Options = options
 
-	tx, _, _ := n.CreateTransaction(txArgs)
+	tx, _, _ := n.CreateTransaction(txToMap(txArgs))
 
 	err := n.ValidateTransaction(tx)
 	assert.Equal(t, process.ErrTransactionSignedWithHashIsNotEnabled, err)
@@ -4862,9 +4871,9 @@ func TestNode_SendBulkTransactions(t *testing.T) {
 	expectedNoOfTxs := uint64(444)
 	tx1 := &transaction.Transaction{Nonce: 123}
 	tx2 := &transaction.Transaction{Nonce: 321}
-	expectedTxs := []*transaction.Transaction{tx1, tx2}
+	expectedTxs := []data.TransactionHandler{tx1, tx2}
 	txsSender := &txsSenderMock.TxsSenderHandlerMock{
-		SendBulkTransactionsCalled: func(txs []*transaction.Transaction) (uint64, error) {
+		SendBulkTransactionsCalled: func(txs []data.TransactionHandler) (uint64, error) {
 			flag.SetValue(true)
 			require.Equal(t, expectedTxs, txs)
 			return expectedNoOfTxs, nil

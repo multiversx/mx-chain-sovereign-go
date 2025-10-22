@@ -12,6 +12,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
@@ -19,8 +22,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/require"
 )
 
 func createArgs() ArgsApiTransactionEvaluator {
@@ -127,7 +128,7 @@ func TestComputeTransactionGasLimit_MoveBalance(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return &txSimData.SimulationResultsWithVMOutput{}, nil
 		},
 	}
@@ -166,7 +167,7 @@ func TestComputeTransactionGasLimit_MoveBalanceInvalidNonceShouldStillComputeCos
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return nil, simulationErr
 		},
 	}
@@ -197,7 +198,7 @@ func TestComputeTransactionGasLimit_BuiltInFunction(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return &txSimData.SimulationResultsWithVMOutput{
 				VMOutput: &vmcommon.VMOutput{
 					ReturnCode:   vmcommon.Ok,
@@ -233,7 +234,7 @@ func TestComputeTransactionGasLimit_BuiltInFunctionShouldErr(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return nil, localErr
 		},
 	}
@@ -263,7 +264,7 @@ func TestComputeTransactionGasLimit_NilVMOutput(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return &txSimData.SimulationResultsWithVMOutput{}, nil
 		},
 	}
@@ -294,7 +295,7 @@ func TestComputeTransactionGasLimit_RetCodeNotOk(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(tx *transaction.Transaction, _ data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(tx data.TransactionHandler, _ data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			return &txSimData.SimulationResultsWithVMOutput{
 				VMOutput: &vmcommon.VMOutput{
 					ReturnCode: vmcommon.UserError,
@@ -359,7 +360,7 @@ func TestApiTransactionEvaluator_SimulateTransactionExecution(t *testing.T) {
 	_ = args.BlockChain.SetCurrentBlockHeaderAndRootHash(&block.Header{Nonce: expectedNonce}, []byte("test"))
 
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(_ *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(_ data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			called = true
 			require.Equal(t, expectedNonce, currentHeader.GetNonce())
 			return nil, nil
@@ -391,7 +392,7 @@ func TestApiTransactionEvaluator_ComputeTransactionGasLimit(t *testing.T) {
 		},
 	}
 	args.TxSimulator = &mock.TransactionSimulatorStub{
-		ProcessTxCalled: func(_ *transaction.Transaction, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
+		ProcessTxCalled: func(_ data.TransactionHandler, currentHeader data.HeaderHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 			called = true
 			require.Equal(t, expectedNonce, currentHeader.GetNonce())
 			return &txSimData.SimulationResultsWithVMOutput{}, nil

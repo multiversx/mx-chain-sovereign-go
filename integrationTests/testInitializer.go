@@ -2676,7 +2676,7 @@ func AddSelfNotarizedHeaderByMetachain(nodes []*TestProcessorNode) {
 }
 
 // WhiteListTxs -
-func WhiteListTxs(nodes []*TestProcessorNode, txs []*transaction.Transaction) {
+func WhiteListTxs(nodes []*TestProcessorNode, txs []data.TransactionHandler) {
 	txHashes := make([][]byte, 0)
 	for _, tx := range txs {
 		txHash, err := core.CalculateHash(TestMarshalizer, TestHasher, tx)
@@ -2689,8 +2689,8 @@ func WhiteListTxs(nodes []*TestProcessorNode, txs []*transaction.Transaction) {
 
 	for _, n := range nodes {
 		for index, txHash := range txHashes {
-			senderShardID := n.ShardCoordinator.ComputeId(txs[index].SndAddr)
-			receiverShardID := n.ShardCoordinator.ComputeId(txs[index].RcvAddr)
+			senderShardID := n.ShardCoordinator.ComputeId(txs[index].GetSndAddr())
+			receiverShardID := n.ShardCoordinator.ComputeId(txs[index].GetRcvAddr())
 			if senderShardID == n.ShardCoordinator.SelfId() ||
 				receiverShardID == n.ShardCoordinator.SelfId() {
 				n.WhiteListHandler.Add([][]byte{txHash})

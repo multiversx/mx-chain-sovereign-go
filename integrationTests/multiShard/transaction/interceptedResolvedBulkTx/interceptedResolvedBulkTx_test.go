@@ -8,13 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-crypto-go"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/sharding"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestNode_InterceptorBulkTxsSentFromSameShardShouldRemainInSenderShard tests what happens when
@@ -266,7 +267,7 @@ func TestNode_InterceptorBulkTxsSentFromOtherShardShouldBeRoutedInSenderShardAnd
 	senderPrivateKeys := []crypto.PrivateKey{nodes[idxSender].OwnAccount.SkTxSign}
 	integrationTests.CreateMintingForSenders(nodes, shardId, senderPrivateKeys, mintingValue)
 
-	whiteListTxs := func(txs []*transaction.Transaction) {
+	whiteListTxs := func(txs []data.TransactionHandler) {
 		integrationTests.WhiteListTxs(nodes, txs)
 	}
 

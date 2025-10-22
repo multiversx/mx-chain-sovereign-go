@@ -13,17 +13,18 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataTx "github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	apiErrors "github.com/multiversx/mx-chain-go/api/errors"
 	"github.com/multiversx/mx-chain-go/api/groups"
 	"github.com/multiversx/mx-chain-go/api/mock"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/node/external"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewTransactionGroup(t *testing.T) {
@@ -245,10 +246,10 @@ func TestTransactionGroup_sendTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, expectedErr
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				require.Fail(t, "should have not been called")
 				return nil
 			},
@@ -267,13 +268,13 @@ func TestTransactionGroup_sendTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return expectedErr
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (u uint64, err error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (u uint64, err error) {
 				require.Fail(t, "should have not been called")
 				return 0, nil
 			},
@@ -292,13 +293,13 @@ func TestTransactionGroup_sendTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (u uint64, err error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (u uint64, err error) {
 				return 0, expectedErr
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return nil
 			},
 		}
@@ -316,14 +317,14 @@ func TestTransactionGroup_sendTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				txHash, _ := hex.DecodeString(hexTxHash)
 				return nil, txHash, nil
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (u uint64, err error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (u uint64, err error) {
 				return 1, nil
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return nil
 			},
 		}
@@ -421,14 +422,14 @@ func TestTransactionGroup_sendMultipleTransactions(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, expectedErr
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				require.Fail(t, "should not have been called")
 				return nil
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (uint64, error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (uint64, error) {
 				require.Zero(t, len(txs))
 				return 0, expectedErr
 			},
@@ -447,13 +448,13 @@ func TestTransactionGroup_sendMultipleTransactions(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return expectedErr
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (uint64, error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (uint64, error) {
 				require.Zero(t, len(txs))
 				return 0, expectedErr
 			},
@@ -472,13 +473,13 @@ func TestTransactionGroup_sendMultipleTransactions(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return nil
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (uint64, error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (uint64, error) {
 				require.Equal(t, 1, len(txs))
 				return 0, expectedErr
 			},
@@ -500,15 +501,15 @@ func TestTransactionGroup_sendMultipleTransactions(t *testing.T) {
 		sendBulkTxsWasCalled := false
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				createTxWasCalled = true
 				return &dataTx.Transaction{}, make([]byte, 0), nil
 			},
-			SendBulkTransactionsHandler: func(txs []*dataTx.Transaction) (u uint64, e error) {
+			SendBulkTransactionsHandler: func(txs []coreData.TransactionHandler) (u uint64, e error) {
 				sendBulkTxsWasCalled = true
 				return 0, nil
 			},
-			ValidateTransactionHandler: func(tx *dataTx.Transaction) error {
+			ValidateTransactionHandler: func(tx coreData.TransactionHandler) error {
 				return nil
 			},
 		}
@@ -551,10 +552,10 @@ func TestTransactionGroup_computeTransactionGasLimit(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, expectedErr
 			},
-			ComputeTransactionGasLimitHandler: func(tx *dataTx.Transaction) (*dataTx.CostResponse, error) {
+			ComputeTransactionGasLimitHandler: func(tx coreData.TransactionHandler) (*dataTx.CostResponse, error) {
 				require.Fail(t, "should not have been called")
 				return nil, nil
 			},
@@ -573,10 +574,10 @@ func TestTransactionGroup_computeTransactionGasLimit(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ComputeTransactionGasLimitHandler: func(tx *dataTx.Transaction) (*dataTx.CostResponse, error) {
+			ComputeTransactionGasLimitHandler: func(tx coreData.TransactionHandler) (*dataTx.CostResponse, error) {
 				return nil, expectedErr
 			},
 		}
@@ -596,10 +597,10 @@ func TestTransactionGroup_computeTransactionGasLimit(t *testing.T) {
 		expectedGasLimit := uint64(37)
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return &dataTx.Transaction{}, nil, nil
 			},
-			ComputeTransactionGasLimitHandler: func(tx *dataTx.Transaction) (*dataTx.CostResponse, error) {
+			ComputeTransactionGasLimitHandler: func(tx coreData.TransactionHandler) (*dataTx.CostResponse, error) {
 				return &dataTx.CostResponse{
 					GasUnits:      expectedGasLimit,
 					ReturnMessage: "",
@@ -643,10 +644,10 @@ func TestTransactionGroup_simulateTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, expectedErr
 			},
-			ValidateTransactionForSimulationHandler: func(tx *dataTx.Transaction, bypassSignature bool) error {
+			ValidateTransactionForSimulationHandler: func(tx coreData.TransactionHandler, bypassSignature bool) error {
 				require.Fail(t, "should have not been called")
 				return nil
 			},
@@ -665,13 +666,13 @@ func TestTransactionGroup_simulateTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ValidateTransactionForSimulationHandler: func(tx *dataTx.Transaction, bypassSignature bool) error {
+			ValidateTransactionForSimulationHandler: func(tx coreData.TransactionHandler, bypassSignature bool) error {
 				return expectedErr
 			},
-			SimulateTransactionExecutionHandler: func(tx *dataTx.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+			SimulateTransactionExecutionHandler: func(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 				require.Fail(t, "should have not been called")
 				return nil, nil
 			},
@@ -690,13 +691,13 @@ func TestTransactionGroup_simulateTransaction(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return nil, nil, nil
 			},
-			ValidateTransactionForSimulationHandler: func(tx *dataTx.Transaction, bypassSignature bool) error {
+			ValidateTransactionForSimulationHandler: func(tx coreData.TransactionHandler, bypassSignature bool) error {
 				return nil
 			},
-			SimulateTransactionExecutionHandler: func(tx *dataTx.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+			SimulateTransactionExecutionHandler: func(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 				return nil, expectedErr
 			},
 		}
@@ -716,7 +717,7 @@ func TestTransactionGroup_simulateTransaction(t *testing.T) {
 		processTxWasCalled := false
 
 		facade := &mock.FacadeStub{
-			SimulateTransactionExecutionHandler: func(tx *dataTx.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+			SimulateTransactionExecutionHandler: func(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 				processTxWasCalled = true
 				return &txSimData.SimulationResultsWithVMOutput{
 					SimulationResults: dataTx.SimulationResults{
@@ -728,10 +729,10 @@ func TestTransactionGroup_simulateTransaction(t *testing.T) {
 					},
 				}, nil
 			},
-			CreateTransactionHandler: func(txArgs *external.ArgsCreateTransaction) (*dataTx.Transaction, []byte, error) {
+			CreateTransactionHandler: func(_ map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 				return &dataTx.Transaction{}, []byte("hash"), nil
 			},
-			ValidateTransactionForSimulationHandler: func(tx *dataTx.Transaction, bypassSignature bool) error {
+			ValidateTransactionForSimulationHandler: func(tx coreData.TransactionHandler, bypassSignature bool) error {
 				return nil
 			},
 		}

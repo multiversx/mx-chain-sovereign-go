@@ -5,14 +5,15 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 var _ process.TransactionProcessor = (*metaTxProcessor)(nil)
@@ -100,12 +101,12 @@ func NewMetaTxProcessor(args ArgsNewMetaTxProcessor) (*metaTxProcessor, error) {
 }
 
 // ProcessTransaction modifies the account states in respect with the transaction data
-func (txProc *metaTxProcessor) ProcessTransaction(tx *transaction.Transaction) (vmcommon.ReturnCode, error) {
+func (txProc *metaTxProcessor) ProcessTransaction(tx data.TransactionHandler) (vmcommon.ReturnCode, error) {
 	if check.IfNil(tx) {
 		return 0, process.ErrNilTransaction
 	}
 
-	acntSnd, acntDst, err := txProc.getAccounts(tx.SndAddr, tx.RcvAddr)
+	acntSnd, acntDst, err := txProc.getAccounts(tx.GetSndAddr(), tx.GetRcvAddr())
 	if err != nil {
 		return 0, err
 	}
@@ -138,12 +139,12 @@ func (txProc *metaTxProcessor) ProcessTransaction(tx *transaction.Transaction) (
 	txType, _, _ := txProc.txTypeHandler.ComputeTransactionType(tx)
 	switch txType {
 	case process.SCDeployment:
-		return txProc.processSCDeployment(tx, tx.SndAddr)
+		return txProc.processSCDeployment(tx, tx.GetSndAddr())
 	case process.SCInvoking:
-		return txProc.processSCInvoking(tx, tx.SndAddr, tx.RcvAddr)
+		return txProc.processSCInvoking(tx, tx.GetSndAddr(), tx.GetRcvAddr())
 	case process.BuiltInFunctionCall:
 		if txProc.enableEpochsHandler.IsFlagEnabled(common.ESDTFlag) {
-			return txProc.processSCInvoking(tx, tx.SndAddr, tx.RcvAddr)
+			return txProc.processSCInvoking(tx, tx.GetSndAddr(), tx.GetRcvAddr())
 		}
 	}
 
@@ -157,7 +158,7 @@ func (txProc *metaTxProcessor) ProcessTransaction(tx *transaction.Transaction) (
 }
 
 func (txProc *metaTxProcessor) processSCDeployment(
-	tx *transaction.Transaction,
+	tx data.TransactionHandler,
 	adrSrc []byte,
 ) (vmcommon.ReturnCode, error) {
 	// getAccounts returns acntSrc not nil if the adrSrc is in the node shard, the same, acntDst will be not nil
@@ -171,7 +172,7 @@ func (txProc *metaTxProcessor) processSCDeployment(
 }
 
 func (txProc *metaTxProcessor) processSCInvoking(
-	tx *transaction.Transaction,
+	tx data.TransactionHandler,
 	adrSrc, adrDst []byte,
 ) (vmcommon.ReturnCode, error) {
 	// getAccounts returns acntSrc not nil if the adrSrc is in the node shard, the same, acntDst will be not nil

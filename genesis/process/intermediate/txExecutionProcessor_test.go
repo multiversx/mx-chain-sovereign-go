@@ -7,7 +7,10 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/multiversx/mx-chain-go/genesis"
 	"github.com/multiversx/mx-chain-go/genesis/mock"
 	"github.com/multiversx/mx-chain-go/genesis/process/intermediate"
@@ -15,8 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/assert"
 )
 
 var expectedErr = errors.New("expected error")
@@ -61,9 +62,9 @@ func TestTxExecutionProcessor_ExecuteTransaction(t *testing.T) {
 
 	tep, _ := intermediate.NewTxExecutionProcessor(
 		&testscommon.TxProcessorStub{
-			ProcessTransactionCalled: func(tx *transaction.Transaction) (vmcommon.ReturnCode, error) {
-				if tx.Nonce == nonce && bytes.Equal(tx.SndAddr, sndAddr) && bytes.Equal(tx.RcvAddr, recvAddr) &&
-					value.Cmp(tx.Value) == 0 && bytes.Equal(tx.Data, data) {
+			ProcessTransactionCalled: func(tx coreData.TransactionHandler) (vmcommon.ReturnCode, error) {
+				if tx.GetNonce() == nonce && bytes.Equal(tx.GetSndAddr(), sndAddr) && bytes.Equal(tx.GetRcvAddr(), recvAddr) &&
+					value.Cmp(tx.GetValue()) == 0 && bytes.Equal(tx.GetData(), data) {
 					return 0, nil
 				}
 
@@ -329,9 +330,9 @@ func TestTxExecutionProcessor_GetExecutedTransactionsNonEmpty(t *testing.T) {
 
 	tep, _ := intermediate.NewTxExecutionProcessor(
 		&testscommon.TxProcessorStub{
-			ProcessTransactionCalled: func(tx *transaction.Transaction) (vmcommon.ReturnCode, error) {
-				if tx.Nonce == nonce && bytes.Equal(tx.SndAddr, sndAddr) && bytes.Equal(tx.RcvAddr, recvAddr) &&
-					value.Cmp(tx.Value) == 0 && bytes.Equal(tx.Data, data) {
+			ProcessTransactionCalled: func(tx coreData.TransactionHandler) (vmcommon.ReturnCode, error) {
+				if tx.GetNonce() == nonce && bytes.Equal(tx.GetSndAddr(), sndAddr) && bytes.Equal(tx.GetRcvAddr(), recvAddr) &&
+					value.Cmp(tx.GetValue()) == 0 && bytes.Equal(tx.GetData(), data) {
 					return 0, nil
 				}
 

@@ -3,23 +3,25 @@ package mock
 import (
 	"context"
 
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/node/external"
 	"github.com/multiversx/mx-chain-go/process"
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 // ApiResolverStub -
 type ApiResolverStub struct {
 	ExecuteSCQueryHandler                       func(query *process.SCQuery) (*vmcommon.VMOutput, common.BlockInfo, error)
 	StatusMetricsHandler                        func() external.StatusMetricsHandler
-	ComputeTransactionGasLimitHandler           func(tx *transaction.Transaction) (*transaction.CostResponse, error)
-	SimulateTransactionExecutionHandler         func(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
+	ComputeTransactionGasLimitHandler           func(tx data.TransactionHandler) (*transaction.CostResponse, error)
+	SimulateTransactionExecutionHandler         func(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	GetTotalStakedValueHandler                  func(ctx context.Context) (*api.StakeValues, error)
 	GetDirectStakedListHandler                  func(ctx context.Context) ([]*api.DirectStakedValue, error)
 	GetDelegatorsListHandler                    func(ctx context.Context) ([]*api.Delegator, error)
@@ -126,7 +128,7 @@ func (ars *ApiResolverStub) StatusMetrics() external.StatusMetricsHandler {
 }
 
 // ComputeTransactionGasLimit -
-func (ars *ApiResolverStub) ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+func (ars *ApiResolverStub) ComputeTransactionGasLimit(tx data.TransactionHandler) (*transaction.CostResponse, error) {
 	if ars.ComputeTransactionGasLimitHandler != nil {
 		return ars.ComputeTransactionGasLimitHandler(tx)
 	}
@@ -135,7 +137,7 @@ func (ars *ApiResolverStub) ComputeTransactionGasLimit(tx *transaction.Transacti
 }
 
 // SimulateTransactionExecution -
-func (ars *ApiResolverStub) SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (ars *ApiResolverStub) SimulateTransactionExecution(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	if ars.SimulateTransactionExecutionHandler != nil {
 		return ars.SimulateTransactionExecutionHandler(tx)
 	}

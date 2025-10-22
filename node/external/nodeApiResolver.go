@@ -7,9 +7,13 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/genesis"
 	"github.com/multiversx/mx-chain-go/node/external/blockAPI"
@@ -18,8 +22,6 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 var log = logger.GetOrCreate("node/external")
@@ -146,12 +148,12 @@ func (nar *nodeApiResolver) StatusMetrics() StatusMetricsHandler {
 }
 
 // ComputeTransactionGasLimit will calculate how many gas a transaction will consume
-func (nar *nodeApiResolver) ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+func (nar *nodeApiResolver) ComputeTransactionGasLimit(tx data.TransactionHandler) (*transaction.CostResponse, error) {
 	return nar.apiTransactionEvaluator.ComputeTransactionGasLimit(tx)
 }
 
 // SimulateTransactionExecution will simulate the provided transaction and return the simulation results
-func (nar *nodeApiResolver) SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (nar *nodeApiResolver) SimulateTransactionExecution(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	return nar.apiTransactionEvaluator.SimulateTransactionExecution(tx)
 }
 

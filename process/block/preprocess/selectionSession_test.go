@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	stateMock "github.com/multiversx/mx-chain-go/testscommon/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSelectionSession(t *testing.T) {
@@ -100,11 +102,11 @@ func TestSelectionSession_IsIncorrectlyGuarded(t *testing.T) {
 		return &stateMock.UserAccountStub{}, nil
 	}
 
-	processor.VerifyGuardianCalled = func(tx *transaction.Transaction, account state.UserAccountHandler) error {
-		if tx.Nonce == 43 {
+	processor.VerifyGuardianCalled = func(tx data.TransactionHandler, account state.UserAccountHandler) error {
+		if tx.GetNonce() == 43 {
 			return process.ErrTransactionNotExecutable
 		}
-		if tx.Nonce == 44 {
+		if tx.GetNonce() == 44 {
 			return fmt.Errorf("arbitrary processing error")
 		}
 

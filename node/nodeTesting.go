@@ -9,9 +9,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/partitioning"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/batch"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process/factory"
 	"github.com/multiversx/mx-chain-go/process/txsSender"
@@ -34,7 +36,7 @@ func (n *Node) GenerateAndSendBulkTransactions(
 	value *big.Int,
 	numOfTxs uint64,
 	sk crypto.PrivateKey,
-	whiteList func([]*transaction.Transaction),
+	whiteList func([]data.TransactionHandler),
 	chainID []byte,
 	minTxVersion uint32,
 ) error {
@@ -70,7 +72,7 @@ func (n *Node) GenerateAndSendBulkTransactions(
 		return err
 	}
 
-	txs := make([]*transaction.Transaction, 0)
+	txs := make([]data.TransactionHandler, 0)
 	for nonce := newNonce; nonce < newNonce+numOfTxs; nonce++ {
 		go func(crtNonce uint64) {
 			tx, txBuff, errGenTx := n.generateAndSignSingleTx(

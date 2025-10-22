@@ -11,6 +11,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/facade"
 	"github.com/multiversx/mx-chain-go/process"
@@ -18,7 +20,6 @@ import (
 	txSimData "github.com/multiversx/mx-chain-go/process/transactionEvaluator/data"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const dummySignature = "01010101"
@@ -91,7 +92,7 @@ func NewAPITransactionEvaluator(args ArgsApiTransactionEvaluator) (*apiTransacti
 }
 
 // SimulateTransactionExecution will simulate a transaction's execution and will return the results
-func (ate *apiTransactionEvaluator) SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error) {
+func (ate *apiTransactionEvaluator) SimulateTransactionExecution(tx data.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error) {
 	ate.mutExecution.Lock()
 	defer func() {
 		ate.accounts.CleanCache()
@@ -104,7 +105,7 @@ func (ate *apiTransactionEvaluator) SimulateTransactionExecution(tx *transaction
 }
 
 // ComputeTransactionGasLimit will calculate how many gas units a transaction will consume
-func (ate *apiTransactionEvaluator) ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error) {
+func (ate *apiTransactionEvaluator) ComputeTransactionGasLimit(tx data.TransactionHandler) (*transaction.CostResponse, error) {
 	ate.mutExecution.Lock()
 	defer func() {
 		ate.accounts.CleanCache()
@@ -133,7 +134,7 @@ func (ate *apiTransactionEvaluator) ComputeTransactionGasLimit(tx *transaction.T
 	}
 }
 
-func (ate *apiTransactionEvaluator) computeMoveBalanceCost(tx *transaction.Transaction) *transaction.CostResponse {
+func (ate *apiTransactionEvaluator) computeMoveBalanceCost(tx data.TransactionHandler) *transaction.CostResponse {
 	gasUnits := ate.feeHandler.ComputeGasLimit(tx)
 
 	return &transaction.CostResponse{
@@ -142,7 +143,7 @@ func (ate *apiTransactionEvaluator) computeMoveBalanceCost(tx *transaction.Trans
 	}
 }
 
-func (ate *apiTransactionEvaluator) simulateTransactionCost(tx *transaction.Transaction, txType process.TransactionType) (*transaction.CostResponse, error) {
+func (ate *apiTransactionEvaluator) simulateTransactionCost(tx data.TransactionHandler, txType process.TransactionType) (*transaction.CostResponse, error) {
 	err := ate.addMissingFieldsIfNeeded(tx)
 	if err != nil {
 		return nil, err
@@ -189,10 +190,10 @@ func (ate *apiTransactionEvaluator) simulateTransactionCost(tx *transaction.Tran
 	return costResponse, nil
 }
 
-func (ate *apiTransactionEvaluator) computeGasUnitsBasedOnVMOutput(tx *transaction.Transaction, vmOutput *vmcommon.VMOutput) uint64 {
+func (ate *apiTransactionEvaluator) computeGasUnitsBasedOnVMOutput(tx data.TransactionHandler, vmOutput *vmcommon.VMOutput) uint64 {
 	isTooMuchGasProvided := strings.Contains(vmOutput.ReturnMessage, smartContract.TooMuchGasProvidedMessage)
 	if !isTooMuchGasProvided {
-		return tx.GasLimit - vmOutput.GasRemaining
+		return tx.GetGasLimit() - vmOutput.GasRemaining
 	}
 
 	isTooMuchGasV2MsgFlagSet := ate.enableEpochsHandler.IsFlagEnabled(common.CleanUpInformativeSCRsFlag)
@@ -201,7 +202,7 @@ func (ate *apiTransactionEvaluator) computeGasUnitsBasedOnVMOutput(tx *transacti
 		return ate.feeHandler.ComputeGasLimit(tx) + gasNeededForProcessing
 	}
 
-	return tx.GasLimit - extractGasRemainedFromMessage(vmOutput.ReturnMessage, gasRemainedSplitString)
+	return tx.GetGasLimit() - extractGasRemainedFromMessage(vmOutput.ReturnMessage, gasRemainedSplitString)
 }
 
 func extractGasRemainedFromMessage(message string, splitString string) uint64 {
@@ -220,16 +221,16 @@ func extractGasRemainedFromMessage(message string, splitString string) uint64 {
 	return gasValue
 }
 
-func (ate *apiTransactionEvaluator) addMissingFieldsIfNeeded(tx *transaction.Transaction) error {
-	if tx.GasPrice == 0 {
-		tx.GasPrice = ate.feeHandler.MinGasPrice()
+func (ate *apiTransactionEvaluator) addMissingFieldsIfNeeded(tx data.TransactionHandler) error {
+	if tx.GetGasPrice() == 0 {
+		tx.SetGasPrice(ate.feeHandler.MinGasPrice())
 	}
-	if len(tx.Signature) == 0 {
-		tx.Signature = []byte(dummySignature)
+	if len(tx.GetSignature()) == 0 {
+		tx.SetSignature([]byte(dummySignature))
 	}
-	if tx.GasLimit == 0 {
-		var err error
-		tx.GasLimit, err = ate.getTxGasLimit(tx)
+	if tx.GetGasLimit() == 0 {
+		gasLimit, err := ate.getTxGasLimit(tx)
+		tx.SetGasLimit(gasLimit)
 
 		return err
 	}
@@ -246,16 +247,16 @@ func (ate *apiTransactionEvaluator) getCurrentBlockHeader() data.HeaderHandler {
 	return currentHeader
 }
 
-func (ate *apiTransactionEvaluator) getTxGasLimit(tx *transaction.Transaction) (uint64, error) {
+func (ate *apiTransactionEvaluator) getTxGasLimit(tx data.TransactionHandler) (uint64, error) {
 	selfShardID := ate.shardCoordinator.SelfId()
 	maxGasLimitPerBlock := ate.feeHandler.MaxGasLimitPerBlock(selfShardID) - 1
 
-	senderShardID := ate.shardCoordinator.ComputeId(tx.SndAddr)
+	senderShardID := ate.shardCoordinator.ComputeId(tx.GetSndAddr())
 	if ate.shardCoordinator.SelfId() != senderShardID {
 		return maxGasLimitPerBlock, nil
 	}
 
-	accountHandler, err := ate.accounts.LoadAccount(tx.SndAddr)
+	accountHandler, err := ate.accounts.LoadAccount(tx.GetSndAddr())
 	if err != nil {
 		return 0, err
 	}
@@ -270,7 +271,7 @@ func (ate *apiTransactionEvaluator) getTxGasLimit(tx *transaction.Transaction) (
 	}
 
 	accountSenderBalance := accountSender.GetBalance()
-	tx.GasLimit = maxGasLimitPerBlock
+	tx.SetGasLimit(maxGasLimitPerBlock)
 	txFee := ate.feeHandler.ComputeTxFee(tx)
 	if txFee.Cmp(accountSenderBalance) > 0 && big.NewInt(0).Cmp(accountSenderBalance) != 0 {
 		return ate.feeHandler.ComputeGasLimitBasedOnBalance(tx, accountSenderBalance)

@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	dataApi "github.com/multiversx/mx-chain-core-go/data/api"
@@ -11,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/epochStart"
@@ -87,13 +89,13 @@ type Facade interface {
 	GetEpochStartDataAPI(epoch uint32) (*common.EpochStartDataAPI, error)
 	GetPeerInfo(pid string) ([]core.QueryP2PPeerInfo, error)
 	GetConnectedPeersRatingsOnMainNetwork() (string, error)
-	CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error)
-	ValidateTransaction(tx *transaction.Transaction) error
-	ValidateTransactionForSimulation(tx *transaction.Transaction, bypassSignature bool) error
-	SendBulkTransactions([]*transaction.Transaction) (uint64, error)
-	SimulateTransactionExecution(tx *transaction.Transaction) (*txSimData.SimulationResultsWithVMOutput, error)
+	CreateTransaction(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error)
+	ValidateTransaction(tx coreData.TransactionHandler) error
+	ValidateTransactionForSimulation(tx coreData.TransactionHandler, bypassSignature bool) error
+	SendBulkTransactions([]coreData.TransactionHandler) (uint64, error)
+	SimulateTransactionExecution(tx coreData.TransactionHandler) (*txSimData.SimulationResultsWithVMOutput, error)
 	GetTransaction(hash string, withResults bool) (*transaction.ApiTransactionResult, error)
-	ComputeTransactionGasLimit(tx *transaction.Transaction) (*transaction.CostResponse, error)
+	ComputeTransactionGasLimit(tx coreData.TransactionHandler) (*transaction.CostResponse, error)
 	EncodeAddressPubkey(pk []byte) (string, error)
 	GetThrottlerForEndpoint(endpoint string) (core.Throttler, bool)
 	ValidatorStatisticsApi() (map[string]*validator.ValidatorStatistics, error)

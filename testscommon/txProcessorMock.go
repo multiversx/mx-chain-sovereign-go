@@ -3,6 +3,7 @@ package testscommon
 import (
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
@@ -12,9 +13,9 @@ import (
 
 // TxProcessorMock -
 type TxProcessorMock struct {
-	ProcessTransactionCalled           func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error)
+	ProcessTransactionCalled           func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error)
 	VerifyTransactionCalled            func(tx *transaction.Transaction) error
-	VerifyGuardianCalled               func(tx *transaction.Transaction, account state.UserAccountHandler) error
+	VerifyGuardianCalled               func(tx data.TransactionHandler, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccountsCalled func(tx *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
 	GetRelayerAccountCalled            func(tx *transaction.Transaction) (state.UserAccountHandler, error)
 	SetBalancesToTrieCalled            func(accBalance map[string]*big.Int) (rootHash []byte, err error)
@@ -22,7 +23,7 @@ type TxProcessorMock struct {
 }
 
 // ProcessTransaction -
-func (etm *TxProcessorMock) ProcessTransaction(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+func (etm *TxProcessorMock) ProcessTransaction(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 	if etm.ProcessTransactionCalled != nil {
 		return etm.ProcessTransactionCalled(transaction)
 	}
@@ -40,7 +41,7 @@ func (etm *TxProcessorMock) VerifyTransaction(tx *transaction.Transaction) error
 }
 
 // VerifyGuardian -
-func (etm *TxProcessorMock) VerifyGuardian(tx *transaction.Transaction, account state.UserAccountHandler) error {
+func (etm *TxProcessorMock) VerifyGuardian(tx data.TransactionHandler, account state.UserAccountHandler) error {
 	if etm.VerifyGuardianCalled != nil {
 		return etm.VerifyGuardianCalled(tx, account)
 	}

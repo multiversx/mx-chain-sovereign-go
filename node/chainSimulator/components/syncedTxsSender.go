@@ -2,8 +2,9 @@ package components
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
@@ -52,7 +53,7 @@ func NewSyncedTxsSender(args ArgsSyncedTxsSender) (*syncedTxsSender, error) {
 }
 
 // SendBulkTransactions sends the provided transactions as a bulk, optimizing transfer between nodes
-func (sender *syncedTxsSender) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (sender *syncedTxsSender) SendBulkTransactions(txs []data.TransactionHandler) (uint64, error) {
 	if len(txs) == 0 {
 		return 0, process.ErrNoTxToProcess
 	}
@@ -62,7 +63,7 @@ func (sender *syncedTxsSender) SendBulkTransactions(txs []*transaction.Transacti
 	return uint64(len(txs)), nil
 }
 
-func (sender *syncedTxsSender) sendBulkTransactions(txs []*transaction.Transaction) {
+func (sender *syncedTxsSender) sendBulkTransactions(txs []data.TransactionHandler) {
 	transactionsByShards := make(map[uint32][][]byte)
 	for _, tx := range txs {
 		marshalledTx, err := sender.marshaller.Marshal(tx)
@@ -73,7 +74,7 @@ func (sender *syncedTxsSender) sendBulkTransactions(txs []*transaction.Transacti
 			continue
 		}
 
-		senderShardId := sender.shardCoordinator.ComputeId(tx.SndAddr)
+		senderShardId := sender.shardCoordinator.ComputeId(tx.GetSndAddr())
 		transactionsByShards[senderShardId] = append(transactionsByShards[senderShardId], marshalledTx)
 	}
 

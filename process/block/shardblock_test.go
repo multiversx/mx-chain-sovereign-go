@@ -450,7 +450,7 @@ func TestShardProcessor_ProcessBlockWithInvalidTransactionShouldErr(t *testing.T
 		Accounts:         accounts,
 		RequestHandler:   &testscommon.RequestHandlerStub{},
 		TxProcessor: &testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return 0, process.ErrHigherNonceInTransaction
 			},
 		},
@@ -656,7 +656,7 @@ func TestShardProcessor_ProcessBlockWithErrOnProcessBlockTransactionsCallShouldR
 	}
 
 	err := errors.New("process block transaction error")
-	txProcess := func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+	txProcess := func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 		return 0, err
 	}
 
@@ -3053,16 +3053,16 @@ func TestShardProcessor_CreateMiniBlocksShouldWorkWithIntraShardTxs(t *testing.T
 	tx3ExecutionResult := uint64(0)
 
 	txProcessorMock := &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			// execution, in this context, means moving the tx nonce to itx corresponding execution result variable
-			if bytes.Equal(transaction.Data, txHash1) {
-				tx1ExecutionResult = transaction.Nonce
+			if bytes.Equal(transaction.GetData(), txHash1) {
+				tx1ExecutionResult = transaction.GetNonce()
 			}
-			if bytes.Equal(transaction.Data, txHash2) {
-				tx2ExecutionResult = transaction.Nonce
+			if bytes.Equal(transaction.GetData(), txHash2) {
+				tx2ExecutionResult = transaction.GetNonce()
 			}
-			if bytes.Equal(transaction.Data, txHash3) {
-				tx3ExecutionResult = transaction.Nonce
+			if bytes.Equal(transaction.GetData(), txHash3) {
+				tx3ExecutionResult = transaction.GetNonce()
 			}
 
 			return 0, nil

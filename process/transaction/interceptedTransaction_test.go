@@ -1839,7 +1839,7 @@ func TestInterceptedTransaction_checkMaxGasPrice(t *testing.T) {
 
 	t.Run("guardedTx returns always OK no matter the gas price", func(t *testing.T) {
 		txVersionChecker := &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *dataTransaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return true
 			},
 		}
@@ -1861,7 +1861,7 @@ func TestInterceptedTransaction_checkMaxGasPrice(t *testing.T) {
 		tx2.Data = []byte("dummy")
 
 		txVersionChecker := &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *dataTransaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return false
 			},
 		}
@@ -1884,7 +1884,7 @@ func TestInterceptedTransaction_checkMaxGasPrice(t *testing.T) {
 		tx2.GasPrice = maxAllowedGasPriceSetGuardian / 2
 
 		txVersionChecker := &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *dataTransaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return false
 			},
 		}
@@ -1904,7 +1904,7 @@ func TestInterceptedTransaction_checkMaxGasPrice(t *testing.T) {
 		tx1 := *testTx1
 		tx1.GasPrice = maxAllowedGasPriceSetGuardian * 2
 		txVersionChecker := &testscommon.TxVersionCheckerStub{
-			IsGuardedTransactionCalled: func(tx *dataTransaction.Transaction) bool {
+			IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 				return false
 			},
 		}
@@ -1921,7 +1921,7 @@ func TestInterceptedTransaction_VerifyGuardianSig(t *testing.T) {
 	t.Parallel()
 
 	testTxVersionChecker := testscommon.TxVersionCheckerStub{
-		IsGuardedTransactionCalled: func(tx *dataTransaction.Transaction) bool {
+		IsGuardedTransactionCalled: func(tx data.TransactionHandler) bool {
 			return true
 		},
 	}
@@ -1961,7 +1961,7 @@ func TestInterceptedTransaction_VerifyGuardianSig(t *testing.T) {
 		tx := testTx
 		tx.GuardianAddr = []byte("guardian addr")
 		txVersionChecker := testTxVersionChecker
-		txVersionChecker.IsGuardedTransactionCalled = func(tx *dataTransaction.Transaction) bool {
+		txVersionChecker.IsGuardedTransactionCalled = func(tx data.TransactionHandler) bool {
 			return false
 		}
 		inTx, err := createInterceptedTxWithTxFeeHandlerAndVersionChecker(&tx, feeHandler, &txVersionChecker)
@@ -1975,7 +1975,7 @@ func TestInterceptedTransaction_VerifyGuardianSig(t *testing.T) {
 		tx.GuardianAddr = nil
 		tx.GuardianSignature = []byte("guardian signature")
 		txVersionChecker := testTxVersionChecker
-		txVersionChecker.IsGuardedTransactionCalled = func(tx *dataTransaction.Transaction) bool {
+		txVersionChecker.IsGuardedTransactionCalled = func(tx data.TransactionHandler) bool {
 			return false
 		}
 		inTx, err := createInterceptedTxWithTxFeeHandlerAndVersionChecker(&tx, feeHandler, &txVersionChecker)

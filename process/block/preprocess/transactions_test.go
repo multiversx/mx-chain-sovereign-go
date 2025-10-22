@@ -654,7 +654,7 @@ func TestTransactions_CreateAndProcessMiniBlockCrossShardGasLimitAddAll(t *testi
 	args := createDefaultTransactionsProcessorArgs()
 	args.TxDataPool, _ = dataRetrieverMock.CreateTxPool(2, 0)
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return 0, nil
 		}}
 	args.GasHandler = &mock.GasHandlerMock{
@@ -716,7 +716,7 @@ func TestTransactions_CreateAndProcessMiniBlockCrossShardGasLimitAddAllAsNoSCCal
 	totalGasProvided := uint64(0)
 	args := createDefaultTransactionsProcessorArgs()
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return 0, nil
 		}}
 	args.GasHandler = &mock.GasHandlerMock{
@@ -784,7 +784,7 @@ func TestTransactions_CreateAndProcessMiniBlockCrossShardGasLimitAddOnly5asSCCal
 	args := createDefaultTransactionsProcessorArgs()
 	args.TxDataPool, _ = dataRetrieverMock.CreateTxPool(2, 0)
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return 0, nil
 		}}
 	args.GasHandler = &mock.GasHandlerMock{
@@ -1172,7 +1172,7 @@ func TestTransactionPreprocessor_ProcessTxsToMeShouldUseCorrectSenderAndReceiver
 	args := createDefaultTransactionsProcessorArgs()
 	args.ShardCoordinator = shardCoordinatorMock
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			return 0, nil
 		},
 	}
@@ -1272,7 +1272,7 @@ func TestTransactionsPreprocessor_ProcessMiniBlockShouldWork(t *testing.T) {
 	maxBlockSize := 16
 	args := createDefaultTransactionsProcessorArgs()
 	args.TxProcessor = &testscommon.TxProcessorMock{
-		ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+		ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 			nbTxsProcessed++
 			return vmcommon.Ok, nil
 		},

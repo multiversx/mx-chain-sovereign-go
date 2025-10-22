@@ -789,7 +789,7 @@ func (s *simulator) sendTx(tx *transaction.Transaction) (string, error) {
 	}
 
 	txHashHex := hex.EncodeToString(txHash)
-	_, err = node.GetFacadeHandler().SendBulkTransactions([]*transaction.Transaction{tx})
+	_, err = node.GetFacadeHandler().SendBulkTransactions([]data.TransactionHandler{tx})
 	if err != nil {
 		return "", err
 	}

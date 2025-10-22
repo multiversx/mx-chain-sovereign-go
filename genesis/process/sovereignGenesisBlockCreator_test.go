@@ -420,7 +420,7 @@ func TestSovereignGenesisBlockCreator_setSovereignStakedData(t *testing.T) {
 	}
 	processors := &genesisProcessors{
 		txProcessor: &testscommon.TxProcessorStub{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				require.Equal(t, expectedTx, transaction)
 
 				return vmcommon.Ok, nil

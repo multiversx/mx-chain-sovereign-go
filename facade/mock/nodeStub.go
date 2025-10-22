@@ -6,14 +6,15 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/validator"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/debug"
 	"github.com/multiversx/mx-chain-go/heartbeat/data"
-	"github.com/multiversx/mx-chain-go/node/external"
 )
 
 // NodeStub -
@@ -21,10 +22,10 @@ type NodeStub struct {
 	ConnectToAddressesHandler                      func([]string) error
 	GetBalanceCalled                               func(address string, options api.AccountQueryOptions) (*big.Int, api.BlockInfo, error)
 	GenerateTransactionHandler                     func(sender string, receiver string, amount string, code string) (*transaction.Transaction, error)
-	CreateTransactionHandler                       func(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error)
-	ValidateTransactionHandler                     func(tx *transaction.Transaction) error
-	ValidateTransactionForSimulationCalled         func(tx *transaction.Transaction, bypassSignature bool) error
-	SendBulkTransactionsHandler                    func(txs []*transaction.Transaction) (uint64, error)
+	CreateTransactionHandler                       func(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error)
+	ValidateTransactionHandler                     func(tx coreData.TransactionHandler) error
+	ValidateTransactionForSimulationCalled         func(tx coreData.TransactionHandler, bypassSignature bool) error
+	SendBulkTransactionsHandler                    func(txs []coreData.TransactionHandler) (uint64, error)
 	GetAccountCalled                               func(address string, options api.AccountQueryOptions) (api.AccountResponse, api.BlockInfo, error)
 	GetAccountWithKeysCalled                       func(address string, options api.AccountQueryOptions, ctx context.Context) (api.AccountResponse, api.BlockInfo, error)
 	GetCodeCalled                                  func(codeHash []byte, options api.AccountQueryOptions) ([]byte, api.BlockInfo)
@@ -159,13 +160,13 @@ func (ns *NodeStub) GetBalance(address string, options api.AccountQueryOptions) 
 }
 
 // CreateTransaction -
-func (ns *NodeStub) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
+func (ns *NodeStub) CreateTransaction(requestTx map[string]interface{}) (coreData.TransactionHandler, []byte, error) {
 
-	return ns.CreateTransactionHandler(txArgs)
+	return ns.CreateTransactionHandler(requestTx)
 }
 
 // ValidateTransaction -
-func (ns *NodeStub) ValidateTransaction(tx *transaction.Transaction) error {
+func (ns *NodeStub) ValidateTransaction(tx coreData.TransactionHandler) error {
 	if ns.ValidateTransactionHandler != nil {
 		return ns.ValidateTransactionHandler(tx)
 	}
@@ -174,7 +175,7 @@ func (ns *NodeStub) ValidateTransaction(tx *transaction.Transaction) error {
 }
 
 // ValidateTransactionForSimulation -
-func (ns *NodeStub) ValidateTransactionForSimulation(tx *transaction.Transaction, bypassSignature bool) error {
+func (ns *NodeStub) ValidateTransactionForSimulation(tx coreData.TransactionHandler, bypassSignature bool) error {
 	if ns.ValidateTransactionForSimulationCalled != nil {
 		return ns.ValidateTransactionForSimulationCalled(tx, bypassSignature)
 	}
@@ -183,7 +184,7 @@ func (ns *NodeStub) ValidateTransactionForSimulation(tx *transaction.Transaction
 }
 
 // SendBulkTransactions -
-func (ns *NodeStub) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (ns *NodeStub) SendBulkTransactions(txs []coreData.TransactionHandler) (uint64, error) {
 	if ns.SendBulkTransactionsHandler != nil {
 		return ns.SendBulkTransactionsHandler(txs)
 	}

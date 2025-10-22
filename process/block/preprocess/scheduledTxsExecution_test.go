@@ -17,6 +17,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -25,9 +29,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	storageMocks "github.com/multiversx/mx-chain-go/testscommon/storage"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestScheduledTxsExecution_NewScheduledTxsExecutionNilTxProcessor(t *testing.T) {
@@ -254,7 +255,7 @@ func TestScheduledTxsExecution_ExecuteShouldErr(t *testing.T) {
 	localError := errors.New("error")
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, localError
 			},
 		},
@@ -276,7 +277,7 @@ func TestScheduledTxsExecution_ExecuteShouldWorkOnErrFailedTransaction(t *testin
 
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, process.ErrFailedTransaction
 			},
 		},
@@ -299,7 +300,7 @@ func TestScheduledTxsExecution_ExecuteShouldWork(t *testing.T) {
 	calledCount := 0
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, nil
 			},
 		},
@@ -364,7 +365,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldErrFailedTransaction(t *testing.T
 	localError := errors.New("error")
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, localError
 			},
 		},
@@ -388,7 +389,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldWorkOnErrFailedTransaction(t *tes
 
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, process.ErrFailedTransaction
 			},
 		},
@@ -413,7 +414,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldWork(t *testing.T) {
 	numTxsExecuted := 0
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				numTxsExecuted++
 				return vmcommon.Ok, nil
 			},
@@ -460,7 +461,7 @@ func TestScheduledTxsExecution_executeShouldWork(t *testing.T) {
 	response := errors.New("response")
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
 		&testscommon.TxProcessorMock{
-			ProcessTransactionCalled: func(transaction *transaction.Transaction) (vmcommon.ReturnCode, error) {
+			ProcessTransactionCalled: func(transaction data.TransactionHandler) (vmcommon.ReturnCode, error) {
 				return vmcommon.Ok, response
 			},
 		},

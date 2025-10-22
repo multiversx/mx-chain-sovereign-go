@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -775,12 +776,12 @@ func (n *Node) castAccountToUserAccount(ah vmcommon.AccountHandler) (state.UserA
 }
 
 // SendBulkTransactions sends the provided transactions as a bulk, optimizing transfer between nodes
-func (n *Node) SendBulkTransactions(txs []*transaction.Transaction) (uint64, error) {
+func (n *Node) SendBulkTransactions(txs []data.TransactionHandler) (uint64, error) {
 	return n.processComponents.TxsSenderHandler().SendBulkTransactions(txs)
 }
 
 // ValidateTransaction will validate a transaction
-func (n *Node) ValidateTransaction(tx *transaction.Transaction) error {
+func (n *Node) ValidateTransaction(tx data.TransactionHandler) error {
 	err := n.checkSenderIsInShard(tx)
 	if err != nil {
 		return err
@@ -803,7 +804,7 @@ func (n *Node) ValidateTransaction(tx *transaction.Transaction) error {
 }
 
 // ValidateTransactionForSimulation will validate a transaction for use in transaction simulation process
-func (n *Node) ValidateTransactionForSimulation(tx *transaction.Transaction, checkSignature bool) error {
+func (n *Node) ValidateTransactionForSimulation(tx data.TransactionHandler, checkSignature bool) error {
 	disabledWhiteListHandler := disabled.NewDisabledWhiteListDataVerifier()
 	txValidator, intTx, err := n.commonTransactionValidation(tx, disabledWhiteListHandler, disabledWhiteListHandler, checkSignature)
 	if err != nil {
@@ -820,7 +821,7 @@ func (n *Node) ValidateTransactionForSimulation(tx *transaction.Transaction, che
 }
 
 func (n *Node) commonTransactionValidation(
-	tx *transaction.Transaction,
+	tx data.TransactionHandler,
 	whiteListerVerifiedTxs process.WhiteListHandler,
 	whiteListRequest process.WhiteListHandler,
 	checkSignature bool,
@@ -884,9 +885,9 @@ func (n *Node) commonTransactionValidation(
 	return txValidator, intTx, nil
 }
 
-func (n *Node) checkSenderIsInShard(tx *transaction.Transaction) error {
+func (n *Node) checkSenderIsInShard(tx data.TransactionHandler) error {
 	shardCoordinator := n.bootstrapComponents.ShardCoordinator()
-	senderShardID := shardCoordinator.ComputeId(tx.SndAddr)
+	senderShardID := shardCoordinator.ComputeId(tx.GetSndAddr())
 	if senderShardID != shardCoordinator.SelfId() {
 		return fmt.Errorf("%w, tx sender shard ID: %d, node's shard ID %d",
 			ErrDifferentSenderShardId, senderShardID, shardCoordinator.SelfId())
@@ -895,11 +896,49 @@ func (n *Node) checkSenderIsInShard(tx *transaction.Transaction) error {
 	return nil
 }
 
+func createTransactionArgs(requestTx map[string]interface{}) (*external.ArgsCreateTransaction, error) {
+	jsonBytes, err := json.Marshal(requestTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request tx JSON: %w", err)
+	}
+
+	var ftx transaction.FrontendTransaction
+	if err = json.Unmarshal(jsonBytes, &ftx); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to FrontendTransaction: %w", err)
+	}
+
+	return &external.ArgsCreateTransaction{
+		Nonce:               ftx.Nonce,
+		Value:               ftx.Value,
+		Receiver:            ftx.Receiver,
+		ReceiverUsername:    ftx.ReceiverUsername,
+		Sender:              ftx.Sender,
+		SenderUsername:      ftx.SenderUsername,
+		GasPrice:            ftx.GasPrice,
+		GasLimit:            ftx.GasLimit,
+		DataField:           ftx.Data,
+		SignatureHex:        ftx.Signature,
+		ChainID:             ftx.ChainID,
+		Version:             ftx.Version,
+		Options:             ftx.Options,
+		Guardian:            ftx.GuardianAddr,
+		GuardianSigHex:      ftx.GuardianSignature,
+		Relayer:             ftx.RelayerAddr,
+		RelayerSignatureHex: ftx.RelayerSignature,
+	}, nil
+}
+
 // CreateTransaction will return a transaction from all the required fields
-func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*transaction.Transaction, []byte, error) {
-	if txArgs == nil {
+func (n *Node) CreateTransaction(requestTx map[string]interface{}) (data.TransactionHandler, []byte, error) {
+	if requestTx == nil {
 		return nil, nil, ErrNilCreateTransactionArgs
 	}
+
+	txArgs, err := createTransactionArgs(requestTx)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	if txArgs.Version == 0 {
 		return nil, nil, ErrInvalidTransactionVersion
 	}
@@ -1015,7 +1054,7 @@ func (n *Node) CreateTransaction(txArgs *external.ArgsCreateTransaction) (*trans
 	return tx, txHash, nil
 }
 
-func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx *transaction.Transaction) error {
+func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx data.TransactionHandler) error {
 	addrPubKeyConverter := n.coreComponents.AddressPubKeyConverter()
 	guardianAddress, err := addrPubKeyConverter.Decode(guardian)
 	if err != nil {
@@ -1029,8 +1068,8 @@ func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx *tra
 		return errors.New("transaction has guardian but guardian option not set")
 	}
 
-	tx.GuardianAddr = guardianAddress
-	tx.GuardianSignature = guardianSigBytes
+	tx.SetGuardianAddr(guardianAddress)
+	tx.SetGuardianSignature(guardianSigBytes)
 
 	return nil
 }
