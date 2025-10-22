@@ -56,7 +56,7 @@ func (sbpf *sovereignBlockProcessor) ProcessHeaderProof(
 	}
 
 	for _, outGoingMb := range sovHdr.GetOutGoingMiniBlockHeaderHandlers() {
-		mbType := block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()
+		mbType := block.OutGoingMBType(outGoingMb.GetChainID()).String()
 		extraSigData, found := proof.GetExtraSignatureHandlers()[mbType]
 		if !found {
 			return fmt.Errorf("%w for type %s in ProcessHeaderProof", bls.ErrExtraSigShareDataNotFound, mbType)

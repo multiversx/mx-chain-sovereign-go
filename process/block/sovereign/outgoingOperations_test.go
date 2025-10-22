@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
@@ -381,8 +382,11 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, map[block.OutGoingMBType][][]byte{
-		block.OutGoingMbDeposit: {operationBytes},
+	require.Equal(t, []*dto.OutGoingOperation{
+		{
+			MBType: block.OutGoingMbDeposit,
+			Data:   operationBytes,
+		},
 	}, outgoingTxData)
 }
 
@@ -462,8 +466,11 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, map[block.OutGoingMBType][][]byte{
-		block.OutGoingMbDeposit: {operationBytes},
+	require.Equal(t, []*dto.OutGoingOperation{
+		{
+			MBType: block.OutGoingMbDeposit,
+			Data:   operationBytes,
+		},
 	}, outgoingTxData)
 }
 

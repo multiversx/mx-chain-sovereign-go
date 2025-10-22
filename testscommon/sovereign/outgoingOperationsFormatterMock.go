@@ -2,22 +2,22 @@ package sovereign
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 // OutgoingOperationsFormatterMock -
 type OutgoingOperationsFormatterMock struct {
-	CreateOutgoingTxDataCalled              func(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error)
+	CreateOutgoingTxDataCalled              func(logs []*data.LogData) ([]*dto.OutGoingOperation, error)
 	CreateOutGoingChangeValidatorDataCalled func(pubKeys []string, epoch uint32) ([]byte, error)
 }
 
 // CreateOutgoingTxsData -
-func (stub *OutgoingOperationsFormatterMock) CreateOutgoingTxsData(logs []*data.LogData) (map[block.OutGoingMBType][][]byte, error) {
+func (stub *OutgoingOperationsFormatterMock) CreateOutgoingTxsData(logs []*data.LogData) ([]*dto.OutGoingOperation, error) {
 	if stub.CreateOutgoingTxDataCalled != nil {
 		return stub.CreateOutgoingTxDataCalled(logs)
 	}
 
-	return make(map[block.OutGoingMBType][][]byte), nil
+	return make([]*dto.OutGoingOperation, 0), nil
 }
 
 // CreateOutGoingChangeValidatorData -

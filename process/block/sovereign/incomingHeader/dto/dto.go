@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 )
 
@@ -69,4 +70,11 @@ type EventResult struct {
 type EventsResult struct {
 	Scrs               []*SCRInfo
 	ConfirmedBridgeOps []*ConfirmedBridgeOp
+}
+
+// OutGoingOperation defines an outgoing operation
+type OutGoingOperation struct {
+	Nonce  uint64
+	MBType block.OutGoingMBType
+	Data   []byte
 }

@@ -80,7 +80,7 @@ func (hsv *sovereignHeaderSigVerifier) getAggregatedSignature(
 		return nil, process.ErrNilHeaderProof
 	}
 
-	mbTypeStr := block.OutGoingMBType(outGoingMBHdr.GetOutGoingMBTypeInt32()).String()
+	mbTypeStr := block.OutGoingMBType(outGoingMBHdr.GetChainID()).String()
 	extraSigHandler, found := proof.GetExtraSignatureHandlers()[mbTypeStr]
 	if !found {
 		return nil, fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",

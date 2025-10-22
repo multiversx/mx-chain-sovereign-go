@@ -51,10 +51,11 @@ func createDisplayLinesForOutGoingMb(outGoingMb *block.OutGoingMiniBlockHeader) 
 			Values:              []string{"OutGoing mini block header", "Hash", hex.EncodeToString(outGoingMb.GetHash())},
 			HorizontalRuleAfter: false,
 		},
-		{
-			Values:              []string{"", "Type", block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()},
-			HorizontalRuleAfter: false,
-		},
+		// TODO: Marius C: MX-17260 Here we should only output the chain id
+		//{
+		//	Values:              []string{"", "Type", block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()},
+		//	HorizontalRuleAfter: false,
+		//},
 		{
 			Values:              []string{"", "OutGoingTxDataHash", hex.EncodeToString(outGoingMb.GetOutGoingOperationsHash())},
 			HorizontalRuleAfter: false,
@@ -136,14 +137,12 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 
 	extendedShardHeaderHashes := [][]byte{[]byte("hash1"), []byte("hash2"), []byte("hash3")}
 	outGoingMbHeader1 := &block.OutGoingMiniBlockHeader{
-		Type:                                  block.OutGoingMbDeposit,
 		Hash:                                  []byte("outGoingTxDataHash1"),
 		OutGoingOperationsHash:                []byte("outGoingOperationsHash1"),
 		AggregatedSignatureOutGoingOperations: []byte("aggregatedSig1"),
 		LeaderSignatureOutGoingOperations:     []byte("leaderSig1"),
 	}
 	outGoingMbHeader2 := &block.OutGoingMiniBlockHeader{
-		Type:                                  block.OutGoingMbChangeValidatorSet,
 		Hash:                                  []byte("outGoingTxDataHash2"),
 		OutGoingOperationsHash:                []byte("outGoingOperationsHash2"),
 		AggregatedSignatureOutGoingOperations: []byte("aggregatedSig2"),
