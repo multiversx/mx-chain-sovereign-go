@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
@@ -1273,6 +1274,8 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+		// TODO: Marius C: MX-17260 remove this hard codded chain id
+		ChainID:                dtoSov.MVX,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,
 	}
@@ -1296,6 +1299,8 @@ func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 	}
 
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
+		// TODO: Marius C: MX-17260 remove this hard codded chain id
+		ChainID:                dtoSov.MVX,
 		Hash:                   receivedOutGoingMB[0].GetHash(),
 		OutGoingOperationsHash: receivedOutGoingMB[0].GetOutGoingOperationsHash(),
 	}
@@ -1738,6 +1743,8 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
+		// TODO: Marius C: MX-17260 remove this hard codded chain id
+		ChainID:                dtoSov.MVX,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,
 	}

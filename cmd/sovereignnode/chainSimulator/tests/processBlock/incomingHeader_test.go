@@ -482,7 +482,7 @@ func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T)
 		unconfirmedOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
 		require.Len(t, unconfirmedOps, 1)
 		require.Len(t, unconfirmedOps[0].OutGoingOperations, 1)
-		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), unconfirmedOps[0].OutGoingOperations[0].Type)
+		require.Equal(t, int32(block.OutGoingOpChangeValidatorSet), unconfirmedOps[0].OutGoingOperations[0].Type)
 		require.Equal(t, uint32(epoch), unconfirmedOps[0].Epoch)
 
 		hashOfHashes := unconfirmedOps[0].Hash

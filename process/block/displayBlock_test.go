@@ -51,11 +51,10 @@ func createDisplayLinesForOutGoingMb(outGoingMb *block.OutGoingMiniBlockHeader) 
 			Values:              []string{"OutGoing mini block header", "Hash", hex.EncodeToString(outGoingMb.GetHash())},
 			HorizontalRuleAfter: false,
 		},
-		// TODO: Marius C: MX-17260 Here we should only output the chain id
-		//{
-		//	Values:              []string{"", "Type", block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()},
-		//	HorizontalRuleAfter: false,
-		//},
+		{
+			Values:              []string{"", "Chain", outGoingMb.ChainID.String()},
+			HorizontalRuleAfter: false,
+		},
 		{
 			Values:              []string{"", "OutGoingTxDataHash", hex.EncodeToString(outGoingMb.GetOutGoingOperationsHash())},
 			HorizontalRuleAfter: false,

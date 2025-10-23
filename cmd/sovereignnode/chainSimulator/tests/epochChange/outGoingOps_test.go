@@ -60,7 +60,7 @@ func checkOutGoingMiniBlockRegisterValidator(
 	expectedMainChainIDs := make([][]byte, 0)
 	numOutGoingOpsRegisterBlsKey := 0
 	for _, op := range bridgeData.OutGoingOperations {
-		if op.Type != int32(block.OutGoingMBRegisterBlsKey) {
+		if op.Type != int32(block.OutGoingOpRegisterBlsKey) {
 			continue
 		}
 
@@ -97,7 +97,7 @@ func checkOutGoingMiniBlockUnRegisterValidator(
 	assignedMainChainIDs := make([][]byte, 0)
 	numOutGoingOpsUnregisterBlsKey := 0
 	for _, op := range bridgeData.OutGoingOperations {
-		if op.Type != int32(block.OutGoingMBUnRegisterBlsKey) {
+		if op.Type != int32(block.OutGoingOpUnRegisterBlsKey) {
 			continue
 		}
 

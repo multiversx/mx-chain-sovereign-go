@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	dtaPool "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/stretchr/testify/require"
@@ -413,6 +414,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dtoSov.MVX,
 				Hash:                   expectedOutGoingMbHash,
 				OutGoingOperationsHash: bridgeOpsHash,
 			},
@@ -926,6 +928,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			IsStartOfEpoch: true,
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                dtoSov.MVX,
 					Hash:                   outGoingMBHash,
 					OutGoingOperationsHash: outGoingOpsHash,
 				},

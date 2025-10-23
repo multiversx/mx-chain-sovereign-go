@@ -100,6 +100,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	outGoingOpHash := []byte("outGoingOpHash")
 	outGoingAggregatedSig := []byte("aggregatedSig")
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
+		ChainID:                               dto.MVX,
 		OutGoingOperationsHash:                outGoingOpHash,
 		AggregatedSignatureOutGoingOperations: outGoingAggregatedSig,
 	}
@@ -118,7 +119,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 		require.Equal(t, process.ErrNilHeaderProof, err)
 	})
 
-	t.Run("andromeda active, extra sig data not found for specific outgoing mb header", func(t *testing.T) {
+	t.Run("andromeda active, extra sig data not found for specific chain ID in outgoing mb header", func(t *testing.T) {
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
 				dto.MVX.String(): {
@@ -126,7 +127,9 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 				},
 			},
 		}
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof, 0)
+		outGoingMBHeaderCopy := *outGoingMBHeader
+		outGoingMBHeaderCopy.ChainID = dto.UNSPECIFIED
+		aggSig, err := sovVerifier.getAggregatedSignature(&outGoingMBHeaderCopy, proof, 0)
 		require.Nil(t, aggSig)
 		require.ErrorIs(t, err, errNoExtraSignatureDataFoundInProof)
 	})
