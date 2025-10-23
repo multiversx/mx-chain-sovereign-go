@@ -5,7 +5,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -80,12 +79,11 @@ func (hsv *sovereignHeaderSigVerifier) getAggregatedSignature(
 		return nil, process.ErrNilHeaderProof
 	}
 
-	// Marius C: THIS IS actually chain ID
-	mbTypeStr := dd block.OutGoingOpType(outGoingMBHdr.GetChainID()).String()
-	extraSigHandler, found := proof.GetExtraSignatureHandlers()[mbTypeStr]
+	chainIDStr := outGoingMBHdr.GetChainID().String()
+	extraSigHandler, found := proof.GetExtraSignatureHandlers()[chainIDStr]
 	if !found {
-		return nil, fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d",
-			errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound())
+		return nil, fmt.Errorf("%w in sovereignHeaderSigVerifier.VerifyAggregatedSignature for header hash: %x, round: %d, chain: %s",
+			errNoExtraSignatureDataFoundInProof, proof.GetHeaderHash(), proof.GetHeaderRound(), chainIDStr)
 	}
 
 	return extraSigHandler.GetAggregatedSignature(), nil

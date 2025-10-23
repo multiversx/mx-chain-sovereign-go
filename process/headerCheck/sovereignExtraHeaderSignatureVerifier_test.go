@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/stretchr/testify/require"
 
@@ -120,7 +121,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	t.Run("andromeda active, extra sig data not found for specific outgoing mb header", func(t *testing.T) {
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
-				block.OutGoingMbChangeValidatorSet.String(): {
+				dto.MVX.String(): {
 					AggregatedSignature: outGoingAggregatedSig,
 				},
 			},
@@ -134,7 +135,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 		aggregatedSigFromProof := []byte("aggregatedSigFromProof")
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
-				block.OutGoingMbDeposit.String(): {
+				dto.MVX.String(): {
 					AggregatedSignature: aggregatedSigFromProof,
 				},
 			},

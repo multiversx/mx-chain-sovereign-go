@@ -20,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -3416,11 +3417,11 @@ func TestBaseProcessor_DisplayHeader(t *testing.T) {
 		require.Equal(t, 23, len(lines))
 
 		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
-			block.OutGoingMbDeposit.String(): {
+			dto.MVX.String(): {
 				AggregatedSignature: []byte("aggSig1"),
 				LeaderSignature:     []byte("leaderSig1"),
 			},
-			block.OutGoingMbChangeValidatorSet.String(): {
+			dto.ETH.String(): {
 				AggregatedSignature: []byte("aggSig2"),
 				LeaderSignature:     []byte("leaderSig2"),
 			},
