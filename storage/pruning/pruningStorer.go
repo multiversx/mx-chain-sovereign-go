@@ -804,6 +804,8 @@ func (ps *PruningStorer) registerHandler(handler EpochStartNotifier) {
 
 				go ps.createNextEpochPersisterIfNeeded(hdr.GetEpoch())
 			}
+
+			go ps.createNextEpochPersisterIfNeeded(hdr.GetEpoch())
 		},
 		func(metaHdr data.HeaderHandler) {
 			err := ps.saveHeaderForEpochStartPrepare(metaHdr)
