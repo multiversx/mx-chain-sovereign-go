@@ -384,8 +384,8 @@ func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperatio
 		header,
 		[]*dto.OutGoingOperation{
 			{
-				MBType: block.OutGoingMbChangeValidatorSet,
-				Data:   outGoingOperationChangeValidatorSet,
+				Type: block.OutGoingOpChangeValidatorSet,
+				Data: outGoingOperationChangeValidatorSet,
 			},
 		},
 		body,
@@ -1261,8 +1261,8 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 		header,
 		[]*dto.OutGoingOperation{
 			{
-				MBType: block.OutGoingMbChangeValidatorSet,
-				Data:   outGoingOperationChangeValidatorSet,
+				Type: block.OutGoingOpChangeValidatorSet,
+				Data: outGoingOperationChangeValidatorSet,
 			},
 		},
 	)
@@ -1292,7 +1292,7 @@ func (scbp *sovereignChainBlockProcessor) computeReceivedOutGoingMBHeaderHash(
 	receivedOutGoingMB := header.GetOutGoingMiniBlockHeaderHandlers()
 	if len(receivedOutGoingMB) == 0 {
 		return nil, fmt.Errorf("%w for %s in func computeReceivedOutGoingMBHeaderHash",
-			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingMbChangeValidatorSet.String())
+			data.ErrNilOutGoingMiniBlockHeaderHandlerProvided, block.OutGoingOpChangeValidatorSet.String())
 	}
 
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
@@ -1677,7 +1677,7 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 		aggregatedOutGoingOperations = append(aggregatedOutGoingOperations, outGoingOpHash...)
 
 		outGoingOpData := &sovCore.OutGoingOperation{
-			Type: int32(outGoingOp.MBType),
+			Type: int32(outGoingOp.Type),
 			Hash: outGoingOpHash,
 			Data: outGoingOp.Data,
 		}

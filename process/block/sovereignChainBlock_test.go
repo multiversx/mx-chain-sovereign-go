@@ -317,12 +317,12 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 			require.Equal(t, expectedLogs, logs)
 			return []*dto.OutGoingOperation{
 				{
-					MBType: block.OutGoingMbDeposit,
-					Data:   bridgeOp1,
+					Type: block.OutGoingOpDeposit,
+					Data: bridgeOp1,
 				},
 				{
-					MBType: block.OutGoingMbDeposit,
-					Data:   bridgeOp2,
+					Type: block.OutGoingOpDeposit,
+					Data: bridgeOp2,
 				},
 			}, nil
 		},
@@ -944,7 +944,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		bridgeOp := sovArgs.OutGoingOperationsPool.Get(outGoingOpsHash)
 		require.NotNil(t, bridgeOp)
 		require.Equal(t, bridgeOp.OutGoingOperations, []*sovereignCore.OutGoingOperation{{
-			Type: int32(block.OutGoingMbChangeValidatorSet),
+			Type: int32(block.OutGoingOpChangeValidatorSet),
 			Hash: outGoingOpHash,
 			Data: outGoingOp,
 		}})

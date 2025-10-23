@@ -384,7 +384,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 						Hash: outGoingDataHash,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
-								Type: int32(block.OutGoingMbDeposit),
+								Type: int32(block.OutGoingOpDeposit),
 								Hash: outGoingOpHash,
 								Data: outGoingOpData,
 							},
@@ -404,7 +404,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 					Hash: outGoingDataHash,
 					OutGoingOperations: []*sovCore.OutGoingOperation{
 						{
-							Type: int32(block.OutGoingMbDeposit),
+							Type: int32(block.OutGoingOpDeposit),
 							Hash: outGoingOpHash,
 							Data: outGoingOpData,
 						},
@@ -439,7 +439,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 							Hash: outGoingDataHash,
 							OutGoingOperations: []*sovCore.OutGoingOperation{
 								{
-									Type: int32(block.OutGoingMbDeposit),
+									Type: int32(block.OutGoingOpDeposit),
 									Hash: outGoingOpHash,
 									Data: outGoingOpData,
 								},
@@ -496,7 +496,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 
 		// Add extra sigs proof data and it should work
 		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
-			block.OutGoingMbDeposit.String(): {
+			block.OutGoingOpDeposit.String(): {
 				AggregatedSignature: aggregatedSig,
 				LeaderSignature:     leaderSig,
 			},
@@ -530,7 +530,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			Hash: outGoingDataHash1,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
-					Type: int32(block.OutGoingMbDeposit),
+					Type: int32(block.OutGoingOpDeposit),
 					Hash: outGoingOpHash1,
 					Data: outGoingOpData1,
 				},
@@ -545,7 +545,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			Hash: outGoingDataHash2,
 			OutGoingOperations: []*sovCore.OutGoingOperation{
 				{
-					Type: int32(block.OutGoingMbChangeValidatorSet),
+					Type: int32(block.OutGoingOpChangeValidatorSet),
 					Hash: outGoingOpHash2,
 					Data: outGoingOpData2,
 				},
@@ -564,7 +564,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 						Hash: outGoingDataHash1,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
-								Type: int32(block.OutGoingMbDeposit),
+								Type: int32(block.OutGoingOpDeposit),
 								Hash: outGoingOpHash1,
 								Data: outGoingOpData1,
 							},
@@ -578,7 +578,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 						Hash: outGoingDataHash2,
 						OutGoingOperations: []*sovCore.OutGoingOperation{
 							{
-								Type: int32(block.OutGoingMbChangeValidatorSet),
+								Type: int32(block.OutGoingOpChangeValidatorSet),
 								Hash: outGoingOpHash2,
 								Data: outGoingOpData2,
 							},
@@ -1118,7 +1118,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 		PubKey:          []byte("A"),
 		InvalidSigners:  []byte("invalidSignersData"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbDeposit.String(): {
+			block.OutGoingOpDeposit.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
 				LeaderSignatureOutGoingTxData:     leaderSig,
 			},
@@ -1131,7 +1131,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	require.False(t, wasDataSent)
 
 	// Header's outgoing mb is updated with signatures from consensus message
-	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingMbDeposit))
+	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingOpDeposit))
 	require.Equal(t, leaderSig, outGoingMb.GetLeaderSignatureOutGoingOperations())
 	require.Equal(t, aggregatedSig, outGoingMb.GetAggregatedSignatureOutGoingOperations())
 

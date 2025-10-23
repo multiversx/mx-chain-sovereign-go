@@ -384,8 +384,8 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, []*dto.OutGoingOperation{
 		{
-			MBType: block.OutGoingMbDeposit,
-			Data:   operationBytes,
+			Type: block.OutGoingOpDeposit,
+			Data: operationBytes,
 		},
 	}, outgoingTxData)
 }
@@ -468,8 +468,8 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, []*dto.OutGoingOperation{
 		{
-			MBType: block.OutGoingMbDeposit,
-			Data:   operationBytes,
+			Type: block.OutGoingOpDeposit,
+			Data: operationBytes,
 		},
 	}, outgoingTxData)
 }

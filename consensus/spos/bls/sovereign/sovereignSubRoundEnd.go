@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -110,10 +109,10 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 	cnsDta *consensus.Message,
 ) error {
 	// TODO: Marius C. : MX-17260 Here AND everywhere else we should refactor extra sigs to be per chain
-	mbType := block.OutGoingMBType(outGoingMBHeader.GetChainID()).String()
-	extraSigData, found := cnsDta.ExtraSignatures[mbType]
+	chainID := outGoingMBHeader.GetChainID().String()
+	extraSigData, found := cnsDta.ExtraSignatures[chainID]
 	if !found {
-		return fmt.Errorf("%w for type %s", bls.ErrExtraSigShareDataNotFound, mbType)
+		return fmt.Errorf("%w for type %s", bls.ErrExtraSigShareDataNotFound, chainID)
 	}
 
 	err := outGoingMBHeader.SetAggregatedSignatureOutGoingOperations(extraSigData.AggregatedSignatureOutGoingTxData)
@@ -131,7 +130,7 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 	log.Debug("step 3.1: block header final info has been received with outgoing mb",
 		"LeaderSignatureOutGoingTxData", extraSigData.LeaderSignatureOutGoingTxData,
 		"AggregatedSignatureOutGoingTxData", extraSigData.AggregatedSignatureOutGoingTxData,
-		"type", mbType,
+		"chain ID", chainID,
 	)
 
 	_, err = UpdateBridgeDataWithSignatures(&BridgeDataSignatures{
@@ -264,10 +263,10 @@ func (sr *sovereignSubRoundEnd) getCurrentOperationsWithSignaturesAfterAndromeda
 
 	currentOperations := make([]*sovereign.BridgeOutGoingData, len(outGoingMBHeaders))
 	for idx, outGoingMBHdr := range outGoingMBHeaders {
-		mbType := block.OutGoingMBType(outGoingMBHdr.GetChainID()).String()
-		extraSigData, found := proof.GetExtraSignatureHandlers()[mbType]
+		chainID := outGoingMBHdr.GetChainID().String()
+		extraSigData, found := proof.GetExtraSignatureHandlers()[chainID]
 		if !found {
-			return nil, fmt.Errorf("%w for type %s in sovereignSubRoundEnd.getCurrentOperationsWithSignatures", bls.ErrExtraSigShareDataNotFound, mbType)
+			return nil, fmt.Errorf("%w for type %s in sovereignSubRoundEnd.getCurrentOperationsWithSignatures", bls.ErrExtraSigShareDataNotFound, chainID)
 		}
 
 		currBridgeData, err := UpdateBridgeDataWithSignatures(&BridgeDataSignatures{

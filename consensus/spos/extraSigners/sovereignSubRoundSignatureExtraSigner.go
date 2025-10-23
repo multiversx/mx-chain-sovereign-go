@@ -5,8 +5,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
-
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -14,13 +12,13 @@ import (
 
 type sovereignSubRoundSignatureOutGoingTxData struct {
 	signingHandler consensus.SigningHandler
-	mbType         block.OutGoingMBType
+	chainID        int32dd
 }
 
 // NewSovereignSubRoundSignatureExtraSigner creates a new signer for sovereign outgoing mini blocks in signature subround
 func NewSovereignSubRoundSignatureExtraSigner(
 	signingHandler consensus.SigningHandler,
-	mbType block.OutGoingMBType,
+	chainID int32,
 ) (*sovereignSubRoundSignatureOutGoingTxData, error) {
 	if check.IfNil(signingHandler) {
 		return nil, spos.ErrNilSigningHandler
@@ -28,7 +26,7 @@ func NewSovereignSubRoundSignatureExtraSigner(
 
 	return &sovereignSubRoundSignatureOutGoingTxData{
 		signingHandler: signingHandler,
-		mbType:         mbType,
+		chainID:        chainID,
 	}, nil
 }
 
@@ -43,7 +41,7 @@ func (sr *sovereignSubRoundSignatureOutGoingTxData) CreateSignatureShare(
 		return nil, fmt.Errorf("%w in sovereignSubRoundSignatureOutGoingTxData.CreateSignatureShare", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMBHeader := sovChainHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
+	outGoingMBHeader := sovChainHeader.GetOutGoingMiniBlockHeaderHandler(sr.chainID)
 	if check.IfNil(outGoingMBHeader) {
 		return make([]byte, 0), nil
 	}
