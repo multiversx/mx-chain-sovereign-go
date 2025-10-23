@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	blsSov "github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	v1 "github.com/multiversx/mx-chain-go/consensus/spos/bls/v1"
 	"github.com/multiversx/mx-chain-go/testscommon"
@@ -461,6 +462,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID: dto.MVX,
 					// No extra data needed in this outgoing mb, since those are found in proof
 					OutGoingOperationsHash: outGoingDataHash,
 				},
@@ -496,7 +498,7 @@ func TestSovereignSubRoundEnd_DoEndJobByLeader(t *testing.T) {
 
 		// Add extra sigs proof data and it should work
 		proof.ExtraSignatures = map[string]*block.ExtraSignatureData{
-			block.OutGoingOpDeposit.String(): {
+			dto.MVX.String(): {
 				AggregatedSignature: aggregatedSig,
 				LeaderSignature:     leaderSig,
 			},
@@ -1103,6 +1105,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				Hash:                   []byte("hashOfHashes"),
 				OutGoingOperationsHash: []byte("hashOfHashes"),
 			},
@@ -1118,7 +1121,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 		PubKey:          []byte("A"),
 		InvalidSigners:  []byte("invalidSignersData"),
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingOpDeposit.String(): {
+			dto.MVX.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
 				LeaderSignatureOutGoingTxData:     leaderSig,
 			},
@@ -1131,7 +1134,7 @@ func TestSovereignSubRoundEnd_ReceivedBlockHeaderFinalInfo(t *testing.T) {
 	require.False(t, wasDataSent)
 
 	// Header's outgoing mb is updated with signatures from consensus message
-	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(block.OutGoingOpDeposit))
+	outGoingMb := sovEndRound.GetHeader().(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(dto.MVX)
 	require.Equal(t, leaderSig, outGoingMb.GetLeaderSignatureOutGoingOperations())
 	require.Equal(t, aggregatedSig, outGoingMb.GetAggregatedSignatureOutGoingOperations())
 
