@@ -3,6 +3,7 @@ package sovereign
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
 	dtoSov "github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
@@ -35,6 +36,6 @@ type TopicsCheckerHandler interface {
 
 // OperationFormatter defines an operation formatter(like deposit tokens)
 type OperationFormatter interface {
-	CreateOperationData(event data.EventHandler) ([]byte, error)
+	CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error)
 	IsInterfaceNil() bool
 }

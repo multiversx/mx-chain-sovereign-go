@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
@@ -22,8 +23,9 @@ const (
 )
 
 type registerValidatorOpFormatter struct {
-	peerAccountsDB state.AccountsAdapter
-	dataCodec      DataCodecHandler
+	peerAccountsDB   state.AccountsAdapter
+	dataCodec        DataCodecHandler
+	subscribedChains []dtoCore.ChainID
 }
 
 // NewRegisterValidatorOpFormatter will create a register/unregister validator op formatter
@@ -45,7 +47,7 @@ func NewRegisterValidatorOpFormatter(
 }
 
 // CreateOperationData creates a register/unregister new validator operation data
-func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	numTopics := len(event.GetTopics())
 	if numTopics != numExpectedTopicsInRegisterValidator {
 		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterValidator, numTopics)
@@ -65,12 +67,17 @@ func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHand
 		return nil, err
 	}
 
-	return op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
+	regKeyData, err := op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
 		ID:    peerAcc.GetMainChainID(),
 		Key:   peerAcc.GetBLSPublicKey(),
 		Owner: event.GetTopics()[topicIdxOwner],
 		Nonce: nonce,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return addDataToChains(regKeyData, op.subscribedChains), nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil

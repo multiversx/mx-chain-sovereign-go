@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -23,7 +24,8 @@ const (
 )
 
 type registerTokenOpFormatter struct {
-	dataCodec DataCodecHandler
+	dataCodec        DataCodecHandler
+	subscribedChains []dtoCore.ChainID
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
@@ -38,7 +40,7 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFo
 }
 
 // CreateOperationData will create register token operation data
-func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err
@@ -49,7 +51,12 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler)
 		return nil, err
 	}
 
-	return op.dataCodec.SerializeTokenProperties(*tokenProperties)
+	tokenPropertiesData, err := op.dataCodec.SerializeTokenProperties(*tokenProperties)
+	if err != nil {
+		return nil, err
+	}
+
+	return addDataToChains(tokenPropertiesData, op.subscribedChains), nil
 }
 
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {

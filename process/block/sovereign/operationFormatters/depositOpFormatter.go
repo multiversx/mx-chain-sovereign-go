@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 )
@@ -35,7 +36,7 @@ func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheck
 }
 
 // CreateOperationData creates a deposit token operation data bytes
-func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	evData, err := op.checkAndGetEventData(event)
 	if err != nil {
 		return nil, err
@@ -51,7 +52,10 @@ func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]by
 		return nil, err
 	}
 
-	return operationBytes, nil
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	return map[dtoCore.ChainID][]byte{
+		dtoCore.MVX: operationBytes,
+	}, nil
 }
 
 func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*sovData.EventData, error) {
