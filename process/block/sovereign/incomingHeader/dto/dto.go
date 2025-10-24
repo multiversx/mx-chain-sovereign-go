@@ -74,7 +74,7 @@ type EventsResult struct {
 
 // OutGoingOperation defines an outgoing operation
 type OutGoingOperation struct {
-	Nonce  uint64
-	MBType block.OutGoingMBType
-	Data   []byte
+	Nonce uint64
+	Type  block.OutGoingOpType
+	Data  []byte
 }

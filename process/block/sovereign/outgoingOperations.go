@@ -20,9 +20,9 @@ import (
 
 type opFormatterData struct {
 	handler OperationFormatter
-	mbType  block.OutGoingMBType
+	opType  block.OutGoingOpType
 }
-type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error)
+type createOpFormatterHandler func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error)
 
 const (
 	topicIDDeposit          = "deposit"
@@ -149,19 +149,19 @@ func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOu
 	}
 
 	availableHandlers := map[string]createOpFormatterHandler{
-		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
 			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
-			return opFormatter, block.OutGoingMbDeposit, err
+			return opFormatter, block.OutGoingOpDeposit, err
 		},
-		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
+		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
 			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
-			return opFormatter, block.OutGoingMBRegisterToken, err
+			return opFormatter, block.OutGoingOpRegisterToken, err
 		},
-		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
-			return blsKeyOpFormatter, block.OutGoingMBRegisterBlsKey, nil
+		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
+			return blsKeyOpFormatter, block.OutGoingOpRegisterBlsKey, nil
 		},
-		topicIDUnRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingMBType, error) {
-			return blsKeyOpFormatter, block.OutGoingMBUnRegisterBlsKey, nil
+		topicIDUnRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
+			return blsKeyOpFormatter, block.OutGoingOpUnRegisterBlsKey, nil
 		},
 	}
 
@@ -197,14 +197,14 @@ func addHandlerIfSubscribed(
 		return nil
 	}
 
-	opHandler, mbType, err := createOpFormatterHandlerFunc(args)
+	opHandler, opType, err := createOpFormatterHandlerFunc(args)
 	if err != nil {
 		return err
 	}
 
 	allHandlers[id] = opFormatterData{
 		handler: opHandler,
-		mbType:  mbType,
+		opType:  opType,
 	}
 
 	delete(subscribedEvents, id)
@@ -292,8 +292,8 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (*dto.Ou
 
 	opData, err := opFormatter.handler.CreateOperationData(event)
 	return &dto.OutGoingOperation{
-		MBType: opFormatter.mbType,
-		Data:   opData,
+		Type: opFormatter.opType,
+		Data: opData,
 	}, err
 }
 

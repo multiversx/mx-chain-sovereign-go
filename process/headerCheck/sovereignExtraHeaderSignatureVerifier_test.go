@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/stretchr/testify/require"
 
@@ -99,6 +100,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 	outGoingOpHash := []byte("outGoingOpHash")
 	outGoingAggregatedSig := []byte("aggregatedSig")
 	outGoingMBHeader := &block.OutGoingMiniBlockHeader{
+		ChainID:                               dto.MVX,
 		OutGoingOperationsHash:                outGoingOpHash,
 		AggregatedSignatureOutGoingOperations: outGoingAggregatedSig,
 	}
@@ -117,15 +119,17 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 		require.Equal(t, process.ErrNilHeaderProof, err)
 	})
 
-	t.Run("andromeda active, extra sig data not found for specific outgoing mb header", func(t *testing.T) {
+	t.Run("andromeda active, extra sig data not found for specific chain ID in outgoing mb header", func(t *testing.T) {
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
-				block.OutGoingMbChangeValidatorSet.String(): {
+				dto.MVX.String(): {
 					AggregatedSignature: outGoingAggregatedSig,
 				},
 			},
 		}
-		aggSig, err := sovVerifier.getAggregatedSignature(outGoingMBHeader, proof, 0)
+		outGoingMBHeaderCopy := *outGoingMBHeader
+		outGoingMBHeaderCopy.ChainID = dto.UNSPECIFIED
+		aggSig, err := sovVerifier.getAggregatedSignature(&outGoingMBHeaderCopy, proof, 0)
 		require.Nil(t, aggSig)
 		require.ErrorIs(t, err, errNoExtraSignatureDataFoundInProof)
 	})
@@ -134,7 +138,7 @@ func TestSovereignHeaderSigVerifier_getAggregatedSignature(t *testing.T) {
 		aggregatedSigFromProof := []byte("aggregatedSigFromProof")
 		proof := &block.HeaderProof{
 			ExtraSignatures: map[string]*block.ExtraSignatureData{
-				block.OutGoingMbDeposit.String(): {
+				dto.MVX.String(): {
 					AggregatedSignature: aggregatedSigFromProof,
 				},
 			},

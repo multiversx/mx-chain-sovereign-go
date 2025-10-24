@@ -357,7 +357,7 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 
 	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
 	require.Len(t, bridgeData.OutGoingOperations, 1)
-	require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), bridgeData.OutGoingOperations[0].Type)
+	require.Equal(t, int32(block.OutGoingOpChangeValidatorSet), bridgeData.OutGoingOperations[0].Type)
 	require.Equal(t, currentHeader.GetEpoch(), bridgeData.Epoch)
 
 	outGoingBridgeDataValidators := &sovereignData.BridgeOutGoingDataValidatorSetChange{}

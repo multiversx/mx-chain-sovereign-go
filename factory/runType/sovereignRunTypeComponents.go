@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -289,38 +289,37 @@ func (rcf *sovereignRunTypeComponentsFactory) createOutGoingTxDataSigners() (bls
 	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
 	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
 
-	// TODO: Marius C: MX-17260 Here we should prepare code to iterate through chains
-	//for _, mbTypeValue := range dataBlock.OutGoingMBType_value {
-	mbType := dataBlock.OutGoingMBType(0)
-	extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()
+	// TODO: Marius C: MX-17260 Here we should iterate through the ordered chain id func fron feat/multi-chain
+	for chainID := range dto.ValidChains {
+		extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()
 
-	startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
-	if err != nil {
-		return nil, err
-	}
-	err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
-	if err != nil {
-		return nil, err
-	}
+		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, chainID)
+		if err != nil {
+			return nil, err
+		}
+		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
 
-	signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
-	if err != nil {
-		return nil, err
-	}
-	err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
-	if err != nil {
-		return nil, err
-	}
+		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, chainID)
+		if err != nil {
+			return nil, err
+		}
+		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
 
-	endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType, rcf.coreComponents.EnableEpochsHandler())
-	if err != nil {
-		return nil, err
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, chainID, rcf.coreComponents.EnableEpochsHandler())
+		if err != nil {
+			return nil, err
+		}
+		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
 	}
-	err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
-	if err != nil {
-		return nil, err
-	}
-	//}
 
 	return holders.NewExtraSignersHolder(
 		startRoundExtraSignersHolder,

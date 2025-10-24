@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignCore "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	dtaPool "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/stretchr/testify/require"
@@ -317,12 +318,12 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 			require.Equal(t, expectedLogs, logs)
 			return []*dto.OutGoingOperation{
 				{
-					MBType: block.OutGoingMbDeposit,
-					Data:   bridgeOp1,
+					Type: block.OutGoingOpDeposit,
+					Data: bridgeOp1,
 				},
 				{
-					MBType: block.OutGoingMbDeposit,
-					Data:   bridgeOp2,
+					Type: block.OutGoingOpDeposit,
+					Data: bridgeOp2,
 				},
 			}, nil
 		},
@@ -413,6 +414,7 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dtoSov.MVX,
 				Hash:                   expectedOutGoingMbHash,
 				OutGoingOperationsHash: bridgeOpsHash,
 			},
@@ -926,6 +928,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 			IsStartOfEpoch: true,
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                dtoSov.MVX,
 					Hash:                   outGoingMBHash,
 					OutGoingOperationsHash: outGoingOpsHash,
 				},
@@ -944,7 +947,7 @@ func TestSovereignShardProcessor_CreateBlock(t *testing.T) {
 		bridgeOp := sovArgs.OutGoingOperationsPool.Get(outGoingOpsHash)
 		require.NotNil(t, bridgeOp)
 		require.Equal(t, bridgeOp.OutGoingOperations, []*sovereignCore.OutGoingOperation{{
-			Type: int32(block.OutGoingMbChangeValidatorSet),
+			Type: int32(block.OutGoingOpChangeValidatorSet),
 			Hash: outGoingOpHash,
 			Data: outGoingOp,
 		}})

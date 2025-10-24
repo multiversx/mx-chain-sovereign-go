@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-crypto-go/signing"
 	"github.com/multiversx/mx-chain-crypto-go/signing/mcl"
@@ -713,8 +714,8 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 
 	extraAggSig := []byte("extraAggSig")
 	extraAggSigs := map[string][]byte{
-		block.OutGoingMbDeposit.String():            extraAggSig,
-		block.OutGoingMbChangeValidatorSet.String(): nil,
+		dto.MVX.String(): extraAggSig,
+		dto.ETH.String(): nil,
 	}
 
 	chanRcv := make(chan bool, 1)
@@ -724,7 +725,7 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 	messenger := &consensusMocks.BroadcastMessengerMock{
 		BroadcastEquivalentProofCalled: func(proof data.HeaderProofHandler, pkBytes []byte) error {
 			require.Equal(t, map[string]data.ExtraSignatureDataHandler{
-				block.OutGoingMbDeposit.String(): &block.ExtraSignatureData{
+				dto.MVX.String(): &block.ExtraSignatureData{
 					AggregatedSignature: extraAggSig,
 					LeaderSignature:     leaderExtraSig,
 				},
@@ -758,7 +759,7 @@ func TestSubroundEndRound_CreateAndBroadcastProofShouldBeCalled(t *testing.T) {
 		GetSubRoundEndExtraSignersHolderCalled: func() bls.SubRoundEndExtraSignersHolder {
 			return &subRounds.SubRoundEndExtraSignersHolderMock{
 				GetLeaderExtraSigCalled: func(header data.HeaderHandler, id string) ([]byte, error) {
-					require.Equal(t, block.OutGoingMbDeposit.String(), id)
+					require.Equal(t, dto.MVX.String(), id)
 					return leaderExtraSig, nil
 				},
 			}

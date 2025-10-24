@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls/sovereign"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
@@ -56,10 +55,10 @@ func (sbpf *sovereignBlockProcessor) ProcessHeaderProof(
 	}
 
 	for _, outGoingMb := range sovHdr.GetOutGoingMiniBlockHeaderHandlers() {
-		mbType := block.OutGoingMBType(outGoingMb.GetChainID()).String()
-		extraSigData, found := proof.GetExtraSignatureHandlers()[mbType]
+		chainID := outGoingMb.GetChainID().String()
+		extraSigData, found := proof.GetExtraSignatureHandlers()[chainID]
 		if !found {
-			return fmt.Errorf("%w for type %s in ProcessHeaderProof", bls.ErrExtraSigShareDataNotFound, mbType)
+			return fmt.Errorf("%w for type %s in ProcessHeaderProof", bls.ErrExtraSigShareDataNotFound, chainID)
 		}
 
 		_, err := sovereign.UpdateBridgeDataWithSignatures(&sovereign.BridgeDataSignatures{

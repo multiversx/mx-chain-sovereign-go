@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/consensus/spos"
@@ -15,13 +15,13 @@ func TestNewSovereignSubRoundStartOutGoingTxData(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil signing handler, should return error", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundStartExtraSigner(nil, block.OutGoingMbDeposit)
+		sovSigHandler, err := NewSovereignSubRoundStartExtraSigner(nil, dto.MVX)
 		require.Equal(t, spos.ErrNilSigningHandler, err)
 		require.True(t, check.IfNil(sovSigHandler))
 	})
 
 	t.Run("should work", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundStartExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit)
+		sovSigHandler, err := NewSovereignSubRoundStartExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX)
 		require.Nil(t, err)
 		require.False(t, sovSigHandler.IsInterfaceNil())
 	})
@@ -40,7 +40,7 @@ func TestSovereignSubRoundStartOutGoingTxData_Reset(t *testing.T) {
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundStartExtraSigner(sigHandler, block.OutGoingMbDeposit)
+	sovSigHandler, _ := NewSovereignSubRoundStartExtraSigner(sigHandler, dto.MVX)
 	err := sovSigHandler.Reset(expectedPubKeys)
 	require.Nil(t, err)
 	require.True(t, wasResetCalled)
@@ -49,6 +49,6 @@ func TestSovereignSubRoundStartOutGoingTxData_Reset(t *testing.T) {
 func TestSovereignSubRoundStartOutGoingTxData_Identifier(t *testing.T) {
 	t.Parallel()
 
-	sovSigHandler, _ := NewSovereignSubRoundStartExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit)
-	require.Equal(t, block.OutGoingMbDeposit.String(), sovSigHandler.Identifier())
+	sovSigHandler, _ := NewSovereignSubRoundStartExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX)
+	require.Equal(t, dto.MVX.String(), sovSigHandler.Identifier())
 }

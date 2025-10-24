@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -19,13 +20,13 @@ func TestNewSovereignSubRoundEndOutGoingTxData(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil signing handler, should return error", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(nil, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(nil, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		require.Equal(t, spos.ErrNilSigningHandler, err)
 		require.True(t, check.IfNil(sovSigHandler))
 	})
 
 	t.Run("should work", func(t *testing.T) {
-		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+		sovSigHandler, err := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 		require.Nil(t, err)
 		require.False(t, sovSigHandler.IsInterfaceNil())
 	})
@@ -42,6 +43,7 @@ func TestSovereignSubRoundEndOutGoingTxData_VerifyAggregatedSignatures(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
@@ -59,7 +61,7 @@ func TestSovereignSubRoundEndOutGoingTxData_VerifyAggregatedSignatures(t *testin
 			return nil
 		},
 	}
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.VerifyAggregatedSignatures(expectedBitMap, sovHdr.Header)
@@ -96,6 +98,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AggregateSignatures(t *testing.T) {
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				OutGoingOperationsHash: []byte("hash"),
 			},
 		},
@@ -117,7 +120,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AggregateSignatures(t *testing.T) {
 			return nil
 		},
 	}
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 	result, err := sovSigHandler.AggregateAndSetSignatures(expectedBitMap, sovHdr)
 	require.Nil(t, err)
 	require.Equal(t, aggregatedSig, result)
@@ -134,12 +137,13 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SetAggregatedSignatureInHeader(sovHdr.Header, aggregatedSig)
@@ -163,6 +167,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.MVX,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 				},
@@ -183,6 +188,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 			},
@@ -202,7 +208,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(signingHandler, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SignAndSetLeaderSignature(sovHdr.Header, expectedLeaderPubKey)
@@ -228,6 +234,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.MVX,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     expectedLeaderSig,
@@ -249,6 +256,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 			},
@@ -270,7 +278,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 
 	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(
 		signingHandler,
-		block.OutGoingMbDeposit,
+		dto.MVX,
 		enableEpochsHandlerMock.NewEnableEpochsHandlerStub(common.AndromedaFlag),
 	)
 
@@ -284,6 +292,7 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 				LeaderSignatureOutGoingOperations:     expectedLeaderSig,
@@ -299,7 +308,7 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 	leaderSig := []byte("leaderSig")
 	cnsMsg := &consensus.Message{
 		ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-			block.OutGoingMbDeposit.String(): {
+			dto.MVX.String(): {
 				AggregatedSignatureOutGoingTxData: aggregatedSig,
 				LeaderSignatureOutGoingTxData:     leaderSig,
 			},
@@ -314,12 +323,13 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.SetConsensusDataInHeader(sovHdr.Header, cnsMsg)
@@ -344,6 +354,7 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.MVX,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     leaderSig,
@@ -368,6 +379,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 				LeaderSignatureOutGoingOperations:     leaderSig,
@@ -375,7 +387,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		},
 	}
 
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
 
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.AddLeaderAndAggregatedSignatures(sovHdr.Header, cnsMsg)
@@ -395,7 +407,7 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		require.Nil(t, err)
 		require.Equal(t, &consensus.Message{
 			ExtraSignatures: map[string]*consensus.ExtraSignatureData{
-				block.OutGoingMbDeposit.String(): {
+				dto.MVX.String(): {
 					AggregatedSignatureOutGoingTxData: aggregatedSig,
 					LeaderSignatureOutGoingTxData:     leaderSig,
 				},
@@ -406,6 +418,6 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 
 func TestSovereignSubRoundEndOutGoingTxData_Identifier(t *testing.T) {
 	t.Parallel()
-	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, block.OutGoingMbDeposit, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
-	require.Equal(t, block.OutGoingMbDeposit.String(), sovSigHandler.Identifier())
+	sovSigHandler, _ := NewSovereignSubRoundEndExtraSigner(&cnsTest.SigningHandlerStub{}, dto.MVX, &enableEpochsHandlerMock.EnableEpochsHandlerStub{})
+	require.Equal(t, dto.MVX.String(), sovSigHandler.Identifier())
 }
