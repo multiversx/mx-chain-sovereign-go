@@ -43,6 +43,8 @@ func NewRegisterValidatorOpFormatter(
 	return &registerValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,
 		dataCodec:      dataCodec,
+		// TODO: Marius C. : MX-17260 Use ordered chains here
+		subscribedChains: []dtoCore.ChainID{dtoCore.MVX},
 	}, nil
 }
 

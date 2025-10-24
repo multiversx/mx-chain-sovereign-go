@@ -11,7 +11,7 @@ import (
 // OutgoingOperationsFormatter collects relevant outgoing events for bridge from the logs and creates outgoing data
 // that needs to be signed by validators to bridge tokens
 type OutgoingOperationsFormatter interface {
-	CreateOutgoingTxsData(logs []*data.LogData) ([]*dtoSov.OutGoingOperation, error)
+	CreateOutgoingTxsData(logs []*data.LogData) (map[dtoCore.ChainID][]*dtoSov.OutGoingOperation, error)
 	CreateOutGoingChangeValidatorData(pubKeys []string, epoch uint32) ([]byte, error)
 	IsInterfaceNil() bool
 }

@@ -379,6 +379,8 @@ func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperatio
 		return err
 	}
 
+	// TODO: Marius C. : MX-17260 Iterate through all sorted chain ids here and create this mb
+
 	// Leader will only set outgoing mini-block header in proposed epoch start block.
 	// The rest of the mini-blocks, will be created and processed by all participants on ProcessBlock
 	return scbp.createAndSetOutGoingMiniBlock(
@@ -390,6 +392,7 @@ func (scbp *sovereignChainBlockProcessor) createAndSetEpochStartOutGoingOperatio
 			},
 		},
 		body,
+		dtoSov.MVX,
 	)
 }
 
@@ -1258,6 +1261,7 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 		return nil, nil, err
 	}
 
+	// TODO: Marius C. : MX-17260 Iterate through all sorted chain ids here and check this
 	outGoingMbChangeValidatorSet, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(
 		header,
 		[]*dto.OutGoingOperation{
@@ -1266,6 +1270,7 @@ func (scbp *sovereignChainBlockProcessor) computeEpochChangeOutGoingMBHeaderAndH
 				Data: outGoingOperationChangeValidatorSet,
 			},
 		},
+		dtoSov.MVX,
 	)
 
 	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMbChangeValidatorSet)
@@ -1644,13 +1649,16 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 		return err
 	}
 
-	err = scbp.createAndSetOutGoingMiniBlock(
-		headerHandler,
-		outGoingOperations,
-		blockBody,
-	)
-	if err != nil {
-		return err
+	for chain, operations := range outGoingOperations {
+		err = scbp.createAndSetOutGoingMiniBlock(
+			headerHandler,
+			operations,
+			blockBody,
+			chain,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1660,18 +1668,20 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlock(
 	headerHandler data.HeaderHandler,
 	outGoingOperations []*dto.OutGoingOperation,
 	blockBody *block.Body,
+	chainID dtoSov.ChainID,
 ) error {
 	if len(outGoingOperations) == 0 {
 		return nil
 	}
 
-	outGoingMb, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(headerHandler, outGoingOperations)
-	return scbp.setOutGoingMiniBlock(headerHandler, blockBody, outGoingMb, outGoingOperationsHash)
+	outGoingMb, outGoingOperationsHash := scbp.createOutGoingMiniBlockData(headerHandler, outGoingOperations, chainID)
+	return scbp.setOutGoingMiniBlock(headerHandler, blockBody, outGoingMb, outGoingOperationsHash, chainID)
 }
 
 func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 	headerHandler data.HeaderHandler,
 	outGoingOperations []*dto.OutGoingOperation,
+	chainID dtoSov.ChainID,
 ) (*block.MiniBlock, []byte) {
 	outGoingOpHashes := make([][]byte, len(outGoingOperations))
 	aggregatedOutGoingOperations := make([]byte, 0)
@@ -1694,6 +1704,7 @@ func (scbp *sovereignChainBlockProcessor) createOutGoingMiniBlockData(
 
 	outGoingOperationsHash := scbp.operationsHasher.Compute(string(aggregatedOutGoingOperations))
 	scbp.outGoingOperationsPool.Add(&sovCore.BridgeOutGoingData{
+		ChainID:            int32(chainID),
 		Hash:               outGoingOperationsHash,
 		OutGoingOperations: outGoingOperationsData,
 		PubKeysBitmap:      headerHandler.GetPubKeysBitmap(),
@@ -1731,6 +1742,7 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	createdBlockBody *block.Body,
 	outGoingMb *block.MiniBlock,
 	outGoingOperationsHash []byte,
+	chainID dtoSov.ChainID,
 ) error {
 	outGoingMbHash, err := core.CalculateHash(scbp.marshalizer, scbp.hasher, outGoingMb)
 	if err != nil {
@@ -1743,8 +1755,7 @@ func (scbp *sovereignChainBlockProcessor) setOutGoingMiniBlock(
 	}
 
 	outGoingMbHeader := &block.OutGoingMiniBlockHeader{
-		// TODO: Marius C: MX-17260 remove this hard codded chain id
-		ChainID:                dtoSov.MVX,
+		ChainID:                chainID,
 		Hash:                   outGoingMbHash,
 		OutGoingOperationsHash: outGoingOperationsHash,
 	}
