@@ -108,7 +108,6 @@ func (sr *sovereignSubRoundEnd) updatePoolForOutGoingMiniBlock(
 	outGoingMBHeader data.OutGoingMiniBlockHeaderHandler,
 	cnsDta *consensus.Message,
 ) error {
-	// TODO: Marius C. : MX-17260 Here AND everywhere else we should refactor extra sigs to be per chain
 	chainID := outGoingMBHeader.GetChainID().String()
 	extraSigData, found := cnsDta.ExtraSignatures[chainID]
 	if !found {
