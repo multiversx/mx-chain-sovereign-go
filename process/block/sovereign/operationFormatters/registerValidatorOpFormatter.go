@@ -68,7 +68,7 @@ func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHand
 
 	ret := map[dtoCore.ChainID][]byte{}
 	for _, chainID := range op.subscribedChains {
-		chainNonce, err := op.chainNonceHandler.GetNonce(chainID)
+		chainNonce, err := op.chainNonceHandler.GetAndIncrementNonce(chainID)
 		if err != nil {
 			return nil, err
 		}

@@ -12,8 +12,11 @@ func NewOutGoingOpChainNonce() *outGoingOpChainNonce {
 	}
 }
 
-func (op *outGoingOpChainNonce) GetNonce(chainID dtoCore.ChainID) (uint64, error) {
-	return op.data[chainID], nil
+func (op *outGoingOpChainNonce) GetAndIncrementNonce(chainID dtoCore.ChainID) (uint64, error) {
+	nonce := op.data[chainID]
+	op.data[chainID]++
+
+	return nonce, nil
 }
 
 func (op *outGoingOpChainNonce) IncrementNonce(chainID dtoCore.ChainID, delta uint64) {

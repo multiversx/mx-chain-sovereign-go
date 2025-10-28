@@ -58,8 +58,7 @@ type outgoingOperations struct {
 	topicsChecker    TopicsCheckerHandler
 	peerAccountsDB   state.AccountsAdapter
 
-	opFormatters  map[string]opFormatterData
-	chainOpNonces map[dtoSov.ChainID]uint64
+	opFormatters map[string]opFormatterData
 }
 
 // TODO: We should create a common base functionality from this component. Similar behavior is also found in

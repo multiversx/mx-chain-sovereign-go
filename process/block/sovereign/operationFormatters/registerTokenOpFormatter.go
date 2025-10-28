@@ -52,7 +52,7 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler)
 	}
 
 	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
-	nonce, err := op.chainNonceHandler.GetNonce(dtoCore.MVX)
+	nonce, err := op.chainNonceHandler.GetAndIncrementNonce(dtoCore.MVX)
 	if err != nil {
 		return nil, err
 	}

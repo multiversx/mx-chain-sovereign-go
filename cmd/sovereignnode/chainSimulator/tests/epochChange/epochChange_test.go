@@ -158,10 +158,12 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 	require.Empty(t, accFeesInEpoch.Bytes())
 	require.Empty(t, devFeesInEpoch.Bytes())
 
+	outGoingOpChainNonce := uint64(0)
 	staking.StakeNodes(t, cs, nodeHandler, 10)
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8) // 10 newly staked nodes and 8 nodes from genesis
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 10, 8, &outGoingOpChainNonce) // 10 newly staked nodes and 8 nodes from genesis
 	err = nodeHandler.GetProcessComponents().ValidatorsProvider().ForceUpdate()
 	require.Nil(t, err)
+	require.Equal(t, uint64(10), outGoingOpChainNonce)
 
 	auctionList, err := nodeHandler.GetProcessComponents().ValidatorsProvider().GetAuctionList()
 	require.Nil(t, err)

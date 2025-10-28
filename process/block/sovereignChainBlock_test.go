@@ -314,16 +314,18 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 	bridgeOpsHash := outgoingOpsHasher.Compute(string(append(bridgeOp1Hash, bridgeOp2Hash...)))
 
 	outgoingOperationsFormatter := &sovereign.OutgoingOperationsFormatterMock{
-		CreateOutgoingTxDataCalled: func(logs []*data.LogData) ([]*dto.OutGoingOperation, error) {
+		CreateOutgoingTxDataCalled: func(logs []*data.LogData) (map[dtoSov.ChainID][]*dto.OutGoingOperation, error) {
 			require.Equal(t, expectedLogs, logs)
-			return []*dto.OutGoingOperation{
-				{
-					Type: block.OutGoingOpDeposit,
-					Data: bridgeOp1,
-				},
-				{
-					Type: block.OutGoingOpDeposit,
-					Data: bridgeOp2,
+			return map[dtoSov.ChainID][]*dto.OutGoingOperation{
+				dtoSov.MVX: {
+					{
+						Type: block.OutGoingOpDeposit,
+						Data: bridgeOp1,
+					},
+					{
+						Type: block.OutGoingOpDeposit,
+						Data: bridgeOp2,
+					},
 				},
 			}, nil
 		},
@@ -341,7 +343,8 @@ func TestSovereignChainBlockProcessor_createAndSetOutGoingMiniBlockTxs(t *testin
 			switch poolAddCt {
 			case 0:
 				require.Equal(t, &sovereignCore.BridgeOutGoingData{
-					Hash: bridgeOpsHash,
+					ChainID: int32(dtoSov.MVX),
+					Hash:    bridgeOpsHash,
 					OutGoingOperations: []*sovereignCore.OutGoingOperation{
 						{
 							Hash: bridgeOp1Hash,
