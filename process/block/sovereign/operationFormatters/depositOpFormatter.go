@@ -7,6 +7,7 @@ import (
 	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 const (
@@ -16,12 +17,13 @@ const (
 )
 
 type depositOpFormatter struct {
-	dataCodec     DataCodecHandler
-	topicsChecker TopicsCheckerHandler
+	dataCodec         DataCodecHandler
+	topicsChecker     TopicsCheckerHandler
+	chainNonceHandler dto.OutGoingOpNonceChainHandler
 }
 
 // NewDepositOpFormatter creates a new deposit token operation formatter
-func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*depositOpFormatter, error) {
+func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler, chainNonceHandler dto.OutGoingOpNonceChainHandler) (*depositOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
@@ -30,8 +32,9 @@ func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheck
 	}
 
 	return &depositOpFormatter{
-		dataCodec:     dataCodec,
-		topicsChecker: topicsChecker,
+		dataCodec:         dataCodec,
+		topicsChecker:     topicsChecker,
+		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
 
@@ -63,6 +66,14 @@ func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*so
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	nonce, err := op.chainNonceHandler.GetNonce(dtoCore.MVX)
+	if err != nil {
+		return nil, err
+	}
+
+	evData.Nonce = nonce
 
 	topics := event.GetTopics()
 	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)

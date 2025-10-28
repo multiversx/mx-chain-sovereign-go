@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
+	dtoSov "github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 const (
@@ -24,12 +25,13 @@ const (
 )
 
 type registerTokenOpFormatter struct {
-	dataCodec        DataCodecHandler
-	subscribedChains []dtoCore.ChainID
+	dataCodec         DataCodecHandler
+	subscribedChains  []dtoCore.ChainID
+	chainNonceHandler dtoSov.OutGoingOpNonceChainHandler
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
-func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, chainNonceHandler dtoSov.OutGoingOpNonceChainHandler) (*registerTokenOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
@@ -37,7 +39,8 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFo
 	return &registerTokenOpFormatter{
 		dataCodec: dataCodec,
 		// TODO: Marius C. : MX-17260 Use ordered chains here
-		subscribedChains: []dtoCore.ChainID{dtoCore.MVX},
+		subscribedChains:  []dtoCore.ChainID{dtoCore.MVX},
+		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
 
@@ -48,6 +51,13 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler)
 		return nil, err
 	}
 
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	nonce, err := op.chainNonceHandler.GetNonce(dtoCore.MVX)
+	if err != nil {
+		return nil, err
+	}
+
+	evData.Nonce = nonce
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err

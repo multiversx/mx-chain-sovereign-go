@@ -150,18 +150,20 @@ func checkEmptyAddresses(addresses map[string]string) error {
 func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]opFormatterData, error) {
 	handlers := make(map[string]opFormatterData)
 
-	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+	chainNonceHandler := operationFormatters.NewOutGoingOpChainNonce()
+
+	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec, chainNonceHandler)
 	if err != nil {
 		return nil, err
 	}
 
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
+			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker, chainNonceHandler)
 			return opFormatter, block.OutGoingOpDeposit, err
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, chainNonceHandler)
 			return opFormatter, block.OutGoingOpRegisterToken, err
 		},
 		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
@@ -240,10 +242,18 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 		}
 
 		for chainID, opData := range operation.data {
+			nonce, found := op.chainOpNonces[chainID]
+			if !found {
+				return nil, fmt.Errorf("nonce not found for chainID: %s", chainID)
+			}
+
 			operations[chainID] = append(operations[chainID], &dto.OutGoingOperation{
-				Type: operation.opType,
-				Data: opData,
+				Nonce: nonce,
+				Type:  operation.opType,
+				Data:  opData,
 			})
+
+			op.chainOpNonces[chainID]++
 		}
 	}
 

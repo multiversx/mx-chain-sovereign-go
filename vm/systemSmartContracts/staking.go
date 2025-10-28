@@ -605,7 +605,6 @@ func (s *stakingSC) addRegisterBlsKeyLogIfNeeded(
 		Topics: [][]byte{
 			blsKey,
 			registrationData.OwnerAddress,
-			big.NewInt(int64(registrationData.StakedNonce)).Bytes(),
 		},
 		Address: vm.StakingSCAddress,
 	})
@@ -722,7 +721,6 @@ func (s *stakingSC) addUnRegisterBlsKeyLogIfNeeded(blsKey []byte, registrationDa
 		Topics: [][]byte{
 			blsKey,
 			registrationData.OwnerAddress,
-			big.NewInt(int64(registrationData.UnStakedNonce)).Bytes(),
 		},
 		Address: vm.StakingSCAddress,
 	})
