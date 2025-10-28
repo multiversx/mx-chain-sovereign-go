@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -16,12 +17,12 @@ func TestNewRegisterTokenOpFormatter(t *testing.T) {
 	t.Parallel()
 
 	t.Run("nil data codec, should return error", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(nil)
+		opFormatter, err := NewRegisterTokenOpFormatter(nil, &sovereign.OutGoingChainNonceMock{})
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
 	t.Run("should work", func(t *testing.T) {
-		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
+		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.OutGoingChainNonceMock{})
 		require.Nil(t, err)
 		require.False(t, opFormatter.IsInterfaceNil())
 	})
@@ -46,8 +47,10 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 		Topics: topics,
 		Data:   []byte("dataEvent"),
 	}
-
 	serializedData := []byte("serialized token data")
+	serializedChainData := map[dtoCore.ChainID][]byte{
+		dtoCore.MVX: serializedData,
+	}
 	dataCodec := &sovereign.DataCodecMock{
 		SerializeTokenPropertiesCalled: func(properties dto.TokenProperties) ([]byte, error) {
 			require.Equal(t, dto.TokenProperties{
@@ -67,16 +70,16 @@ func TestRegisterTokenOpFormatter_CreateOperationData(t *testing.T) {
 		},
 	}
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec)
+	opFormatter, _ := NewRegisterTokenOpFormatter(dataCodec, &sovereign.OutGoingChainNonceMock{})
 	formattedData, err := opFormatter.CreateOperationData(txEvent)
 	require.Nil(t, err)
-	require.Equal(t, formattedData, serializedData)
+	require.Equal(t, formattedData, serializedChainData)
 }
 
 func TestRegisterTokenOpFormatter_CreateOperationDataErrorCases(t *testing.T) {
 	t.Parallel()
 
-	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{})
+	opFormatter, _ := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.OutGoingChainNonceMock{})
 	topics := [][]byte{
 		[]byte("registerToken"),
 		[]byte("tokenID"),

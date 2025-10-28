@@ -242,18 +242,10 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[d
 		}
 
 		for chainID, opData := range operation.data {
-			nonce, found := op.chainOpNonces[chainID]
-			if !found {
-				return nil, fmt.Errorf("nonce not found for chainID: %s", chainID)
-			}
-
 			operations[chainID] = append(operations[chainID], &dto.OutGoingOperation{
-				Nonce: nonce,
-				Type:  operation.opType,
-				Data:  opData,
+				Type: operation.opType,
+				Data: opData,
 			})
-
-			op.chainOpNonces[chainID]++
 		}
 	}
 
