@@ -4,8 +4,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 const (
@@ -15,27 +17,32 @@ const (
 )
 
 type depositOpFormatter struct {
-	dataCodec     DataCodecHandler
-	topicsChecker TopicsCheckerHandler
+	dataCodec         DataCodecHandler
+	topicsChecker     TopicsCheckerHandler
+	chainNonceHandler dto.OutGoingOpNonceChainHandler
 }
 
 // NewDepositOpFormatter creates a new deposit token operation formatter
-func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler) (*depositOpFormatter, error) {
+func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheckerHandler, chainNonceHandler dto.OutGoingOpNonceChainHandler) (*depositOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
 	if check.IfNil(topicsChecker) {
 		return nil, errMx.ErrNilTopicsChecker
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &depositOpFormatter{
-		dataCodec:     dataCodec,
-		topicsChecker: topicsChecker,
+		dataCodec:         dataCodec,
+		topicsChecker:     topicsChecker,
+		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
 
 // CreateOperationData creates a deposit token operation data bytes
-func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	evData, err := op.checkAndGetEventData(event)
 	if err != nil {
 		return nil, err
@@ -51,7 +58,10 @@ func (op *depositOpFormatter) CreateOperationData(event data.EventHandler) ([]by
 		return nil, err
 	}
 
-	return operationBytes, nil
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	return map[dtoCore.ChainID][]byte{
+		dtoCore.MVX: operationBytes,
+	}, nil
 }
 
 func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*sovData.EventData, error) {
@@ -59,6 +69,14 @@ func (op *depositOpFormatter) checkAndGetEventData(event data.EventHandler) (*so
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	nonce, err := op.chainNonceHandler.GetAndIncrementNonce(dtoCore.MVX)
+	if err != nil {
+		return nil, err
+	}
+
+	evData.Nonce = nonce
 
 	topics := event.GetTopics()
 	err = op.topicsChecker.CheckValidity(topics, evData.TransferData)

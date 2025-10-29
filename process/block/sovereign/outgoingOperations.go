@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
@@ -17,6 +18,11 @@ import (
 	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/state"
 )
+
+type outGoingOpsPerChain struct {
+	opType block.OutGoingOpType
+	data   map[dtoSov.ChainID][]byte
+}
 
 type opFormatterData struct {
 	handler OperationFormatter
@@ -143,18 +149,20 @@ func checkEmptyAddresses(addresses map[string]string) error {
 func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]opFormatterData, error) {
 	handlers := make(map[string]opFormatterData)
 
-	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec)
+	chainNonceHandler := operationFormatters.NewOutGoingOpChainNonce()
+
+	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec, chainNonceHandler)
 	if err != nil {
 		return nil, err
 	}
 
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker)
+			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker, chainNonceHandler)
 			return opFormatter, block.OutGoingOpDeposit, err
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec)
+			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, chainNonceHandler)
 			return opFormatter, block.OutGoingOpRegisterToken, err
 		},
 		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
@@ -213,13 +221,14 @@ func addHandlerIfSubscribed(
 
 // CreateOutgoingTxsData collects relevant outgoing events(based on subscribed addresses and topics) for bridge from the
 // logs and creates outgoing data that needs to be signed by validators to bridge tokens
-func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([]*dto.OutGoingOperation, error) {
+func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) (map[dtoSov.ChainID][]*dto.OutGoingOperation, error) {
+	operations := make(map[dtoSov.ChainID][]*dto.OutGoingOperation)
+
 	outgoingEvents := op.collectOutGoingEvents(logs)
 	if len(outgoingEvents) == 0 {
-		return make([]*dto.OutGoingOperation, 0), nil
+		return operations, nil
 	}
 
-	operations := make([]*dto.OutGoingOperation, 0)
 	for i, event := range outgoingEvents {
 		operation, err := op.getOperationData(event)
 		if err != nil {
@@ -231,7 +240,12 @@ func (op *outgoingOperations) CreateOutgoingTxsData(logs []*data.LogData) ([]*dt
 			return nil, err
 		}
 
-		operations = append(operations, operation)
+		for chainID, opData := range operation.data {
+			operations[chainID] = append(operations[chainID], &dto.OutGoingOperation{
+				Type: operation.opType,
+				Data: opData,
+			})
+		}
 	}
 
 	// TODO: Check gas limit here and split tx data in multiple batches if required
@@ -283,7 +297,7 @@ func (op *outgoingOperations) isSubscribed(event data.EventHandler, txHash strin
 	return false
 }
 
-func (op *outgoingOperations) getOperationData(event data.EventHandler) (*dto.OutGoingOperation, error) {
+func (op *outgoingOperations) getOperationData(event data.EventHandler) (*outGoingOpsPerChain, error) {
 	opFormatter, found := op.opFormatters[string(event.GetIdentifier())]
 	if !found {
 		log.Error("outgoingOperations.getOperationData: event not found", "event", string(event.GetIdentifier()))
@@ -291,9 +305,9 @@ func (op *outgoingOperations) getOperationData(event data.EventHandler) (*dto.Ou
 	}
 
 	opData, err := opFormatter.handler.CreateOperationData(event)
-	return &dto.OutGoingOperation{
-		Type: opFormatter.opType,
-		Data: opData,
+	return &outGoingOpsPerChain{
+		opType: opFormatter.opType,
+		data:   opData,
 	}, err
 }
 

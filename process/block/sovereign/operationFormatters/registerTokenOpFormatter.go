@@ -7,9 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	sovData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
+	dtoSov "github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 const (
@@ -23,33 +25,53 @@ const (
 )
 
 type registerTokenOpFormatter struct {
-	dataCodec DataCodecHandler
+	dataCodec         DataCodecHandler
+	chainNonceHandler dtoSov.OutGoingOpNonceChainHandler
 }
 
 // NewRegisterTokenOpFormatter will create a register token op formatter
-func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler) (*registerTokenOpFormatter, error) {
+func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, chainNonceHandler dtoSov.OutGoingOpNonceChainHandler) (*registerTokenOpFormatter, error) {
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &registerTokenOpFormatter{
-		dataCodec: dataCodec,
+		dataCodec:         dataCodec,
+		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
 
 // CreateOperationData will create register token operation data
-func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	evData, err := op.dataCodec.DeserializeEventData(event.GetData())
 	if err != nil {
 		return nil, err
 	}
 
+	// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+	nonce, err := op.chainNonceHandler.GetAndIncrementNonce(dtoCore.MVX)
+	if err != nil {
+		return nil, err
+	}
+
+	evData.Nonce = nonce
 	tokenProperties, err := op.createTokenProperties(event.GetTopics(), evData)
 	if err != nil {
 		return nil, err
 	}
 
-	return op.dataCodec.SerializeTokenProperties(*tokenProperties)
+	tokenPropertiesData, err := op.dataCodec.SerializeTokenProperties(*tokenProperties)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[dtoCore.ChainID][]byte{
+		// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+		dtoCore.MVX: tokenPropertiesData,
+	}, nil
 }
 
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {

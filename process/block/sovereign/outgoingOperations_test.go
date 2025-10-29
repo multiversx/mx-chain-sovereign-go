@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	transactionData "github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
@@ -382,10 +383,12 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, []*dto.OutGoingOperation{
-		{
-			Type: block.OutGoingOpDeposit,
-			Data: operationBytes,
+	require.Equal(t, map[dtoCore.ChainID][]*dto.OutGoingOperation{
+		dtoCore.MVX: {
+			{
+				Type: block.OutGoingOpDeposit,
+				Data: operationBytes,
+			},
 		},
 	}, outgoingTxData)
 }
@@ -466,10 +469,12 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 
 	outgoingTxData, err := opFormatter.CreateOutgoingTxsData(logs)
 	require.Nil(t, err)
-	require.Equal(t, []*dto.OutGoingOperation{
-		{
-			Type: block.OutGoingOpDeposit,
-			Data: operationBytes,
+	require.Equal(t, map[dtoCore.ChainID][]*dto.OutGoingOperation{
+		dtoCore.MVX: {
+			{
+				Type: block.OutGoingOpDeposit,
+				Data: operationBytes,
+			},
 		},
 	}, outgoingTxData)
 }

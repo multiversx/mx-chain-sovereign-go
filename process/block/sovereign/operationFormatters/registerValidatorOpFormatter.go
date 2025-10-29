@@ -6,30 +6,33 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-go/common"
+	dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	errMx "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
+	dtoSov "github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/vm"
 )
 
 const (
-	numExpectedTopicsInRegisterValidator = 3
+	numExpectedTopicsInRegisterValidator = 2
 	topicIdxBlsKey                       = 0
 	topicIdxOwner                        = 1
-	topicIdxNonce                        = 2
 )
 
 type registerValidatorOpFormatter struct {
-	peerAccountsDB state.AccountsAdapter
-	dataCodec      DataCodecHandler
+	peerAccountsDB    state.AccountsAdapter
+	dataCodec         DataCodecHandler
+	subscribedChains  []dtoCore.ChainID
+	chainNonceHandler dtoSov.OutGoingOpNonceChainHandler
 }
 
 // NewRegisterValidatorOpFormatter will create a register/unregister validator op formatter
 func NewRegisterValidatorOpFormatter(
 	peerAccountsDB state.AccountsAdapter,
 	dataCodec DataCodecHandler,
+	chainNonceHandler dtoSov.OutGoingOpNonceChainHandler,
 ) (*registerValidatorOpFormatter, error) {
 	if check.IfNil(peerAccountsDB) {
 		return nil, errMx.ErrNilPeerAccounts
@@ -37,15 +40,21 @@ func NewRegisterValidatorOpFormatter(
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &registerValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,
 		dataCodec:      dataCodec,
+		// TODO: Marius C. : MX-17260 Use ordered chains here
+		subscribedChains:  []dtoCore.ChainID{dtoCore.MVX},
+		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
 
 // CreateOperationData creates a register/unregister new validator operation data
-func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) ([]byte, error) {
+func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHandler) (map[dtoCore.ChainID][]byte, error) {
 	numTopics := len(event.GetTopics())
 	if numTopics != numExpectedTopicsInRegisterValidator {
 		return nil, fmt.Errorf("%w, expected: %d, received: %d", errInvalidNumTopicsInRegisterValidator, numExpectedTopicsInRegisterValidator, numTopics)
@@ -60,17 +69,27 @@ func (op *registerValidatorOpFormatter) CreateOperationData(event data.EventHand
 		return nil, err
 	}
 
-	nonce, err := common.ByteSliceToUint64(event.GetTopics()[topicIdxNonce])
-	if err != nil {
-		return nil, err
+	ret := map[dtoCore.ChainID][]byte{}
+	for _, chainID := range op.subscribedChains {
+		chainNonce, err := op.chainNonceHandler.GetAndIncrementNonce(chainID)
+		if err != nil {
+			return nil, err
+		}
+
+		regKeyData, err := op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
+			ID:    peerAcc.GetMainChainID(),
+			Key:   peerAcc.GetBLSPublicKey(),
+			Owner: event.GetTopics()[topicIdxOwner],
+			Nonce: chainNonce,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		ret[chainID] = regKeyData
 	}
 
-	return op.dataCodec.SerializeNewlyRegisteredKey(dto.RegisteredBlsKey{
-		ID:    peerAcc.GetMainChainID(),
-		Key:   peerAcc.GetBLSPublicKey(),
-		Owner: event.GetTopics()[topicIdxOwner],
-		Nonce: nonce,
-	})
+	return ret, nil
 }
 
 // IsInterfaceNil checks if the underlying pointer is nil
