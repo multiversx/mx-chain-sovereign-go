@@ -26,7 +26,6 @@ const (
 
 type registerTokenOpFormatter struct {
 	dataCodec         DataCodecHandler
-	subscribedChains  []dtoCore.ChainID
 	chainNonceHandler dtoSov.OutGoingOpNonceChainHandler
 }
 
@@ -40,9 +39,7 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, chainNonceHandler d
 	}
 
 	return &registerTokenOpFormatter{
-		dataCodec: dataCodec,
-		// TODO: Marius C. : MX-17260 Use ordered chains here
-		subscribedChains:  []dtoCore.ChainID{dtoCore.MVX},
+		dataCodec:         dataCodec,
 		chainNonceHandler: chainNonceHandler,
 	}, nil
 }
@@ -71,7 +68,10 @@ func (op *registerTokenOpFormatter) CreateOperationData(event data.EventHandler)
 		return nil, err
 	}
 
-	return addDataToChains(tokenPropertiesData, op.subscribedChains), nil
+	return map[dtoCore.ChainID][]byte{
+		// TODO: Here: MX-17260, we need to take chain id from event when SCs will notify it
+		dtoCore.MVX: tokenPropertiesData,
+	}, nil
 }
 
 func (op *registerTokenOpFormatter) createTokenProperties(topics [][]byte, eventData *sovData.EventData) (*dto.TokenProperties, error) {
