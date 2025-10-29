@@ -35,6 +35,9 @@ func NewRegisterTokenOpFormatter(dataCodec DataCodecHandler, chainNonceHandler d
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &registerTokenOpFormatter{
 		dataCodec: dataCodec,

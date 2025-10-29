@@ -21,6 +21,11 @@ func TestNewDepositOpFormatter(t *testing.T) {
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilTopicsChecker, err)
 	})
+	t.Run("nil chain nonce handler, should return error", func(t *testing.T) {
+		opFormatter, err := NewDepositOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{}, nil)
+		require.Nil(t, opFormatter)
+		require.Equal(t, errNilNonceChainHandler, err)
+	})
 	t.Run("should work", func(t *testing.T) {
 		opFormatter, err := NewDepositOpFormatter(&sovereign.DataCodecMock{}, &sovereign.TopicsCheckerMock{}, &sovereign.OutGoingChainNonceMock{})
 		require.Nil(t, err)

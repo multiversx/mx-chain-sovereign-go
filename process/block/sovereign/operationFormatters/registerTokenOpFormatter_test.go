@@ -21,6 +21,11 @@ func TestNewRegisterTokenOpFormatter(t *testing.T) {
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
+	t.Run("nil chain nonce handler, should return error", func(t *testing.T) {
+		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, nil)
+		require.Nil(t, opFormatter)
+		require.Equal(t, errNilNonceChainHandler, err)
+	})
 	t.Run("should work", func(t *testing.T) {
 		opFormatter, err := NewRegisterTokenOpFormatter(&sovereign.DataCodecMock{}, &sovereign.OutGoingChainNonceMock{})
 		require.Nil(t, err)

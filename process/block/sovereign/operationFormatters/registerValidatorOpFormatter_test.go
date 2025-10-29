@@ -28,6 +28,11 @@ func TestNewRegisterValidatorOpFormatter(t *testing.T) {
 		require.Nil(t, opFormatter)
 		require.Equal(t, errMx.ErrNilDataCodec, err)
 	})
+	t.Run("nil chain nonce handler, should return error", func(t *testing.T) {
+		opFormatter, err := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{}, nil)
+		require.Nil(t, opFormatter)
+		require.Equal(t, errNilNonceChainHandler, err)
+	})
 	t.Run("should work", func(t *testing.T) {
 		opFormatter, err := NewRegisterValidatorOpFormatter(&state.AccountsStub{}, &sovereign.DataCodecMock{}, &sovereign.OutGoingChainNonceMock{})
 		require.Nil(t, err)
@@ -74,8 +79,9 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 		Topics:  [][]byte{blsKey, ownerAddress},
 	}
 	chainNonceMock := &sovereign.OutGoingChainNonceMock{
-		GetNonceCalled: func(chainID dtoCore.ChainID) (uint64, error) {
+		GetAndIncrementNonceCalled: func(chainID dtoCore.ChainID) (uint64, error) {
 			require.Equal(t, dtoCore.MVX, chainID)
+			nonce++
 			return nonce, nil
 		},
 	}
@@ -83,6 +89,7 @@ func TestRegisterNewValidatorOpFormatter_CreateOperationData(t *testing.T) {
 	res, err := opFormatter.CreateOperationData(event)
 	require.Nil(t, err)
 	require.Equal(t, serializedChainData, res)
+	require.Equal(t, uint64(5), nonce)
 }
 
 func TestRegisterNewValidatorOpFormatter_CreateOperationDataErrorCases(t *testing.T) {

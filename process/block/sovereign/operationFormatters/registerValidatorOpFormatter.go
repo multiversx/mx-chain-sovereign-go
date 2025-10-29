@@ -40,6 +40,9 @@ func NewRegisterValidatorOpFormatter(
 	if check.IfNil(dataCodec) {
 		return nil, errMx.ErrNilDataCodec
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &registerValidatorOpFormatter{
 		peerAccountsDB: peerAccountsDB,

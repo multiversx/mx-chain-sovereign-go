@@ -30,6 +30,9 @@ func NewDepositOpFormatter(dataCodec DataCodecHandler, topicsChecker TopicsCheck
 	if check.IfNil(topicsChecker) {
 		return nil, errMx.ErrNilTopicsChecker
 	}
+	if check.IfNil(chainNonceHandler) {
+		return nil, errNilNonceChainHandler
+	}
 
 	return &depositOpFormatter{
 		dataCodec:         dataCodec,
