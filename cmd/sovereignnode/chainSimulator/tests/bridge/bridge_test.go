@@ -123,7 +123,10 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositNativeESDTToken(
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
 	time.Sleep(time.Second)
 
-	checkOutGoingOperation(t, cs)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	checkOutGoingOperation(t, cs, outGoingOps[0].OutGoingOperations[0])
 }
 
 // This test will:
@@ -208,7 +211,10 @@ func TestSovereignChainSimulator_DeployBridgeContractsThenIssueAndDeposit(t *tes
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
 	time.Sleep(time.Second)
 
-	checkOutGoingOperation(t, cs)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	checkOutGoingOperation(t, cs, outGoingOps[0].OutGoingOperations[0])
 }
 
 // This test will:
@@ -295,8 +301,12 @@ func depositMainChainToken(
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
 	time.Sleep(time.Second)
 
-	checkOutGoingOperation(t, cs)
-	confirmOutgoingOperation(t, cs)
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	checkOutGoingOperation(t, cs, outGoingOps[0].OutGoingOperations[0])
+	confirmOutgoingOperations(t, cs, outGoingOps)
 }
 
 func depositAndCheckTokens(
@@ -332,13 +342,9 @@ func depositAndCheckTokens(
 	require.Equal(t, amountToDeposit.String(), tokenSupply.Burned)
 }
 
-func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
+func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator, outGoingOp *sovereign.OutGoingOperation) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
-	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
-	require.Len(t, outGoingOps, 1)
-	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
-	outGoingOp := outGoingOps[0].OutGoingOperations[0]
 	savedMarshalledTx, err := nodeHandler.GetDataComponents().StorageService().Get(dataRetriever.TransactionUnit, outGoingOp.Hash)
 	require.Nil(t, err)
 	require.NotNil(t, savedMarshalledTx)
@@ -362,11 +368,9 @@ func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	require.Nil(t, err)
 }
 
-func confirmOutgoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
+func confirmOutgoingOperations(t *testing.T, cs chainSim.ChainSimulator, outGoingOps []*sovereign.BridgeOutGoingData) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
-	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
-	require.Len(t, outGoingOps, 1)
-	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	require.True(t, len(outGoingOps) > 0)
 
 	for _, outGoingOp := range outGoingOps {
 		for _, operation := range outGoingOp.OutGoingOperations {
@@ -444,7 +448,10 @@ func TestSovereignChainSimulator_DepositNoPaymentWithTransferData(t *testing.T) 
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
 	time.Sleep(time.Second)
 
-	checkOutGoingOperation(t, cs)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	checkOutGoingOperation(t, cs, outGoingOps[0].OutGoingOperations[0])
 }
 
 // This test will:
@@ -513,7 +520,10 @@ func TestSovereignChainSimulator_DeployBridgeContractsThenRegisterTokenAndDeposi
 	// Wait for outgoing operations to get unconfirmed and check we have one, which is also saved in storage
 	time.Sleep(time.Second)
 
-	checkOutGoingOperation(t, cs)
+	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
+	checkOutGoingOperation(t, cs, outGoingOps[0].OutGoingOperations[0])
 }
 
 func issueAndRegisterToken(
