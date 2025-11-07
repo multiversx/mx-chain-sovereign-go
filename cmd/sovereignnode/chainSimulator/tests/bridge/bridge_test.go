@@ -296,7 +296,7 @@ func depositMainChainToken(
 	time.Sleep(time.Second)
 
 	checkOutGoingOperation(t, cs)
-	confirmOutgoingOperations(t, cs)
+	confirmOutgoingOperation(t, cs)
 }
 
 func depositAndCheckTokens(
@@ -362,9 +362,11 @@ func checkOutGoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	require.Nil(t, err)
 }
 
-func confirmOutgoingOperations(t *testing.T, cs chainSim.ChainSimulator) {
+func confirmOutgoingOperation(t *testing.T, cs chainSim.ChainSimulator) {
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 	outGoingOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+	require.Len(t, outGoingOps, 1)
+	require.Len(t, outGoingOps[0].OutGoingOperations, 1)
 
 	for _, outGoingOp := range outGoingOps {
 		for _, operation := range outGoingOp.OutGoingOperations {
