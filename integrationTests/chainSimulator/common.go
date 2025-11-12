@@ -29,6 +29,7 @@ const (
 	maxNumOfBlocksToGenerateWhenExecutingTx = 10
 	signalError                             = "signalError"
 	internalVMError                         = "internalVMErrors"
+	scDeployEvent                           = "SCDeploy"
 
 	// OkReturnCode the const for the ok return code
 	OkReturnCode = "ok"
@@ -103,7 +104,13 @@ func DeployContract(
 	require.Nil(t, err)
 	RequireSuccessfulTransaction(t, txResult)
 
-	address := txResult.Logs.Events[0].Topics[0]
+	deployEvent := getEvent(txResult.Logs, scDeployEvent)
+	if deployEvent == nil {
+		require.Fail(t, "%s event not found", scDeployEvent)
+		return nil
+	}
+
+	address := deployEvent.Topics[0]
 	require.NotNil(t, address)
 	return address
 }
