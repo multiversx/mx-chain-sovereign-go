@@ -165,10 +165,10 @@ readNativeESDT() {
     echo $(hexToString "$NATIVE_ESDT_HEX")
 }
 
-HEADER_VERIFIER_INDEX=2
-ESDT_SAFE_INDEX=3
-FEE_MARKET_INDEX=4
-CHAIN_CONFIG_INDEX=6
+HEADER_VERIFIER_INDEX=1
+ESDT_SAFE_INDEX=2
+FEE_MARKET_INDEX=3
+CHAIN_CONFIG_INDEX=4
 readContractAddress() {
     if [ "$#" -ne 1 ]; then
         echo "Usage: ${FUNCNAME[0]} <contract_index>"
