@@ -163,10 +163,8 @@ copySovereignNodeConfig() {
   cp $SOVEREIGNNODEDIR/config/sovereignConfig.toml ./node/config
   updateConfigFile ./node/config/sovereignConfig.toml NotifierConfig
 
-  local NATIVE_ESDT=$(grep -oP 'NativeESDT\s*=\s*"\K[^"]+' ./node/config/sovereignConfig.toml)
-  echo "NativeESDT: $NATIVE_ESDT"
-  updateTOMLValue ./node/config/config_validator.toml "BaseTokenID" "\"$NATIVE_ESDT"\"
-  updateTOMLValue ./node/config/config_observer.toml "BaseTokenID" "\"$NATIVE_ESDT"\"
+  updateTOMLValue ./node/config/config_validator.toml "BaseTokenID" "\"$SOVEREIGN_NATIVE_ESDT"\"
+  updateTOMLValue ./node/config/config_observer.toml "BaseTokenID" "\"$SOVEREIGN_NATIVE_ESDT"\"
 
   echo "Configuration files copied from the Sovereign Node to the working directories of the executables."
   popd
