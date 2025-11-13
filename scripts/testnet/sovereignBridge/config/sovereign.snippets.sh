@@ -83,8 +83,6 @@ deployPhaseThree() {
         --proxy "$PROXY" \
         --gas-limit 30000000 \
         --function "deployPhaseThree" \
-        --arguments \
-            0x00 \
         --outfile "$OUTFILE" \
         --wait-result \
         --send || return
