@@ -105,10 +105,7 @@ func DeployContract(
 	RequireSuccessfulTransaction(t, txResult)
 
 	deployEvent := getEvent(txResult.Logs, scDeployEvent)
-	if deployEvent == nil {
-		require.Fail(t, "%s event not found", scDeployEvent)
-		return nil
-	}
+	require.NotNil(t, deployEvent, "%s event not found", scDeployEvent)
 
 	address := deployEvent.Topics[0]
 	require.NotNil(t, address)
@@ -170,9 +167,8 @@ func SendTransaction(
 func RequireSuccessfulTransaction(t *testing.T, txResult *transaction.ApiTransactionResult) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, signalError)
-	if event != nil {
-		require.Fail(t, string(event.Topics[1]))
-	}
+	require.Nil(t, event, string(event.Topics[1]))
+
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
 
@@ -180,22 +176,18 @@ func RequireSuccessfulTransaction(t *testing.T, txResult *transaction.ApiTransac
 func RequireSignalError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, signalError)
-	if event == nil {
-		require.Fail(t, "%s event not found", signalError)
-		return
-	}
+	require.NotNil(t, event, "%s event not found", signalError)
+
 	require.Equal(t, error, string(event.Topics[1]))
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
 
-// RequireInternalVMError require that the transaction has specific invernal vm error
+// RequireInternalVMError require that the transaction has specific internal VM error
 func RequireInternalVMError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, internalVMError)
-	if event == nil {
-		require.Fail(t, "%s event not found", internalVMError)
-		return
-	}
+	require.NotNil(t, event, "%s event not found", internalVMError)
+
 	require.Contains(t, string(event.Data), error)
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
