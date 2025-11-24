@@ -167,8 +167,9 @@ func SendTransaction(
 func RequireSuccessfulTransaction(t *testing.T, txResult *transaction.ApiTransactionResult) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, signalError)
-	require.Nil(t, event, string(event.Topics[1]))
-
+	if event != nil {
+		require.Fail(t, string(event.Topics[1]))
+	}
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
 
@@ -176,8 +177,10 @@ func RequireSuccessfulTransaction(t *testing.T, txResult *transaction.ApiTransac
 func RequireSignalError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, signalError)
-	require.NotNil(t, event, "%s event not found", signalError)
-
+	if event == nil {
+		require.Fail(t, "%s event not found", signalError)
+		return
+	}
 	require.Equal(t, error, string(event.Topics[1]))
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
@@ -186,8 +189,10 @@ func RequireSignalError(t *testing.T, txResult *transaction.ApiTransactionResult
 func RequireInternalVMError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, internalVMError)
-	require.NotNil(t, event, "%s event not found", internalVMError)
-
+	if event == nil {
+		require.Fail(t, "%s event not found", internalVMError)
+		return
+	}
 	require.Contains(t, string(event.Data), error)
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
