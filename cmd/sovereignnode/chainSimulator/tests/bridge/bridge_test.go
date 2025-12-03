@@ -26,7 +26,7 @@ const (
 	defaultPathToInitialConfig = "../../../../node/config/"
 	sovereignConfigPath        = "../../../config/"
 	esdtSafeWasmPath           = "../testdata/sov-esdt-safe.wasm"
-	feeMarketWasmPath          = "../testdata/fee-market.wasm"
+	feeMarketWasmPath          = "../testdata/sov-fee-market.wasm"
 	issuePrice                 = "5000000000000000000"
 )
 

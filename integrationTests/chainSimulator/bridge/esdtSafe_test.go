@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/config"
@@ -27,25 +27,23 @@ type wallet struct {
 	nonce      uint64
 }
 
-type rustESDTType uint32
-
-const (
-	fungible rustESDTType = iota
-	nonFungible
-	semiFungible
-	metaFungible
-	dynamicNFT
-	dynamicSFT
-	dynamicMeta
-)
-
-// 1. transfer from sovereign chain to main chain
-// 2. transfer from main chain to sovereign chain
-// 3. transfer again the same tokens from sovereign chain to main chain
-// tokens are originated from sovereign chain
-// esdt-safe contract in main chain will issue its own tokens at registerToken step
-// and will work with a mapper between sov_id <-> main_id
-func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
+// This test will:
+// - Generate a new wallet
+// - Generate one ESDT token for each type (sovereign token with prefix)
+// - For each token:
+//   - Deposit 0.05 EGLD-000000 on esdt-safe in main chain (simulate deposit main to sovereign)
+//   - Call registerToken to register the token in esdt-safe (simulate register sovereign to main)
+//   - Generate a receiver in a random shard and execute a token transfer in esdt-safe (simulate deposit sovereign to main)
+//   - Deposit one token back to sovereign (simulate deposit main to sovereign)
+//
+// - For each token:
+//   - execute with SC call the previously transferred token in esdt-safe (simulate deposit sovereign to main with transfer data)
+//
+// NOTES:
+// - tokens are originated from sovereign chain and have prefix
+// - registerToken will issue a new token in main chain with same ticker
+// - esdt-safe contract in main chain will mint tokens on execute and burn when tokens are deposited back
+func TestChainSimulator_DepositAndExecuteSovereignToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
@@ -82,7 +80,7 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deployBridgeSetup(t, cs, initialAddress, ArgsEsdtSafe{}, esdtSafeContract, esdtSafeWasmPath)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -95,53 +93,7 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 
 	receiverShardId := uint32(0)
 
-	// TODO MX-15942 uncomment sft/meta when ESDTTYpe VM hook will be implemented
-	// because get_esdt_token_data doesn't return real type and deposit will clear the storage
-	// then on second execute will create a new sft/meta and this is not expected
-	tokens := make([]chainSim.ArgsDepositToken, 0)
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab1-TKN-123456",
-		Nonce:      uint64(0),
-		Amount:     big.NewInt(14556666767),
-		Type:       core.Fungible,
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab1-NFTV2-1a2b3c",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1),
-		Type:       core.ESDTType(nonFungible),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab2-DNFT-ead43f",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1),
-		Type:       core.ESDTType(dynamicNFT),
-	})
-	//tokens = append(tokens, chainSim.ArgsDepositToken{
-	//	Identifier: "ab2-SFT-cedd55",
-	//	Nonce:      uint64(1),
-	//	Amount:     big.NewInt(1421),
-	//	Type:       core.ESDTType(semiFungible),
-	//})
-	//tokens = append(tokens, chainSim.ArgsDepositToken{
-	//	Identifier: "ab4-DSFT-f6b4c2",
-	//	Nonce:      uint64(1),
-	//	Amount:     big.NewInt(1534),
-	//	Type:       core.ESDTType(dynamicSFT),
-	//})
-	//tokens = append(tokens, chainSim.ArgsDepositToken{
-	//	Identifier: "ab5-META-4b543b",
-	//	Nonce:      uint64(1),
-	//	Amount:     big.NewInt(6231),
-	//	Type:       core.ESDTType(metaFungible),
-	//})
-	//tokens = append(tokens, chainSim.ArgsDepositToken{
-	//	Identifier: "ab5-DMETA-5ac72b",
-	//	Nonce:      uint64(1),
-	//	Amount:     big.NewInt(162367),
-	//	Type:       core.ESDTType(dynamicMeta),
-	//})
-
+	tokens := generateSovereignTokens()
 	tokensMapper := make(map[string]string)
 
 	// transfer sovereign chain -> main chain -> sovereign chain
@@ -149,8 +101,8 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 	for _, token := range tokens {
 		// register sovereign token identifier
 		// this will issue a new token on main chain and create a mapper between the identifiers
-		registerTokens(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
-		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), "")
+		registerSovereignToken(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
+		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), token.Type.String())
 
 		// create random receiver addresses in a shard
 		receiver, _ := cs.GenerateAndMintWalletAddress(receiverShardId, chainSim.InitialAmount)
@@ -187,9 +139,9 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 			Amount:     depositAmount,
 			Type:       receivedToken.Type,
 		}
-		txResult = deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, wallet.Bytes, nil)
+		txResult = deposit(t, cs, receiver.Bytes, &receiverNonce, bridgeData.ESDTSafeAddress, []chainSim.ArgsDepositToken{depositToken}, receiver.Bytes, nil)
 		chainSim.RequireSuccessfulTransaction(t, txResult)
-		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(receivedToken), receiver.Bech32, big.NewInt(0).Sub(receivedToken.Amount, big.NewInt(1)))
+		chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(receivedToken), receiver.Bech32, big.NewInt(0).Sub(receivedToken.Amount, depositAmount))
 
 		waitIfCrossShardProcessing(cs, esdtSafeAddrShard, receiverShardId)
 
@@ -255,11 +207,16 @@ func TestChainSimulator_ExecuteAndDepositTokensWithPrefix(t *testing.T) {
 	}
 }
 
-// 1. transfer main chain -> sovereign chain
-// 2. transfer sovereign chain -> main chain
-// tokens are originated from main chain
-// esdt-safe contract in main chain will save the tokens at deposit, then send from balance at executeOperation
-func TestChainSimulator_DepositAndExecuteOperations(t *testing.T) {
+// This test will:
+// - Generate wallets in different shards and issue one ESDT token
+// - For each wallet:
+//   - call Deposit with one main chain token
+//   - call ExecuteBridgeOp with the main chain token
+//
+// NOTES:
+// - tokens are originated from main chain
+// - esdt-safe contract in main chain will save the tokens at deposit, then send from balance at executeOperation
+func TestChainSimulator_DepositAndExecuteMainChainToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
@@ -296,7 +253,7 @@ func TestChainSimulator_DepositAndExecuteOperations(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deployBridgeSetup(t, cs, initialAddress, ArgsEsdtSafe{}, esdtSafeContract, esdtSafeWasmPath)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -355,7 +312,7 @@ func TestChainSimulator_DepositAndExecuteOperations(t *testing.T) {
 // tokens are originated from sovereign chain
 // the execution is always expected to fail because of transfer data arguments
 // we also check that tokens are burned if the execution fails
-func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
+func TestChainSimulator_ExecuteSovereignTokenWithTransferDataFails(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
@@ -392,7 +349,7 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deployBridgeSetup(t, cs, initialAddress, ArgsEsdtSafe{}, esdtSafeContract, esdtSafeWasmPath)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(bridgeData.ESDTSafeAddress)
 	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
@@ -405,55 +362,12 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 
 	receiverShardId := uint32(0)
 
-	tokens := make([]chainSim.ArgsDepositToken, 0)
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab1-TKN-123456",
-		Nonce:      uint64(0),
-		Amount:     big.NewInt(14556666767),
-		Type:       core.ESDTType(fungible),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab1-NFTV2-1a2b3c",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1),
-		Type:       core.ESDTType(nonFungible),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab2-DNFT-cab42b",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1),
-		Type:       core.ESDTType(dynamicNFT),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab2-SFT-cedd55",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1421),
-		Type:       core.ESDTType(semiFungible),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab4-DSFT-f6b4c2",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(1534),
-		Type:       core.ESDTType(dynamicSFT),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab5-META-4b543b",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(6231),
-		Type:       core.ESDTType(metaFungible),
-	})
-	tokens = append(tokens, chainSim.ArgsDepositToken{
-		Identifier: "ab5-DMETA-5ac72b",
-		Nonce:      uint64(1),
-		Amount:     big.NewInt(162367),
-		Type:       core.ESDTType(dynamicMeta),
-	})
-
 	// generate hello contracts in each shard
 	// hello contract has one endpoint "hello" which receives a number as argument
 	// if number is 0 then will throw error, otherwise will do nothing
 	receiverContracts := deployReceiverContractInAllShards(t, cs)
 
+	tokens := generateSovereignTokens()
 	tokensMapper := make(map[string]string)
 
 	// transfer sovereign chain -> main chain -> sovereign chain
@@ -461,8 +375,8 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 	for _, token := range tokens {
 		// register sovereign token identifier
 		// this will issue a new token on main chain and create a mapper between the identifiers
-		registerTokens(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
-		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), "")
+		registerSovereignToken(t, cs, wallet, &nonce, bridgeData.ESDTSafeAddress, token)
+		tokensMapper[token.Identifier] = chainSim.GetIssuedEsdtIdentifier(t, cs, getTokenTicker(token.Identifier), token.Type.String())
 
 		// get contract from next shard
 		receiver := receiverContracts[receiverShardId]
@@ -499,10 +413,6 @@ func TestChainSimulator_ExecuteWithTransferDataFails(t *testing.T) {
 		// still no tokens in esdt-safe, tokens should be burned
 		if isSftOrMeta(receivedToken.Type) {
 			chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(receivedToken), esdtSafeAddr, big.NewInt(1))
-			if isMeta(receivedToken.Type) {
-				// for some reason it requires 1 more block for the supply to be updated if it was a cross-shard tx
-				_ = cs.GenerateBlocks(1)
-			}
 		} else {
 			chainSim.RequireAccountHasToken(t, cs, getTokenIdentifier(receivedToken), esdtSafeAddr, big.NewInt(0))
 		}
@@ -555,7 +465,7 @@ func TestChainSimulator_DepositAndExecuteNoPaymentWithTransferData(t *testing.T)
 	// deploy bridge setup
 	initialAddress := "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl"
 	chainSim.InitAddressesAndSysAccState(t, cs, initialAddress)
-	bridgeData := deployBridgeSetup(t, cs, initialAddress, ArgsEsdtSafe{}, esdtSafeContract, esdtSafeWasmPath)
+	bridgeData := deploySovereignBridgeOnMainChain(t, cs, initialAddress)
 
 	wallet, err := cs.GenerateAndMintWalletAddress(0, chainSim.InitialAmount)
 	require.Nil(t, err)
@@ -596,6 +506,54 @@ func waitIfCrossShardProcessing(cs chainSim.ChainSimulator, senderShard uint32, 
 	}
 }
 
+func generateSovereignTokens() []chainSim.ArgsDepositToken {
+	tokens := make([]chainSim.ArgsDepositToken, 0)
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-TKN-123456",
+		Nonce:      uint64(0),
+		Amount:     big.NewInt(14556666767),
+		Type:       core.Fungible,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-NFTV2-1a2b3c",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(1),
+		Type:       core.NonFungibleV2,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-DNFT-ead43f",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(1),
+		Type:       core.DynamicNFT,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-SFT-cedd55",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(1421),
+		Type:       core.SemiFungible,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-DSFT-f6b4c2",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(1534),
+		Type:       core.DynamicSFT,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-META-4b543b",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(6231),
+		Type:       core.MetaFungible,
+	})
+	tokens = append(tokens, chainSim.ArgsDepositToken{
+		Identifier: sovChainID + "-DMETA-5ac72b",
+		Nonce:      uint64(1),
+		Amount:     big.NewInt(162367),
+		Type:       core.DynamicMeta,
+	})
+
+	return tokens
+}
+
 func generateAccountsAndTokens(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
@@ -611,7 +569,7 @@ func generateAccountsAndTokens(
 		Identifier: tokenId,
 		Nonce:      uint64(0),
 		Amount:     supply,
-		Type:       core.ESDTType(fungible),
+		Type:       core.Fungible,
 	}
 	wallets[account] = token
 
@@ -624,7 +582,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(nonFungible),
+		Type:       core.NonFungibleV2,
 	}
 	wallets[account] = token
 
@@ -637,7 +595,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(dynamicNFT),
+		Type:       core.DynamicNFT,
 	}
 	wallets[account] = token
 
@@ -650,7 +608,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(semiFungible),
+		Type:       core.SemiFungible,
 	}
 	wallets[account] = token
 
@@ -663,7 +621,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(dynamicSFT),
+		Type:       core.DynamicSFT,
 	}
 	wallets[account] = token
 
@@ -676,7 +634,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(metaFungible),
+		Type:       core.MetaFungible,
 	}
 	wallets[account] = token
 
@@ -689,7 +647,7 @@ func generateAccountsAndTokens(
 		Identifier: collectionId,
 		Nonce:      uint64(1),
 		Amount:     supply,
-		Type:       core.ESDTType(dynamicMeta),
+		Type:       core.DynamicMeta,
 	}
 	wallets[account] = token
 
@@ -725,7 +683,7 @@ func createNftArgs(tokenIdentifier string, initialSupply *big.Int, name string) 
 		"@" // uri
 }
 
-func registerTokens(
+func registerSovereignToken(
 	t *testing.T,
 	cs chainSim.ChainSimulator,
 	wallet dtos.WalletAddress,
@@ -733,25 +691,23 @@ func registerTokens(
 	esdtSafeAddress []byte,
 	token chainSim.ArgsDepositToken,
 ) {
-	ticker := getTokenTicker(token.Identifier)
-	registerCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
+	esdtSafeAddr, _ := cs.GetNodeHandler(0).GetCoreComponents().AddressPubKeyConverter().Encode(esdtSafeAddress)
+	esdtSafeAddrShard := chainSim.GetShardForAddress(cs, esdtSafeAddr)
 
-	registerData := "registerToken" +
-		"@" + hex.EncodeToString([]byte(token.Identifier)) +
-		"@" + fmt.Sprintf("%02x", uint32(token.Type)) +
-		"@" + hex.EncodeToString([]byte(ticker)) + // name
-		"@" + hex.EncodeToString([]byte(ticker)) + // ticker
-		"@" + hex.EncodeToString(big.NewInt(18).Bytes()) // num decimals
-	txResult := chainSim.SendTransaction(t, cs, wallet.Bytes, nonce, esdtSafeAddress, registerCost, registerData, uint64(100000000))
+	// deposit main chain -> sovereign chain
+	// 0.05 EGLD-000000 which will be used for registerToken
+	issueCost, _ := big.NewInt(0).SetString(issuePaymentCost, 10)
+	egldPaymentToken := chainSim.ArgsDepositToken{
+		Identifier: vmcommon.EGLDIdentifier,
+		Nonce:      uint64(0),
+		Amount:     issueCost,
+	}
+	txResult := deposit(t, cs, wallet.Bytes, nonce, esdtSafeAddress, []chainSim.ArgsDepositToken{egldPaymentToken}, wallet.Bytes, nil)
 	chainSim.RequireSuccessfulTransaction(t, txResult)
+	waitIfCrossShardProcessing(cs, esdtSafeAddrShard, chainSim.GetShardForAddress(cs, wallet.Bech32))
+	chainSim.RequireBalance(t, cs, esdtSafeAddr, issueCost)
 
-	// wait for issue processing from metachain
-	err := cs.GenerateBlocks(3)
-	require.Nil(t, err)
-}
-
-func getTokenTicker(tokenIdentifier string) string {
-	return strings.Split(tokenIdentifier, "-")[1]
+	registerToken(t, cs, wallet.Bytes, nonce, esdtSafeAddress, token)
 }
 
 func deployReceiverContractInAllShards(t *testing.T, cs chainSim.ChainSimulator) map[uint32]dtos.WalletAddress {
@@ -773,17 +729,17 @@ func deployReceiverContractInAllShards(t *testing.T, cs chainSim.ChainSimulator)
 }
 
 func isNft(esdtType core.ESDTType) bool {
-	return esdtType == core.ESDTType(nonFungible) ||
-		esdtType == core.ESDTType(dynamicNFT)
+	return esdtType == core.NonFungibleV2 ||
+		esdtType == core.DynamicNFT
 }
 
 func isMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.ESDTType(metaFungible) ||
-		esdtType == core.ESDTType(dynamicMeta)
+	return esdtType == core.MetaFungible ||
+		esdtType == core.DynamicMeta
 }
 
 func isSftOrMeta(esdtType core.ESDTType) bool {
-	return esdtType == core.ESDTType(semiFungible) ||
-		esdtType == core.ESDTType(dynamicSFT) ||
+	return esdtType == core.SemiFungible ||
+		esdtType == core.DynamicSFT ||
 		isMeta(esdtType)
 }

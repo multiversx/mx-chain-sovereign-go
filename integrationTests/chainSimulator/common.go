@@ -228,6 +228,19 @@ func RequireAccountHasToken(
 	require.Equal(t, tokenData.Value, value)
 }
 
+// RequireBalance checks if the account has the expected native balance
+func RequireBalance(
+	t *testing.T,
+	cs ChainSimulator,
+	address string,
+	value *big.Int,
+) {
+	addressShardID := GetShardForAddress(cs, address)
+	balance, _, err := cs.GetNodeHandler(addressShardID).GetFacadeHandler().GetBalance(address, dataApi.AccountQueryOptions{})
+	require.Nil(t, err)
+	require.Equal(t, value.String(), balance.String())
+}
+
 // TransferESDT will transfer the amount of esdt token to an address
 func TransferESDT(
 	t *testing.T,
@@ -312,7 +325,7 @@ func GetIssuedEsdtIdentifier(t *testing.T, cs ChainSimulator, ticker string, tok
 		}
 	}
 
-	require.Fail(t, "could not find the issued token")
+	require.Fail(t, "could not find the issued token", "ticker: %s", ticker)
 	return ""
 }
 
