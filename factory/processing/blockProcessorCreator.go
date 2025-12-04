@@ -1324,6 +1324,7 @@ func (pcf *processComponentsFactory) createOutportDataProvider(
 		EnableEpochsHandler:    pcf.coreData.EnableEpochsHandler(),
 		ExecutionOrderGetter:   pcf.txExecutionOrderHandler,
 		ProofsPool:             pcf.data.Datapool().Proofs(),
+		BaseTokenID:            pcf.config.GeneralSettings.BaseTokenID,
 	})
 }
 
@@ -1368,6 +1369,7 @@ func (pcf *processComponentsFactory) createBuiltInFunctionContainer(
 		SelfESDTPrefix:                 []byte(pcf.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		PubKeyConverter:                pcf.coreData.AddressPubKeyConverter(),
 		CrawlerAddressGetterHandler:    pcf.runTypeComponents.CrawlerAddressGetter(),
+		BaseTokenID:                    pcf.config.GeneralSettings.BaseTokenID,
 	}
 
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

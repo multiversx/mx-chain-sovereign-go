@@ -158,6 +158,7 @@ func createBlockChainHook(
 		WhiteListedCrossChainAddresses: []string{"c0ff33"},
 		PubKeyConverter:                coreComponents.AddressPubKeyConverter(),
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    vmcommon.EGLDIdentifier,
 	}
 
 	builtInFunctionsContainer, _ := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

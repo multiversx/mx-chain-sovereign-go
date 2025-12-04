@@ -38,6 +38,7 @@ type ArgsCreateBuiltInFunctionContainer struct {
 	AutomaticCrawlerAddresses      [][]byte
 	MaxNumAddressesInTransferRole  uint32
 	SelfESDTPrefix                 []byte
+	BaseTokenID                    string
 }
 
 // CreateBuiltInFunctionsFactory creates a container that will hold all the available built in functions
@@ -117,6 +118,7 @@ func CreateBuiltInFunctionsFactory(args ArgsCreateBuiltInFunctionContainer) (vmc
 		MaxNumOfAddressesForTransferRole:  args.MaxNumAddressesInTransferRole,
 		ConfigAddress:                     crawlerAllowedAddress,
 		SelfESDTPrefix:                    args.SelfESDTPrefix,
+		BaseTokenID:                       []byte(args.BaseTokenID),
 	}
 
 	bContainerFactory, err := vmcommonBuiltInFunctions.NewBuiltInFunctionsCreator(modifiedArgs)

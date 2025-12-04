@@ -3,6 +3,9 @@ package factory
 import (
 	"testing"
 
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/outport/process"
 	"github.com/multiversx/mx-chain-go/outport/process/alteredaccounts"
 	"github.com/multiversx/mx-chain-go/outport/process/transactionsfee"
@@ -15,7 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/state"
-	"github.com/stretchr/testify/require"
 )
 
 func createArgOutportDataProviderFactory() ArgOutportDataProviderFactory {
@@ -36,6 +38,7 @@ func createArgOutportDataProviderFactory() ArgOutportDataProviderFactory {
 		EnableEpochsHandler:    &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 		ExecutionOrderGetter:   &commonMocks.TxExecutionOrderHandlerStub{},
 		ProofsPool:             &dataRetriever.ProofsPoolMock{},
+		BaseTokenID:            vmcommon.EGLDIdentifier,
 	}
 }
 

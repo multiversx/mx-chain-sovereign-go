@@ -40,6 +40,7 @@ type ArgOutportDataProviderFactory struct {
 	EnableEpochsHandler    common.EnableEpochsHandler
 	ExecutionOrderGetter   common.ExecutionOrderGetter
 	ProofsPool             dataRetriever.ProofsPool
+	BaseTokenID            string
 }
 
 type outportDataProviderFactory struct {
@@ -75,6 +76,7 @@ func createArgs(arg ArgOutportDataProviderFactory) (*process.ArgOutportDataProvi
 		AddressConverter:       arg.AddressConverter,
 		AccountsDB:             arg.AccountsDB,
 		EsdtDataStorageHandler: arg.EsdtDataStorageHandler,
+		BaseTokenID:            arg.BaseTokenID,
 	})
 	if err != nil {
 		return nil, err

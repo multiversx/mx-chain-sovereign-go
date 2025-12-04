@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -40,6 +41,7 @@ func createMockArguments() ArgsCreateBuiltInFunctionContainer {
 		WhiteListedCrossChainAddresses: []string{"3132333435363738393031323334353637383930313233343536373839303234"},
 		PubKeyConverter:                &testscommon.PubkeyConverterMock{},
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    vmcommon.EGLDIdentifier,
 	}
 
 	return args

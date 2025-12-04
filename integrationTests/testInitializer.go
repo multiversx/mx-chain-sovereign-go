@@ -30,6 +30,7 @@ import (
 	"github.com/multiversx/mx-chain-crypto-go/signing/mcl"
 	"github.com/multiversx/mx-chain-crypto-go/signing/secp256k1"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -758,6 +759,11 @@ func CreateFullGenesisBlocks(
 		TxExecutionOrderHandler: &commonMocks.TxExecutionOrderHandlerStub{},
 		RunTypeComponents:       runTypeComp,
 		EnableEpochsFactory:     enablers.NewEnableEpochsFactory(),
+		Config: config.Config{
+			GeneralSettings: config.GeneralSettingsConfig{
+				BaseTokenID: vmcommon.EGLDIdentifier,
+			},
+		},
 	}
 
 	genesisProcessor, _ := genesisProcess.NewGenesisBlockCreator(argsGenesis)
@@ -880,6 +886,11 @@ func CreateGenesisMetaBlock(
 		TxExecutionOrderHandler: &commonMocks.TxExecutionOrderHandlerStub{},
 		RunTypeComponents:       runTypeComp,
 		EnableEpochsFactory:     enablers.NewEnableEpochsFactory(),
+		Config: config.Config{
+			GeneralSettings: config.GeneralSettingsConfig{
+				BaseTokenID: vmcommon.EGLDIdentifier,
+			},
+		},
 	}
 
 	if shardCoordinator.SelfId() != core.MetachainShardId {

@@ -11,10 +11,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_NewShardedTxPool(t *testing.T) {
@@ -94,6 +97,13 @@ func Test_NewShardedTxPool_WhenBadConfig(t *testing.T) {
 	require.Nil(t, pool)
 	require.NotNil(t, err)
 	require.Errorf(t, err, dataRetriever.ErrCacheConfigInvalidSharding.Error())
+
+	args = goodArgs
+	args.BaseTokenID = "invalid"
+	pool, err = NewShardedTxPool(args)
+	require.Nil(t, pool)
+	require.NotNil(t, err)
+	require.Errorf(t, err, builtInFunctions.ErrInvalidTokenID.Error())
 }
 
 func Test_NewShardedTxPool_ComputesCacheConfig(t *testing.T) {
@@ -103,6 +113,7 @@ func Test_NewShardedTxPool_ComputesCacheConfig(t *testing.T) {
 		TxGasHandler:   txcachemocks.NewTxGasHandlerMock(),
 		Marshalizer:    &marshal.GogoProtoMarshalizer{},
 		NumberOfShards: 2,
+		BaseTokenID:    vmcommon.EGLDIdentifier,
 	}
 
 	pool, err := NewShardedTxPool(args)
@@ -387,6 +398,7 @@ func Test_routeToCacheUnions(t *testing.T) {
 		Marshalizer:    &marshal.GogoProtoMarshalizer{},
 		NumberOfShards: 4,
 		SelfShardID:    42,
+		BaseTokenID:    vmcommon.EGLDIdentifier,
 	}
 	pool, _ := NewShardedTxPool(args)
 
@@ -428,6 +440,7 @@ func newTxPoolToTest() (dataRetriever.ShardedDataCacherNotifier, error) {
 		Marshalizer:    &marshal.GogoProtoMarshalizer{},
 		NumberOfShards: 4,
 		SelfShardID:    0,
+		BaseTokenID:    vmcommon.EGLDIdentifier,
 	}
 	return NewShardedTxPool(args)
 }

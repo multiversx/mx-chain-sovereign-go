@@ -187,7 +187,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 			Marshaller:          rcf.coreComponents.InternalMarshalizer(),
 			EnableEpochsHandler: rcf.coreComponents.EnableEpochsHandler(),
 		},
-		BaseTokenID: rcf.sovConfig.GenesisConfig.NativeESDT,
+		BaseTokenID: rcf.configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignAccountCreator failed: %w", err)

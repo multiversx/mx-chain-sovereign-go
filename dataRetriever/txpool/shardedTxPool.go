@@ -7,11 +7,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/counting"
 	"github.com/multiversx/mx-chain-core-go/data"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/txcache"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ dataRetriever.ShardedDataCacherNotifier = (*shardedTxPool)(nil)
@@ -48,6 +49,7 @@ func NewShardedTxPool(args ArgShardedTxPool) (*shardedTxPool, error) {
 	mempoolHost, err := newMempoolHost(argsMempoolHost{
 		txGasHandler: args.TxGasHandler,
 		marshalizer:  args.Marshalizer,
+		baseTokenID:  args.BaseTokenID,
 	})
 	if err != nil {
 		return nil, err
