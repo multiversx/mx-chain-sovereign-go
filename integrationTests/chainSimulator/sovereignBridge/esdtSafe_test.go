@@ -1,4 +1,4 @@
-package bridge
+package sovereignBridge
 
 import (
 	"encoding/hex"
@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	helloWasmPath = "testdata/hello.wasm"
+	defaultPathToInitialConfig = "../../../cmd/node/config/"
+	helloWasmPath              = "testdata/hello.wasm"
 )
 
 type wallet struct {
