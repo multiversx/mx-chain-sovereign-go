@@ -801,8 +801,6 @@ func (ps *PruningStorer) registerHandler(handler EpochStartNotifier) {
 			err := ps.changeEpoch(hdr)
 			if err != nil {
 				log.Warn("change epoch in storer", "error", err.Error())
-
-				go ps.createNextEpochPersisterIfNeeded(hdr.GetEpoch())
 			}
 
 			go ps.createNextEpochPersisterIfNeeded(hdr.GetEpoch())
