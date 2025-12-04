@@ -287,6 +287,35 @@ func TransferESDTNFT(
 	RequireSuccessfulTransaction(t, txResult)
 }
 
+// TransferMultiESDTNFT will transfer NFT/SFT tokens to an address
+func TransferMultiESDTNFT(
+	t *testing.T,
+	cs ChainSimulator,
+	sender, receiver []byte,
+	nonce *uint64,
+	tokens []ArgsDepositToken,
+	args ...[]byte,
+) {
+	multiEsdtNftTransferArgs :=
+		core.BuiltInFunctionMultiESDTNFTTransfer +
+			"@" + hex.EncodeToString(receiver) +
+			"@" + fmt.Sprintf("%02X", len(tokens))
+
+	for _, token := range tokens {
+		multiEsdtNftTransferArgs = multiEsdtNftTransferArgs +
+			"@" + hex.EncodeToString([]byte(token.Identifier)) +
+			"@" + hex.EncodeToString(big.NewInt(int64(token.Nonce)).Bytes()) +
+			"@" + hex.EncodeToString(token.Amount.Bytes())
+	}
+
+	for _, arg := range args {
+		multiEsdtNftTransferArgs = multiEsdtNftTransferArgs +
+			"@" + hex.EncodeToString(arg)
+	}
+	txResult := SendTransaction(t, cs, sender, nonce, sender, ZeroValue, multiEsdtNftTransferArgs, uint64(5000000))
+	RequireSuccessfulTransaction(t, txResult)
+}
+
 // IssueFungible will issue a fungible token
 func IssueFungible(
 	t *testing.T,
