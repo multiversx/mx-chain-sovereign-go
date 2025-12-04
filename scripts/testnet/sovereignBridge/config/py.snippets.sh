@@ -48,7 +48,6 @@ updateSovereignTomlConfigs() {
         "$SOV_CHAIN_PREFIX" \
         "$USE_ELASTICSEARCH" \
         "$MAIN_CHAIN_ELASTIC" \
-        "$NATIVE_ESDT" \
         "$HEADER_VERIFIER_ADDRESS" \
         "$CHAIN_CONFIG_ADDRESS"
 }
@@ -63,4 +62,6 @@ updateSovereignNodeConfigs() {
     updateSovereignTomlConfigs
 
     updateNotifierNotarizationRound
+
+    export SOVEREIGN_NATIVE_ESDT="$NATIVE_ESDT"
 }

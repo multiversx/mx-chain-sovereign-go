@@ -44,7 +44,7 @@ def enable_key(lines, section):
     return updated_lines
 
 
-def update_sovereign_config(file_path, main_chain_address, sovereign_chain_address, native_esdt, header_verifier_address, chain_config_address):
+def update_sovereign_config(file_path, main_chain_address, sovereign_chain_address, header_verifier_address, chain_config_address):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
@@ -58,7 +58,6 @@ def update_sovereign_config(file_path, main_chain_address, sovereign_chain_addre
     updated_lines = update_subscribed_addresses(updated_lines, "NotifierConfig", "unRegisterBlsKey", chain_config_address)
     updated_lines = enable_key(updated_lines, "OutGoingBridge")
     updated_lines = enable_key(updated_lines, "NotifierConfig")
-    updated_lines = update_key(updated_lines, "NativeESDT", native_esdt)
 
     with open(file_path, 'w') as file:
         file.writelines(updated_lines)
@@ -124,16 +123,15 @@ def main():
     esdt_prefix = sys.argv[3]
     use_elasticsearch = sys.argv[4]
     main_chain_elastic = sys.argv[5]
-    native_esdt = sys.argv[6]
-    header_verifier_address = sys.argv[7]
-    chain_config_address = sys.argv[8]
+    header_verifier_address = sys.argv[6]
+    chain_config_address = sys.argv[7]
 
     current_path = os.getcwd()
     project = 'mx-chain-sovereign-go'
     index = current_path.find(project)
     project_path = current_path[:index + len(project)]
     toml_path = project_path + "/cmd/sovereignnode/config/sovereignConfig.toml"
-    update_sovereign_config(toml_path, main_chain_address, sovereign_chain_address, native_esdt, header_verifier_address, chain_config_address)
+    update_sovereign_config(toml_path, main_chain_address, sovereign_chain_address, header_verifier_address, chain_config_address)
 
     config_path = project_path + "/cmd/node/config"
     update_node_configs(config_path, esdt_prefix, sovereign_chain_address)

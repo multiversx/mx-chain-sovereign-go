@@ -35,10 +35,10 @@ const (
 	feeMarketWasmPath      = "testdata/mvx-fee-market.wasm"
 
 	sovereignForgeShardID = 1
-	chainConfigIndex      = 6
-	esdtSafeIndex         = 3
-	feeMarketIndex        = 4
-	headerVerifierIndex   = 2
+	chainConfigIndex      = 4
+	esdtSafeIndex         = 2
+	feeMarketIndex        = 3
+	headerVerifierIndex   = 1
 
 	sovChainID = "sov1"
 	numOfKeys  = 2
@@ -144,28 +144,29 @@ func deploySovereignBaseSetupOnMainChain(
 	_ = cs.GenerateBlocks(1)
 	sovereignForgeAddress := chainSim.DeployContract(t, cs, owner.Bytes, &ownerNonce, systemContractDeploy, "", sovereignForgeWasmPath)
 
-	for shardId := uint32(0); shardId < cs.GetNodeHandler(0).GetProcessComponents().ShardCoordinator().NumberOfShards(); shardId++ {
-		wallet, _ := cs.GenerateAndMintWalletAddress(shardId, chainSim.InitialAmount)
-		nonce := uint64(0)
-		_ = cs.GenerateBlocks(1)
+	shardId := chainSim.GetShardForAddress(cs, owner.Bech32)
+	wallet, _ := cs.GenerateAndMintWalletAddress(shardId, chainSim.InitialAmount)
+	nonce := uint64(0)
+	_ = cs.GenerateBlocks(1)
 
-		chainConfigTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", chainConfigWasmPath)
-		esdtSafeTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(wallet.Bytes)+"@31", esdtSafeWasmPath)              // random prefix
-		feeMarketTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(esdtSafeTemplateAddress)+"@00", feeMarketWasmPath) // no fee
-		headerVerifierTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", headerVerifierWasmPath)
+	chainConfigTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", chainConfigWasmPath)
+	esdtSafeTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(wallet.Bytes)+"@"+hex.EncodeToString(sovereignForgeAddress)+"@31", esdtSafeWasmPath) // random prefix
+	feeMarketTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "@"+hex.EncodeToString(esdtSafeTemplateAddress)+"@00", feeMarketWasmPath)                                  // no fee
+	headerVerifierTemplateAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, "", headerVerifierWasmPath)
 
-		chainFactoryArgs := "@" + hex.EncodeToString(sovereignForgeAddress) +
-			"@" + hex.EncodeToString(chainConfigTemplateAddress) +
-			"@" + hex.EncodeToString(headerVerifierTemplateAddress) +
-			"@" + hex.EncodeToString(esdtSafeTemplateAddress) +
-			"@" + hex.EncodeToString(feeMarketTemplateAddress)
-		chainFactoryAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, chainFactoryArgs, chainFactoryWasmPath)
+	chainFactoryArgs := "@" + hex.EncodeToString(sovereignForgeAddress) +
+		"@" + hex.EncodeToString(chainConfigTemplateAddress) +
+		"@" + hex.EncodeToString(headerVerifierTemplateAddress) +
+		"@" + hex.EncodeToString(esdtSafeTemplateAddress) +
+		"@" + hex.EncodeToString(feeMarketTemplateAddress)
+	chainFactoryAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemContractDeploy, chainFactoryArgs, chainFactoryWasmPath)
 
-		registerChainFactoryArgs := "registerChainFactory" +
-			"@" + hex.EncodeToString(big.NewInt(int64(shardId)).Bytes()) +
-			"@" + hex.EncodeToString(chainFactoryAddress)
-		chainSim.SendTransactionWithSuccess(t, cs, owner.Bytes, &ownerNonce, sovereignForgeAddress, chainSim.ZeroValue, registerChainFactoryArgs, uint64(30_000_000))
-	}
+	registerChainFactoryArgs := "registerChainFactory" +
+		"@" + hex.EncodeToString(big.NewInt(int64(shardId)).Bytes()) +
+		"@" + hex.EncodeToString(chainFactoryAddress)
+	chainSim.SendTransactionWithSuccess(t, cs, owner.Bytes, &ownerNonce, sovereignForgeAddress, chainSim.ZeroValue, registerChainFactoryArgs, uint64(30_000_000))
+
+	chainSim.SendTransactionWithSuccess(t, cs, owner.Bytes, &ownerNonce, sovereignForgeAddress, chainSim.ZeroValue, "unpause", uint64(10_000_000))
 
 	return sovereignForgeAddress
 }
@@ -217,8 +218,7 @@ func deployPhaseThree(
 	nonce *uint64,
 	sovChainID string,
 ) []byte {
-	phaseThreeArgs := "deployPhaseThree" +
-		"@00"
+	phaseThreeArgs := "deployPhaseThree"
 	chainSim.SendTransactionWithSuccess(t, cs, wallet, nonce, contractAddress, chainSim.ZeroValue, phaseThreeArgs, uint64(30_000_000))
 	return readContractAddress(t, cs, contractAddress, sovChainID, feeMarketIndex)
 }

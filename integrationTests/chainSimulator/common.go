@@ -29,6 +29,7 @@ const (
 	maxNumOfBlocksToGenerateWhenExecutingTx = 10
 	signalError                             = "signalError"
 	internalVMError                         = "internalVMErrors"
+	scDeployEvent                           = "SCDeploy"
 
 	// OkReturnCode the const for the ok return code
 	OkReturnCode = "ok"
@@ -103,7 +104,10 @@ func DeployContract(
 	require.Nil(t, err)
 	RequireSuccessfulTransaction(t, txResult)
 
-	address := txResult.Logs.Events[0].Topics[0]
+	deployEvent := getEvent(txResult.Logs, scDeployEvent)
+	require.NotNil(t, deployEvent, "%s event not found", scDeployEvent)
+
+	address := deployEvent.Topics[0]
 	require.NotNil(t, address)
 	return address
 }
@@ -181,7 +185,7 @@ func RequireSignalError(t *testing.T, txResult *transaction.ApiTransactionResult
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
 
-// RequireInternalVMError require that the transaction has specific invernal vm error
+// RequireInternalVMError require that the transaction has specific internal VM error
 func RequireInternalVMError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, internalVMError)
