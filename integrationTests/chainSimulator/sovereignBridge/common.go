@@ -58,6 +58,7 @@ type registeredBLSKey struct {
 
 // ArgsBridgeSetup holds the arguments for bridge setup
 type ArgsBridgeSetup struct {
+	ExecutionNonce        uint64
 	RegisteredBLSKeys     []registeredBLSKey
 	SovereignForgeAddress []byte
 	ChainConfigAddress    []byte
@@ -438,7 +439,7 @@ func executeOperation(
 	operation := hex.EncodeToString(receiver) + // receiver address
 		lengthOn4Bytes(len(bridgedInTokens)) + // nr of tokens
 		getTokenDataArgs(bridgeData.OwnerAccount.Wallet.Bytes, bridgedInTokens) + // tokens encoded arg
-		getUint64Bytes(0) + // event nonce
+		getUint64Bytes(getAndIncrementExecutionNonce(bridgeData)) + // event nonce
 		hex.EncodeToString(originalSender) + // sender address from other chain
 		getTransferDataArgs(transferData)
 	operationBytes, _ := hex.DecodeString(operation)
@@ -448,6 +449,13 @@ func executeOperation(
 		"@" + hex.EncodeToString(hashOfHashes) +
 		"@" + operation
 	return chainSim.SendTransaction(t, cs, bridgeData.OwnerAccount.Wallet.Bytes, &bridgeData.OwnerAccount.Nonce, bridgeData.ESDTSafeAddress, chainSim.ZeroValue, executeBridgeOpsData, uint64(100000000))
+}
+
+func getAndIncrementExecutionNonce(bridgeData *ArgsBridgeSetup) uint64 {
+	executionNonce := bridgeData.ExecutionNonce
+	bridgeData.ExecutionNonce += 1
+
+	return executionNonce
 }
 
 func getTokenDataArgs(creator []byte, tokens []chainSim.ArgsDepositToken) string {
@@ -506,7 +514,7 @@ func registerTokenOperation(
 		lengthOn4Bytes(len(ticker)) + // length of ticker
 		hex.EncodeToString([]byte(ticker)) + // ticker
 		"00000012" + // 18 decimals
-		getUint64Bytes(1) + // event nonce
+		getUint64Bytes(getAndIncrementExecutionNonce(bridgeData)) + // event nonce
 		hex.EncodeToString(originalSender) + // sender address from other chain
 		"00" // no transfer data
 	operationBytes, _ := hex.DecodeString(operation)

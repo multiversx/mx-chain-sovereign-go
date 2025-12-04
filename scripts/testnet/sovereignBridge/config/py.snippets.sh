@@ -38,8 +38,7 @@ setGenesisContracts() {
         "$SOV_ESDT_SAFE_WASM" \
         "$ESDT_SAFE_INIT_PARAMS" \
         "$SOV_FEE_MARKET_WASM" \
-        "$FEE_MARKET_INIT_PARAMS" \
-        "$SOV_REGISTRAR_WASM"
+        "$FEE_MARKET_INIT_PARAMS"
 }
 
 updateSovereignTomlConfigs() {
