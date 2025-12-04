@@ -39,7 +39,7 @@ def push_genesis_contract(file_path: str, genesis_contract):
         with open(file_path, 'a') as file:
             file.write('\n')
 
-        print(f"genesis contract pushed successfully")
+        print(f"genesis contract data pushed successfully")
     except Exception as e:
         print(f"An error occurred: {e}")
 
@@ -51,6 +51,7 @@ def main():
     esdt_safe_init_params = sys.argv[3]
     fee_market_path = sys.argv[4]
     fee_market_init_params = sys.argv[5]
+    sov_registrar_path = sys.argv[6]
 
     current_path = os.getcwd()
     project = 'mx-chain-sovereign-go'
@@ -72,17 +73,30 @@ def main():
     push_genesis_contract(json_path, esdt_safe_genesis_contract)
 
     # fee-market -----------------
-    fee_market_wasm_path = project_path + "/cmd/node/config/genesisContracts/fee-market.wasm"
+    fee_market_wasm_path = project_path + "/cmd/node/config/genesisContracts/sov-fee-market.wasm"
     copy_wasm_in_project(fee_market_wasm_path, fee_market_path)
 
     fee_market_genesis_contract = {
         "owner": owner_address,
-        "filename": "./config/genesisContracts/fee-market.wasm",
+        "filename": "./config/genesisContracts/sov-fee-market.wasm",
         "init-parameters": fee_market_init_params,
         "vm-type": "0500",
         "type": "fee"
     }
     push_genesis_contract(json_path, fee_market_genesis_contract)
+
+    # sov-registrar -----------------
+    sov_registrar_wasm_path = project_path + "/cmd/node/config/genesisContracts/sov-registrar.wasm"
+    copy_wasm_in_project(sov_registrar_wasm_path, sov_registrar_path)
+
+    sov_registrar_genesis_contract = {
+        "owner": owner_address,
+        "filename": "./config/genesisContracts/sov-registrar.wasm",
+        "init-parameters": "",
+        "vm-type": "0500",
+        "type": "reg"
+    }
+    push_genesis_contract(json_path, sov_registrar_genesis_contract)
 
 
 if __name__ == "__main__":
