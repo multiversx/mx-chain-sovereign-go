@@ -105,7 +105,7 @@ type runTypeComponents struct {
 	accountsParser                          genesis.AccountsParser
 	accountsCreator                         state.AccountFactory
 	vmContextCreator                        systemSmartContracts.VMContextCreatorHandler
-	outGoingOperationsPoolHandler           sovereignBlock.OutGoingOperationsPool
+	outGoingOperationsPoolHandler           sovereignBlock.ShardedOutGoingOperationPool
 	dataCodecHandler                        sovereign.DataCodecHandler
 	topicsCheckerHandler                    sovereign.TopicsCheckerHandler
 	shardCoordinatorCreator                 sharding.ShardCoordinatorFactory
@@ -236,7 +236,7 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		accountsParser:                          accountsParser,
 		accountsCreator:                         accountsCreator,
 		vmContextCreator:                        vmContextCreator,
-		outGoingOperationsPoolHandler:           disabled.NewDisabledOutGoingOperationPool(),
+		outGoingOperationsPoolHandler:           disabled.NewDisabledShardedOutGoingOperationPool(),
 		dataCodecHandler:                        disabled.NewDisabledDataCodec(),
 		topicsCheckerHandler:                    disabled.NewDisabledTopicsChecker(),
 		shardCoordinatorCreator:                 sharding.NewMultiShardCoordinatorFactory(),

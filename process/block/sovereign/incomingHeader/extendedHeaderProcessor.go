@@ -5,12 +5,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/extendedHeader"
 )
 
 type extendedHeaderProcessor struct {
@@ -18,27 +20,77 @@ type extendedHeaderProcessor struct {
 	txPool      TransactionPool
 	marshaller  marshal.Marshalizer
 	hasher      hashing.Hasher
+	container   EmptyExtendedHeaderCreatorsContainerHandler
 }
 
-func createExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler, scrs []*dto.SCRInfo) (*block.ShardHeaderExtended, error) {
-	headerV2, castOk := incomingHeader.GetHeaderHandler().(*block.HeaderV2)
-	if !castOk {
-		return nil, errInvalidHeaderType
+func newExtendedHeaderProcessor(
+	headersPool HeadersPool,
+	txPool TransactionPool,
+	marshaller marshal.Marshalizer,
+	hasher hashing.Hasher,
+) (*extendedHeaderProcessor, error) {
+	container := extendedHeader.NewEmptyBlockCreatorsContainer()
+	mvxHeaderCreator, err := extendedHeader.NewEmptyMVXShardExtendedCreator(marshaller)
+	if err != nil {
+		return nil, err
 	}
+
+	err = container.Add(sovDto.MVX, mvxHeaderCreator)
+	if err != nil {
+		return nil, err
+	}
+
+	ethHeaderCreator := extendedHeader.NewETHExtendedHeaderCreator()
+	err = container.Add(sovDto.ETH, ethHeaderCreator)
+	if err != nil {
+		return nil, err
+	}
+
+	return &extendedHeaderProcessor{
+		headersPool: headersPool,
+		txPool:      txPool,
+		marshaller:  marshaller,
+		hasher:      hasher,
+		container:   container,
+	}, nil
+}
+
+func (ehp *extendedHeaderProcessor) createExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler, scrs []*dto.SCRInfo) (data.ShardHeaderExtendedHandler, error) {
+	extendedShardHeader, err := ehp.createChainSpecificExtendedHeader(incomingHeader)
+	if err != nil {
+		return nil, err
+	}
+
 	events, err := getEvents(incomingHeader.GetIncomingEventHandlers())
 	if err != nil {
 		return nil, err
 	}
 
-	return &block.ShardHeaderExtended{
-		Header:             headerV2,
-		IncomingMiniBlocks: createIncomingMb(scrs),
-		IncomingEvents:     events,
-	}, nil
+	err = extendedShardHeader.SetIncomingEventHandlers(events)
+	if err != nil {
+		return nil, err
+	}
+
+	incomingMBs := createIncomingMb(scrs, incomingHeader.GetSourceChainID())
+	err = extendedShardHeader.SetIncomingMiniBlockHandlers(incomingMBs)
+	if err != nil {
+		return nil, err
+	}
+
+	return extendedShardHeader, nil
 }
 
-func getEvents(events []data.EventHandler) ([]*transaction.Event, error) {
-	ret := make([]*transaction.Event, len(events))
+func (ehp *extendedHeaderProcessor) createChainSpecificExtendedHeader(incomingHeader sovereign.IncomingHeaderHandler) (data.ShardHeaderExtendedHandler, error) {
+	shardExtendedHeaderCreator, err := ehp.container.Get(incomingHeader.GetSourceChainID())
+	if err != nil {
+		return nil, err
+	}
+
+	return shardExtendedHeaderCreator.CreateNewExtendedHeader(incomingHeader.GetProof())
+}
+
+func getEvents(events []data.EventHandler) ([]data.EventHandler, error) {
+	ret := make([]data.EventHandler, len(events))
 
 	for idx, eventHandler := range events {
 		event, castOk := eventHandler.(*transaction.Event)
@@ -52,9 +104,9 @@ func getEvents(events []data.EventHandler) ([]*transaction.Event, error) {
 	return ret, nil
 }
 
-func createIncomingMb(scrs []*dto.SCRInfo) []*block.MiniBlock {
+func createIncomingMb(scrs []*dto.SCRInfo, chainID sovDto.ChainID) []data.MiniBlockHandler {
 	if len(scrs) == 0 {
-		return make([]*block.MiniBlock, 0)
+		return make([]data.MiniBlockHandler, 0)
 	}
 
 	scrHashes := make([][]byte, len(scrs))
@@ -62,29 +114,23 @@ func createIncomingMb(scrs []*dto.SCRInfo) []*block.MiniBlock {
 		scrHashes[idx] = scrData.Hash
 	}
 
-	return []*block.MiniBlock{
-		{
+	return []data.MiniBlockHandler{
+		&block.MiniBlock{
 			TxHashes:        scrHashes,
 			ReceiverShardID: core.SovereignChainShardId,
-			SenderShardID:   core.MainChainShardId,
+			SenderShardID:   uint32(chainID),
 			Type:            block.SmartContractResultBlock,
 		},
 	}
 }
 
 func (ehp *extendedHeaderProcessor) addPreGenesisExtendedHeaderToPool(incomingHeader sovereign.IncomingHeaderHandler) error {
-	headerV2, castOk := incomingHeader.GetHeaderHandler().(*block.HeaderV2)
-	if !castOk {
-		return errInvalidHeaderType
+	extendedShardHeader, err := ehp.createChainSpecificExtendedHeader(incomingHeader)
+	if err != nil {
+		return err
 	}
 
-	extendedHeader := &block.ShardHeaderExtended{
-		Header:             headerV2,
-		IncomingMiniBlocks: []*block.MiniBlock{},
-		IncomingEvents:     []*transaction.Event{},
-	}
-
-	return ehp.addExtendedHeaderAndSCRsToPool(extendedHeader, make([]*dto.SCRInfo, 0))
+	return ehp.addExtendedHeaderAndSCRsToPool(extendedShardHeader, make([]*dto.SCRInfo, 0))
 }
 
 func (ehp *extendedHeaderProcessor) addExtendedHeaderAndSCRsToPool(extendedHeader data.ShardHeaderExtendedHandler, scrs []*dto.SCRInfo) error {
@@ -93,13 +139,14 @@ func (ehp *extendedHeaderProcessor) addExtendedHeaderAndSCRsToPool(extendedHeade
 		return err
 	}
 
-	ehp.addSCRsToPool(scrs)
-	ehp.headersPool.AddHeaderInShard(extendedHeaderHash, extendedHeader, core.MainChainShardId)
+	chainID := uint32(extendedHeader.GetSourceChainID())
+	ehp.addSCRsToPool(scrs, chainID)
+	ehp.headersPool.AddHeaderInShard(extendedHeaderHash, extendedHeader, chainID)
 	return nil
 }
 
-func (ehp *extendedHeaderProcessor) addSCRsToPool(scrs []*dto.SCRInfo) {
-	cacheID := process.ShardCacherIdentifier(core.MainChainShardId, core.SovereignChainShardId)
+func (ehp *extendedHeaderProcessor) addSCRsToPool(scrs []*dto.SCRInfo, shard uint32) {
+	cacheID := process.ShardCacherIdentifier(shard, core.SovereignChainShardId)
 
 	for _, scrData := range scrs {
 		ehp.txPool.AddData(scrData.Hash, scrData.SCR, scrData.SCR.Size(), cacheID)

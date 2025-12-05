@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
@@ -54,9 +55,9 @@ func (scbp *sovereignChainBlockProcessor) shouldProcessReceivedHeader(headerHand
 	var lastNotarizedHeader data.HeaderHandler
 	var err error
 
-	_, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
+	extendedHeader, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
 	if isExtendedShardHeaderReceived {
-		lastNotarizedHeader, _, err = scbp.crossNotarizer.GetLastNotarizedHeader(core.MainChainShardId)
+		lastNotarizedHeader, _, err = scbp.crossNotarizer.GetLastNotarizedHeader(uint32(extendedHeader.GetSourceChainID()))
 		if err != nil {
 			log.Warn("shouldProcessReceivedHeader: crossNotarizer.GetLastNotarizedHeader",
 				"shard", headerHandler.GetShardID(), "error", err.Error())
@@ -76,9 +77,9 @@ func (scbp *sovereignChainBlockProcessor) shouldProcessReceivedHeader(headerHand
 }
 
 func (scbp *sovereignChainBlockProcessor) processReceivedHeader(headerHandler data.HeaderHandler) {
-	_, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
+	extendedHeader, isExtendedShardHeaderReceived := headerHandler.(*block.ShardHeaderExtended)
 	if isExtendedShardHeaderReceived {
-		scbp.doJobOnReceivedCrossNotarizedHeaderFunc(core.MainChainShardId)
+		scbp.doJobOnReceivedCrossNotarizedHeaderFunc(uint32(extendedHeader.GetSourceChainID()))
 		return
 	}
 
@@ -100,7 +101,7 @@ func (scbp *sovereignChainBlockProcessor) requestHeaderWithShardAndNonce(shardID
 	if shardID == scbp.shardCoordinator.SelfId() {
 		scbp.requestHandler.RequestShardHeaderByNonce(shardID, nonce)
 		scbp.requestHandler.RequestEquivalentProofByNonce(shardID, nonce)
-	} else if shardID == core.MainChainShardId {
+	} else if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
 		scbp.extendedShardHeaderRequester.RequestExtendedShardHeaderByNonce(nonce)
 	} else {
 		log.Warn("sovereignChainBlockProcessor.requestHeaderWithShardAndNonce requested header for unknown shard",
@@ -118,7 +119,7 @@ func (scbp *sovereignChainBlockProcessor) requestHeadersIfNothingNewIsReceived(
 		return
 	}
 	// double-checking here for both shardID and header type just to be safe
-	if shardID == core.MainChainShardId {
+	if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
 		return
 	}
 	if _, isExtendedHeader := latestValidHeader.(data.ShardHeaderExtendedHandler); isExtendedHeader {
@@ -144,7 +145,7 @@ func (scbp *sovereignChainBlockProcessor) checkHeaderFinalityForShard(
 	index int,
 	shardID uint32,
 ) error {
-	if shardID == core.MainChainShardId {
+	if dtoSov.IsValidCrossChainID(dtoSov.ChainID(shardID)) {
 		return nil
 	}
 

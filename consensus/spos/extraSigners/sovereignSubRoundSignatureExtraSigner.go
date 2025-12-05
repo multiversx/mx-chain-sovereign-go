@@ -43,13 +43,19 @@ func (sr *sovereignSubRoundSignatureOutGoingTxData) CreateSignatureShare(
 		return nil, fmt.Errorf("%w in sovereignSubRoundSignatureOutGoingTxData.CreateSignatureShare", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMBHeader := sovChainHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMBHeader) {
+	outGoingMBHeaders := sovChainHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBHeaders) == 0 {
 		return make([]byte, 0), nil
 	}
 
+	err := checkAllMBsHaveSameData(outGoingMBHeaders, getOpHashData)
+	if err != nil {
+		return nil, err
+	}
+
 	return sr.signingHandler.CreateSignatureShareForPublicKey(
-		outGoingMBHeader.GetOutGoingOperationsHash(),
+		// Regardless of chain, all outgoing ops with same type will have the same signature
+		outGoingMBHeaders[0].GetOutGoingOperationsHash(),
 		selfIndex,
 		header.GetEpoch(),
 		selfPubKey)

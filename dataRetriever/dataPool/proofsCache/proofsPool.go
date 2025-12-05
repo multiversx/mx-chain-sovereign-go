@@ -7,6 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -209,6 +210,10 @@ func (pp *proofsPool) HasProof(
 	shardID uint32,
 	headerHash []byte,
 ) bool {
+	if dto.IsValidCrossChainID(dto.ChainID(shardID)) {
+		return true
+	}
+
 	_, err := pp.GetProof(shardID, headerHash)
 	return err == nil
 }

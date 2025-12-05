@@ -27,7 +27,14 @@
 
 [MainChainNotarization]
     # This defines the starting round from which all sovereign chain nodes should starting notarizing main chain headers
-    MainChainNotarizationStartRound = 11
+    [MainChainNotarization.MVX]
+        StartRound = 11
+
+    [MainChainNotarization.ETH]
+        StartRound = 12
+
+    #[MainChainNotarization.SUI]
+    #    StartRound = 13
 
 [OutgoingSubscribedEvents]
     # Time to wait in seconds for outgoing operations that need to be bridged from sovereign chain to main chain.
@@ -98,6 +105,32 @@
     [NotifierConfig.AddressPubKeyConverter]
         Length = 32
         Hrp = "erd"
+
+[ETHNotifierConfig]
+    Enabled = false
+    SubscribedEvents = [
+        # Identifier = Event's topic signature, e.g.:  event Deposit(address indexed user, uint256 amount);
+        # Address = SC's address
+        { Identifier = "Deposit(address,uint256)", Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" }
+    ]
+
+    # Possible values: sha256, keccak, blake2b. Should be compatible with sovereign nodes
+    HasherType = "blake2b"
+
+    # Possible values: json, gogo protobuf. Should be compatible with sovereign nodes
+    MarshallerType = "gogo protobuf"
+
+    # Defines the min number confirmations for a block to be considered final.
+    # Under normal conditions, an ETH block time ~= 12s and a chain reorganization should not happen after > 6.5 mins
+    # For ETH mainnet, probably around 32 blocks confirmation should be enough (~6.5 mins)
+    MinBlocksConfirmation = 2
+
+    # Defines block cache size. If we have an average of a block/12s, then in 10 minutes, cache size should be ~= 50.
+    # For a cache size = 1000, we would hold blocks from the past ~3h.
+    BlockCacheSize = 1000
+
+    URL = "ws://127.0.0.1:8546"
+
 
 [GenesisConfig]
     # NativeESDT specifies the sovereign shard's native esdt currency

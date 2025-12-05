@@ -2,10 +2,13 @@ package block
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/hashing/factory"
 
+	"github.com/multiversx/mx-chain-go/config"
 	mxErrors "github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
@@ -39,12 +42,19 @@ func (s *sovereignBlockProcessorFactory) CreateBlockProcessor(argumentsBaseProce
 	if !ok {
 		return nil, mxErrors.ErrWrongTypeAssertion
 	}
+
+	mapChainIDs, err := createMapChainIDs(argumentsBaseProcessor.Config.SovereignConfig.MainChainNotarization)
+	if err != nil {
+		return nil, err
+	}
+
 	outgoingOpFormatter, err := sovereign.CreateOutgoingOperationsFormatter(
 		argumentsBaseProcessor.Config.SovereignConfig.OutgoingSubscribedEvents.SubscribedEvents,
 		argumentsBaseProcessor.CoreComponents.AddressPubKeyConverter(),
 		argumentsBaseProcessor.RunTypeComponents.DataCodecHandler(),
 		argumentsBaseProcessor.RunTypeComponents.TopicsCheckerHandler(),
 		argumentsBaseProcessor.AccountsDB[state.PeerAccountsState],
+		mapChainIDs,
 	)
 
 	if err != nil {
@@ -78,10 +88,24 @@ func (s *sovereignBlockProcessorFactory) CreateBlockProcessor(argumentsBaseProce
 		EpochSystemSCProcessor:          argsMetaProcessor.EpochSystemSCProcessor,
 		SCToProtocol:                    argsMetaProcessor.SCToProtocol,
 		EpochEconomics:                  argsMetaProcessor.EpochEconomics,
-		MainChainNotarizationStartRound: argumentsBaseProcessor.Config.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound,
+		MainChainNotarizationStartRound: argumentsBaseProcessor.Config.SovereignConfig.MainChainNotarization,
 	}
 
 	return NewSovereignChainBlockProcessor(args)
+}
+
+func createMapChainIDs(cfg map[string]config.MainChainNotarization) (map[dto.ChainID]struct{}, error) {
+	ret := make(map[dto.ChainID]struct{})
+	for chainIDStr := range cfg {
+		chainID, isValid := dto.ChainID_value[chainIDStr]
+		if !isValid {
+			return nil, fmt.Errorf("%w : %s", errUnknownChainID, chainIDStr)
+		}
+
+		ret[dto.ChainID(chainID)] = struct{}{}
+	}
+
+	return ret, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -75,7 +75,7 @@ type RunTypeComponentsStub struct {
 	AccountParser                               genesis.AccountsParser
 	AccountCreator                              state.AccountFactory
 	VMContextCreatorHandler                     systemSmartContracts.VMContextCreatorHandler
-	OutGoingOperationsPool                      sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPool                      sovereignBlock.ShardedOutGoingOperationPool
 	DataCodec                                   sovereign.DataCodecHandler
 	TopicsChecker                               sovereign.TopicsCheckerHandler
 	ShardCoordinatorFactory                     sharding.ShardCoordinatorFactory
@@ -137,7 +137,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		AccountParser:                               &genesisMocks.AccountsParserStub{},
 		AccountCreator:                              &stateMock.AccountsFactoryStub{},
 		VMContextCreatorHandler:                     &vmContext.VMContextCreatorStub{},
-		OutGoingOperationsPool:                      &sovereignMocks.OutGoingOperationsPoolMock{},
+		OutGoingOperationsPool:                      &sovereignMocks.ShardedOutGoingOperationsPoolMock{},
 		DataCodec:                                   &sovereignMocks.DataCodecMock{},
 		TopicsChecker:                               &sovereignMocks.TopicsCheckerMock{},
 		ShardCoordinatorFactory:                     &testscommon.MultiShardCoordinatorFactoryMock{},
@@ -298,7 +298,7 @@ func (r *RunTypeComponentsStub) VMContextCreator() systemSmartContracts.VMContex
 }
 
 // OutGoingOperationsPoolHandler -
-func (r *RunTypeComponentsStub) OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool {
+func (r *RunTypeComponentsStub) OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool {
 	return r.OutGoingOperationsPool
 }
 

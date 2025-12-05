@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
 	"github.com/multiversx/mx-chain-go/config"
@@ -30,79 +31,101 @@ var serializer, _ = abi.NewSerializer(abi.ArgsNewSerializer{PartsSeparator: "@"}
 func getBridgeDataFromPrevBlock(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
+	chainsToBridgeData map[dto.ChainID]struct{},
 	mbType block.OutGoingMBType,
-) (uint64, *sovereign.BridgeOutGoingData) {
+) (uint64, []*sovereign.BridgeOutGoingData) {
 	prevHdrHash := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader().GetPrevHash()
 	prevHdr, err := nodeHandler.GetDataComponents().Datapool().Headers().GetHeaderByHash(prevHdrHash)
 	require.Nil(t, err)
 
-	outGoingMBHdr := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandler(int32(mbType))
-	require.NotNil(t, outGoingMBHdr)
+	outGoingMBHdr := prevHdr.(data.SovereignChainHeaderHandler).GetOutGoingMiniBlockHeaderHandlersWithType(int32(mbType))
+	require.Equal(t, len(outGoingMBHdr), len(chainsToBridgeData))
 
-	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdr.GetOutGoingOperationsHash())
-	require.NotEmpty(t, bridgeData.AggregatedSignature)
-	require.NotEmpty(t, bridgeData.LeaderSignature)
-	require.NotEmpty(t, bridgeData.PubKeysBitmap)
+	allBridgeData := make([]*sovereign.BridgeOutGoingData, len(chainsToBridgeData))
+	for idx, outGoingMBHeader := range outGoingMBHdr {
+		_, found := chainsToBridgeData[outGoingMBHeader.GetChainID()]
+		require.True(t, found)
 
-	return prevHdr.GetNonce(), bridgeData
+		bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(
+			outGoingMBHeader.GetOutGoingOperationsHash(),
+			outGoingMBHeader.GetChainID(),
+		)
+		require.NotEmpty(t, bridgeData.AggregatedSignature)
+		require.NotEmpty(t, bridgeData.LeaderSignature)
+		require.NotEmpty(t, bridgeData.PubKeysBitmap)
+
+		allBridgeData[idx] = bridgeData
+	}
+
+	return prevHdr.GetNonce(), allBridgeData
 
 }
 
 func checkOutGoingMiniBlockRegisterValidator(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
+	chainsToBridgeData map[dto.ChainID]struct{},
 	numOperations int,
 	latestMainChainID int,
 ) {
-	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBRegisterBlsKey)
-	require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, numOperations)
+	nonce, allBridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, chainsToBridgeData, block.OutGoingMBRegisterBlsKey)
 
-	blsKeys := make([][]byte, 0)
-	assignedMainChainIDs := make([][]byte, 0)
+	for _, bridgeData := range allBridgeData {
+		require.Equal(t, int32(block.OutGoingMBRegisterBlsKey), bridgeData.Type)
+		require.Len(t, bridgeData.OutGoingOperations, numOperations)
 
-	expectedMainChainIDs := make([][]byte, 0)
-	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
-		require.Equal(t, nonce, registeredData.Nonce)
+		blsKeys := make([][]byte, 0)
+		assignedMainChainIDs := make([][]byte, 0)
 
-		blsKeys = append(blsKeys, registeredData.Key)
-		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+		expectedMainChainIDs := make([][]byte, 0)
+		latestMainChainIDForChain := latestMainChainID
 
-		latestMainChainID++
-		expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainID)).Bytes())
+		for _, op := range bridgeData.OutGoingOperations {
+			registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+			require.Equal(t, nonce, registeredData.Nonce)
+
+			blsKeys = append(blsKeys, registeredData.Key)
+			assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+
+			latestMainChainIDForChain++
+			expectedMainChainIDs = append(expectedMainChainIDs, big.NewInt(int64(latestMainChainIDForChain)).Bytes())
+		}
+
+		auctionNodes := getAuctionListKeys(t, nodeHandler)
+		require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
+		require.Subset(t, auctionNodes, blsKeys)
 	}
-
-	auctionNodes := getAuctionListKeys(t, nodeHandler)
-	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.Subset(t, auctionNodes, blsKeys)
 }
 
 func checkOutGoingMiniBlockUnRegisterValidator(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
+	chainsToBridgeData map[dto.ChainID]struct{},
 	expectedBlsKeys [][]byte,
 	expectedMainChainIDs [][]byte,
 ) {
 	// StakeNodes func from staking/common.go generates one extra block after staking tx, so we need to get
 	// data from previous block
-	nonce, bridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, block.OutGoingMBUnRegisterBlsKey)
-	require.Equal(t, int32(block.OutGoingMBUnRegisterBlsKey), bridgeData.Type)
-	require.Len(t, bridgeData.OutGoingOperations, len(expectedBlsKeys))
+	nonce, allBridgeData := getBridgeDataFromPrevBlock(t, nodeHandler, chainsToBridgeData, block.OutGoingMBUnRegisterBlsKey)
 
-	blsKeys := make([][]byte, 0)
-	assignedMainChainIDs := make([][]byte, 0)
+	for _, bridgeData := range allBridgeData {
+		require.Equal(t, int32(block.OutGoingMBUnRegisterBlsKey), bridgeData.Type)
+		require.Len(t, bridgeData.OutGoingOperations, len(expectedBlsKeys))
 
-	for _, op := range bridgeData.OutGoingOperations {
-		registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
-		require.Equal(t, nonce, registeredData.Nonce)
+		blsKeys := make([][]byte, 0)
+		assignedMainChainIDs := make([][]byte, 0)
 
-		blsKeys = append(blsKeys, registeredData.Key)
-		assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+		for _, op := range bridgeData.OutGoingOperations {
+			registeredData := deserializeRegisteredBlsKeyData(t, nodeHandler, serializer, op.Data)
+			require.Equal(t, nonce, registeredData.Nonce)
+
+			blsKeys = append(blsKeys, registeredData.Key)
+			assignedMainChainIDs = append(assignedMainChainIDs, registeredData.ID)
+		}
+
+		require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
+		require.ElementsMatch(t, expectedBlsKeys, blsKeys)
 	}
-
-	require.ElementsMatch(t, expectedMainChainIDs, assignedMainChainIDs)
-	require.ElementsMatch(t, expectedBlsKeys, blsKeys)
 }
 
 func getBlsKeyBytes(t *testing.T, keys []string) [][]byte {
@@ -196,6 +219,10 @@ func TestSovereignChainSimulator_OutgoingOpRegisterAndUnregisterNode(t *testing.
 			NumNodesWaitingListShard: 2,
 			AlterConfigsFunction: func(cfg *config.Configs) {
 				cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 1.0
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					dto.MVX.String(): {StartRound: 1},
+					dto.ETH.String(): {StartRound: 1},
+				}
 			},
 		},
 	})
@@ -219,10 +246,15 @@ func TestSovereignChainSimulator_OutgoingOpRegisterAndUnregisterNode(t *testing.
 	nonce := uint64(0)
 	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
+	chains := map[dto.ChainID]struct{}{
+		dto.MVX: {},
+		dto.ETH: {},
+	}
+
 	// Create a block with 3 stake transactions (by staking first 3/4 nodes) and check outgoing mbs
 	txs := createStakeTxs(&nonce, walletAddress, blsKeys[:3])
 	sendTxsAndGenerateOneBlock(t, cs, txs)
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 3, 8)
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, chains, 3, 8)
 
 	// Create a block with unStake(1/4 & 3/4 nodes) and stake(4/4 node) transactions and check there are two outgoing mbs with
 	// different types
@@ -234,8 +266,8 @@ func TestSovereignChainSimulator_OutgoingOpRegisterAndUnregisterNode(t *testing.
 	require.Nil(t, err)
 
 	blsKeysBytes := getBlsKeyBytes(t, blsKeys)
-	checkOutGoingMiniBlockUnRegisterValidator(t, nodeHandler, [][]byte{blsKeysBytes[0], blsKeysBytes[2]}, [][]byte{{0x09}, {0x0b}})
-	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, 1, 8+3) // 8 from genesis + 3 staked nodes in total
+	checkOutGoingMiniBlockUnRegisterValidator(t, nodeHandler, chains, [][]byte{blsKeysBytes[0], blsKeysBytes[2]}, [][]byte{{0x09}, {0x0b}})
+	checkOutGoingMiniBlockRegisterValidator(t, nodeHandler, chains, 1, 8+3) // 8 from genesis + 3 staked nodes in total
 
 	require.Equal(t, "unStaked", staking.GetBLSKeyStatus(t, nodeHandler, blsKeysBytes[0]))
 	require.Equal(t, "staked", staking.GetBLSKeyStatus(t, nodeHandler, blsKeysBytes[1]))

@@ -70,7 +70,7 @@ type ArgsChainSimulator struct {
 	AlterConfigsFunction           func(cfg *config.Configs)
 	VmQueryDelayAfterStartInMs     uint64
 	CreateRunTypeCoreComponents    func() (factory.RunTypeCoreComponentsHolder, error)
-	CreateIncomingHeaderSubscriber func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound uint64, runTypeComponents factory.RunTypeComponentsHolder) (processing.IncomingHeaderSubscriber, error)
+	CreateIncomingHeaderSubscriber func(config config.WebSocketConfig, dataPool dataRetriever.PoolsHolder, mainChainNotarizationStartRound map[string]config.MainChainNotarization, runTypeComponents factory.RunTypeComponentsHolder) (processing.IncomingHeaderSubscriber, error)
 	CreateRunTypeComponents        func(args runType.ArgsRunTypeComponents) (factory.RunTypeComponentsHolder, error)
 	NodeFactory                    node.NodeFactory
 	ChainProcessorFactory          ChainHandlerFactory
@@ -135,7 +135,7 @@ func setSimulatorRunTypeArguments(args *ArgsChainSimulator) {
 		}
 	}
 	if args.CreateIncomingHeaderSubscriber == nil {
-		args.CreateIncomingHeaderSubscriber = func(_ config.WebSocketConfig, _ dataRetriever.PoolsHolder, _ uint64, _ factory.RunTypeComponentsHolder) (processing.IncomingHeaderSubscriber, error) {
+		args.CreateIncomingHeaderSubscriber = func(_ config.WebSocketConfig, _ dataRetriever.PoolsHolder, _ map[string]config.MainChainNotarization, _ factory.RunTypeComponentsHolder) (processing.IncomingHeaderSubscriber, error) {
 			return &sovereign.IncomingHeaderSubscriberStub{}, nil
 		}
 	}

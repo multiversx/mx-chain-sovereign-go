@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -128,7 +129,20 @@ func (scm *sovereignChainMessenger) shouldSkipShard(shardID uint32) bool {
 	return shardID != core.SovereignChainShardId
 }
 func (scm *sovereignChainMessenger) shouldSkipTopic(topic string) bool {
-	return strings.Contains(topic, fmt.Sprintf("%d", core.MainChainShardId))
+	tokens := strings.Split(topic, "_")
+	tokensMap := make(map[string]struct{})
+	for _, token := range tokens {
+		tokensMap[token] = struct{}{}
+	}
+
+	for chainID := range dto.ValidChains {
+		chainIDStrToken := fmt.Sprintf("%d", chainID)
+		if _, found := tokensMap[chainIDStrToken]; found {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

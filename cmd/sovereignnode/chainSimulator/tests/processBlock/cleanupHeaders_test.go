@@ -6,9 +6,11 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
+	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
@@ -31,6 +33,11 @@ func TestSovereignChainSimulator_NoCrossHeadersReceived(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					sovDto.MVX.String(): {StartRound: 1},
+				}
+			},
 		},
 	})
 	require.Nil(t, err)
@@ -51,7 +58,7 @@ func TestSovereignChainSimulator_NoCrossHeadersReceived(t *testing.T) {
 		checkNotarizedHeadersLen(t, nodeHandler, round)
 
 		// no cross headers received
-		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(core.MainChainShardId)
+		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(uint32(sovDto.MVX))
 		require.Nil(t, crossTrackedHeaders)
 
 		// only the initial dummy cross header is notarized
@@ -81,6 +88,11 @@ func TestSovereignChainSimulator_BlockTrackerPoolsCleanup(t *testing.T) {
 			RoundsPerEpoch:         core.OptionalUint64{},
 			ApiInterface:           api.NewNoApiInterface(),
 			MinNodesPerShard:       2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization = map[string]config.MainChainNotarization{
+					sovDto.MVX.String(): {StartRound: 1},
+				}
+			},
 		},
 	})
 	require.Nil(t, err)
@@ -103,18 +115,18 @@ func TestSovereignChainSimulator_BlockTrackerPoolsCleanup(t *testing.T) {
 		require.Equal(t, uint64(round)-1, selfNotarizedHeaders.GetNonce()) // in round X, header with nonce X-1 is notarized
 		checkNotarizedHeadersLen(t, nodeHandler, round)
 
-		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(core.MainChainShardId)
+		crossTrackedHeaders, _ := nodeHandler.GetProcessComponents().BlockTracker().GetTrackedHeaders(uint32(sovDto.MVX))
 		checkCrossTrackedHeaders(t, round, crossTrackedHeaders, headerNonce)
 
-		crossNotarizedHeader, _, err := nodeHandler.GetProcessComponents().BlockTracker().GetCrossNotarizedHeader(core.MainChainShardId, 0)
+		crossNotarizedHeader, _, err := nodeHandler.GetProcessComponents().BlockTracker().GetCrossNotarizedHeader(uint32(sovDto.MVX), 0)
 		require.Nil(t, err)
 		checkCrossNotarizedHeader(t, round, crossNotarizedHeader, headerNonce)
 
-		incomingHeader, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, nil)
+		incomingHeader, headerV2, headerHash := createMVXIncomingHeader(nodeHandler, &headerNonce, prevHeader, nil)
 		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
 		require.Nil(t, err)
 
-		prevHeader = incomingHeader.Header
+		prevHeader = headerV2
 	}
 }
 

@@ -319,11 +319,13 @@ func (bp *blockProcessor) getNextHeader(
 
 		err := bp.headerValidator.IsHeaderConstructionValid(currHeader, prevHeader)
 		if err != nil {
+			log.Debug("blockProcessor.getNextHeader.IsHeaderConstructionValid", "err", err)
 			continue
 		}
 
 		err = bp.checkHeaderFinalityForShardFunc(currHeader, sortedHeaders, sortedHeadersHashes, i+1, shardID)
 		if err != nil {
+			log.Debug("blockProcessor.getNextHeader.checkHeaderFinality", "err", err)
 			continue
 		}
 

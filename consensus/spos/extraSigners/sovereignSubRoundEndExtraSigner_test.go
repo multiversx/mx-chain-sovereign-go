@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -42,6 +43,11 @@ func TestSovereignSubRoundEndOutGoingTxData_VerifyAggregatedSignatures(t *testin
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				ChainID:                dto.ETH,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
@@ -71,6 +77,14 @@ func TestSovereignSubRoundEndOutGoingTxData_VerifyAggregatedSignatures(t *testin
 		sovHdrCopy.OutGoingMiniBlockHeaders = nil
 		err := sovSigHandler.VerifyAggregatedSignatures(expectedBitMap, &sovHdrCopy)
 		require.Nil(t, err)
+		require.Zero(t, verifyCalledCt)
+	})
+
+	t.Run("not all outgoing mbs have the same op hash", func(t *testing.T) {
+		sovHdrCopy := sovHdr.ShallowClone()
+		sovHdrCopy.(*block.SovereignChainHeader).OutGoingMiniBlockHeaders[1].OutGoingOperationsHash = []byte("another hash")
+		err := sovSigHandler.VerifyAggregatedSignatures(expectedBitMap, sovHdrCopy)
+		require.ErrorIs(t, err, errDataMismatchOutGoingMB)
 		require.Zero(t, verifyCalledCt)
 	})
 
@@ -134,6 +148,16 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				ChainID:                dto.ETH,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
 				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
@@ -163,8 +187,19 @@ func TestSovereignSubRoundEndOutGoingTxData_SeAggregatedSignatureInHeader(t *tes
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.MVX,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
+				},
+				{
+					ChainID:                               dto.ETH,
+					OutGoingOperationsHash:                outGoingOpHash,
+					AggregatedSignatureOutGoingOperations: aggregatedSig,
+				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: outGoingOpHash,
 				},
 			},
 		}, sovHdr)
@@ -183,8 +218,19 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.ETH,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				ChainID:                               dto.MVX,
+				OutGoingOperationsHash:                outGoingOpHash,
+				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
@@ -217,6 +263,14 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 		require.Zero(t, verifyCalledCt)
 	})
 
+	t.Run("outgoing mb op data mismatch", func(t *testing.T) {
+		sovHdrCopy := sovHdr.ShallowClone()
+		sovHdrCopy.(*block.SovereignChainHeader).OutGoingMiniBlockHeaders[1].OutGoingOperationsHash = []byte("another hash")
+		err := sovSigHandler.SignAndSetLeaderSignature(sovHdrCopy, expectedLeaderPubKey)
+		require.Equal(t, errDataMismatchOutGoingMB, err)
+		require.Zero(t, verifyCalledCt)
+	})
+
 	t.Run("should create leader sig with cns v1 version", func(t *testing.T) {
 		err := sovSigHandler.SignAndSetLeaderSignature(sovHdr, expectedLeaderPubKey)
 		require.Nil(t, err)
@@ -228,9 +282,21 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignature(t *testing
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.ETH,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     expectedLeaderSig,
+				},
+				{
+					ChainID:                               dto.MVX,
+					OutGoingOperationsHash:                outGoingOpHash,
+					AggregatedSignatureOutGoingOperations: aggregatedSig,
+					LeaderSignatureOutGoingOperations:     expectedLeaderSig,
+				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: outGoingOpHash,
 				},
 			},
 		}, sovHdr)
@@ -249,8 +315,19 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				ChainID:                               dto.ETH,
+				OutGoingOperationsHash:                outGoingOpHash,
+				AggregatedSignatureOutGoingOperations: aggregatedSig,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}
@@ -284,15 +361,27 @@ func TestSovereignSubRoundEndOutGoingTxData_SignAndSetLeaderSignatureInAndromeda
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 				LeaderSignatureOutGoingOperations:     expectedLeaderSig,
+			},
+			{
+				ChainID:                               dto.ETH,
+				OutGoingOperationsHash:                outGoingOpHash,
+				AggregatedSignatureOutGoingOperations: aggregatedSig,
+				LeaderSignatureOutGoingOperations:     expectedLeaderSig,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
 			},
 		},
 	}, sovHdr)
 }
 
-func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *testing.T) {
+func TestSovereignSubRoundEndOutGoingTxData_SetConsensusDataInHeader(t *testing.T) {
 	t.Parallel()
 
 	aggregatedSig := []byte("aggregatedSig")
@@ -314,7 +403,17 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                dto.ETH,
 				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: outGoingOpHash,
+			},
+			{
+				Type:                   block.OutGoingMbChangeValidatorSet,
+				ChainID:                dto.MVX,
+				OutGoingOperationsHash: []byte("anotherOpHash"),
 			},
 		},
 	}
@@ -344,9 +443,21 @@ func TestSovereignSubRoundEndOutGoingTxData_HaveConsensusHeaderWithFullInfo(t *t
 			},
 			OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 				{
+					ChainID:                               dto.ETH,
 					OutGoingOperationsHash:                outGoingOpHash,
 					AggregatedSignatureOutGoingOperations: aggregatedSig,
 					LeaderSignatureOutGoingOperations:     leaderSig,
+				},
+				{
+					ChainID:                               dto.MVX,
+					OutGoingOperationsHash:                outGoingOpHash,
+					AggregatedSignatureOutGoingOperations: aggregatedSig,
+					LeaderSignatureOutGoingOperations:     leaderSig,
+				},
+				{
+					Type:                   block.OutGoingMbChangeValidatorSet,
+					ChainID:                dto.MVX,
+					OutGoingOperationsHash: []byte("anotherOpHash"),
 				},
 			},
 		}, sovHdr)
@@ -368,6 +479,13 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 		},
 		OutGoingMiniBlockHeaders: []*block.OutGoingMiniBlockHeader{
 			{
+				ChainID:                               dto.ETH,
+				OutGoingOperationsHash:                outGoingOpHash,
+				AggregatedSignatureOutGoingOperations: aggregatedSig,
+				LeaderSignatureOutGoingOperations:     leaderSig,
+			},
+			{
+				ChainID:                               dto.MVX,
 				OutGoingOperationsHash:                outGoingOpHash,
 				AggregatedSignatureOutGoingOperations: aggregatedSig,
 				LeaderSignatureOutGoingOperations:     leaderSig,
@@ -380,6 +498,28 @@ func TestSovereignSubRoundEndOutGoingTxData_AddLeaderAndAggregatedSignatures(t *
 	t.Run("invalid header type, should return error", func(t *testing.T) {
 		err := sovSigHandler.AddLeaderAndAggregatedSignatures(sovHdr.Header, cnsMsg)
 		require.ErrorIs(t, err, errors.ErrWrongTypeAssertion)
+	})
+
+	t.Run("no outgoing mini block header", func(t *testing.T) {
+		sovHdrCopy := *sovHdr
+		sovHdrCopy.OutGoingMiniBlockHeaders = nil
+		err := sovSigHandler.AddLeaderAndAggregatedSignatures(&sovHdrCopy, cnsMsg)
+		require.Nil(t, err)
+		require.Empty(t, sovHdrCopy.OutGoingMiniBlockHeaders)
+	})
+
+	t.Run("outgoing mb agg sig data mismatch", func(t *testing.T) {
+		sovHdrCopy := sovHdr.ShallowClone()
+		sovHdrCopy.(*block.SovereignChainHeader).OutGoingMiniBlockHeaders[0].AggregatedSignatureOutGoingOperations = []byte("another data")
+		err := sovSigHandler.AddLeaderAndAggregatedSignatures(sovHdrCopy, cnsMsg)
+		require.Equal(t, errDataMismatchOutGoingMB, err)
+	})
+
+	t.Run("outgoing mb leader sig data mismatch", func(t *testing.T) {
+		sovHdrCopy := sovHdr.ShallowClone()
+		sovHdrCopy.(*block.SovereignChainHeader).OutGoingMiniBlockHeaders[0].LeaderSignatureOutGoingOperations = []byte("another data")
+		err := sovSigHandler.AddLeaderAndAggregatedSignatures(sovHdrCopy, cnsMsg)
+		require.Equal(t, errDataMismatchOutGoingMB, err)
 	})
 
 	t.Run("no outgoing mini block header", func(t *testing.T) {

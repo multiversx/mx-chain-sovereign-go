@@ -249,6 +249,18 @@ func (bn *blockNotarizer) RemoveLastNotarizedHeader() {
 	bn.mutNotarizedHeaders.Unlock()
 }
 
+// RemoveLastNotarizedHeaderForShard removes last notarized header from a specific shard
+func (bn *blockNotarizer) RemoveLastNotarizedHeaderForShard(shardID uint32) {
+	bn.mutNotarizedHeaders.Lock()
+
+	notarizedHeadersCount := len(bn.notarizedHeaders[shardID])
+	if notarizedHeadersCount > 1 {
+		bn.notarizedHeaders[shardID] = bn.notarizedHeaders[shardID][:notarizedHeadersCount-1]
+	}
+
+	bn.mutNotarizedHeaders.Unlock()
+}
+
 // RestoreNotarizedHeadersToGenesis restores all notarized headers from each shard to the genesis value (nonce 0)
 func (bn *blockNotarizer) RestoreNotarizedHeadersToGenesis() {
 	bn.mutNotarizedHeaders.Lock()

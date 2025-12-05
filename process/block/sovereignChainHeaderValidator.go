@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/process"
 )
 
@@ -39,4 +40,32 @@ func (schv *sovereignChainHeaderValidator) calculateHeaderHash(headerHandler dat
 	}
 
 	return core.CalculateHash(schv.marshalizer, schv.hasher, headerHandler)
+}
+
+// IsHeaderConstructionValid verifies if current header is constructed correctly on top of previous header
+func (schv *sovereignChainHeaderValidator) IsHeaderConstructionValid(currHeader, prevHeader data.HeaderHandler) error {
+	err := schv.checkHdrRoundAndNonce(currHeader, prevHeader)
+	if err != nil {
+		return err
+	}
+
+	if isETHChainHdr(currHeader) {
+		return nil
+	}
+
+	return schv.checkHdrHashes(currHeader, prevHeader)
+}
+
+func isETHChainHdr(currHeader data.HeaderHandler) bool {
+	extendedHdr, isExtendedHeader := currHeader.(data.ShardHeaderExtendedHandler)
+	if !isExtendedHeader {
+		return false
+	}
+
+	return extendedHdr.GetSourceChainID() == dto.ETH
+}
+
+// IsInterfaceNil returns if underlying object is true
+func (schv *sovereignChainHeaderValidator) IsInterfaceNil() bool {
+	return schv == nil
 }

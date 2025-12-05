@@ -51,6 +51,9 @@ const (
 	ScheduledSCRsUnit UnitType = 22
 	// ProofsUnit is the header proofs unit identifier
 	ProofsUnit UnitType = 23
+
+	// TODO: Here (MX-16866), for extended headers we need a storer unit similar to ShardHdrNonceHashDataUnit + chainID
+
 	// ExtendedShardHeadersNonceHashDataUnit is the extended shard headers nonce-hash pair data unit identifier
 	ExtendedShardHeadersNonceHashDataUnit UnitType = 25
 	// ExtendedShardHeadersUnit is the extended shard headers storage unit identifier

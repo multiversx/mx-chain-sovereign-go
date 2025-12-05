@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
 	processBlock "github.com/multiversx/mx-chain-go/process/block"
@@ -374,7 +375,7 @@ func TestSovereignChainBlockProcessor_RequestHeadersShouldAddAndRequestForExtend
 	blockProcessorArguments.RequestHandler = &testscommon.ExtendedShardHeaderRequestHandlerStub{
 		RequestExtendedShardHeaderByNonceCalled: func(nonce uint64) {
 			mutRequest.Lock()
-			shardIDRequestCalled = append(shardIDRequestCalled, core.MainChainShardId)
+			shardIDRequestCalled = append(shardIDRequestCalled, uint32(dto.MVX))
 			nonceRequestCalled = append(nonceRequestCalled, nonce)
 			mutRequest.Unlock()
 		},
@@ -383,7 +384,7 @@ func TestSovereignChainBlockProcessor_RequestHeadersShouldAddAndRequestForExtend
 	bp, _ := track.NewBlockProcessor(blockProcessorArguments)
 	scbp, _ := track.NewSovereignChainBlockProcessor(bp)
 
-	shardID := core.MainChainShardId
+	shardID := uint32(dto.MVX)
 	fromNonce := uint64(1)
 
 	scbp.RequestHeaders(shardID, fromNonce)

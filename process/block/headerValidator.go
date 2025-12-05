@@ -22,9 +22,9 @@ type ArgsHeaderValidator struct {
 }
 
 type headerValidator struct {
-	hasher              hashing.Hasher
-	marshalizer         marshal.Marshalizer
-	enableEpochsHandler core.EnableEpochsHandler
+	hasher                  hashing.Hasher
+	marshalizer             marshal.Marshalizer
+	enableEpochsHandler     core.EnableEpochsHandler
 	calculateHeaderHashFunc func(headerHandler data.HeaderHandler) ([]byte, error)
 }
 
@@ -52,6 +52,15 @@ func NewHeaderValidator(args ArgsHeaderValidator) (*headerValidator, error) {
 
 // IsHeaderConstructionValid verified if header is constructed correctly on top of other
 func (h *headerValidator) IsHeaderConstructionValid(currHeader, prevHeader data.HeaderHandler) error {
+	err := h.checkHdrRoundAndNonce(currHeader, prevHeader)
+	if err != nil {
+		return err
+	}
+
+	return h.checkHdrHashes(currHeader, prevHeader)
+}
+
+func (h *headerValidator) checkHdrRoundAndNonce(currHeader, prevHeader data.HeaderHandler) error {
 	if check.IfNil(prevHeader) {
 		return process.ErrNilBlockHeader
 	}
@@ -75,6 +84,10 @@ func (h *headerValidator) IsHeaderConstructionValid(currHeader, prevHeader data.
 		return process.ErrWrongNonceInBlock
 	}
 
+	return nil
+}
+
+func (h *headerValidator) checkHdrHashes(currHeader, prevHeader data.HeaderHandler) error {
 	prevHeaderHash, err := h.calculateHeaderHashFunc(prevHeader)
 	if err != nil {
 		return err

@@ -1,7 +1,5 @@
 package interceptedBlocks
 
-import "github.com/multiversx/mx-chain-core-go/core"
-
 type interceptedSovereignMiniBlock struct {
 	*InterceptedMiniblock
 }
@@ -13,14 +11,10 @@ func NewInterceptedSovereignMiniBlock(arg *ArgInterceptedMiniblock) (*intercepte
 		return nil, err
 	}
 
+	interceptedMbHandler.acceptedCrossShardIDs = getSovereignRunTypeAcceptedCrossShardIDs()
 	return &interceptedSovereignMiniBlock{
 		interceptedMbHandler,
 	}, nil
-}
-
-// CheckValidity checks if the received tx block body is valid (not nil fields)
-func (ismb *interceptedSovereignMiniBlock) CheckValidity() error {
-	return ismb.integrity(core.MainChainShardId)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

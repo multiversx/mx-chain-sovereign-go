@@ -111,7 +111,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignForkDetectorFactory failed: %w", err)
 	}
 
-	blockTrackerFactory, err := track.NewSovereignBlockTrackerFactory(rtc.blockTrackerCreator)
+	blockTrackerFactory, err := track.NewSovereignBlockTrackerFactory(rtc.blockTrackerCreator, rcf.configs.GeneralConfig.SovereignConfig.MainChainNotarization)
 	if err != nil {
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignBlockTrackerFactory failed: %w", err)
 	}
@@ -245,7 +245,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		accountsParser:                          sovereignAccountsParser,
 		accountsCreator:                         accountsCreator,
 		vmContextCreator:                        sovVMContextCreator,
-		outGoingOperationsPoolHandler:           sovereignFactory.NewOutGoingOperationPool(expiryTime),
+		outGoingOperationsPoolHandler:           sovereignFactory.NewShardedOutGoingOperationPool(expiryTime),
 		dataCodecHandler:                        rcf.dataCodec,
 		topicsCheckerHandler:                    rcf.topicsChecker,
 		shardCoordinatorCreator:                 sharding.NewSovereignShardCoordinatorFactory(),

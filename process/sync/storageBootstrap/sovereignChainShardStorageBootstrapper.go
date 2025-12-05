@@ -1,8 +1,9 @@
 package storageBootstrap
 
 import (
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
@@ -31,7 +32,8 @@ func NewSovereignChainShardStorageBootstrapper(shardStorageBootstrapper *shardSt
 
 func (ssb *sovereignChainShardStorageBootstrapper) applyCrossNotarizedHeaders(crossNotarizedHeaders []bootstrapStorage.BootstrapHeaderInfo) error {
 	for _, crossNotarizedHeader := range crossNotarizedHeaders {
-		if crossNotarizedHeader.ShardId != core.MainChainShardId {
+		crossChainID := dtoSov.ChainID(crossNotarizedHeader.ShardId)
+		if !dtoSov.IsValidCrossChainID(crossChainID) {
 			continue
 		}
 
@@ -41,12 +43,12 @@ func (ssb *sovereignChainShardStorageBootstrapper) applyCrossNotarizedHeaders(cr
 		}
 
 		log.Debug("added cross notarized header in block tracker",
-			"shard", core.MainChainShardId,
+			"shard", crossChainID.String(),
 			"round", extendedHeader.GetRound(),
 			"nonce", extendedHeader.GetNonce(),
 			"hash", crossNotarizedHeader.Hash)
 
-		ssb.blockTracker.AddCrossNotarizedHeader(core.MainChainShardId, extendedHeader, crossNotarizedHeader.Hash)
+		ssb.blockTracker.AddCrossNotarizedHeader(uint32(crossChainID), extendedHeader, crossNotarizedHeader.Hash)
 		ssb.blockTracker.AddTrackedHeader(extendedHeader, crossNotarizedHeader.Hash)
 	}
 
@@ -72,9 +74,14 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorage(shard
 		return
 	}
 
-	var extendedHeader data.HeaderHandler
-	for _, extendedHeaderHash := range sovereignHeader.GetExtendedShardHeaderHashes() {
-		extendedHeader, err = process.GetExtendedShardHeaderFromStorage(extendedHeaderHash, ssb.marshalizer, ssb.store)
+	for _, chainData := range sovereignHeader.GetChainDataHandlers() {
+		ssb.cleanupNotarizedStorageForChain(chainData)
+	}
+}
+
+func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForChain(chainData data.ChainDataHandler) {
+	for _, extendedHeaderHash := range chainData.GetExtendedShardHeaderHashes() {
+		extendedHeader, err := process.GetExtendedShardHeaderFromStorage(extendedHeaderHash, ssb.marshalizer, ssb.store)
 		if err != nil {
 			log.Debug("extended block is not found in ExtendedShardHeadersUnit storage",
 				"hash", extendedHeaderHash)
@@ -94,17 +101,22 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorage(shard
 func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForHigherNoncesIfExist(
 	crossNotarizedHeaders []bootstrapStorage.BootstrapHeaderInfo,
 ) {
-	var numConsecutiveNoncesNotFound int
+	for supportedChainID := range dtoSov.ValidChains {
+		lastCrossNotarizedNonce, err := getLastCrossNotarizedHeaderNonce(crossNotarizedHeaders, uint32(supportedChainID))
+		if err != nil {
+			log.Warn("cleanupNotarizedStorageForHigherNoncesIfExist", "chainID", supportedChainID.String(), "error", err.Error())
+			continue
+		}
 
-	lastCrossNotarizedNonce, err := getLastCrossNotarizedHeaderNonce(crossNotarizedHeaders, core.MainChainShardId)
-	if err != nil {
-		log.Warn("cleanupNotarizedStorageForHigherNoncesIfExist", "error", err.Error())
-		return
+		ssb.cleanupCrossChainNotarizedStorage(lastCrossNotarizedNonce)
 	}
+}
 
+func (ssb *sovereignChainShardStorageBootstrapper) cleanupCrossChainNotarizedStorage(lastCrossNotarizedNonce uint64) {
 	log.Debug("cleanup notarized storage has been started", "from nonce", lastCrossNotarizedNonce+1)
 	nonce := lastCrossNotarizedNonce
 
+	var numConsecutiveNoncesNotFound int
 	for {
 		nonce++
 

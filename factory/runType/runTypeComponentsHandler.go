@@ -535,8 +535,8 @@ func (mrc *managedRunTypeComponents) VMContextCreator() systemSmartContracts.VMC
 	return mrc.runTypeComponents.vmContextCreator
 }
 
-// OutGoingOperationsPoolHandler return the outgoing operations pool factory
-func (mrc *managedRunTypeComponents) OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool {
+// OutGoingOperationsPoolHandler return the sharded outgoing operations pool factory
+func (mrc *managedRunTypeComponents) OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool {
 	mrc.mutRunTypeComponents.RLock()
 	defer mrc.mutRunTypeComponents.RUnlock()
 

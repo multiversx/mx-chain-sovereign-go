@@ -4,11 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"math/big"
-	"net"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/multiversx/mx-chain-communication-go/websocket/data"
@@ -16,74 +12,17 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"github.com/multiversx/mx-chain-sovereign-bridge-go/cert"
-	"github.com/urfave/cli"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
-// Before merging anything into feat/chain-go-sdk, please try a "stress" system test with a local testnet and this notifier.
-// Steps:
-// 1. Replace github.com/multiversx/mx-chain-communication-go from cmd/sovereignnode/systemTestDemo/go.mod with the one
-// from this branch: sovereign-stress-test-branch.
-// 2. Keep the config in variables.sh with at least 3 validators.
-//
-// If you are running with a local testnet and need the necessary certificate files to mock bridge operations, you
-// can find them(certificate.crt + private_key.pem) within testnet environment setup at ~MultiversX/testnet/node/config
-
-func main() {
-	app := cli.NewApp()
-	app.Name = "MultiversX sovereign chain mock notifier"
-	app.Usage = "This tool serves as an observer notifier for a sovereign shard. It initiates the transmission of blocks " +
-		"starting from an arbitrary nonce, with incoming events occurring every 3 blocks. Each incoming event comprises " +
-		"an NFT and an ESDT transfer. The periodic transmission includes 2 NFTs (ASH-a642d1-01 & ASH-a642d1-02) and one " +
-		"ESDT (WEGLD-bd4d79). To verify these entities, one can utilize the sovereign proxy at, for example, " +
-		fmt.Sprintf("http://127.0.0.1:7950/address/%s/esdt", subscribedAddress) +
-		"The blocks are sent with an arbitrary period between them."
-	app.Flags = []cli.Flag{
-		logLevel,
-		grpcEnabled,
-		sovereignBridgeCertificateFile,
-		sovereignBridgeCertificatePkFile,
-	}
-	app.Authors = []cli.Author{
-		{
-			Name:  "The MultiversX Team",
-			Email: "contact@multiversx.com",
-		},
-	}
-
-	app.Action = startMockNotifier
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
-	}
-}
-
-func startMockNotifier(ctx *cli.Context) error {
-	err := initializeLogger(ctx)
-	if err != nil {
-		return err
-	}
-
+func startMVXMockNotifier(grpcServer GRPCServer) error {
 	host, err := createWSHost()
 	if err != nil {
 		log.Error("cannot create WebSocket server", "error", err)
 		return err
 	}
 
-	mockedGRPCServer, grpcServerConn, err := createAndStartGRPCServer(ctx)
-	if err != nil {
-		log.Error("cannot create grpc server", "error", err)
-		return err
-	}
-
 	defer func() {
-		grpcServerConn.Stop()
 		err = host.Close()
 		log.LogIfError(err)
 	}()
@@ -99,7 +38,7 @@ func startMockNotifier(ctx *cli.Context) error {
 	for {
 		headerV2 := createHeaderV2(nonce, prevHash, prevRandSeed)
 
-		confirmedBridgeOps, err := mockedGRPCServer.ExtractRandomBridgeTopicsForConfirmation()
+		confirmedBridgeOps, err := grpcServer.ExtractRandomBridgeTopicsForConfirmation()
 		log.LogIfError(err)
 
 		outportBlock, err := createOutportBlock(headerV2, subscribedAddr, confirmedBridgeOps)
@@ -108,7 +47,7 @@ func startMockNotifier(ctx *cli.Context) error {
 		}
 
 		headerHash := outportBlock.BlockData.HeaderHash
-		log.Info("sending block",
+		log.Info("sending MVX block",
 			"nonce", nonce,
 			"hash", hex.EncodeToString(headerHash),
 			"prev hash", prevHash,
@@ -129,11 +68,6 @@ func startMockNotifier(ctx *cli.Context) error {
 	}
 }
 
-func initializeLogger(ctx *cli.Context) error {
-	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
-	return logger.SetLogLevel(logLevelFlagValue)
-}
-
 func createWSHost() (factoryHost.FullDuplexHost, error) {
 	args := factoryHost.ArgsWebSocketHost{
 		WebSocketConfig: data.WebSocketConfig{
@@ -151,57 +85,6 @@ func createWSHost() (factoryHost.FullDuplexHost, error) {
 	}
 
 	return factoryHost.CreateWebSocketHost(args)
-}
-
-func createAndStartGRPCServer(ctx *cli.Context) (MockServer, GRPCServerMock, error) {
-	if !ctx.Bool(grpcEnabled.Name) {
-		return NewDisabledMockServer(), NewDisabledGRPCServer(), nil
-	}
-
-	listener, err := net.Listen("tcp", grpcAddress)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	tlsConfig, err := cert.LoadTLSServerConfig(cert.FileCfg{
-		CertFile: getAbsolutePath(ctx.GlobalString(sovereignBridgeCertificateFile.Name)),
-		PkFile:   getAbsolutePath(ctx.GlobalString(sovereignBridgeCertificatePkFile.Name)),
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	tlsCredentials := credentials.NewTLS(tlsConfig)
-	grpcServer := grpc.NewServer(
-		grpc.Creds(tlsCredentials),
-	)
-	mockedServer := NewMockServer()
-	sovereign.RegisterBridgeTxSenderServer(grpcServer, mockedServer)
-
-	log.Info("starting grpc server...")
-
-	go func() {
-		for {
-			if err = grpcServer.Serve(listener); err != nil {
-				log.LogIfError(err)
-				time.Sleep(time.Second)
-			}
-		}
-	}()
-
-	return mockedServer, grpcServer, nil
-}
-
-func getAbsolutePath(path string) string {
-	if !strings.HasPrefix(path, "~") {
-		return path
-	}
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Error("Error getting home directory: " + err.Error())
-		return ""
-	}
-	return strings.Replace(path, "~", homeDir, 1)
 }
 
 func generateRandomHash() []byte {
@@ -433,7 +316,7 @@ func sendWithRetrial(host factoryHost.FullDuplexHost, data []byte, topic string)
 			return
 		}
 
-		log.Warn("could not send data", "topic", topic, "error", err)
+		log.Warn("could not send MVX data", "topic", topic, "error", err)
 		timer.Reset(3 * time.Second)
 	}
 }

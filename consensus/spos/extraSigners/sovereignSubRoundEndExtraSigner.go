@@ -50,12 +50,17 @@ func (sr *sovereignSubRoundEndOutGoingTxData) VerifyAggregatedSignatures(bitmap 
 		return fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetAggregatedSignatureInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil
 	}
 
-	return sr.signingHandler.Verify(outGoingMb.GetOutGoingOperationsHash(), bitmap, header.GetEpoch())
+	err := checkAllMBsHaveSameData(outGoingMBs, getOpHashData)
+	if err != nil {
+		return err
+	}
+
+	return sr.signingHandler.Verify(outGoingMBs[0].GetOutGoingOperationsHash(), bitmap, header.GetEpoch())
 }
 
 // AggregateAndSetSignatures aggregates and sets signatures for outgoing tx data
@@ -65,8 +70,8 @@ func (sr *sovereignSubRoundEndOutGoingTxData) AggregateAndSetSignatures(bitmap [
 		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetAggregatedSignatureInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil, nil
 	}
 
@@ -90,17 +95,24 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetAggregatedSignatureInHeader(hea
 		return fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetAggregatedSignatureInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil
 	}
 
-	err := outGoingMb.SetAggregatedSignatureOutGoingOperations(aggregatedSig)
-	if err != nil {
-		return err
+	for _, outGoingMB := range outGoingMBs {
+		err := outGoingMB.SetAggregatedSignatureOutGoingOperations(aggregatedSig)
+		if err != nil {
+			return err
+		}
+
+		err = sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMB)
+		if err != nil {
+			return err
+		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMb)
+	return nil
 }
 
 // SignAndSetLeaderSignature signs and sets leader signature for outgoing tx in header
@@ -110,16 +122,20 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SignAndSetLeaderSignature(header d
 		return fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetAggregatedSignatureInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil
 	}
 
-	leaderMsgToSign := outGoingMb.GetOutGoingOperationsHash()
+	leaderMsgToSign := outGoingMBs[0].GetOutGoingOperationsHash()
+	err := checkAllMBsHaveSameData(outGoingMBs, getOpHashData)
+	if err != nil {
+		return err
+	}
 
 	// In consensus v2 leader will only sign the outgoing op hash
 	if !sr.enableEpochsHandler.IsFlagEnabled(common.AndromedaFlag) {
-		leaderMsgToSign = append(leaderMsgToSign, outGoingMb.GetAggregatedSignatureOutGoingOperations()...)
+		leaderMsgToSign = append(leaderMsgToSign, outGoingMBs[0].GetAggregatedSignatureOutGoingOperations()...)
 	}
 
 	leaderSig, err := sr.signingHandler.CreateSignatureForPublicKey(leaderMsgToSign, leaderPubKey)
@@ -127,12 +143,19 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SignAndSetLeaderSignature(header d
 		return err
 	}
 
-	err = outGoingMb.SetLeaderSignatureOutGoingOperations(leaderSig)
-	if err != nil {
-		return err
+	for _, outGoingMB := range outGoingMBs {
+		err = outGoingMB.SetLeaderSignatureOutGoingOperations(leaderSig)
+		if err != nil {
+			return err
+		}
+
+		err = sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMB)
+		if err != nil {
+			return err
+		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMb)
+	return nil
 }
 
 // SetConsensusDataInHeader sets aggregated and leader signature in header with provided data from consensus message
@@ -142,8 +165,8 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 		return fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetConsensusDataInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil
 	}
 
@@ -152,16 +175,22 @@ func (sr *sovereignSubRoundEndOutGoingTxData) SetConsensusDataInHeader(header da
 		return fmt.Errorf("%w for type %s", bls.ErrExtraSigShareDataNotFound, sr.mbType.String())
 	}
 
-	err := outGoingMb.SetAggregatedSignatureOutGoingOperations(extraSigData.AggregatedSignatureOutGoingTxData)
-	if err != nil {
-		return err
-	}
-	err = outGoingMb.SetLeaderSignatureOutGoingOperations(extraSigData.LeaderSignatureOutGoingTxData)
-	if err != nil {
-		return err
+	for _, outGoingMB := range outGoingMBs {
+		err := outGoingMB.SetAggregatedSignatureOutGoingOperations(extraSigData.AggregatedSignatureOutGoingTxData)
+		if err != nil {
+			return err
+		}
+		err = outGoingMB.SetLeaderSignatureOutGoingOperations(extraSigData.LeaderSignatureOutGoingTxData)
+		if err != nil {
+			return err
+		}
+		err = sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMB)
+		if err != nil {
+			return err
+		}
 	}
 
-	return sovHeader.SetOutGoingMiniBlockHeaderHandler(outGoingMb)
+	return nil
 }
 
 // GetLeaderExtraSig will return the leader extra sig from the header
@@ -171,12 +200,17 @@ func (sr *sovereignSubRoundEndOutGoingTxData) GetLeaderExtraSig(header data.Head
 		return nil, fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.GetLeaderExtraSig", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil, nil
 	}
 
-	return outGoingMb.GetLeaderSignatureOutGoingOperations(), nil
+	err := checkAllMBsHaveSameData(outGoingMBs, getLeaderSigData)
+	if err != nil {
+		return nil, err
+	}
+
+	return outGoingMBs[0].GetLeaderSignatureOutGoingOperations(), nil
 }
 
 // AddLeaderAndAggregatedSignatures adds aggregated and leader signature in consensus message with provided data from header
@@ -186,16 +220,21 @@ func (sr *sovereignSubRoundEndOutGoingTxData) AddLeaderAndAggregatedSignatures(h
 		return fmt.Errorf("%w in sovereignSubRoundEndOutGoingTxData.SetConsensusDataInHeader", errors.ErrWrongTypeAssertion)
 	}
 
-	outGoingMb := sovHeader.GetOutGoingMiniBlockHeaderHandler(int32(sr.mbType))
-	if check.IfNil(outGoingMb) {
+	outGoingMBs := sovHeader.GetOutGoingMiniBlockHeaderHandlersWithType(int32(sr.mbType))
+	if len(outGoingMBs) == 0 {
 		return nil
 	}
 
 	keyStr := sr.mbType.String()
 	initExtraSignatureEntry(cnsMsg, keyStr)
 
-	cnsMsg.ExtraSignatures[keyStr].AggregatedSignatureOutGoingTxData = outGoingMb.GetAggregatedSignatureOutGoingOperations()
-	cnsMsg.ExtraSignatures[keyStr].LeaderSignatureOutGoingTxData = outGoingMb.GetLeaderSignatureOutGoingOperations()
+	err := checkAllMBsHaveSameData(outGoingMBs, getAggSigData, getLeaderSigData)
+	if err != nil {
+		return err
+	}
+
+	cnsMsg.ExtraSignatures[keyStr].AggregatedSignatureOutGoingTxData = outGoingMBs[0].GetAggregatedSignatureOutGoingOperations()
+	cnsMsg.ExtraSignatures[keyStr].LeaderSignatureOutGoingTxData = outGoingMBs[0].GetLeaderSignatureOutGoingOperations()
 
 	log.Debug("sovereignSubRoundEndOutGoingTxData.AddLeaderAndAggregatedSignatures",
 		"AggregatedSignatureOutGoingTxData", cnsMsg.ExtraSignatures[keyStr].AggregatedSignatureOutGoingTxData,

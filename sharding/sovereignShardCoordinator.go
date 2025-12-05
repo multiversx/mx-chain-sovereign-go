@@ -6,6 +6,9 @@ type sovereignShardCoordinator struct {
 	*multiShardCoordinator
 }
 
+// TODO: Here (MX-16867), analyse if it is useful to have another constructor here with ordered chain ids
+// and check if it would be useful in the future to treat other shards or numShards as chain ids
+
 // NewSovereignShardCoordinator creates a new sovereign shard coordinator
 func NewSovereignShardCoordinator() *sovereignShardCoordinator {
 	sr := &sovereignShardCoordinator{

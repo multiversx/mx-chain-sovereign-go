@@ -195,7 +195,7 @@ func createMockConsensusComponentsFactoryArgs() consensusComp.ConsensusComponent
 			},
 			ShardMessengerFactoryField:                 &factoryMocks.ShardChainMessengerFactoryMock{},
 			ValidatorAccountsSyncerFactoryHandlerField: &factoryMocks.ValidatorAccountsSyncerFactoryMock{},
-			OutGoingOperationsPool:                     &sovereign.OutGoingOperationsPoolMock{},
+			OutGoingOperationsPool:                     &sovereign.ShardedOutGoingOperationsPoolMock{},
 			ConsensusModelType:                         consensus.ConsensusModelV1,
 			ExtraSignersHolderField:                    &subRoundsHolder.ExtraSignersHolderMock{},
 		},

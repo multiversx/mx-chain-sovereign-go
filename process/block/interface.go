@@ -37,13 +37,6 @@ type validatorStatsRootHashGetter interface {
 	GetValidatorStatsRootHash() []byte
 }
 
-type sovereignChainHeader interface {
-	GetExtendedShardHeaderHashes() [][]byte
-	GetOutGoingMiniBlockHeaderHandlers() []data.OutGoingMiniBlockHeaderHandler
-	GetEpochStartHandler() data.EpochStartHandler
-	GetLastFinalizedCrossChainHeaderHandler() data.EpochStartChainDataHandler
-}
-
 type crossNotarizer interface {
 	getLastCrossNotarizedHeaders() []bootstrapStorage.BootstrapHeaderInfo
 }
@@ -62,7 +55,7 @@ type HeaderValidatorCreator interface {
 
 type runTypeComponentsHolder interface {
 	AccountsCreator() state.AccountFactory
-	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
+	OutGoingOperationsPoolHandler() sovereignBlock.ShardedOutGoingOperationPool
 	DataCodecHandler() sovereign.DataCodecHandler
 	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
 	IsInterfaceNil() bool
