@@ -249,6 +249,7 @@ func TestSovereignChainSimulator_DeployBridgeContractsAndDepositMainChainToken(t
 				}
 				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
 				cfg.GeneralConfig.VirtualMachine.Execution.TransferAndExecuteByUserAddresses = []string{outGoingSubscribedAddress}
+				cfg.GeneralConfig.GeneralSettings.BaseTokenID = "WEGLD-1a2b3c"
 			},
 		},
 	})
