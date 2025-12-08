@@ -45,7 +45,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		return nil, err
 	}
 
-	var nativeBaseToken string
+	var nativeBaseToken = baseTokenID
 	args.AlterConfigsFunction = func(cfg *config.Configs) {
 		cfg.EpochConfig = configs.EpochConfig
 		cfg.GeneralConfig.SovereignConfig = *configs.SovereignExtraConfig
