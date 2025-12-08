@@ -45,6 +45,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		return nil, err
 	}
 
+	var nativeBaseToken string
 	args.AlterConfigsFunction = func(cfg *config.Configs) {
 		cfg.EpochConfig = configs.EpochConfig
 		cfg.GeneralConfig.SovereignConfig = *configs.SovereignExtraConfig
@@ -53,11 +54,12 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		cfg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix = "sov"
 		cfg.GeneralConfig.Versions.VersionsByEpochs = []config.VersionByEpochs{{StartEpoch: 0, Version: string(process.SovereignHeaderVersion)}}
 		cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 0.4
-
 		if alterConfigs != nil {
 			alterConfigs(cfg)
 			configs.SovereignExtraConfig = &cfg.GeneralConfig.SovereignConfig
 		}
+
+		nativeBaseToken = cfg.GeneralConfig.GeneralSettings.BaseTokenID
 	}
 
 	args.CreateRunTypeCoreComponents = func() (factory.RunTypeCoreComponentsHolder, error) {
@@ -71,7 +73,8 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 			return sovCommon.CreateSovereignRunTypeComponents(args, *configs.SovereignExtraConfig)
 		}
 	}
-	args.NodeFactory = node.NewSovereignNodeFactory(baseTokenID)
+
+	args.NodeFactory = node.NewSovereignNodeFactory(nativeBaseToken)
 	args.ChainProcessorFactory = NewSovereignChainHandlerFactory()
 	args.GenerateGenesisFile = func(args chainSimulatorConfigs.ArgsChainSimulatorConfigs, configs *config.Configs) (*dtos.InitialWalletKeys, error) {
 		return sovChainSimConfig.GenerateSovereignGenesisFile(args, configs)
