@@ -48,6 +48,7 @@ func (ssb *sovereignChainShardStorageBootstrapper) applyCrossNotarizedHeaders(cr
 
 		ssb.blockTracker.AddCrossNotarizedHeader(core.MainChainShardId, extendedHeader, crossNotarizedHeader.Hash)
 		ssb.blockTracker.AddTrackedHeader(extendedHeader, crossNotarizedHeader.Hash)
+		// here probably in nonce handler
 	}
 
 	return nil
@@ -139,5 +140,12 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForHig
 
 		ssb.removeHdrFromHeaderNonceToHashUnit(extendedBlock, extendedBlockHash, dataRetriever.ExtendedShardHeadersNonceHashDataUnit)
 		ssb.removeBlockFromBlockUnit(extendedBlock, extendedBlockHash, dataRetriever.ExtendedShardHeadersUnit)
+	}
+}
+
+func (ssb *sovereignChainShardStorageBootstrapper) applyCrossChainOutGoingNonces(outGoingNonces map[string]uint64) {
+	for chainID, nonce := range outGoingNonces {
+		_ = chainID
+		_ = nonce
 	}
 }

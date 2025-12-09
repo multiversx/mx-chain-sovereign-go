@@ -58,6 +58,17 @@ func (ssh *sovereignShardStorageHandler) SaveDataToStorage(components *Component
 		return err
 	}
 
+	sovereignEpochStartHandler, castOk := components.EpochStartMetaBlock.GetEpochStartHandler().(data.SovereignEpochStartShardDataHandler)
+	if !castOk {
+		return fmt.Errorf("%w in sovereignShardStorageHandler.SaveDataToStorage: cast to data.SovereignEpochStartShardDataHandler", process.ErrWrongTypeAssertion)
+	}
+
+	// TODO: MX-17260: Here, iterate through all chains
+	outGoingEpochStartData := sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandler()
+	outGoingNonces := map[string]uint64{
+		outGoingEpochStartData.GetChainID().String(): outGoingEpochStartData.GetNonce(),
+	}
+
 	bootStrapData := bootstrapStorage.BootstrapData{
 		LastHeader:                 lastHeader,
 		LastCrossNotarizedHeaders:  lastCrossNotarizedHeaders,
@@ -68,6 +79,7 @@ func (ssh *sovereignShardStorageHandler) SaveDataToStorage(components *Component
 		EpochStartTriggerConfigKey: triggerConfigKey,
 		HighestFinalBlockNonce:     lastHeader.Nonce,
 		LastRound:                  0,
+		OutGoingNonces:             outGoingNonces,
 	}
 
 	return ssh.saveBootStrapData(components, bootStrapData)

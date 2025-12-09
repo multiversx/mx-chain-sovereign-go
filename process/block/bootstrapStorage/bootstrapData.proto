@@ -40,6 +40,7 @@ message BootstrapData {
 	bytes                          EpochStartTriggerConfigKey = 10;
 	uint64                         HighestFinalBlockNonce     = 5;
 	int64                          LastRound                  = 6;
+	map<string,uint64> 						 OutGoingNonces 						= 20;
 }
 
 message RoundNum {

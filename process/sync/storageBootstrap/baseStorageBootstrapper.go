@@ -379,6 +379,8 @@ func (st *storageBootstrapper) applyBootInfos(bootInfos []bootstrapStorage.Boots
 			return err
 		}
 
+		st.bootstrapper.applyCrossChainOutGoingNonces(bootInfos[i].OutGoingNonces)
+
 		var selfNotarizedHeaders []data.HeaderHandler
 		var selfNotarizedHeadersHashes [][]byte
 		selfNotarizedHeaders, selfNotarizedHeadersHashes, err = st.bootstrapper.applySelfNotarizedHeaders(bootInfos[i].LastSelfNotarizedHeaders)

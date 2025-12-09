@@ -309,3 +309,6 @@ func (ssb *shardStorageBootstrapper) getRootHash(shardHeaderHash []byte) []byte 
 func checkShardStorageBootstrapperArgs(args ArgsShardStorageBootstrapper) error {
 	return checkBaseStorageBootstrapperArguments(args.ArgsBaseStorageBootstrapper)
 }
+
+func (ssb *shardStorageBootstrapper) applyCrossChainOutGoingNonces(_ map[string]uint64) {
+}

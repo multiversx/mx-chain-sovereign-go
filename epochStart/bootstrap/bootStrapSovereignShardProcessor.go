@@ -186,6 +186,17 @@ func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 		shardIds = append(shardIds, epochStartData.GetShardID())
 	}
 
+	sovereignEpochStartHandler, castOk := meta.GetEpochStartHandler().(data.SovereignEpochStartShardDataHandler)
+	if !castOk {
+		return nil, fmt.Errorf("%w in sovereignBootStrapShardProcessor: cast to data.SovereignEpochStartShardDataHandler", process.ErrWrongTypeAssertion)
+	}
+
+	// TODO: MX-17260: Here, iterate through all chains
+	outGoingEpochStartData := sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandler()
+
+	// TODO: HERE sync from GetEpochStartHandler
+	_ = outGoingEpochStartData
+
 	if meta.GetEpoch() > sbp.startEpoch+1 { // no need to request genesis block
 		hashesToRequest = append(hashesToRequest, meta.GetEpochStartHandler().GetEconomicsHandler().GetPrevEpochStartHash())
 		shardIds = append(shardIds, core.SovereignChainShardId)

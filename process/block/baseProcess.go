@@ -1426,6 +1426,7 @@ func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 		HighestFinalBlockNonce:     args.highestFinalBlockNonce,
 		NodesCoordinatorConfigKey:  args.nodesCoordinatorConfigKey,
 		EpochStartTriggerConfigKey: args.epochStartTriggerConfigKey,
+		// TODO: Fill this here OutGoingNonces:
 	}
 
 	startTime := time.Now()
