@@ -1655,6 +1655,10 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 		return err
 	}
 
+	if headerHandler.GetRound()%5 == 0 {
+		scbp.outGoingOpNonceChainHandler.SetNonce(dtoSov.MVX, headerHandler.GetRound())
+	}
+
 	for chain, operations := range outGoingOperations {
 		err = scbp.createAndSetOutGoingMiniBlock(
 			headerHandler,

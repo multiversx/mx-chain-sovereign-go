@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-go/dataRetriever/requestHandlers"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
@@ -30,6 +31,7 @@ type RunTypeComponentsStub struct {
 	RequestersContainerFactoryCreatorField      requesterscontainer.RequesterContainerFactoryCreator
 	ValidatorAccountsSyncerFactoryHandlerField  syncerFactory.ValidatorAccountsSyncerFactoryHandler
 	ShardRequestersContainerCreatorHandlerField storageRequestFactory.ShardRequestersContainerCreatorHandler
+	OutGoingOpNonceChainHandlerField            dto.OutGoingOpNonceChainHandler
 }
 
 // NewRunTypeComponentsStub -
@@ -46,6 +48,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		RequestersContainerFactoryCreatorField:      requesterscontainer.NewShardRequestersContainerFactoryCreator(),
 		ValidatorAccountsSyncerFactoryHandlerField:  syncerFactory.NewValidatorAccountsSyncerFactory(),
 		ShardRequestersContainerCreatorHandlerField: storageRequestFactory.NewShardRequestersContainerCreator(),
+		OutGoingOpNonceChainHandlerField:            &sovereignMocks.OutGoingChainNonceMock{},
 	}
 }
 
@@ -66,6 +69,7 @@ func NewSovereignRunTypeComponentsStub() *RunTypeComponentsStub {
 		RequestersContainerFactoryCreatorField:      requesterscontainer.NewSovereignShardRequestersContainerFactoryCreator(),
 		ValidatorAccountsSyncerFactoryHandlerField:  syncerFactory.NewSovereignValidatorAccountsSyncerFactory(),
 		ShardRequestersContainerCreatorHandlerField: storageRequestFactory.NewSovereignShardRequestersContainerCreator(),
+		OutGoingOpNonceChainHandlerField:            &sovereignMocks.OutGoingChainNonceMock{},
 	}
 }
 
@@ -122,6 +126,11 @@ func (r *RunTypeComponentsStub) ValidatorAccountsSyncerFactoryHandler() syncerFa
 // ShardRequestersContainerCreatorHandler -
 func (r *RunTypeComponentsStub) ShardRequestersContainerCreatorHandler() storageRequestFactory.ShardRequestersContainerCreatorHandler {
 	return r.ShardRequestersContainerCreatorHandlerField
+}
+
+// OutGoingOpNonceChainHandler -
+func (r *RunTypeComponentsStub) OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler {
+	return r.OutGoingOpNonceChainHandlerField
 }
 
 // IsInterfaceNil -

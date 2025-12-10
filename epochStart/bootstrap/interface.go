@@ -13,6 +13,7 @@ import (
 	bootStrapFactory "github.com/multiversx/mx-chain-go/epochStart/bootstrap/factory"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 	"github.com/multiversx/mx-chain-go/state"
@@ -113,6 +114,7 @@ type RunTypeComponentsHolder interface {
 	DataCodecHandler() sovereign.DataCodecHandler
 	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
 	AccountsCreator() state.AccountFactory
+	OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler
 	IsInterfaceNil() bool
 }
 

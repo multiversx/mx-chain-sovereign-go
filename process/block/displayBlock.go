@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/counting"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -188,7 +189,7 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 
 	sovereignChainHeaderHandler, castOk := header.(sovereignChainHeader)
 	if castOk {
-		shardLines = txc.displaySovereignChainHeader(shardLines, sovereignChainHeaderHandler)
+		shardLines = displaySovereignChainHeader(shardLines, sovereignChainHeaderHandler)
 	}
 
 	var varBlockBodyType int32 = math.MaxInt32
@@ -210,29 +211,30 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 	return tableHeader, shardLines
 }
 
-func (txc *transactionCounter) displaySovereignChainHeader(
+func displaySovereignChainHeader(
 	lines []*display.LineData,
 	header sovereignChainHeader,
 ) []*display.LineData {
-	lines = txc.displayExtendedShardHeaderHashesIncluded(lines, header.GetExtendedShardHeaderHashes())
-	lines = txc.displayOutGoingMiniBlocks(lines, header.GetOutGoingMiniBlockHeaderHandlers())
-	lines = txc.displayLastCrossChainNotarizedHeader(lines, header)
+	lines = displayExtendedShardHeaderHashesIncluded(lines, header.GetExtendedShardHeaderHashes())
+	lines = displayOutGoingMiniBlocks(lines, header.GetOutGoingMiniBlockHeaderHandlers())
+	lines = displayLastCrossChainNotarizedHeader(lines, header)
+	lines = displayOutgoingNoncesPerChain(lines, header)
 
 	return lines
 }
 
-func (txc *transactionCounter) displayOutGoingMiniBlocks(
+func displayOutGoingMiniBlocks(
 	lines []*display.LineData,
 	outGoingMbs []data.OutGoingMiniBlockHeaderHandler,
 ) []*display.LineData {
 	for _, outGoingMB := range outGoingMbs {
-		lines = txc.displayOutGoingTxData(lines, outGoingMB)
+		lines = displayOutGoingTxData(lines, outGoingMB)
 	}
 
 	return lines
 }
 
-func (txc *transactionCounter) displayOutGoingTxData(
+func displayOutGoingTxData(
 	lines []*display.LineData,
 	outGoingMb data.OutGoingMiniBlockHeaderHandler,
 ) []*display.LineData {
@@ -271,7 +273,7 @@ func (txc *transactionCounter) displayOutGoingTxData(
 	return lines
 }
 
-func (txc *transactionCounter) displayLastCrossChainNotarizedHeader(
+func displayLastCrossChainNotarizedHeader(
 	lines []*display.LineData,
 	sovHeader sovereignChainHeader,
 ) []*display.LineData {
@@ -311,7 +313,40 @@ func (txc *transactionCounter) displayLastCrossChainNotarizedHeader(
 	return lines
 }
 
-func (txc *transactionCounter) displayExtendedShardHeaderHashesIncluded(
+func displayOutgoingNoncesPerChain(
+	lines []*display.LineData,
+	sovHeader sovereignChainHeader,
+) []*display.LineData {
+	sovEpochStartData, castOk := sovHeader.GetEpochStartHandler().(data.SovereignEpochStartShardDataHandler)
+	if !castOk {
+		log.Error("displayOutgoingNoncesPerChain: wrong type assertion for epoch start handler")
+		return lines
+	}
+
+	// TODO: Here, iterate through chains
+
+	if sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetChainID() == dto.UNSPECIFIED {
+		log.Error("displayOutgoingNoncesPerChain UNSPECIFIED")
+		return lines
+	}
+
+	lines = append(lines, display.NewLineData(false, []string{
+		"Last cross chain outgoing nonce",
+		"Chain",
+		sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetChainID().String()}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Nonce",
+		fmt.Sprintf("%d", sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetNonce())}),
+	)
+
+	lines[len(lines)-1].HorizontalRuleAfter = true
+
+	return lines
+}
+
+func displayExtendedShardHeaderHashesIncluded(
 	lines []*display.LineData,
 	extendedShardHeaderHashes [][]byte,
 ) []*display.LineData {

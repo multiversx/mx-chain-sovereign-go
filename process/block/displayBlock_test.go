@@ -152,9 +152,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		ExtendedShardHeaderHashes: extendedShardHeaderHashes,
 	}
 
-	args := createMockArgsTransactionCounter()
-	txCounter, _ := NewTransactionCounter(args)
-	lines := txCounter.displaySovereignChainHeader(
+	lines := displaySovereignChainHeader(
 		shardLines,
 		sovChainHeader,
 	)
@@ -210,7 +208,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		},
 	}
 	expectedLines = append(expectedLines, lastFinalizedCrossChainHeaderLines...)
-	lines = txCounter.displaySovereignChainHeader(
+	lines = displaySovereignChainHeader(
 		shardLines,
 		sovChainHeader,
 	)
@@ -226,9 +224,7 @@ func TestDisplayBlock_DisplayExtendedShardHeaderHashesIncluded(t *testing.T) {
 	hash2 := []byte("hash2")
 	hash3 := []byte("hash3")
 	extendedShardHeaderHashes := [][]byte{hash1, hash2, hash3}
-	args := createMockArgsTransactionCounter()
-	txCounter, _ := NewTransactionCounter(args)
-	lines := txCounter.displayExtendedShardHeaderHashesIncluded(
+	lines := displayExtendedShardHeaderHashesIncluded(
 		shardLines,
 		extendedShardHeaderHashes,
 	)

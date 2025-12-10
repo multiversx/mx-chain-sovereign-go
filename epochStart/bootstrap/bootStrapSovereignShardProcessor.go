@@ -193,9 +193,7 @@ func (sbp *sovereignBootStrapShardProcessor) baseSyncHeaders(
 
 	// TODO: MX-17260: Here, iterate through all chains
 	outGoingEpochStartData := sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandler()
-
-	// TODO: HERE sync from GetEpochStartHandler
-	_ = outGoingEpochStartData
+	sbp.runTypeComponents.OutGoingOpNonceChainHandler().SetNonce(outGoingEpochStartData.GetChainID(), outGoingEpochStartData.GetNonce())
 
 	if meta.GetEpoch() > sbp.startEpoch+1 { // no need to request genesis block
 		hashesToRequest = append(hashesToRequest, meta.GetEpochStartHandler().GetEconomicsHandler().GetPrevEpochStartHash())

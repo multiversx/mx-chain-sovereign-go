@@ -45,6 +45,7 @@ func (s *sovereignBlockProcessorFactory) CreateBlockProcessor(argumentsBaseProce
 		argumentsBaseProcessor.RunTypeComponents.DataCodecHandler(),
 		argumentsBaseProcessor.RunTypeComponents.TopicsCheckerHandler(),
 		argumentsBaseProcessor.AccountsDB[state.PeerAccountsState],
+		argumentsBaseProcessor.RunTypeComponents.OutGoingOpNonceChainHandler(),
 	)
 
 	if err != nil {
