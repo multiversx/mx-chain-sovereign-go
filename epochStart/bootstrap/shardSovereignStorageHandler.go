@@ -63,9 +63,12 @@ func (ssh *sovereignShardStorageHandler) SaveDataToStorage(components *Component
 		return fmt.Errorf("%w in sovereignShardStorageHandler.SaveDataToStorage: cast to data.SovereignEpochStartShardDataHandler", process.ErrWrongTypeAssertion)
 	}
 
-	outGoingNonces := make(map[int32]uint64)
-	for _, outGoingEpochStartData := range sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandlers() {
-		outGoingNonces[int32(outGoingEpochStartData.GetChainID())] = outGoingEpochStartData.GetNonce()
+	outGoingData := make([]bootstrapStorage.BootstrapOutGoingData, len(sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandlers()))
+	for idx, outGoingEpochStartData := range sovereignEpochStartHandler.GetEpochStartOutGoingChainDataHandlers() {
+		outGoingData[idx] = bootstrapStorage.BootstrapOutGoingData{
+			ChainID:       int32(outGoingEpochStartData.GetChainID()),
+			OutGoingNonce: outGoingEpochStartData.GetNonce(),
+		}
 	}
 
 	bootStrapData := bootstrapStorage.BootstrapData{
@@ -78,7 +81,7 @@ func (ssh *sovereignShardStorageHandler) SaveDataToStorage(components *Component
 		EpochStartTriggerConfigKey: triggerConfigKey,
 		HighestFinalBlockNonce:     lastHeader.Nonce,
 		LastRound:                  0,
-		OutGoingNonces:             outGoingNonces,
+		BootstrapOutGoingData:      outGoingData,
 	}
 
 	return ssh.saveBootStrapData(components, bootStrapData)

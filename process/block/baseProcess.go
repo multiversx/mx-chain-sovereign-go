@@ -16,7 +16,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
-	dto2 "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -1423,6 +1423,13 @@ func (bp *baseProcessor) baseCleanupBlockTrackerPoolsForShard(shardID uint32, no
 func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 	lastCrossNotarizedHeaders := bp.crossNotarizer.getLastCrossNotarizedHeaders()
 
+	// TODO: MX-17260, Here: Iterate through multiple chains
+	outGoingData := make([]bootstrapStorage.BootstrapOutGoingData, 0)
+	outGoingData = append(outGoingData, bootstrapStorage.BootstrapOutGoingData{
+		ChainID:       int32(dtoSov.MVX),
+		OutGoingNonce: bp.outGoingOpNonceChainHandler.GetNonce(dtoSov.MVX),
+	})
+
 	bootData := bootstrapStorage.BootstrapData{
 		LastHeader:                 args.headerInfo,
 		LastCrossNotarizedHeaders:  lastCrossNotarizedHeaders,
@@ -1432,10 +1439,7 @@ func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 		HighestFinalBlockNonce:     args.highestFinalBlockNonce,
 		NodesCoordinatorConfigKey:  args.nodesCoordinatorConfigKey,
 		EpochStartTriggerConfigKey: args.epochStartTriggerConfigKey,
-		// TODO: Fill this here with multiple chains
-		OutGoingNonces: map[int32]uint64{
-			int32(dto2.MVX): bp.outGoingOpNonceChainHandler.GetNonce(dto2.MVX),
-		},
+		BootstrapOutGoingData:      outGoingData,
 	}
 
 	startTime := time.Now()

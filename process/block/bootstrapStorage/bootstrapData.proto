@@ -40,11 +40,11 @@ message BootstrapData {
 	bytes                          EpochStartTriggerConfigKey = 10;
 	uint64                         HighestFinalBlockNonce     = 5;
 	int64                          LastRound                  = 6;
-	repeated OutGoingData 				 OutGoingData 						  = 20;
+	repeated BootstrapOutGoingData BootstrapOutGoingData 		  = 20 [(gogoproto.nullable) = false];
 }
 
 // OutGoingData holds outgoing cross chain data
-message OutGoingData {
+message BootstrapOutGoingData {
 		int32  ChainID       = 1;
 		uint64 OutGoingNonce = 2;
 }

@@ -155,8 +155,8 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForHig
 	}
 }
 
-func (ssb *sovereignChainShardStorageBootstrapper) applyCrossChainOutGoingNonces(outGoingNonces map[int32]uint64) {
-	for chain, nonce := range outGoingNonces {
-		ssb.outGoingOpNonceChainHandler.SetNonce(sovDto.ChainID(chain), nonce)
+func (ssb *sovereignChainShardStorageBootstrapper) applyCrossChainOutGoingData(outGoingData []bootstrapStorage.BootstrapOutGoingData) {
+	for _, dta := range outGoingData {
+		ssb.outGoingOpNonceChainHandler.SetNonce(sovDto.ChainID(dta.GetChainID()), dta.GetOutGoingNonce())
 	}
 }
