@@ -19,7 +19,7 @@ func (ssbf *sovereignShardStorageBootstrapperFactory) CreateBootstrapperFromStor
 		return nil, err
 	}
 
-	return NewSovereignChainShardStorageBootstrapper(ssb)
+	return NewSovereignChainShardStorageBootstrapper(ssb, args.OutGoingOpNonceChainHandler)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

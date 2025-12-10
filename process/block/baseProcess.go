@@ -1433,8 +1433,8 @@ func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 		NodesCoordinatorConfigKey:  args.nodesCoordinatorConfigKey,
 		EpochStartTriggerConfigKey: args.epochStartTriggerConfigKey,
 		// TODO: Fill this here with multiple chains
-		OutGoingNonces: map[string]uint64{
-			dto2.MVX.String(): bp.outGoingOpNonceChainHandler.GetNonce(dto2.MVX),
+		OutGoingNonces: map[int32]uint64{
+			int32(dto2.MVX): bp.outGoingOpNonceChainHandler.GetNonce(dto2.MVX),
 		},
 	}
 

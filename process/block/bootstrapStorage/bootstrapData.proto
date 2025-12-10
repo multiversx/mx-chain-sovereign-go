@@ -40,7 +40,13 @@ message BootstrapData {
 	bytes                          EpochStartTriggerConfigKey = 10;
 	uint64                         HighestFinalBlockNonce     = 5;
 	int64                          LastRound                  = 6;
-	map<string,uint64> 						 OutGoingNonces 						= 20;
+	repeated OutGoingData 				 OutGoingData 						  = 20;
+}
+
+// OutGoingData holds outgoing cross chain data
+message OutGoingData {
+		int32  ChainID       = 1;
+		uint64 OutGoingNonce = 2;
 }
 
 message RoundNum {

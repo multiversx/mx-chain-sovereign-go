@@ -223,5 +223,5 @@ func checkMetaStorageBootstrapperArgs(args ArgsMetaStorageBootstrapper) error {
 	return nil
 }
 
-func (msb *metaStorageBootstrapper) applyCrossChainOutGoingNonces(_ map[string]uint64) {
+func (msb *metaStorageBootstrapper) applyCrossChainOutGoingNonces(_ map[int32]uint64) {
 }

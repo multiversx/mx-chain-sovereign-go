@@ -440,10 +440,12 @@ func (scbp *sovereignChainBlockProcessor) updateEpochStartHeader(header data.Sov
 
 	sovHeaderHandler.EpochStart.Economics = *economicsData
 
-	// TODO: Here, fill for all chains
-	sovHeaderHandler.EpochStart.EpochStartOutGoingChainData = block.EpochStartOutGoingChainData{
-		ChainID: dtoSov.MVX,
-		Nonce:   scbp.outGoingOpNonceChainHandler.GetNonce(dtoSov.MVX),
+	// TODO: MX-17260 Here, iterate through all sorted chains
+	sovHeaderHandler.EpochStart.EpochStartOutGoingChainData = []block.EpochStartOutGoingChainData{
+		{
+			ChainID: dtoSov.MVX,
+			Nonce:   scbp.outGoingOpNonceChainHandler.GetNonce(dtoSov.MVX),
+		},
 	}
 
 	// do not call saveEpochStartEconomicsMetrics here as in metachain code, it will be called later
@@ -1653,10 +1655,6 @@ func (scbp *sovereignChainBlockProcessor) createAndSetOutGoingMiniBlockTxs(heade
 	outGoingOperations, err := scbp.outgoingOperationsFormatter.CreateOutgoingTxsData(logs)
 	if err != nil {
 		return err
-	}
-
-	if headerHandler.GetRound()%5 == 0 {
-		scbp.outGoingOpNonceChainHandler.SetNonce(dtoSov.MVX, headerHandler.GetRound())
 	}
 
 	for chain, operations := range outGoingOperations {

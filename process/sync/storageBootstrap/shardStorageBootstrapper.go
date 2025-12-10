@@ -310,5 +310,5 @@ func checkShardStorageBootstrapperArgs(args ArgsShardStorageBootstrapper) error 
 	return checkBaseStorageBootstrapperArguments(args.ArgsBaseStorageBootstrapper)
 }
 
-func (ssb *shardStorageBootstrapper) applyCrossChainOutGoingNonces(_ map[string]uint64) {
+func (ssb *shardStorageBootstrapper) applyCrossChainOutGoingNonces(_ map[int32]uint64) {
 }

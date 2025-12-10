@@ -10,7 +10,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/counting"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -323,25 +322,20 @@ func displayOutgoingNoncesPerChain(
 		return lines
 	}
 
-	// TODO: Here, iterate through chains
+	for _, outGoingEpochStartData := range sovEpochStartData.GetEpochStartOutGoingChainDataHandlers() {
+		lines = append(lines, display.NewLineData(false, []string{
+			"Last cross chain outgoing nonce",
+			"Chain",
+			outGoingEpochStartData.GetChainID().String()}),
+		)
+		lines = append(lines, display.NewLineData(false, []string{
+			"",
+			"Nonce",
+			fmt.Sprintf("%d", outGoingEpochStartData.GetNonce())}),
+		)
 
-	if sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetChainID() == dto.UNSPECIFIED {
-		log.Error("displayOutgoingNoncesPerChain UNSPECIFIED")
-		return lines
+		lines[len(lines)-1].HorizontalRuleAfter = true
 	}
-
-	lines = append(lines, display.NewLineData(false, []string{
-		"Last cross chain outgoing nonce",
-		"Chain",
-		sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetChainID().String()}),
-	)
-	lines = append(lines, display.NewLineData(false, []string{
-		"",
-		"Nonce",
-		fmt.Sprintf("%d", sovEpochStartData.GetEpochStartOutGoingChainDataHandler().GetNonce())}),
-	)
-
-	lines[len(lines)-1].HorizontalRuleAfter = true
 
 	return lines
 }
