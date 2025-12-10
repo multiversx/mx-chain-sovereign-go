@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -677,6 +678,7 @@ type RunTypeComponentsHolder interface {
 	CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory
 	ExtraSignersHolder() bls.ExtraSignersHolder
+	OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler
 	Create() error
 	Close() error
 	CheckSubcomponents() error

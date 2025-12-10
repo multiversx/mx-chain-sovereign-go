@@ -38,6 +38,8 @@ import (
 	processBlock "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard"
@@ -141,6 +143,7 @@ type runTypeComponents struct {
 	crawlerAddressGetter                    crawlerAddressGetter.CrawlerAddressGetterHandler
 	headerSigVerifierFactory                headerSigVerifierFactory.HeaderSigVerifierFactory
 	extraSignersHolder                      bls.ExtraSignersHolder
+	outGoingOpNonceChainHandler             dto.OutGoingOpNonceChainHandler
 }
 
 // NewRunTypeComponentsFactory will return a new instance of runTypeComponentsFactory
@@ -272,6 +275,7 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		crawlerAddressGetter:                    crawlerAddressGetter.NewCrawlerAddressGetter(),
 		headerSigVerifierFactory:                headerSigVerifierFactory.NewHeaderSignatureVerifyFactory(),
 		extraSignersHolder:                      holders.NewEmptyExtraSignersHolder(),
+		outGoingOpNonceChainHandler:             operationFormatters.NewOutGoingOpChainNonce(),
 	}, nil
 }
 

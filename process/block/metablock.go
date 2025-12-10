@@ -151,6 +151,7 @@ func NewMetaProcessor(arguments ArgMetaProcessor) (*metaProcessor, error) {
 		accountCreator:                arguments.RunTypeComponents.AccountsCreator(),
 		validatorStatisticsProcessor:  arguments.ValidatorStatisticsProcessor,
 		epochSystemSCProcessor:        arguments.EpochSystemSCProcessor,
+		outGoingOpNonceChainHandler:   arguments.RunTypeComponents.OutGoingOpNonceChainHandler(),
 	}
 
 	mp := metaProcessor{

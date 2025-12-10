@@ -23,6 +23,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
@@ -111,6 +112,7 @@ type RunTypeComponentsStub struct {
 	CrawlerAddressGetterField                   crawlerAddressGetter.CrawlerAddressGetterHandler
 	HeaderSigVerifierFactoryField               headerSigVerifierFactory.HeaderSigVerifierFactory
 	ExtraSignersHolderField                     bls.ExtraSignersHolder
+	OutGoingOpNonceChainHandlerField            dto.OutGoingOpNonceChainHandler
 }
 
 // NewRunTypeComponentsStub -
@@ -475,6 +477,11 @@ func (r *RunTypeComponentsStub) HeaderSigVerifierFactory() headerSigVerifierFact
 // ExtraSignersHolder -
 func (r *RunTypeComponentsStub) ExtraSignersHolder() bls.ExtraSignersHolder {
 	return r.ExtraSignersHolderField
+}
+
+// OutGoingOpNonceChainHandler -
+func (r *RunTypeComponentsStub) OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler {
+	return r.OutGoingOpNonceChainHandlerField
 }
 
 // IsInterfaceNil -

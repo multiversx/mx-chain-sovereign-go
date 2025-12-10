@@ -16,10 +16,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
+	dto2 "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -141,6 +143,7 @@ type baseProcessor struct {
 	accountCreator               state.AccountFactory
 	validatorStatisticsProcessor process.ValidatorStatisticsProcessor
 	epochSystemSCProcessor       process.EpochStartSystemSCProcessor
+	outGoingOpNonceChainHandler  dto.OutGoingOpNonceChainHandler
 }
 
 type bootStorerDataArgs struct {
@@ -714,6 +717,9 @@ func checkProcessorParameters(arguments ArgBaseProcessor) error {
 	}
 	if check.IfNil(arguments.RunTypeComponents.TopicsCheckerHandler()) {
 		return errors.ErrNilTopicsChecker
+	}
+	if check.IfNil(arguments.RunTypeComponents.OutGoingOpNonceChainHandler()) {
+		return errors.ErrNilOutGoingOpNonceChainHandler
 	}
 
 	return nil
@@ -1426,7 +1432,10 @@ func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 		HighestFinalBlockNonce:     args.highestFinalBlockNonce,
 		NodesCoordinatorConfigKey:  args.nodesCoordinatorConfigKey,
 		EpochStartTriggerConfigKey: args.epochStartTriggerConfigKey,
-		// TODO: Fill this here OutGoingNonces:
+		// TODO: Fill this here with multiple chains
+		OutGoingNonces: map[string]uint64{
+			dto2.MVX.String(): bp.outGoingOpNonceChainHandler.GetNonce(dto2.MVX),
+		},
 	}
 
 	startTime := time.Now()
