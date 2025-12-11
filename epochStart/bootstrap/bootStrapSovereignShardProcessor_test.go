@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	sovereignMocks "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -141,6 +143,21 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 
 	sovProc := createSovBootStrapProc()
 
+	expectedChainID := dto.MVX
+	expectedOutGoingNonce := uint64(11)
+	wasOutGoingNonceSet := false
+	outGoingOpNonceHandler := &sovereignMocks.OutGoingChainNonceMock{
+		SetNonceCalled: func(chainID dto.ChainID, nonce uint64) {
+			require.Equal(t, expectedChainID, chainID)
+			require.Equal(t, expectedOutGoingNonce, nonce)
+			wasOutGoingNonceSet = true
+		},
+	}
+	runTypeComps := mock.NewSovereignRunTypeComponentsStub()
+	runTypeComps.OutGoingOpNonceChainHandlerField = outGoingOpNonceHandler
+
+	sovProc.runTypeComponents = runTypeComps
+
 	prevEpochStartHash := []byte("prevEpochStartHash")
 	lastCrossChainHeaderHash := []byte("lastCrossChainHeaderHash")
 	sovHdr := &block.SovereignChainHeader{
@@ -154,6 +171,12 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 			LastFinalizedCrossChainHeader: block.EpochStartCrossChainData{
 				ShardID:    core.MainChainShardId,
 				HeaderHash: lastCrossChainHeaderHash,
+			},
+			EpochStartOutGoingChainData: []block.EpochStartOutGoingChainData{
+				{
+					ChainID: expectedChainID,
+					Nonce:   expectedOutGoingNonce,
+				},
 			},
 		},
 	}
@@ -185,6 +208,7 @@ func TestBootStrapSovereignShardProcessor_syncHeadersFrom(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, res, syncedHeaders)
 	require.Equal(t, 1, headersSyncedCt)
+	require.True(t, wasOutGoingNonceSet)
 }
 
 func TestBootStrapSovereignShardProcessor_syncHeadersFromStorage(t *testing.T) {

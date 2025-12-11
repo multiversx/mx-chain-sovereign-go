@@ -34,10 +34,11 @@ func createEvents() []SubscribedEvent {
 
 func createArgs() ArgsOutgoingOperations {
 	return ArgsOutgoingOperations{
-		SubscribedEvents: createEvents(),
-		DataCodec:        &sovTests.DataCodecMock{},
-		TopicsChecker:    &sovTests.TopicsCheckerMock{},
-		PeerAccountsDB:   &state.AccountsStub{},
+		SubscribedEvents:  createEvents(),
+		DataCodec:         &sovTests.DataCodecMock{},
+		TopicsChecker:     &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:    &state.AccountsStub{},
+		ChainNonceHandler: &sovTests.OutGoingChainNonceMock{},
 	}
 }
 
@@ -73,6 +74,14 @@ func TestNewOutgoingOperationsFormatter(t *testing.T) {
 		creator, err := NewOutgoingOperationsFormatter(args)
 		require.Nil(t, creator)
 		require.Equal(t, errors.ErrNilDataCodec, err)
+	})
+
+	t.Run("nil outgoing op nonce handler, should return error", func(t *testing.T) {
+		args := createArgs()
+		args.ChainNonceHandler = nil
+		creator, err := NewOutgoingOperationsFormatter(args)
+		require.Nil(t, creator)
+		require.Equal(t, errors.ErrNilOutGoingOpNonceChainHandler, err)
 	})
 
 	t.Run("nil topics checker, should return error", func(t *testing.T) {
@@ -121,10 +130,11 @@ func createArgsOutGoingOpsFormatterWithEvents() ArgsOutgoingOperations {
 	}
 
 	return ArgsOutgoingOperations{
-		SubscribedEvents: events,
-		DataCodec:        &sovTests.DataCodecMock{},
-		TopicsChecker:    &sovTests.TopicsCheckerMock{},
-		PeerAccountsDB:   &state.AccountsStub{},
+		SubscribedEvents:  events,
+		DataCodec:         &sovTests.DataCodecMock{},
+		TopicsChecker:     &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:    &state.AccountsStub{},
+		ChainNonceHandler: &sovTests.OutGoingChainNonceMock{},
 	}
 }
 
@@ -351,10 +361,11 @@ func TestOutgoingOperations_CreateOutgoingTxData(t *testing.T) {
 	}
 
 	args := ArgsOutgoingOperations{
-		SubscribedEvents: events,
-		DataCodec:        dataCodec,
-		TopicsChecker:    &sovTests.TopicsCheckerMock{},
-		PeerAccountsDB:   &state.AccountsStub{},
+		SubscribedEvents:  events,
+		DataCodec:         dataCodec,
+		TopicsChecker:     &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:    &state.AccountsStub{},
+		ChainNonceHandler: &sovTests.OutGoingChainNonceMock{},
 	}
 	opFormatter, _ := NewOutgoingOperationsFormatter(args)
 
@@ -443,10 +454,11 @@ func TestOutgoingOperations_CreateOutgoingTxScCall(t *testing.T) {
 	}
 
 	args := ArgsOutgoingOperations{
-		SubscribedEvents: events,
-		DataCodec:        dataCodec,
-		TopicsChecker:    &sovTests.TopicsCheckerMock{},
-		PeerAccountsDB:   &state.AccountsStub{},
+		SubscribedEvents:  events,
+		DataCodec:         dataCodec,
+		TopicsChecker:     &sovTests.TopicsCheckerMock{},
+		PeerAccountsDB:    &state.AccountsStub{},
+		ChainNonceHandler: &sovTests.OutGoingChainNonceMock{},
 	}
 	opFormatter, _ := NewOutgoingOperationsFormatter(args)
 

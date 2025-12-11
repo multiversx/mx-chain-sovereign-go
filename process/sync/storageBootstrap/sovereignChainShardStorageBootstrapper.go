@@ -60,7 +60,6 @@ func (ssb *sovereignChainShardStorageBootstrapper) applyCrossNotarizedHeaders(cr
 
 		ssb.blockTracker.AddCrossNotarizedHeader(core.MainChainShardId, extendedHeader, crossNotarizedHeader.Hash)
 		ssb.blockTracker.AddTrackedHeader(extendedHeader, crossNotarizedHeader.Hash)
-		// here probably in nonce handler
 	}
 
 	return nil
@@ -159,4 +158,9 @@ func (ssb *sovereignChainShardStorageBootstrapper) applyCrossChainOutGoingData(o
 	for _, dta := range outGoingData {
 		ssb.outGoingOpNonceChainHandler.SetNonce(sovDto.ChainID(dta.GetChainID()), dta.GetOutGoingNonce())
 	}
+}
+
+// IsInterfaceNil checks if the underlying pointer is nil
+func (ssb *sovereignChainShardStorageBootstrapper) IsInterfaceNil() bool {
+	return ssb == nil
 }

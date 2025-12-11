@@ -280,6 +280,9 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrc.extraSignersHolder) {
 		return errors.ErrNilExtraSignersHolder
 	}
+	if check.IfNil(mrc.outGoingOpNonceChainHandler) {
+		return errors.ErrNilOutGoingOpNonceChainHandler
+	}
 
 	return nil
 }

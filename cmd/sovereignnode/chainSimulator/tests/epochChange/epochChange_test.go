@@ -11,6 +11,7 @@ import (
 	apiData "github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	sovereignData "github.com/multiversx/mx-chain-core-go/data/sovereign"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/dataCodec"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/dto"
@@ -150,7 +151,7 @@ func TestSovereignChainSimulator_EpochChange(t *testing.T) {
 		err = cs.GenerateBlocksUntilEpochIsReached(int32(epoch))
 		require.Nil(t, err)
 
-		currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
+		currentHeader := common.GetCurrentSovereignHeader(nodeHandler)
 		checkOutGoingMiniBlockChangeValidatorSet(t, nodeHandler, currentHeader, allPubKeyIDs)
 	}
 
@@ -221,8 +222,18 @@ func checkEpochChangeHeader(
 	protocolSustainabilityAddress string,
 	allPossiblePubKeyIDs [][]byte,
 ) {
-	currentHeader := nodeHandler.GetDataComponents().Blockchain().GetCurrentBlockHeader()
+	currentHeader := common.GetCurrentSovereignHeader(nodeHandler)
 	require.True(t, currentHeader.IsStartOfEpochBlock())
+
+	sovEpochStartHandler, castOk := currentHeader.GetEpochStartHandler().(data.SovereignEpochStartShardDataHandler)
+	require.True(t, castOk)
+
+	require.Equal(t, []data.EpochStartOutGoingChainDataHandler{
+		&block.EpochStartOutGoingChainData{
+			ChainID: sovDto.MVX,
+			Nonce:   10, // 10 staked validators
+		},
+	}, sovEpochStartHandler.GetEpochStartOutGoingChainDataHandlers())
 
 	mbs := currentHeader.GetMiniBlockHeaderHandlers()
 	require.Len(t, mbs, 3)
@@ -259,7 +270,7 @@ func checkEpochChangeRewardsMB(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
 	mb data.MiniBlockHeaderHandler,
-	currentHeader data.HeaderHandler,
+	currentHeader data.SovereignChainHeaderHandler,
 	allOwnersBalance map[string]*big.Int,
 	protocolSustainabilityAddress string,
 ) {
@@ -351,10 +362,10 @@ func getAuctionListKeys(t *testing.T, nodeHandler process.NodeHandler) [][]byte 
 func checkOutGoingMiniBlockChangeValidatorSet(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
-	currentHeader data.HeaderHandler,
+	currentHeader data.SovereignChainHeaderHandler,
 	allPossiblePubKeyIDs [][]byte,
 ) {
-	outGoingMBHdrs := common.GetCurrentSovereignHeader(nodeHandler).GetOutGoingMiniBlockHeaderHandlers()
+	outGoingMBHdrs := currentHeader.GetOutGoingMiniBlockHeaderHandlers()
 	require.Len(t, outGoingMBHdrs, 1)
 
 	bridgeData := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().Get(outGoingMBHdrs[0].GetOutGoingOperationsHash())
@@ -375,7 +386,7 @@ func checkOutGoingMiniBlockChangeValidatorSet(
 func getCurrentValidatorIDs(
 	t *testing.T,
 	nodeHandler process.NodeHandler,
-	currentHeader data.HeaderHandler,
+	currentHeader data.SovereignChainHeaderHandler,
 ) [][]byte {
 	_, valPubKeys, err := nodeHandler.GetProcessComponents().NodesCoordinator().GetConsensusValidatorsPublicKeys(
 		currentHeader.GetRandSeed(),

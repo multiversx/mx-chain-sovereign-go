@@ -324,7 +324,7 @@ func displayOutgoingNoncesPerChain(
 
 	for _, outGoingEpochStartData := range sovEpochStartData.GetEpochStartOutGoingChainDataHandlers() {
 		lines = append(lines, display.NewLineData(false, []string{
-			"Last cross chain outgoing nonce",
+			"Last cross chain outgoing data",
 			"Chain",
 			outGoingEpochStartData.GetChainID().String()}),
 		)

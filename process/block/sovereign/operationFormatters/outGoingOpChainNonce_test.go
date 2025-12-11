@@ -46,3 +46,18 @@ func TestOutGoingOpChainNonce_GetAndIncrementNonce(t *testing.T) {
 	}
 	require.Equal(t, uint64(5), op.data[dto.MVX])
 }
+
+func TestOutGoingOpChainNonce_GetAndSetNonce(t *testing.T) {
+	t.Parallel()
+
+	op := NewOutGoingOpChainNonce()
+	require.Zero(t, op.GetNonce(dto.SUI))
+
+	op.SetNonce(dto.MVX, 4)
+	require.Zero(t, op.GetNonce(dto.SUI))
+	require.Equal(t, uint64(4), op.GetNonce(dto.MVX))
+
+	nonce, _ := op.GetAndIncrementNonce(dto.MVX)
+	require.Equal(t, uint64(4), nonce)
+	require.Equal(t, uint64(5), op.GetNonce(dto.MVX))
+}

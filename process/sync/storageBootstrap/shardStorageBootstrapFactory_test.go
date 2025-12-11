@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-go/testscommon/epochNotifier"
 	"github.com/multiversx/mx-chain-go/testscommon/genericMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/shardingMocks"
+	sovereignMocks "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	"github.com/multiversx/mx-chain-go/testscommon/statusHandler"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/require"
@@ -72,6 +73,7 @@ func getDefaultArgShardBootstrapper() ArgsShardStorageBootstrapper {
 			AppStatusHandler:             statusHandler.NewAppStatusHandlerMock(),
 			EnableEpochsHandler:          &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
 			ProofsPool:                   &dataRetrieverMock.ProofsPoolMock{},
+			OutGoingOpNonceChainHandler:  &sovereignMocks.OutGoingChainNonceMock{},
 		},
 	}
 
