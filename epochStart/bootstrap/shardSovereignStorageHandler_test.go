@@ -175,6 +175,12 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 				Nonce:      4,
 				HeaderHash: lastFinalizedCrossChainHeaderHash,
 			},
+			EpochStartOutGoingChainData: []block.EpochStartOutGoingChainData{
+				{
+					ChainID: dto.MVX,
+					Nonce:   44,
+				},
+			},
 		},
 	}
 	headers := map[string]data.HeaderHandler{
@@ -227,6 +233,12 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 		EpochStartTriggerConfigKey: []byte(fmt.Sprint(sovHdr.GetEpoch())),
 		HighestFinalBlockNonce:     sovHdr.GetNonce(),
 		LastRound:                  0,
+		BootstrapOutGoingData: []bootstrapStorage.BootstrapOutGoingData{
+			{
+				ChainID:       int32(sovHdr.EpochStart.EpochStartOutGoingChainData[0].ChainID),
+				OutGoingNonce: sovHdr.EpochStart.EpochStartOutGoingChainData[0].Nonce,
+			},
+		},
 	}, bootStrapData)
 
 	extendedHdrStorer, err := sovShardStorage.storageService.GetStorer(dataRetriever.ExtendedShardHeadersUnit)
