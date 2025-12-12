@@ -45,6 +45,7 @@ func (op *outGoingOpChainNonce) GetNonce(chainID dtoCore.ChainID) uint64 {
 	return op.data[chainID]
 }
 
+// SetNonce will set the nonce for the provided chain
 func (op *outGoingOpChainNonce) SetNonce(chainID dtoCore.ChainID, nonce uint64) {
 	op.mu.Lock()
 	defer op.mu.Unlock()
