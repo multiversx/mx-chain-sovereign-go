@@ -275,3 +275,10 @@ func TestGetCrossNotarizedHeaderNonce(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, uint64(4), nonce)
 }
+
+func TestShardStorageBootstrapper_applyCrossChainOutGoingData(t *testing.T) {
+	ssb := createShardStorageBootstrapper()
+	require.NotPanics(t, func() {
+		ssb.applyCrossChainOutGoingData(nil)
+	})
+}

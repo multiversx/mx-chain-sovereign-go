@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/state"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -16,6 +17,7 @@ func CreateOutgoingOperationsFormatter(
 	dataCodec DataCodecHandler,
 	topicsChecker TopicsCheckerHandler,
 	peerAccountsDB state.AccountsAdapter,
+	chainNonceHandler dto.OutGoingOpNonceChainHandler,
 ) (OutgoingOperationsFormatter, error) {
 	subscribedEvents, err := getSubscribedEvents(events, pubKeyConverter)
 	if err != nil {
@@ -23,10 +25,11 @@ func CreateOutgoingOperationsFormatter(
 	}
 
 	args := ArgsOutgoingOperations{
-		SubscribedEvents: subscribedEvents,
-		DataCodec:        dataCodec,
-		TopicsChecker:    topicsChecker,
-		PeerAccountsDB:   peerAccountsDB,
+		SubscribedEvents:  subscribedEvents,
+		DataCodec:         dataCodec,
+		TopicsChecker:     topicsChecker,
+		PeerAccountsDB:    peerAccountsDB,
+		ChainNonceHandler: chainNonceHandler,
 	}
 
 	return NewOutgoingOperationsFormatter(args)

@@ -440,6 +440,14 @@ func (scbp *sovereignChainBlockProcessor) updateEpochStartHeader(header data.Sov
 
 	sovHeaderHandler.EpochStart.Economics = *economicsData
 
+	// TODO: MX-17260 Here, iterate through all sorted chains
+	sovHeaderHandler.EpochStart.EpochStartOutGoingChainData = []block.EpochStartOutGoingChainData{
+		{
+			ChainID: dtoSov.MVX,
+			Nonce:   scbp.outGoingOpNonceChainHandler.GetNonce(dtoSov.MVX),
+		},
+	}
+
 	// do not call saveEpochStartEconomicsMetrics here as in metachain code, it will be called later
 	return economicsData, nil
 }

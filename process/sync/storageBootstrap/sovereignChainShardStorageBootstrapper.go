@@ -2,24 +2,36 @@ package storageBootstrap
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
+	sovDto "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/errors"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 )
 
 type sovereignChainShardStorageBootstrapper struct {
 	*shardStorageBootstrapper
+	outGoingOpNonceChainHandler dto.OutGoingOpNonceChainHandler
 }
 
 // NewSovereignChainShardStorageBootstrapper creates a new instance of sovereignChainShardStorageBootstrapper
-func NewSovereignChainShardStorageBootstrapper(shardStorageBootstrapper *shardStorageBootstrapper) (*sovereignChainShardStorageBootstrapper, error) {
+func NewSovereignChainShardStorageBootstrapper(
+	shardStorageBootstrapper *shardStorageBootstrapper,
+	outGoingOpNonceChainHandler dto.OutGoingOpNonceChainHandler,
+) (*sovereignChainShardStorageBootstrapper, error) {
 	if shardStorageBootstrapper == nil {
 		return nil, process.ErrNilShardStorageBootstrapper
+	}
+	if check.IfNil(outGoingOpNonceChainHandler) {
+		return nil, errors.ErrNilOutGoingOpNonceChainHandler
 	}
 
 	scssb := &sovereignChainShardStorageBootstrapper{
 		shardStorageBootstrapper,
+		outGoingOpNonceChainHandler,
 	}
 
 	scssb.getScheduledRootHashMethod = scssb.sovereignChainGetScheduledRootHash
@@ -140,4 +152,15 @@ func (ssb *sovereignChainShardStorageBootstrapper) cleanupNotarizedStorageForHig
 		ssb.removeHdrFromHeaderNonceToHashUnit(extendedBlock, extendedBlockHash, dataRetriever.ExtendedShardHeadersNonceHashDataUnit)
 		ssb.removeBlockFromBlockUnit(extendedBlock, extendedBlockHash, dataRetriever.ExtendedShardHeadersUnit)
 	}
+}
+
+func (ssb *sovereignChainShardStorageBootstrapper) applyCrossChainOutGoingData(outGoingData []bootstrapStorage.BootstrapOutGoingData) {
+	for _, dta := range outGoingData {
+		ssb.outGoingOpNonceChainHandler.SetNonce(sovDto.ChainID(dta.GetChainID()), dta.GetOutGoingNonce())
+	}
+}
+
+// IsInterfaceNil checks if the underlying pointer is nil
+func (ssb *sovereignChainShardStorageBootstrapper) IsInterfaceNil() bool {
+	return ssb == nil
 }

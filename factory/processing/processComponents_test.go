@@ -1184,6 +1184,7 @@ func getRunTypeComponents(rt runType.RunTypeComponentsHolder) *mainFactoryMocks.
 		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
 		HeaderSigVerifierFactoryField:               rt.HeaderSigVerifierFactory(),
 		ExtraSignersHolderField:                     rt.ExtraSignersHolder(),
+		OutGoingOpNonceChainHandlerField:            rt.OutGoingOpNonceChainHandler(),
 	}
 }
 

@@ -5,7 +5,8 @@ import dtoCore "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 // OutGoingChainNonceMock -
 type OutGoingChainNonceMock struct {
 	GetAndIncrementNonceCalled func(chainID dtoCore.ChainID) (uint64, error)
-	IncrementNonceCalled       func(chainID dtoCore.ChainID, delta uint64)
+	GetNonceCalled             func(chainID dtoCore.ChainID) uint64
+	SetNonceCalled             func(chainID dtoCore.ChainID, nonce uint64)
 }
 
 // GetAndIncrementNonce -
@@ -16,10 +17,18 @@ func (mock *OutGoingChainNonceMock) GetAndIncrementNonce(chainID dtoCore.ChainID
 	return 0, nil
 }
 
-// IncrementNonce -
-func (mock *OutGoingChainNonceMock) IncrementNonce(chainID dtoCore.ChainID, delta uint64) {
-	if mock.IncrementNonceCalled != nil {
-		mock.IncrementNonceCalled(chainID, delta)
+// GetNonce -
+func (mock *OutGoingChainNonceMock) GetNonce(chainID dtoCore.ChainID) uint64 {
+	if mock.GetNonceCalled != nil {
+		return mock.GetNonceCalled(chainID)
+	}
+	return 0
+}
+
+// SetNonce -
+func (mock *OutGoingChainNonceMock) SetNonce(chainID dtoCore.ChainID, nonce uint64) {
+	if mock.SetNonceCalled != nil {
+		mock.SetNonceCalled(chainID, nonce)
 	}
 }
 

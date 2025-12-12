@@ -136,6 +136,7 @@ func NewShardProcessor(arguments ArgShardProcessor) (*shardProcessor, error) {
 		crossNotarizer:                notarizer,
 		accountCreator:                arguments.RunTypeComponents.AccountsCreator(),
 		validatorStatisticsProcessor:  arguments.ValidatorStatisticsProcessor,
+		outGoingOpNonceChainHandler:   arguments.RunTypeComponents.OutGoingOpNonceChainHandler(),
 	}
 
 	sp := shardProcessor{

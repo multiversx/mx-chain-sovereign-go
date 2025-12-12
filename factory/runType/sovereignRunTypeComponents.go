@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/operationFormatters"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -281,6 +282,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
 		headerSigVerifierFactory:                headerSigVerifierFactory.NewSovereignHeaderSignatureVerifyFactory(),
 		extraSignersHolder:                      extraSignersHolder,
+		outGoingOpNonceChainHandler:             operationFormatters.NewOutGoingOpChainNonce(),
 	}, nil
 }
 

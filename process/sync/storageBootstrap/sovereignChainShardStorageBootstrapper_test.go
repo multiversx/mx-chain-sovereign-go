@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/mock"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
+	sovereignMocks "github.com/multiversx/mx-chain-go/testscommon/sovereign"
 	storageStubs "github.com/multiversx/mx-chain-go/testscommon/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ func TestNewSovereignChainShardStorageBootstrapper(t *testing.T) {
 	t.Run("should error when shard storage bootstrapper is nil", func(t *testing.T) {
 		t.Parallel()
 
-		scesb, err := NewSovereignChainShardStorageBootstrapper(nil)
+		scesb, err := NewSovereignChainShardStorageBootstrapper(nil, &sovereignMocks.OutGoingChainNonceMock{})
 
 		assert.Nil(t, scesb)
 		assert.Equal(t, process.ErrNilShardStorageBootstrapper, err)
@@ -38,7 +39,7 @@ func TestNewSovereignChainShardStorageBootstrapper(t *testing.T) {
 		t.Parallel()
 
 		ssb, _ := NewShardStorageBootstrapper(args)
-		scssb, err := NewSovereignChainShardStorageBootstrapper(ssb)
+		scssb, err := NewSovereignChainShardStorageBootstrapper(ssb, &sovereignMocks.OutGoingChainNonceMock{})
 
 		assert.NotNil(t, scssb)
 		assert.Nil(t, err)
@@ -95,7 +96,7 @@ func TestSovereignShardBootstrapFactory_applyCrossNotarizedHeaders(t *testing.T)
 		ArgsBaseStorageBootstrapper: baseArgs,
 	}
 	ssb, _ := NewShardStorageBootstrapper(args)
-	scssb, _ := NewSovereignChainShardStorageBootstrapper(ssb)
+	scssb, _ := NewSovereignChainShardStorageBootstrapper(ssb, &sovereignMocks.OutGoingChainNonceMock{})
 
 	crossNotarizedHeaders := []bootstrapStorage.BootstrapHeaderInfo{
 		{
@@ -190,7 +191,7 @@ func TestSovereignShardBootstrapFactory_cleanupNotarizedStorage(t *testing.T) {
 		ArgsBaseStorageBootstrapper: baseArgs,
 	}
 	ssb, _ := NewShardStorageBootstrapper(args)
-	scssb, _ := NewSovereignChainShardStorageBootstrapper(ssb)
+	scssb, _ := NewSovereignChainShardStorageBootstrapper(ssb, &sovereignMocks.OutGoingChainNonceMock{})
 
 	scssb.cleanupNotarizedStorage([]byte("hash"))
 	require.True(t, wasExtendedHeaderRemoved)

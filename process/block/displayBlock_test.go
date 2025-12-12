@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -152,9 +153,7 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		ExtendedShardHeaderHashes: extendedShardHeaderHashes,
 	}
 
-	args := createMockArgsTransactionCounter()
-	txCounter, _ := NewTransactionCounter(args)
-	lines := txCounter.displaySovereignChainHeader(
+	lines := displaySovereignChainHeader(
 		shardLines,
 		sovChainHeader,
 	)
@@ -187,6 +186,13 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 		HeaderHash: []byte{0xa, 0xb},
 	}
 	sovChainHeader.EpochStart.LastFinalizedCrossChainHeader = crossChainData
+	sovChainHeader.EpochStart.EpochStartOutGoingChainData = []block.EpochStartOutGoingChainData{
+		{
+			ChainID: dto.MVX,
+			Nonce:   22,
+		},
+	}
+
 	lastFinalizedCrossChainHeaderLines := []*display.LineData{
 		{
 			Values:              []string{"Last cross chain notarized header", "Hash", hex.EncodeToString(crossChainData.HeaderHash)},
@@ -209,8 +215,20 @@ func TestDisplayBlock_DisplaySovereignChainHeader(t *testing.T) {
 			HorizontalRuleAfter: true,
 		},
 	}
+	lastFinalizedEpochStartOutGoingChainData := []*display.LineData{
+		{
+			Values:              []string{"Last cross chain outgoing data", "Chain", dto.MVX.String()},
+			HorizontalRuleAfter: false,
+		},
+		{
+			Values:              []string{"", "Nonce", "22"},
+			HorizontalRuleAfter: true,
+		},
+	}
+
 	expectedLines = append(expectedLines, lastFinalizedCrossChainHeaderLines...)
-	lines = txCounter.displaySovereignChainHeader(
+	expectedLines = append(expectedLines, lastFinalizedEpochStartOutGoingChainData...)
+	lines = displaySovereignChainHeader(
 		shardLines,
 		sovChainHeader,
 	)
@@ -226,9 +244,7 @@ func TestDisplayBlock_DisplayExtendedShardHeaderHashesIncluded(t *testing.T) {
 	hash2 := []byte("hash2")
 	hash3 := []byte("hash3")
 	extendedShardHeaderHashes := [][]byte{hash1, hash2, hash3}
-	args := createMockArgsTransactionCounter()
-	txCounter, _ := NewTransactionCounter(args)
-	lines := txCounter.displayExtendedShardHeaderHashesIncluded(
+	lines := displayExtendedShardHeaderHashesIncluded(
 		shardLines,
 		extendedShardHeaderHashes,
 	)

@@ -26,6 +26,7 @@ import (
 	processBlock "github.com/multiversx/mx-chain-go/process/block"
 	"github.com/multiversx/mx-chain-go/process/block/preprocess"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
@@ -278,6 +279,9 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	}
 	if check.IfNil(mrc.extraSignersHolder) {
 		return errors.ErrNilExtraSignersHolder
+	}
+	if check.IfNil(mrc.outGoingOpNonceChainHandler) {
+		return errors.ErrNilOutGoingOpNonceChainHandler
 	}
 
 	return nil
@@ -965,6 +969,18 @@ func (mrc *managedRunTypeComponents) ExtraSignersHolder() bls.ExtraSignersHolder
 	}
 
 	return mrc.runTypeComponents.extraSignersHolder
+}
+
+// OutGoingOpNonceChainHandler returns outgoing op nonce chain handler
+func (mrc *managedRunTypeComponents) OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.outGoingOpNonceChainHandler
 }
 
 // IsInterfaceNil returns true if the interface is nil

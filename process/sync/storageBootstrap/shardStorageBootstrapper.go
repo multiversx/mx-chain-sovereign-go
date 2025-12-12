@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
@@ -17,6 +18,7 @@ var _ process.BootstrapperFromStorage = (*shardStorageBootstrapper)(nil)
 
 type shardStorageBootstrapper struct {
 	*storageBootstrapper
+	outGoingOpNonceChainHandler dto.OutGoingOpNonceChainHandler
 }
 
 // NewShardStorageBootstrapper is method used to create a new storage bootstrapper
@@ -308,4 +310,7 @@ func (ssb *shardStorageBootstrapper) getRootHash(shardHeaderHash []byte) []byte 
 
 func checkShardStorageBootstrapperArgs(args ArgsShardStorageBootstrapper) error {
 	return checkBaseStorageBootstrapperArguments(args.ArgsBaseStorageBootstrapper)
+}
+
+func (ssb *shardStorageBootstrapper) applyCrossChainOutGoingData(_ []bootstrapStorage.BootstrapOutGoingData) {
 }

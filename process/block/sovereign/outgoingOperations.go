@@ -46,10 +46,11 @@ type SubscribedEvent struct {
 }
 
 type ArgsOutgoingOperations struct {
-	SubscribedEvents []SubscribedEvent
-	DataCodec        DataCodecHandler
-	TopicsChecker    TopicsCheckerHandler
-	PeerAccountsDB   state.AccountsAdapter
+	SubscribedEvents  []SubscribedEvent
+	DataCodec         DataCodecHandler
+	TopicsChecker     TopicsCheckerHandler
+	PeerAccountsDB    state.AccountsAdapter
+	ChainNonceHandler dto.OutGoingOpNonceChainHandler
 }
 
 type outgoingOperations struct {
@@ -100,6 +101,9 @@ func checkNilArgs(args ArgsOutgoingOperations) error {
 	if check.IfNil(args.PeerAccountsDB) {
 		return errors.ErrNilPeerAccounts
 	}
+	if check.IfNil(args.ChainNonceHandler) {
+		return errors.ErrNilOutGoingOpNonceChainHandler
+	}
 
 	return nil
 }
@@ -149,20 +153,18 @@ func checkEmptyAddresses(addresses map[string]string) error {
 func createOpFormatterHandlers(subscribedEvents map[string]struct{}, args ArgsOutgoingOperations) (map[string]opFormatterData, error) {
 	handlers := make(map[string]opFormatterData)
 
-	chainNonceHandler := operationFormatters.NewOutGoingOpChainNonce()
-
-	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec, chainNonceHandler)
+	blsKeyOpFormatter, err := operationFormatters.NewRegisterValidatorOpFormatter(args.PeerAccountsDB, args.DataCodec, args.ChainNonceHandler)
 	if err != nil {
 		return nil, err
 	}
 
 	availableHandlers := map[string]createOpFormatterHandler{
 		topicIDDeposit: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker, chainNonceHandler)
+			opFormatter, err := operationFormatters.NewDepositOpFormatter(args.DataCodec, args.TopicsChecker, args.ChainNonceHandler)
 			return opFormatter, block.OutGoingOpDeposit, err
 		},
 		topicIDRegisterToken: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {
-			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, chainNonceHandler)
+			opFormatter, err := operationFormatters.NewRegisterTokenOpFormatter(args.DataCodec, args.ChainNonceHandler)
 			return opFormatter, block.OutGoingOpRegisterToken, err
 		},
 		topicIDRegisterBlsKey: func(args ArgsOutgoingOperations) (OperationFormatter, block.OutGoingOpType, error) {

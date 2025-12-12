@@ -222,19 +222,19 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -270,19 +270,19 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetSovereignRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetSovereignRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -1272,6 +1272,7 @@ func GetRunTypeComponentsStub(rt factory.RunTypeComponentsHandler) *mainFactoryM
 		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
 		HeaderSigVerifierFactoryField:               rt.HeaderSigVerifierFactory(),
 		ExtraSignersHolderField:                     rt.ExtraSignersHolder(),
+		OutGoingOpNonceChainHandlerField:            rt.OutGoingOpNonceChainHandler(),
 	}
 }
 

@@ -16,10 +16,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/scheduled"
+	dtoSov "github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	nodeFactory "github.com/multiversx/mx-chain-go/cmd/node/factory"
@@ -141,6 +143,7 @@ type baseProcessor struct {
 	accountCreator               state.AccountFactory
 	validatorStatisticsProcessor process.ValidatorStatisticsProcessor
 	epochSystemSCProcessor       process.EpochStartSystemSCProcessor
+	outGoingOpNonceChainHandler  dto.OutGoingOpNonceChainHandler
 }
 
 type bootStorerDataArgs struct {
@@ -714,6 +717,9 @@ func checkProcessorParameters(arguments ArgBaseProcessor) error {
 	}
 	if check.IfNil(arguments.RunTypeComponents.TopicsCheckerHandler()) {
 		return errors.ErrNilTopicsChecker
+	}
+	if check.IfNil(arguments.RunTypeComponents.OutGoingOpNonceChainHandler()) {
+		return errors.ErrNilOutGoingOpNonceChainHandler
 	}
 
 	return nil
@@ -1417,6 +1423,13 @@ func (bp *baseProcessor) baseCleanupBlockTrackerPoolsForShard(shardID uint32, no
 func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 	lastCrossNotarizedHeaders := bp.crossNotarizer.getLastCrossNotarizedHeaders()
 
+	// TODO: MX-17260, Here: Iterate through multiple chains
+	outGoingData := make([]bootstrapStorage.BootstrapOutGoingData, 0)
+	outGoingData = append(outGoingData, bootstrapStorage.BootstrapOutGoingData{
+		ChainID:       int32(dtoSov.MVX),
+		OutGoingNonce: bp.outGoingOpNonceChainHandler.GetNonce(dtoSov.MVX),
+	})
+
 	bootData := bootstrapStorage.BootstrapData{
 		LastHeader:                 args.headerInfo,
 		LastCrossNotarizedHeaders:  lastCrossNotarizedHeaders,
@@ -1426,6 +1439,7 @@ func (bp *baseProcessor) prepareDataForBootStorer(args bootStorerDataArgs) {
 		HighestFinalBlockNonce:     args.highestFinalBlockNonce,
 		NodesCoordinatorConfigKey:  args.nodesCoordinatorConfigKey,
 		EpochStartTriggerConfigKey: args.epochStartTriggerConfigKey,
+		BootstrapOutGoingData:      outGoingData,
 	}
 
 	startTime := time.Now()

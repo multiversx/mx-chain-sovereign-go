@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/sovereign/dto"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process/block/bootstrapStorage"
@@ -50,6 +51,14 @@ func TestSovereignShardStorageHandler_SaveDataToStorage(t *testing.T) {
 			Nonce: 1,
 			Round: 1,
 			Epoch: 1,
+		},
+		EpochStart: block.EpochStartSovereign{
+			EpochStartOutGoingChainData: []block.EpochStartOutGoingChainData{
+				{
+					ChainID: dto.MVX,
+					Nonce:   24,
+				},
+			},
 		},
 	}
 	hdr2 := &block.SovereignChainHeader{
@@ -100,6 +109,12 @@ func TestSovereignShardStorageHandler_SaveDataToStorage(t *testing.T) {
 		EpochStartTriggerConfigKey: []byte(fmt.Sprint(hdr1.GetEpoch())),
 		HighestFinalBlockNonce:     hdr1.GetNonce(),
 		LastRound:                  0,
+		BootstrapOutGoingData: []bootstrapStorage.BootstrapOutGoingData{
+			{
+				ChainID:       int32(hdr1.EpochStart.EpochStartOutGoingChainData[0].ChainID),
+				OutGoingNonce: hdr1.EpochStart.EpochStartOutGoingChainData[0].Nonce,
+			},
+		},
 	}, bootStrapData)
 
 	hdr1Bytes, err := bootStorer.Get([]byte("epochStartBlock_1"))
@@ -160,6 +175,12 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 				Nonce:      4,
 				HeaderHash: lastFinalizedCrossChainHeaderHash,
 			},
+			EpochStartOutGoingChainData: []block.EpochStartOutGoingChainData{
+				{
+					ChainID: dto.MVX,
+					Nonce:   44,
+				},
+			},
 		},
 	}
 	headers := map[string]data.HeaderHandler{
@@ -212,6 +233,12 @@ func TestSovereignShardStorageHandler_SaveDataToStorageCheckLastCrossChainNotari
 		EpochStartTriggerConfigKey: []byte(fmt.Sprint(sovHdr.GetEpoch())),
 		HighestFinalBlockNonce:     sovHdr.GetNonce(),
 		LastRound:                  0,
+		BootstrapOutGoingData: []bootstrapStorage.BootstrapOutGoingData{
+			{
+				ChainID:       int32(sovHdr.EpochStart.EpochStartOutGoingChainData[0].ChainID),
+				OutGoingNonce: sovHdr.EpochStart.EpochStartOutGoingChainData[0].Nonce,
+			},
+		},
 	}, bootStrapData)
 
 	extendedHdrStorer, err := sovShardStorage.storageService.GetStorer(dataRetriever.ExtendedShardHeadersUnit)

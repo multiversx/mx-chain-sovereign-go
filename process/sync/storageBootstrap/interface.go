@@ -17,6 +17,7 @@ type storageBootstrapperHandler interface {
 	cleanupNotarizedStorage(hash []byte)
 	cleanupNotarizedStorageForHigherNoncesIfExist(crossNotarizedHeaders []bootstrapStorage.BootstrapHeaderInfo)
 	getRootHash(hash []byte) []byte
+	applyCrossChainOutGoingData(outGoingData []bootstrapStorage.BootstrapOutGoingData)
 	IsInterfaceNil() bool
 }
 

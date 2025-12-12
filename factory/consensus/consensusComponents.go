@@ -474,6 +474,7 @@ func (ccf *consensusComponentsFactory) createShardStorageAndSyncBootstrapper() (
 		AppStatusHandler:             ccf.statusCoreComponents.AppStatusHandler(),
 		EnableEpochsHandler:          ccf.coreComponents.EnableEpochsHandler(),
 		ProofsPool:                   ccf.dataComponents.Datapool().Proofs(),
+		OutGoingOpNonceChainHandler:  ccf.runTypeComponents.OutGoingOpNonceChainHandler(),
 	}
 
 	argsShardStorageBootstrapper := storageBootstrap.ArgsShardStorageBootstrapper{

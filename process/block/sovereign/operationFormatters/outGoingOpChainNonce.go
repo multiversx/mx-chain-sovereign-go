@@ -37,6 +37,22 @@ func (op *outGoingOpChainNonce) GetAndIncrementNonce(chainID dtoCore.ChainID) (u
 	return nonce, nil
 }
 
+// GetNonce will return the current nonce for the specified chain
+func (op *outGoingOpChainNonce) GetNonce(chainID dtoCore.ChainID) uint64 {
+	op.mu.Lock()
+	defer op.mu.Unlock()
+
+	return op.data[chainID]
+}
+
+// SetNonce will set the nonce for the provided chain
+func (op *outGoingOpChainNonce) SetNonce(chainID dtoCore.ChainID, nonce uint64) {
+	op.mu.Lock()
+	defer op.mu.Unlock()
+
+	op.data[chainID] = nonce
+}
+
 // IsInterfaceNil checks if the underlying pointer is nil
 func (op *outGoingOpChainNonce) IsInterfaceNil() bool {
 	return op == nil

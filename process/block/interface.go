@@ -2,6 +2,7 @@ package block
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -65,6 +66,7 @@ type runTypeComponentsHolder interface {
 	OutGoingOperationsPoolHandler() sovereignBlock.OutGoingOperationsPool
 	DataCodecHandler() sovereign.DataCodecHandler
 	TopicsCheckerHandler() sovereign.TopicsCheckerHandler
+	OutGoingOpNonceChainHandler() dto.OutGoingOpNonceChainHandler
 	IsInterfaceNil() bool
 }
 

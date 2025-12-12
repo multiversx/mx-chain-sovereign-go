@@ -886,6 +886,16 @@ func TestCheckProcessorNilParameters(t *testing.T) {
 			},
 			expectedErr: errorsMx.ErrNilTopicsChecker,
 		},
+		{
+			args: func() blproc.ArgBaseProcessor {
+				args := createArgBaseProcessor(coreComponents, dataComponents, bootstrapComponents, statusComponents)
+				rtMock := mock.NewRunTypeComponentsStub()
+				rtMock.OutGoingOpNonceChainHandlerField = nil
+				args.RunTypeComponents = rtMock
+				return args
+			},
+			expectedErr: errorsMx.ErrNilOutGoingOpNonceChainHandler,
+		},
 	}
 
 	for _, test := range tests {

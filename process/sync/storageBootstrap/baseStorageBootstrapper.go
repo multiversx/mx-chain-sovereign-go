@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -48,6 +49,7 @@ type ArgsBaseStorageBootstrapper struct {
 	AppStatusHandler             core.AppStatusHandler
 	EnableEpochsHandler          common.EnableEpochsHandler
 	ProofsPool                   process.ProofsPool
+	OutGoingOpNonceChainHandler  dto.OutGoingOpNonceChainHandler
 }
 
 // ArgsShardStorageBootstrapper is structure used to create a new storage bootstrapper for shard
@@ -378,6 +380,8 @@ func (st *storageBootstrapper) applyBootInfos(bootInfos []bootstrapStorage.Boots
 			log.Debug("cannot apply cross notarized headers", "error", err.Error())
 			return err
 		}
+
+		st.bootstrapper.applyCrossChainOutGoingData(bootInfos[i].BootstrapOutGoingData)
 
 		var selfNotarizedHeaders []data.HeaderHandler
 		var selfNotarizedHeadersHashes [][]byte
