@@ -26,7 +26,7 @@ import (
 
 const (
 	numOfShards = 1
-	nativeESDT  = "WEGLD-a1b2c3"
+	baseTokenID = "EGLD-000000"
 )
 
 // ArgsSovereignChainSimulator holds the arguments for sovereign chain simulator
@@ -45,6 +45,7 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		return nil, err
 	}
 
+	var nativeBaseToken = baseTokenID
 	args.AlterConfigsFunction = func(cfg *config.Configs) {
 		cfg.EpochConfig = configs.EpochConfig
 		cfg.GeneralConfig.SovereignConfig = *configs.SovereignExtraConfig
@@ -53,12 +54,12 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		cfg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix = "sov"
 		cfg.GeneralConfig.Versions.VersionsByEpochs = []config.VersionByEpochs{{StartEpoch: 0, Version: string(process.SovereignHeaderVersion)}}
 		cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 0.4
-		cfg.GeneralConfig.GeneralSettings.BaseTokenID = nativeESDT
-
 		if alterConfigs != nil {
 			alterConfigs(cfg)
 			configs.SovereignExtraConfig = &cfg.GeneralConfig.SovereignConfig
 		}
+
+		nativeBaseToken = cfg.GeneralConfig.GeneralSettings.BaseTokenID
 	}
 
 	args.CreateRunTypeCoreComponents = func() (factory.RunTypeCoreComponentsHolder, error) {
@@ -72,7 +73,8 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 			return sovCommon.CreateSovereignRunTypeComponents(args, *configs.SovereignExtraConfig)
 		}
 	}
-	args.NodeFactory = node.NewSovereignNodeFactory(nativeESDT)
+
+	args.NodeFactory = node.NewSovereignNodeFactory(nativeBaseToken)
 	args.ChainProcessorFactory = NewSovereignChainHandlerFactory()
 	args.GenerateGenesisFile = func(args chainSimulatorConfigs.ArgsChainSimulatorConfigs, configs *config.Configs) (*dtos.InitialWalletKeys, error) {
 		return sovChainSimConfig.GenerateSovereignGenesisFile(args, configs)
