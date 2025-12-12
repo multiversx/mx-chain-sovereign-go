@@ -1,6 +1,8 @@
 package testscommon
 
 import (
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 )
@@ -70,6 +72,7 @@ func GetGeneralConfig() config.Config {
 				},
 			},
 			EpochChangeGracePeriodByEpoch: []config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}},
+			BaseTokenID:                   vmcommon.EGLDIdentifier,
 		},
 		EpochStartConfig: config.EpochStartConfig{
 			MinRoundsBetweenEpochs:            5,
@@ -479,9 +482,6 @@ func GetGeneralConfig() config.Config {
 			},
 			OutGoingBridge: config.OutGoingBridge{
 				Hasher: "sha256",
-			},
-			GenesisConfig: config.GenesisConfig{
-				NativeESDT: "WEGLD-ab47da",
 			},
 			ExtendedShardHeaderStorage: config.StorageConfig{
 				Cache: config.CacheConfig{

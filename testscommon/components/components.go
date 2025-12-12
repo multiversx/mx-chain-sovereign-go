@@ -10,7 +10,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/stretchr/testify/require"
@@ -46,6 +45,7 @@ import (
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	commonMocks "github.com/multiversx/mx-chain-go/testscommon/common"
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/dblookupext"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
@@ -222,19 +222,19 @@ func GetConsensusArgs(shardCoordinator sharding.Coordinator) consensusComp.Conse
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -270,19 +270,19 @@ func GetSovereignConsensusArgs(shardCoordinator sharding.Coordinator) consensusC
 	scheduledProcessor, _ := spos.NewScheduledProcessorWrapper(args)
 
 	return consensusComp.ConsensusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		FlagsConfig:          config.ContextFlagsConfig{},
-		BootstrapRoundIndex:  0,
-		CoreComponents:       coreComponents,
-		NetworkComponents:    networkComponents,
-		CryptoComponents:     cryptoComponents,
-		DataComponents:       dataComponents,
-		ProcessComponents:    processComponents,
-		StateComponents:      stateComponents,
-		StatusComponents:     statusComponents,
-		StatusCoreComponents: GetStatusCoreComponents(),
-		ScheduledProcessor:   scheduledProcessor,
-		RunTypeComponents:    GetSovereignRunTypeComponents(),
+		Config:                  testscommon.GetGeneralConfig(),
+		FlagsConfig:             config.ContextFlagsConfig{},
+		BootstrapRoundIndex:     0,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    GetStatusCoreComponents(),
+		ScheduledProcessor:      scheduledProcessor,
+		RunTypeComponents:       GetSovereignRunTypeComponents(),
 		OutGoingBridgeOpHandler: &sovereign.BridgeOperationsHandlerMock{},
 	}
 }
@@ -1358,13 +1358,9 @@ func createSovRunTypeArgs() runType.ArgsSovereignRunTypeComponents {
 	runTypeComponentsFactory, _ := runType.NewRunTypeComponentsFactory(createArgsRunTypeComponents())
 	return runType.ArgsSovereignRunTypeComponents{
 		RunTypeComponentsFactory: runTypeComponentsFactory,
-		Config: config.SovereignConfig{
-			GenesisConfig: config.GenesisConfig{
-				NativeESDT: "WEGLD-ab47da",
-			},
-		},
-		DataCodec:     &sovereign.DataCodecMock{},
-		TopicsChecker: &sovereign.TopicsCheckerMock{},
+		Config:                   config.SovereignConfig{},
+		DataCodec:                &sovereign.DataCodecMock{},
+		TopicsChecker:            &sovereign.TopicsCheckerMock{},
 	}
 }
 

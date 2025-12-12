@@ -9,10 +9,13 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/txcachemocks"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewMempoolHost(t *testing.T) {
@@ -21,6 +24,7 @@ func TestNewMempoolHost(t *testing.T) {
 	host, err := newMempoolHost(argsMempoolHost{
 		txGasHandler: nil,
 		marshalizer:  &marshal.GogoProtoMarshalizer{},
+		baseTokenID:  vmcommon.EGLDIdentifier,
 	})
 	require.Nil(t, host)
 	require.ErrorIs(t, err, dataRetriever.ErrNilTxGasHandler)
@@ -28,6 +32,7 @@ func TestNewMempoolHost(t *testing.T) {
 	host, err = newMempoolHost(argsMempoolHost{
 		txGasHandler: txcachemocks.NewTxGasHandlerMock(),
 		marshalizer:  nil,
+		baseTokenID:  vmcommon.EGLDIdentifier,
 	})
 	require.Nil(t, host)
 	require.ErrorIs(t, err, dataRetriever.ErrNilMarshalizer)
@@ -35,6 +40,15 @@ func TestNewMempoolHost(t *testing.T) {
 	host, err = newMempoolHost(argsMempoolHost{
 		txGasHandler: txcachemocks.NewTxGasHandlerMock(),
 		marshalizer:  &marshal.GogoProtoMarshalizer{},
+		baseTokenID:  "invalid",
+	})
+	require.Nil(t, host)
+	require.ErrorIs(t, err, builtInFunctions.ErrInvalidTokenID)
+
+	host, err = newMempoolHost(argsMempoolHost{
+		txGasHandler: txcachemocks.NewTxGasHandlerMock(),
+		marshalizer:  &marshal.GogoProtoMarshalizer{},
+		baseTokenID:  vmcommon.EGLDIdentifier,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, host)
@@ -46,6 +60,7 @@ func TestMempoolHost_GetTransferredValue(t *testing.T) {
 	host, err := newMempoolHost(argsMempoolHost{
 		txGasHandler: txcachemocks.NewTxGasHandlerMock(),
 		marshalizer:  &marshal.GogoProtoMarshalizer{},
+		baseTokenID:  vmcommon.EGLDIdentifier,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, host)
@@ -88,6 +103,7 @@ func TestBenchmarkMempoolHost_GetTransferredValue(t *testing.T) {
 	host, err := newMempoolHost(argsMempoolHost{
 		txGasHandler: txcachemocks.NewTxGasHandlerMock(),
 		marshalizer:  &marshal.GogoProtoMarshalizer{},
+		baseTokenID:  vmcommon.EGLDIdentifier,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, host)

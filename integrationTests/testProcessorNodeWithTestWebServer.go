@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
@@ -154,6 +155,7 @@ func createFacadeComponents(tpn *TestProcessorNode) nodeFacade.ApiResolver {
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                TestAddressPubkeyConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    vmcommon.EGLDIdentifier,
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 	builtInFuncs, err := builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)

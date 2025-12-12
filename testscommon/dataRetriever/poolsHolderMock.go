@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -55,6 +56,7 @@ func NewPoolsHolderMock() *PoolsHolderMock {
 			TxGasHandler:   txcachemocks.NewTxGasHandlerMock(),
 			Marshalizer:    &marshal.GogoProtoMarshalizer{},
 			NumberOfShards: 1,
+			BaseTokenID:    vmcommon.EGLDIdentifier,
 		},
 	)
 	panicIfError("NewPoolsHolderMock", err)

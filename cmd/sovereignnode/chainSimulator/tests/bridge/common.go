@@ -86,6 +86,17 @@ func Deposit(
 		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
 	}
 
+	depositArgs := createDepositArgs(t, contract, tokens, receiver, transferData)
+	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+func createDepositArgs(
+	t *testing.T,
+	contract []byte,
+	tokens []chainSim.ArgsDepositToken,
+	receiver []byte,
+	transferData *sovereign.TransferData,
+) string {
 	args := make([]any, 0)
 	args = append(args, &abi.AddressValue{Value: contract})
 	args = append(args, &abi.U32Value{Value: uint32(len(tokens))})
@@ -100,10 +111,8 @@ func Deposit(
 
 	multiTransferArg, err := serializer.Serialize(args)
 	require.Nil(t, err)
-	depositArgs := core.BuiltInFunctionMultiESDTNFTTransfer +
+	return core.BuiltInFunctionMultiESDTNFTTransfer +
 		"@" + multiTransferArg
-
-	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
 // depositScCall will make a smart contract call through deposit endpoint

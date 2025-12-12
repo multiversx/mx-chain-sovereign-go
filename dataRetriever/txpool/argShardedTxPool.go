@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 )
@@ -16,6 +17,7 @@ type ArgShardedTxPool struct {
 	Marshalizer    marshal.Marshalizer
 	NumberOfShards uint32
 	SelfShardID    uint32
+	BaseTokenID    string
 }
 
 // TODO: Upon further analysis and brainstorming, add some sensible minimum accepted values for the appropriate fields.

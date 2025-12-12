@@ -71,7 +71,7 @@
         { Identifier = "deposit", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         { Identifier = "execute", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         { Identifier = "changeValidatorSet", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
-        { Identifier = "register", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
+        { Identifier = "register_token", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         { Identifier = "registerBlsKey", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] },
         { Identifier = "unRegisterBlsKey", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] }
     ]
@@ -98,7 +98,3 @@
     [NotifierConfig.AddressPubKeyConverter]
         Length = 32
         Hrp = "erd"
-
-[GenesisConfig]
-    # NativeESDT specifies the sovereign shard's native esdt currency
-    NativeESDT = "WEGLD-a1b2c3"

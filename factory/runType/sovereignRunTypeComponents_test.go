@@ -16,13 +16,9 @@ func createSovRunTypeArgs() runType.ArgsSovereignRunTypeComponents {
 
 	return runType.ArgsSovereignRunTypeComponents{
 		RunTypeComponentsFactory: rcf,
-		Config: config.SovereignConfig{
-			GenesisConfig: config.GenesisConfig{
-				NativeESDT: "WEGLD-bd4d79",
-			},
-		},
-		DataCodec:     &sovereign.DataCodecMock{},
-		TopicsChecker: &sovereign.TopicsCheckerMock{},
+		Config:                   config.SovereignConfig{},
+		DataCodec:                &sovereign.DataCodecMock{},
+		TopicsChecker:            &sovereign.TopicsCheckerMock{},
 	}
 }
 

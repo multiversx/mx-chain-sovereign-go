@@ -29,6 +29,7 @@ const (
 	maxNumOfBlocksToGenerateWhenExecutingTx = 10
 	signalError                             = "signalError"
 	internalVMError                         = "internalVMErrors"
+	scDeployEvent                           = "SCDeploy"
 
 	// OkReturnCode the const for the ok return code
 	OkReturnCode = "ok"
@@ -103,7 +104,10 @@ func DeployContract(
 	require.Nil(t, err)
 	RequireSuccessfulTransaction(t, txResult)
 
-	address := txResult.Logs.Events[0].Topics[0]
+	deployEvent := getEvent(txResult.Logs, scDeployEvent)
+	require.NotNil(t, deployEvent, "%s event not found", scDeployEvent)
+
+	address := deployEvent.Topics[0]
 	require.NotNil(t, address)
 	return address
 }
@@ -181,7 +185,7 @@ func RequireSignalError(t *testing.T, txResult *transaction.ApiTransactionResult
 	require.Equal(t, transaction.TxStatusSuccess, txResult.Status)
 }
 
-// RequireInternalVMError require that the transaction has specific invernal vm error
+// RequireInternalVMError require that the transaction has specific internal VM error
 func RequireInternalVMError(t *testing.T, txResult *transaction.ApiTransactionResult, error string) {
 	require.NotNil(t, txResult)
 	event := getEvent(txResult.Logs, internalVMError)
@@ -284,6 +288,35 @@ func TransferESDTNFT(
 			"@" + hex.EncodeToString(arg)
 	}
 	txResult := SendTransaction(t, cs, sender, nonce, sender, ZeroValue, esdtNftTransferArgs, uint64(5000000))
+	RequireSuccessfulTransaction(t, txResult)
+}
+
+// TransferMultiESDTNFT will transfer NFT/SFT tokens to an address
+func TransferMultiESDTNFT(
+	t *testing.T,
+	cs ChainSimulator,
+	sender, receiver []byte,
+	nonce *uint64,
+	tokens []ArgsDepositToken,
+	args ...[]byte,
+) {
+	multiEsdtNftTransferArgs :=
+		core.BuiltInFunctionMultiESDTNFTTransfer +
+			"@" + hex.EncodeToString(receiver) +
+			"@" + fmt.Sprintf("%02X", len(tokens))
+
+	for _, token := range tokens {
+		multiEsdtNftTransferArgs = multiEsdtNftTransferArgs +
+			"@" + hex.EncodeToString([]byte(token.Identifier)) +
+			"@" + hex.EncodeToString(big.NewInt(int64(token.Nonce)).Bytes()) +
+			"@" + hex.EncodeToString(token.Amount.Bytes())
+	}
+
+	for _, arg := range args {
+		multiEsdtNftTransferArgs = multiEsdtNftTransferArgs +
+			"@" + hex.EncodeToString(arg)
+	}
+	txResult := SendTransaction(t, cs, sender, nonce, sender, ZeroValue, multiEsdtNftTransferArgs, uint64(5000000))
 	RequireSuccessfulTransaction(t, txResult)
 }
 

@@ -153,6 +153,7 @@ func createBuiltInFuncContainer(
 		sovEnableEpochsHandler,
 		&mockVm.ESDTRoleHandlerStub{},
 		esdtDataStorage,
+		[]byte(vmcommon.EGLDIdentifier),
 	)
 
 	_ = esdtMultiTransfer.SetPayableChecker(&mockVm.PayableHandlerStub{})

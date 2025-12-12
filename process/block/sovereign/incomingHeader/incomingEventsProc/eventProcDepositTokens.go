@@ -1,6 +1,7 @@
 package incomingEventsProc
 
 import (
+	"bytes"
 	"encoding/hex"
 	"math/big"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/errors"
@@ -178,7 +180,7 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error
 		}
 
 		transfer := []byte("@" +
-			hex.EncodeToString(topics[idx]) + // tokenID
+			hex.EncodeToString(formatEGLDIDIfNeeded(topics[idx])) + // tokenID
 			"@" + hex.EncodeToString(topics[idx+1]) + // nonce
 			"@" + hex.EncodeToString(tokenData)) // value/tokenData
 
@@ -186,6 +188,13 @@ func (dep *eventProcDepositTokens) createSCRData(topics [][]byte) ([]byte, error
 	}
 
 	return ret, nil
+}
+
+func formatEGLDIDIfNeeded(topic []byte) []byte {
+	if bytes.Equal(topic, []byte("EGLD")) {
+		return []byte(vmcommon.EGLDIdentifier)
+	}
+	return topic
 }
 
 func (dep *eventProcDepositTokens) getTokenDataBytes(tokenNonce []byte, tokenData []byte) ([]byte, error) {

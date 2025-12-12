@@ -8,21 +8,25 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/multiversx/mx-chain-vm-common-go/parsers"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/multiversx/mx-chain-vm-common-go/parsers"
 )
 
 type argsMempoolHost struct {
 	txGasHandler txGasHandler
 	marshalizer  marshal.Marshalizer
+	baseTokenID  string
 }
 
 type mempoolHost struct {
 	txGasHandler        txGasHandler
 	callArgumentsParser process.CallArgumentsParser
 	esdtTransferParser  vmcommon.ESDTTransferParser
+	baseTokenID         string
 }
 
 func newMempoolHost(args argsMempoolHost) (*mempoolHost, error) {
@@ -31,6 +35,9 @@ func newMempoolHost(args argsMempoolHost) (*mempoolHost, error) {
 	}
 	if check.IfNil(args.marshalizer) {
 		return nil, dataRetriever.ErrNilMarshalizer
+	}
+	if !vmcommon.ValidateToken([]byte(args.baseTokenID)) {
+		return nil, builtInFunctions.ErrInvalidTokenID
 	}
 
 	argsParser := parsers.NewCallArgsParser()
@@ -44,6 +51,7 @@ func newMempoolHost(args argsMempoolHost) (*mempoolHost, error) {
 		txGasHandler:        args.txGasHandler,
 		callArgumentsParser: argsParser,
 		esdtTransferParser:  esdtTransferParser,
+		baseTokenID:         args.baseTokenID,
 	}, nil
 }
 
@@ -95,7 +103,7 @@ func (host *mempoolHost) GetTransferredValue(tx data.TransactionHandler) *big.In
 		if transfer.ESDTTokenNonce != 0 {
 			continue
 		}
-		if string(transfer.ESDTTokenName) != vmcommon.EGLDIdentifier {
+		if string(transfer.ESDTTokenName) != host.baseTokenID {
 			// We only care about native transfers.
 			continue
 		}

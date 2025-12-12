@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -25,6 +26,7 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	proc "github.com/multiversx/mx-chain-go/process"
 	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
@@ -73,16 +75,27 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 
 	defer cs.Close()
 
-	token := "TKN-123456"
-	amountToTransfer := "123"
-	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+	headerNonce := uint64(9999999)
+	prevHeader := createHeaderV2(headerNonce, generateRandomHash(), generateRandomHash())
 
 	receiverWallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.ZeroValue)
 	require.Nil(t, err)
 
-	headerNonce := uint64(9999999)
-	prevHeader := createHeaderV2(headerNonce, generateRandomHash(), generateRandomHash())
+	prevHeader = processIncomingHeaderWithToken(t, cs, receiverWallet, "EGLD", "15", &headerNonce, prevHeader)
+	processIncomingHeaderWithToken(t, cs, receiverWallet, "TKN-123456", "123", &headerNonce, prevHeader)
+}
+
+func processIncomingHeaderWithToken(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	receiverWallet dtos.WalletAddress,
+	token string,
+	amountToTransfer string,
+	headerNonce *uint64,
+	prevHeader *block.HeaderV2,
+) *block.HeaderV2 {
 	txsEvent := make([]*transaction.Event, 0)
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	for i := 0; i < 3; i++ {
 		if i == 1 {
@@ -91,8 +104,8 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 			txsEvent = nil
 		}
 
-		incomingHdr, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, txsEvent)
-		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
+		incomingHdr, headerHash := createIncomingHeader(nodeHandler, headerNonce, prevHeader, txsEvent)
+		err := nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
 		require.Nil(t, err)
 
 		prevHeader = incomingHdr.Header
@@ -101,11 +114,23 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 		require.Nil(t, err)
 	}
 
+	expectedToken := token
+	if token == "EGLD" {
+		expectedToken = vmcommon.EGLDIdentifier
+	}
+
 	esdts, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(receiverWallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
 	require.NotNil(t, esdts)
-	require.True(t, esdts[token] != nil)
-	require.Equal(t, amountToTransfer, esdts[token].Value.String())
+	require.True(t, esdts[expectedToken] != nil)
+	require.Equal(t, amountToTransfer, esdts[expectedToken].Value.String())
+
+	// ESDT System account should not contain any data about the fungible token
+	accountKeys, _, err := nodeHandler.GetFacadeHandler().GetKeyValuePairs(chainSim.ESDTSystemAccount, coreAPI.AccountQueryOptions{})
+	require.Nil(t, err)
+	require.Empty(t, accountKeys)
+
+	return prevHeader
 }
 
 // In this test we simulate:

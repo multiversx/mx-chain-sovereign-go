@@ -313,6 +313,7 @@ type GeneralSettingsConfig struct {
 	SetGuardianEpochsDelay               uint32
 	ChainParametersByEpoch               []ChainParametersByEpochConfig
 	EpochChangeGracePeriodByEpoch        []EpochChangeGracePeriodByEpoch
+	BaseTokenID                          string
 }
 
 // HardwareRequirementsConfig will hold the hardware requirements config

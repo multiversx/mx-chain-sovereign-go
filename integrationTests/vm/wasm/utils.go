@@ -290,6 +290,7 @@ func (context *TestContext) initVMAndBlockchainHook() {
 		WhiteListedCrossChainAddresses: CrossChainAddresses,
 		PubKeyConverter:                pkConverter,
 		CrawlerAddressGetterHandler:    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		BaseTokenID:                    vmcommon.EGLDIdentifier,
 	}
 	argsBuiltIn.AutomaticCrawlerAddresses = integrationTests.GenerateOneAddressPerShard(argsBuiltIn.ShardCoordinator)
 

@@ -1,4 +1,4 @@
-package bridge
+package esdtPrefixBridge
 
 import (
 	"encoding/hex"
@@ -252,7 +252,7 @@ func createNftCreateArgs(
 ) string {
 	return "nft_create" +
 		"@" + hex.EncodeToString([]byte(identifier)) +
-		"@" + getTokenNonce(nonce) +
+		"@" + hex.EncodeToString(big.NewInt(int64(nonce)).Bytes()) +
 		"@" + hex.EncodeToString(amount.Bytes()) +
 		"@" + fmt.Sprintf("%02x", uint32(esdtType)) +
 		"@" + creator

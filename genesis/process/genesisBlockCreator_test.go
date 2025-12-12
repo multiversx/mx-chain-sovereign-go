@@ -212,6 +212,11 @@ func createArgument(
 				return &block.Header{}
 			},
 		},
+		Config: config.Config{
+			GeneralSettings: config.GeneralSettingsConfig{
+				BaseTokenID: vmcommon.EGLDIdentifier,
+			},
+		},
 	}
 
 	arg.ShardCoordinator = &mock.ShardCoordinatorMock{

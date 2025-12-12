@@ -68,6 +68,9 @@ export OBSERVERS_ANTIFLOOD_DISABLE=0
 # For now, make sure that you checkout feat/sovereign branch from mx-chain-deploy repo when using these scripts
 export SOVEREIGN_DEPLOY=1
 
+# SOVEREIGN_NATIVE_ESDT is the native esdt for sovereign chain
+export SOVEREIGN_NATIVE_ESDT="WEGLD-a1b2c3"
+
 # Shard structure
 export SHARDCOUNT=1
 export SHARD_VALIDATORCOUNT=2
@@ -109,7 +112,7 @@ export ALWAYS_NEW_APP_VERSION=0
 # ALWAYS_UPDATE_CONFIGS will re-generate configs (toml + json) each time ./start.sh
 # Set this variable to 0 when testing bootstrap from storage or other edge cases where you do not want a fresh new config
 # each time.
-export ALWAYS_UPDATE_CONFIGS=1
+export ALWAYS_UPDATE_CONFIGS=0
 
 # IP of the seednode
 export SEEDNODE_IP="127.0.0.1"
