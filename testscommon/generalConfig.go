@@ -1,6 +1,8 @@
 package testscommon
 
 import (
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 )
@@ -57,6 +59,20 @@ func GetGeneralConfig() config.Config {
 			SyncProcessTimeInMillis:              6000,
 			SetGuardianEpochsDelay:               20,
 			StatusPollingIntervalSec:             10,
+			ChainParametersByEpoch: []config.ChainParametersByEpochConfig{
+				{
+					EnableEpoch:                 0,
+					RoundDuration:               6000,
+					ShardConsensusGroupSize:     1,
+					ShardMinNumNodes:            1,
+					MetachainConsensusGroupSize: 1,
+					MetachainMinNumNodes:        1,
+					Hysteresis:                  0,
+					Adaptivity:                  false,
+				},
+			},
+			EpochChangeGracePeriodByEpoch: []config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}},
+			BaseTokenID:                   vmcommon.EGLDIdentifier,
 		},
 		EpochStartConfig: config.EpochStartConfig{
 			MinRoundsBetweenEpochs:            5,
@@ -192,6 +208,16 @@ func GetGeneralConfig() config.Config {
 			Cache: getLRUCacheConfig(),
 			DB: config.DBConfig{
 				FilePath:          AddTimestampSuffix("MetaBlock"),
+				Type:              string(storageunit.MemoryDB),
+				BatchDelaySeconds: 30,
+				MaxBatchSize:      6,
+				MaxOpenFiles:      10,
+			},
+		},
+		ProofsStorage: config.StorageConfig{
+			Cache: getLRUCacheConfig(),
+			DB: config.DBConfig{
+				FilePath:          AddTimestampSuffix("Proofs"),
 				Type:              string(storageunit.MemoryDB),
 				BatchDelaySeconds: 30,
 				MaxBatchSize:      6,
@@ -381,9 +407,9 @@ func GetGeneralConfig() config.Config {
 					{StartEpoch: 0, Version: "*"},
 				},
 				TransferAndExecuteByUserAddresses: []string{
-					"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", //shard 0
-					"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", //shard 1
-					"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", //shard 2
+					"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", // shard 0
+					"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", // shard 1
+					"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", // shard 2
 				},
 			},
 			Querying: config.QueryVirtualMachineConfig{
@@ -393,9 +419,9 @@ func GetGeneralConfig() config.Config {
 						{StartEpoch: 0, Version: "*"},
 					},
 					TransferAndExecuteByUserAddresses: []string{
-						"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", //shard 0
-						"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", //shard 1
-						"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", //shard 2
+						"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", // shard 0
+						"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", // shard 1
+						"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", // shard 2
 					},
 				},
 			},
@@ -415,25 +441,29 @@ func GetGeneralConfig() config.Config {
 		},
 		BuiltInFunctions: config.BuiltInFunctionsConfig{
 			AutomaticCrawlerAddresses: []string{
-				"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", //shard 0
-				"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", //shard 1
-				"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", //shard 2
+				"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", // shard 0
+				"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", // shard 1
+				"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", // shard 2
 			},
 			MaxNumAddressesInTransferRole: 100,
 			DNSV2Addresses: []string{
-				"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", //shard 0
-				"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", //shard 1
-				"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", //shard 2
+				"erd1he8wwxn4az3j82p7wwqsdk794dm7hcrwny6f8dfegkfla34udx7qrf7xje", // shard 0
+				"erd1fpkcgel4gcmh8zqqdt043yfcn5tyx8373kg6q2qmkxzu4dqamc0swts65c", // shard 1
+				"erd1najnxxweyw6plhg8efql330nttrj6l5cf87wqsuym85s9ha0hmdqnqgenp", // shard 2
 			},
 		},
 		ResourceStats: config.ResourceStatsConfig{
 			RefreshIntervalInSec: 1,
 		},
+		InterceptedDataVerifier: config.InterceptedDataVerifierConfig{
+			CacheSpanInSec:   1,
+			CacheExpiryInSec: 1,
+		},
 		SovereignConfig: config.SovereignConfig{
 			NotifierConfig: config.NotifierConfig{
 				SubscribedEvents: []config.SubscribedEvent{
 					{
-						Identifier: "bridgeOps",
+						Identifier: "deposit",
 						Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
 					},
 				},
@@ -445,16 +475,13 @@ func GetGeneralConfig() config.Config {
 			OutgoingSubscribedEvents: config.OutgoingSubscribedEvents{
 				SubscribedEvents: []config.SubscribedEvent{
 					{
-						Identifier: "bridgeOps",
+						Identifier: "deposit",
 						Addresses:  []string{"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"},
 					},
 				},
 			},
 			OutGoingBridge: config.OutGoingBridge{
 				Hasher: "sha256",
-			},
-			GenesisConfig: config.GenesisConfig{
-				NativeESDT: "WEGLD-ab47da",
 			},
 			ExtendedShardHeaderStorage: config.StorageConfig{
 				Cache: config.CacheConfig{

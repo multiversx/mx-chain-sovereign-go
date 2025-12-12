@@ -1424,7 +1424,7 @@ func (txs *transactions) computeSortedTxs(
 		return nil, nil, process.ErrNilTxDataPool
 	}
 
-	sortedTransactionsProvider := createSortedTransactionsProvider(txShardPool)
+	sortedTransactionsProvider := createSortedTransactionsProvider(txShardPool, process.TxCacheSelectionMaxNumTxs)
 	log.Debug("computeSortedTxs.GetSortedTransactions")
 
 	session, err := NewSelectionSession(ArgsSelectionSession{

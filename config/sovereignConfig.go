@@ -8,7 +8,6 @@ type SovereignConfig struct {
 	OutgoingSubscribedEvents         OutgoingSubscribedEvents `toml:"OutgoingSubscribedEvents"`
 	OutGoingBridge                   OutGoingBridge           `toml:"OutGoingBridge"`
 	NotifierConfig                   NotifierConfig           `toml:"NotifierConfig"`
-	GenesisConfig                    GenesisConfig            `toml:"GenesisConfig"`
 	OutGoingBridgeCertificate        OutGoingBridgeCertificate
 }
 
@@ -39,9 +38,10 @@ type OutGoingBridgeCertificate struct {
 
 // NotifierConfig holds sovereign notifier configuration
 type NotifierConfig struct {
-	Enabled          bool              `toml:"Enabled"`
-	SubscribedEvents []SubscribedEvent `toml:"SubscribedEvents"`
-	WebSocketConfig  WebSocketConfig   `toml:"WebSocket"`
+	Enabled                bool              `toml:"Enabled"`
+	SubscribedEvents       []SubscribedEvent `toml:"SubscribedEvents"`
+	WebSocketConfig        WebSocketConfig   `toml:"WebSocket"`
+	AddressPubKeyConverter PubkeyConfig      `toml:"AddressPubKeyConverter"`
 }
 
 // SubscribedEvent holds subscribed events config
@@ -61,9 +61,4 @@ type WebSocketConfig struct {
 	WithAcknowledge    bool   `toml:"WithAcknowledge"`
 	AcknowledgeTimeout int    `toml:"AcknowledgeTimeout"`
 	Version            uint32 `toml:"Version"`
-}
-
-// GenesisConfig should hold all sovereign genesis related configs
-type GenesisConfig struct {
-	NativeESDT string `toml:"NativeESDT"`
 }

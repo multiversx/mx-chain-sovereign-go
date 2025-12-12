@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -29,8 +30,10 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
 	processSync "github.com/multiversx/mx-chain-go/process/sync"
@@ -266,6 +269,15 @@ func (mrc *managedRunTypeComponents) CheckSubcomponents() error {
 	}
 	if check.IfNil(mrc.versionedHeaderFactory) {
 		return process.ErrNilVersionedHeaderFactory
+	}
+	if check.IfNil(mrc.crawlerAddressGetter) {
+		return process.ErrNilCrawlerAllowedAddress
+	}
+	if check.IfNil(mrc.headerSigVerifierFactory) {
+		return errors.ErrNilHeaderSigVerifierFactory
+	}
+	if check.IfNil(mrc.extraSignersHolder) {
+		return errors.ErrNilExtraSignersHolder
 	}
 
 	return nil
@@ -917,6 +929,42 @@ func (mrc *managedRunTypeComponents) VersionedHeaderFactory() genesis.VersionedH
 	}
 
 	return mrc.runTypeComponents.versionedHeaderFactory
+}
+
+// CrawlerAddressGetter returns the crawler address getter
+func (mrc *managedRunTypeComponents) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.crawlerAddressGetter
+}
+
+// HeaderSigVerifierFactory returns header sig verifier factory
+func (mrc *managedRunTypeComponents) HeaderSigVerifierFactory() headerSigVerifierFactory.HeaderSigVerifierFactory {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.headerSigVerifierFactory
+}
+
+// ExtraSignersHolder returns extra signers holder
+func (mrc *managedRunTypeComponents) ExtraSignersHolder() bls.ExtraSignersHolder {
+	mrc.mutRunTypeComponents.RLock()
+	defer mrc.mutRunTypeComponents.RUnlock()
+
+	if check.IfNil(mrc.runTypeComponents) {
+		return nil
+	}
+
+	return mrc.runTypeComponents.extraSignersHolder
 }
 
 // IsInterfaceNil returns true if the interface is nil

@@ -30,7 +30,7 @@ prepareObserver() {
     sed -i "1s,.*,${LINE}," "$SCRIPT_PATH/observer/shard-observer" # replace first line with the docker image
 
     echo "Preparing Docker image for Observer..."
-    docker image build . -t $IMAGE_NAME -f $SCRIPT_PATH/observer/shard-observer
+    docker image build . -t $IMAGE_NAME -f "$SCRIPT_PATH/observer/shard-observer"
  }
 
 createObserver() {
@@ -51,5 +51,5 @@ stopObserver() {
 
 cleanObserver() {
     echo "Removing Docker container for Observer..."
-    docker remove $CONTAINER_NAME
+    docker rm $CONTAINER_NAME
 }

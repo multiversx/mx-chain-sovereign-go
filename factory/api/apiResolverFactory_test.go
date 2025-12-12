@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/typeConverters"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/multiversx/mx-chain-go/common"
@@ -402,6 +404,9 @@ func createMockSCQueryElementArgs(shardId uint32) api.SCQueryElementArgs {
 					},
 				},
 			},
+			GeneralSettings: config.GeneralSettingsConfig{
+				BaseTokenID: vmcommon.EGLDIdentifier,
+			},
 		},
 		EpochConfig: &config.EpochConfig{},
 		CoreComponents: &mock.CoreComponentsMock{
@@ -410,11 +415,15 @@ func createMockSCQueryElementArgs(shardId uint32) api.SCQueryElementArgs {
 					return []byte(humanReadable), nil
 				},
 			},
-			IntMarsh:                     &marshallerMock.MarshalizerStub{},
-			EpochChangeNotifier:          &epochNotifierMock.EpochNotifierStub{},
-			EnableEpochsHandlerField:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-			UInt64ByteSliceConv:          &testsMocks.Uint64ByteSliceConverterMock{},
-			EconomicsHandler:             &economicsmocks.EconomicsHandlerStub{},
+			IntMarsh:                 &marshallerMock.MarshalizerStub{},
+			EpochChangeNotifier:      &epochNotifierMock.EpochNotifierStub{},
+			EnableEpochsHandlerField: &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			UInt64ByteSliceConv:      &testsMocks.Uint64ByteSliceConverterMock{},
+			EconomicsHandler: &economicsmocks.EconomicsHandlerMock{
+				GenesisTotalSupplyCalled: func() *big.Int {
+					return big.NewInt(10)
+				},
+			},
 			NodesConfig:                  &genesisMocks.NodesSetupStub{},
 			Hash:                         &testscommon.HasherStub{},
 			RatingHandler:                &testscommon.RaterMock{},
@@ -445,7 +454,9 @@ func createMockSCQueryElementArgs(shardId uint32) api.SCQueryElementArgs {
 			ShardCoord: &testscommon.ShardsCoordinatorMock{
 				CurrentShard: shardId,
 			},
-			NodesCoord: &shardingMocks.NodesCoordinatorStub{},
+			NodesCoord:        &shardingMocks.NodesCoordinatorStub{},
+			EpochTrigger:      &testscommon.EpochStartTriggerStub{},
+			RoundHandlerField: &testscommon.RoundHandlerMock{},
 		},
 		GasScheduleNotifier: &testscommon.GasScheduleNotifierMock{
 			LatestGasScheduleCalled: func() map[string]map[string]uint64 {

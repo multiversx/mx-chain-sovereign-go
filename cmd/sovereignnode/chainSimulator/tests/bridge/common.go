@@ -55,7 +55,7 @@ func deploySovereignBridgeSetup(
 		"@00" // no fee
 	feeMarketAddress := chainSim.DeployContract(t, cs, wallet.Bytes, &nonce, systemScAddress, feeMarketArgs, feeMarketWasmPath)
 
-	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, esdtSafeAddress, chainSim.ZeroValue, "unpause", uint64(10000000))
+	chainSim.SendTransactionWithSuccess(t, cs, wallet.Bytes, &nonce, esdtSafeAddress, chainSim.ZeroValue, "unpause", uint64(10_000_000))
 
 	return ArgsBridgeSetup{
 		ESDTSafeAddress:  esdtSafeAddress,
@@ -82,8 +82,21 @@ func Deposit(
 	receiver []byte,
 	transferData *sovereign.TransferData,
 ) *transaction.ApiTransactionResult {
-	require.True(t, len(tokens) > 0)
+	if len(tokens) == 0 {
+		return depositScCall(t, cs, sender, nonce, contract, receiver, transferData)
+	}
 
+	depositArgs := createDepositArgs(t, contract, tokens, receiver, transferData)
+	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
+}
+
+func createDepositArgs(
+	t *testing.T,
+	contract []byte,
+	tokens []chainSim.ArgsDepositToken,
+	receiver []byte,
+	transferData *sovereign.TransferData,
+) string {
 	args := make([]any, 0)
 	args = append(args, &abi.AddressValue{Value: contract})
 	args = append(args, &abi.U32Value{Value: uint32(len(tokens))})
@@ -98,10 +111,30 @@ func Deposit(
 
 	multiTransferArg, err := serializer.Serialize(args)
 	require.Nil(t, err)
-	depositArgs := core.BuiltInFunctionMultiESDTNFTTransfer +
+	return core.BuiltInFunctionMultiESDTNFTTransfer +
 		"@" + multiTransferArg
+}
 
-	return chainSim.SendTransaction(t, cs, sender, nonce, sender, chainSim.ZeroValue, depositArgs, uint64(20000000))
+// depositScCall will make a smart contract call through deposit endpoint
+func depositScCall(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	sender []byte,
+	nonce *uint64,
+	contract []byte,
+	receiver []byte,
+	transferData *sovereign.TransferData,
+) *transaction.ApiTransactionResult {
+	args := make([]any, 0)
+	args = append(args, &abi.AddressValue{Value: receiver})
+	args = append(args, &abi.OptionalValue{Value: getTransferDataValue(transferData)})
+
+	transferArg, err := serializer.Serialize(args)
+	require.Nil(t, err)
+	depositArgs := deposit +
+		"@" + transferArg
+
+	return chainSim.SendTransaction(t, cs, sender, nonce, contract, chainSim.ZeroValue, depositArgs, uint64(20000000))
 }
 
 func getTransferDataValue(transferData *sovereign.TransferData) any {
@@ -109,7 +142,7 @@ func getTransferDataValue(transferData *sovereign.TransferData) any {
 		return nil
 	}
 
-	arguments := make([]abi.SingleValue, len(transferData.Args))
+	arguments := make([]any, len(transferData.Args))
 	for i, arg := range transferData.Args {
 		arguments[i] = &abi.BytesValue{Value: arg}
 	}
@@ -117,7 +150,7 @@ func getTransferDataValue(transferData *sovereign.TransferData) any {
 		Items: []any{
 			&abi.U64Value{Value: transferData.GasLimit},
 			&abi.BytesValue{Value: transferData.Function},
-			&abi.ListValue{Items: arguments},
+			&abi.VariadicValues{Items: arguments},
 		},
 	}
 }

@@ -6,13 +6,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dataRetriever/dataPool/headersCache"
 	"github.com/multiversx/mx-chain-go/dataRetriever/mock"
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/economicsmocks"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewDataPoolFromConfig(t *testing.T) {
@@ -136,10 +138,16 @@ func TestNewDataPoolFromConfig_BadConfigShouldErr(t *testing.T) {
 	require.Nil(t, holder)
 	require.True(t, errors.Is(err, storage.ErrInvalidConfig))
 	require.True(t, strings.Contains(err.Error(), "the cache for the validator info results"))
+
+	args = getGoodArgs()
+	args.Config.GeneralSettings.BaseTokenID = "invalid"
+	holder, err = NewDataPoolFromConfig(args)
+	require.Nil(t, holder)
+	require.True(t, errors.Is(err, builtInFunctions.ErrInvalidTokenID))
 }
 
 func getGoodArgs() ArgsDataPool {
-	testEconomics := &economicsmocks.EconomicsHandlerStub{
+	testEconomics := &economicsmocks.EconomicsHandlerMock{
 		MinGasPriceCalled: func() uint64 {
 			return 200000000000
 		},

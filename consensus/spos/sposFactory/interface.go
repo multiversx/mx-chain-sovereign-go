@@ -8,5 +8,6 @@ import (
 // BroadCastShardMessengerFactoryHandler defines a shard messenger factory handler
 type BroadCastShardMessengerFactoryHandler interface {
 	CreateShardChainMessenger(args broadcast.ShardChainMessengerArgs) (consensus.BroadcastMessenger, error)
+	CreateDelayedBlockBroadcaster(args *broadcast.ArgsDelayedBlockBroadcaster) (broadcast.DelayedBroadcaster, error)
 	IsInterfaceNil() bool
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 
+	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/process"
@@ -17,12 +18,14 @@ import (
 type ArgsSovereignTrigger struct {
 	*ArgsNewMetaEpochStartTrigger
 	ValidatorInfoSyncer process.ValidatorInfoSyncer
+	EnableEpochsHandler common.EnableEpochsHandler
 }
 
 type sovereignTrigger struct {
 	*trigger
 	currentEpochValidatorInfoPool epochStart.ValidatorInfoCacher
 	validatorInfoSyncer           process.ValidatorInfoSyncer
+	enableEpochsHandler           common.EnableEpochsHandler
 }
 
 // NewSovereignTrigger creates a new sovereign epoch start trigger
@@ -43,6 +46,7 @@ func NewSovereignTrigger(args ArgsSovereignTrigger) (*sovereignTrigger, error) {
 		trigger:                       metaTrigger,
 		currentEpochValidatorInfoPool: args.DataPool.CurrentEpochValidatorInfo(),
 		validatorInfoSyncer:           args.ValidatorInfoSyncer,
+		enableEpochsHandler:           args.EnableEpochsHandler,
 	}
 
 	args.DataPool.Headers().RegisterHandler(st.receivedBlock)
@@ -146,16 +150,21 @@ func (st *sovereignTrigger) receivedBlock(headerHandler data.HeaderHandler, _ []
 		return
 	}
 
-	if !header.IsStartOfEpochBlock() {
-		return
-	}
-
-	isMetaStartOfEpochForCurrentEpoch := header.GetEpoch() == st.epoch
-	if isMetaStartOfEpochForCurrentEpoch {
+	if !st.shouldUpdateTrigger(headerHandler) {
 		return
 	}
 
 	st.updateTrigger(header)
+}
+
+func (st *sovereignTrigger) shouldUpdateTrigger(headerHandler data.HeaderHandler) bool {
+	if !headerHandler.IsStartOfEpochBlock() {
+		return false
+	}
+
+	isMetaStartOfEpochForCurrentOrOlderEpoch := (headerHandler.GetEpoch() <= st.epoch+1) &&
+		(headerHandler.GetRound()-1 == st.currentRound)
+	return !isMetaStartOfEpochForCurrentOrOlderEpoch
 }
 
 func (st *sovereignTrigger) updateTrigger(header data.MetaHeaderHandler) {
@@ -166,7 +175,7 @@ func (st *sovereignTrigger) updateTrigger(header data.MetaHeaderHandler) {
 	st.epochStartNotifier.NotifyEpochChangeConfirmed(header.GetEpoch())
 }
 
-func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.HeaderHandler) bool {
+func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.MetaHeaderHandler) bool {
 	missingMiniBlocksHashes, blockBody, err := st.validatorInfoSyncer.SyncMiniBlocks(hdr)
 	if err != nil {
 		log.Error("sovereignTrigger.checkIfTriggerCanBeActivated.SyncMiniBlocks", "num missing mini blocks", len(missingMiniBlocksHashes), "error", err)
@@ -185,6 +194,41 @@ func (st *sovereignTrigger) checkIfTriggerCanBeActivated(hdr data.HeaderHandler)
 
 	st.epochStartNotifier.NotifyAllPrepare(hdr, blockBody)
 	return true
+}
+
+// LastCommitedEpochStartHdr returns the header of the epoch start block
+func (st *sovereignTrigger) LastCommitedEpochStartHdr() (data.HeaderHandler, error) {
+	st.mutTrigger.RLock()
+	defer st.mutTrigger.RUnlock()
+
+	// marshal + unmarshal deep copy
+	headerBytes, err := st.marshaller.Marshal(st.epochStartMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return process.UnmarshalSovereignChainHeader(st.marshaller, headerBytes)
+}
+
+// GetEpochStartHdrFromStorage returns the header of the epoch start block from storage
+func (st *sovereignTrigger) GetEpochStartHdrFromStorage(epoch uint32) (data.HeaderHandler, error) {
+	st.mutTrigger.RLock()
+	defer st.mutTrigger.RUnlock()
+
+	epochStartIdentifier := core.EpochStartIdentifier(epoch)
+	epochStartMetaBuff, err := st.metaHeaderStorage.SearchFirst([]byte(epochStartIdentifier))
+	if err != nil {
+		log.Warn("GetEpochStartHdrFromStorage search first", "epoch", epoch, "identifier", epochStartIdentifier, "error", err)
+		return nil, err
+	}
+
+	metaHdr := &block.SovereignChainHeader{}
+	err = st.marshaller.Unmarshal(metaHdr, epochStartMetaBuff)
+	if err != nil {
+		return nil, err
+	}
+
+	return metaHdr, nil
 }
 
 // ForceEpochStart does nothing

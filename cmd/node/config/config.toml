@@ -12,11 +12,7 @@
     StartInEpochEnabled = true
 
     # ChainID represents the chain identifier
-    # The currently supported constants are:
-    #   "1" for Mainnet
-    #   "D" for Devnet
-    #   "T" for Testnet
-    ChainID = "undefined"
+    ChainID = "sov"
 
     # MinTransactionVersion represents the minimum transaction version accepted
     MinTransactionVersion = 1
@@ -38,7 +34,24 @@
     # SetGuardianEpochsDelay represents the delay in epochs between the execution time of the SetGuardian transaction and
     # the activation of the configured guardian.
     # Make sure that this is greater than the unbonding period!
-    SetGuardianEpochsDelay = 2 # TODO: for mainnet should be 20, 2 is just for testing
+    SetGuardianEpochsDelay = 2
+
+    # ChainParametersByEpoch defines chain operation configurable values that can be modified based on epochs
+
+    # TODO: MARIUS C: MX-16953 have this overridable config in cmd/sovereign/config/prefs.toml
+    ChainParametersByEpoch = [
+        { EnableEpoch = 0, RoundDuration = 6000, ShardConsensusGroupSize = 7, ShardMinNumNodes = 10, MetachainConsensusGroupSize = 10, MetachainMinNumNodes = 10, Hysteresis = 0.2, Adaptivity = false },
+        { EnableEpoch = 1, RoundDuration = 6000, ShardConsensusGroupSize = 10, ShardMinNumNodes = 10, MetachainConsensusGroupSize = 10, MetachainMinNumNodes = 10, Hysteresis = 0.2, Adaptivity = false }
+    ]
+
+    # EpochChangeGracePeriodEnableEpoch represents the configuration of different grace periods for epoch change with their activation epochs
+    EpochChangeGracePeriodByEpoch = [
+        {EnableEpoch = 0, GracePeriodInRounds = 1 },
+        {EnableEpoch = 1, GracePeriodInRounds = 10 }, # Andromeda epoch comes with a longer grace period
+    ]
+
+    # BaseTokenID represents the base token identifier for chain
+    BaseTokenID = "EGLD-000000"
 
 [HardwareRequirements]
     CPUFlags = ["SSE4", "SSE42"]
@@ -181,6 +194,19 @@
         SizeInBytes = 20971520 #20MB
     [MetaBlockStorage.DB]
         FilePath = "MetaBlock"
+        Type = "LvlDBSerial"
+        BatchDelaySeconds = 2
+        MaxBatchSize = 100
+        MaxOpenFiles = 10
+
+[ProofsStorage]
+    [ProofsStorage.Cache]
+        Name = "ProofsStorage"
+        Capacity = 1000
+        Type = "SizeLRU"
+        SizeInBytes = 20971520 #20MB
+    [ProofsStorage.DB]
+        FilePath = "Proofs"
         Type = "LvlDBSerial"
         BatchDelaySeconds = 2
         MaxBatchSize = 100
@@ -365,6 +391,10 @@
     MaxHeadersPerShard = 1000
     NumElementsToRemoveOnEviction = 200
 
+[ProofsPoolConfig]
+    CleanupNonceDelta = 3
+    BucketSize = 100
+
 [BadBlocksCache]
     Name = "BadBlocksCache"
     Capacity = 1000
@@ -497,7 +527,7 @@
         IntervalInSeconds = 1
         ReservedPercent   = 20.0
         [Antiflood.FastReacting.PeerMaxInput]
-            BaseMessagesPerInterval  = 140
+            BaseMessagesPerInterval  = 280
             TotalSizePerInterval = 4194304 #4MB/s
             [Antiflood.FastReacting.PeerMaxInput.IncreaseFactor]
                 Threshold = 10 #if consensus size will exceed this value, then
@@ -539,7 +569,7 @@
             PeerBanDurationInSeconds = 3600
 
     [Antiflood.PeerMaxOutput]
-        BaseMessagesPerInterval  = 75
+        BaseMessagesPerInterval  = 150
         TotalSizePerInterval     = 2097152 #2MB/s
 
     [Antiflood.Cache]
@@ -658,23 +688,25 @@
 [StateTriesConfig]
     SnapshotsEnabled = true
     AccountsStatePruningEnabled = false
-    PeerStatePruningEnabled = true
+    PeerStatePruningEnabled = false
     MaxStateTrieLevelInMemory = 5
     MaxPeerTrieLevelInMemory = 5
     StateStatisticsEnabled = false
+
+[TrieLeavesRetrieverConfig]
+    Enabled = false
+    MaxSizeInBytes = 10485760 #10MB
 
 [BlockSizeThrottleConfig]
     MinSizeInBytes = 104857 # 104857 is 10% from 1MB
     MaxSizeInBytes = 943718 # 943718 is 90% from 1MB
 
-# TODO MX-14985 resolve after override structs branch is merged
 [VirtualMachine]
     [VirtualMachine.Execution]
         TimeOutForSCExecutionInMilliseconds = 10000 # 10 seconds = 10000 milliseconds
         WasmerSIGSEGVPassthrough            = false # must be false for release
         WasmVMVersions = [
-            { StartEpoch = 0, Version = "v1.4" },
-            { StartEpoch = 1, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
+            { StartEpoch = 0, Version = "v1.5" },
         ]
         TransferAndExecuteByUserAddresses = [ # TODO: set real contract addresses for all shards
             "erd1qqqqqqqqqqqqqpgqr46jrxr6r2unaqh75ugd308dwx5vgnhwh47qtvepe3", #shard 0
@@ -685,8 +717,7 @@
         TimeOutForSCExecutionInMilliseconds = 10000 # 10 seconds = 10000 milliseconds
         WasmerSIGSEGVPassthrough            = false # must be false for release
         WasmVMVersions = [
-            { StartEpoch = 0, Version = "v1.4" },
-            { StartEpoch = 1, Version = "v1.5" }, # TODO: set also the RoundActivations.DisableAsyncCallV1 accordingly
+            { StartEpoch = 0, Version = "v1.5" },
         ]
         TransferAndExecuteByUserAddresses = [ # TODO: set real contract addresses for all shards
             "erd1qqqqqqqqqqqqqpgqr46jrxr6r2unaqh75ugd308dwx5vgnhwh47qtvepe3",
@@ -814,11 +845,11 @@
     FolderPath = "health-records"
 
 [SoftwareVersionConfig]
-    StableTagLocation = "https://api.github.com/repos/multiversx/mx-chain-go/releases/latest"
+    StableTagLocation = "https://api.github.com/repos/multiversx/mx-chain-sovereign-config/releases/latest"
     PollingIntervalInMinutes = 65
 
 [GatewayMetricsConfig]
-    # TODO: set this to gateway URL based on testnet/devnet/mainnet env
+    # TODO: set this to gateway URL accordingly
     URL = ""
 
 [LogsAndEvents]
@@ -917,7 +948,7 @@
     NumFullHistoryPeers = 3
 
 [HeartbeatV2]
-    PeerAuthenticationTimeBetweenSendsInSec          = 600   # 10min TODO: change this for mainnet/devnet/testnet
+    PeerAuthenticationTimeBetweenSendsInSec          = 600   # 10min. Change this accordingly. For example, on mvx mainnet we have 7200 = 2h
     PeerAuthenticationTimeBetweenSendsWhenErrorInSec = 60    # 1min
     PeerAuthenticationTimeThresholdBetweenSends      = 0.1   # 10%   # max random threshold between messages, representing a percent of PeerAuthenticationTimeBetweenSendsInSec
     HeartbeatTimeBetweenSendsInSec                   = 60    # 1min
@@ -947,3 +978,7 @@
     # MaxRoundsOfInactivityAccepted defines the number of rounds missed by a main or higher level backup machine before
     # the current machine will take over and propose/sign blocks. Used in both single-key and multi-key modes.
     MaxRoundsOfInactivityAccepted = 3
+
+[InterceptedDataVerifier]
+    CacheSpanInSec = 30
+    CacheExpiryInSec = 30

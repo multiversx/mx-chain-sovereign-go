@@ -5,9 +5,14 @@ import (
 	"math/big"
 	"time"
 
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	sovereignFactory "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
 	"github.com/multiversx/mx-chain-go/dataRetriever/factory/resolverscontainer"
@@ -34,8 +39,10 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/interceptorscontainer"
 	procSovereign "github.com/multiversx/mx-chain-go/process/factory/sovereign"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processorV2"
 	"github.com/multiversx/mx-chain-go/process/sync"
@@ -180,7 +187,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 			Marshaller:          rcf.coreComponents.InternalMarshalizer(),
 			EnableEpochsHandler: rcf.coreComponents.EnableEpochsHandler(),
 		},
-		BaseTokenID: rcf.sovConfig.GenesisConfig.NativeESDT,
+		BaseTokenID: rcf.configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignAccountCreator failed: %w", err)
@@ -188,7 +195,7 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 
 	expiryTime := time.Second * time.Duration(rcf.sovConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds)
 
-	sovHeaderSigVerifier, err := headerCheck.NewSovereignHeaderSigVerifier(rcf.cryptoComponents.BlockSigner())
+	sovHeaderSigVerifier, err := headerCheck.NewSovereignHeaderSigVerifier(rcf.cryptoComponents.BlockSigner(), rcf.coreComponents.EnableEpochsHandler())
 	if err != nil {
 		return nil, fmt.Errorf("sovereignRunTypeComponentsFactory - NewSovereignHeaderSigVerifier failed: %w", err)
 	}
@@ -209,6 +216,11 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 	versionedHeaderFactory, err := factoryBlock.NewSovereignShardHeaderFactory(headerVersionHandler)
 	if err != nil {
 		return nil, fmt.Errorf("runTypeComponentsFactory - NewSovereignShardHeaderFactory failed: %w", err)
+	}
+
+	extraSignersHolder, err := rcf.createOutGoingTxDataSigners()
+	if err != nil {
+		return nil, fmt.Errorf("runTypeComponentsFactory - createOutGoingTxDataSigners failed: %w", err)
 	}
 
 	return &runTypeComponents{
@@ -266,5 +278,51 @@ func (rcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, erro
 		directStakedListFactoryHandler:          trieIteratorsFactory.NewSovereignDirectStakedListProcessorFactory(),
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewSovereignTotalStakedValueProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
+		crawlerAddressGetter:                    crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
+		headerSigVerifierFactory:                headerSigVerifierFactory.NewSovereignHeaderSignatureVerifyFactory(),
+		extraSignersHolder:                      extraSignersHolder,
 	}, nil
+}
+
+func (rcf *sovereignRunTypeComponentsFactory) createOutGoingTxDataSigners() (bls.ExtraSignersHolder, error) {
+	startRoundExtraSignersHolder := holders.NewSubRoundStartExtraSignersHolder()
+	signRoundExtraSignersHolder := holders.NewSubRoundSignatureExtraSignersHolder()
+	endRoundExtraSignersHolder := holders.NewSubRoundEndExtraSignersHolder()
+
+	for _, mbTypeValue := range dataBlock.OutGoingMBType_value {
+		mbType := dataBlock.OutGoingMBType(mbTypeValue)
+		extraSignerHandler := rcf.cryptoComponents.ConsensusSigningHandler().ShallowClone()
+
+		startRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundStartExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		signRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundSignatureExtraSigner(extraSignerHandler, mbType)
+		if err != nil {
+			return nil, err
+		}
+		err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+
+		endRoundExtraSignerOutGoingTx, err := extraSigners.NewSovereignSubRoundEndExtraSigner(extraSignerHandler, mbType, rcf.coreComponents.EnableEpochsHandler())
+		if err != nil {
+			return nil, err
+		}
+		err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSignerOutGoingTx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return holders.NewExtraSignersHolder(
+		startRoundExtraSignersHolder,
+		signRoundExtraSignersHolder,
+		endRoundExtraSignersHolder)
 }

@@ -1,60 +1,67 @@
 computeFirstSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 0)
+    local ADDRESS=$(python3 "$SCRIPT_PATH/pyScripts/compute_contract_address.py" $WALLET_ADDRESS 0)
+    python3 "$TESTNET_DIR/convert_address.py" $ADDRESS $ADDRESS_HRP
 }
 
 computeSecondSovereignContractAddress() {
-    echo $(python3 $SCRIPT_PATH/pyScripts/compute_contract_address.py $WALLET_ADDRESS 1)
+    local ADDRESS=$(python3 "$SCRIPT_PATH/pyScripts/compute_contract_address.py" $WALLET_ADDRESS 1)
+    python3 "$TESTNET_DIR/convert_address.py" $ADDRESS $ADDRESS_HRP
 }
 
 getShardOfAddress() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_shard.py $WALLET_ADDRESS)
+    python3 "$SCRIPT_PATH/pyScripts/address_shard.py" $WALLET_ADDRESS
 }
 
 bech32ToHex() {
-  echo $(python3 $SCRIPT_PATH/pyScripts/address_convert.py $1)
+    python3 "$SCRIPT_PATH/pyScripts/bech32_to_hex.py" $1
 }
 
-displayContracts() {
-    echo "ESDT-SAFE: $ESDT_SAFE_ADDRESS"
-    echo "ESDT-SAFE SOVEREIGN: $ESDT_SAFE_ADDRESS_SOVEREIGN"
-    echo "FEE-MARKET: $FEE_MARKET_ADDRESS"
-    echo "FEE-MARKET SOVEREIGN: $FEE_MARKET_ADDRESS_SOVEREIGN"
-    echo "HEADER-VERIFIER: $HEADER_VERIFIER_ADDRESS"
+hexToBech32() {
+    python3 "$SCRIPT_PATH/pyScripts/hex_to_bech32.py" $1
 }
 
 updateAndStartBridgeService() {
-    python3 $SCRIPT_PATH/pyScripts/bridge_service.py $WALLET $PROXY $ESDT_SAFE_ADDRESS $HEADER_VERIFIER_ADDRESS
+    python3 "$SCRIPT_PATH/pyScripts/bridge_service.py" \
+        "$WALLET" \
+        "$PROXY" \
+        "$ESDT_SAFE_ADDRESS" \
+        "$HEADER_VERIFIER_ADDRESS"
+}
+
+setGenesisContracts() {
+    local ESDT_SAFE_INIT_PARAMS=$(bech32ToHex $FEE_MARKET_ADDRESS_SOVEREIGN)
+    local FEE_MARKET_INIT_PARAMS="$(bech32ToHex $ESDT_SAFE_ADDRESS_SOVEREIGN)@00"
+    local ADDRESS=$(python3 "$TESTNET_DIR/convert_address.py" $WALLET_ADDRESS $ADDRESS_HRP)
+
+    python3 "$SCRIPT_PATH/pyScripts/genesis_contracts.py" \
+        "$ADDRESS" \
+        "$SOV_ESDT_SAFE_WASM" \
+        "$ESDT_SAFE_INIT_PARAMS" \
+        "$SOV_FEE_MARKET_WASM" \
+        "$FEE_MARKET_INIT_PARAMS"
+}
+
+updateSovereignTomlConfigs() {
+    python3 "$SCRIPT_PATH/pyScripts/update_toml.py" \
+        "$ESDT_SAFE_ADDRESS" \
+        "$ESDT_SAFE_ADDRESS_SOVEREIGN" \
+        "$SOV_CHAIN_PREFIX" \
+        "$USE_ELASTICSEARCH" \
+        "$MAIN_CHAIN_ELASTIC" \
+        "$HEADER_VERIFIER_ADDRESS" \
+        "$CHAIN_CONFIG_ADDRESS"
 }
 
 updateNotifierNotarizationRound() {
-    python3 $SCRIPT_PATH/pyScripts/notifier_round.py $PROXY $(getShardOfAddress)
+    python3 "$SCRIPT_PATH/pyScripts/notifier_round.py" $PROXY $(getShardOfAddress)
 }
 
-setGenesisContract() {
-    local ESDT_SAFE_INIT_PARAMS="$(bech32ToHex $FEE_MARKET_ADDRESS_SOVEREIGN)"
-    local FEE_MARKET_INIT_PARAMS="$(bech32ToHex $ESDT_SAFE_ADDRESS_SOVEREIGN)@00"
+updateSovereignNodeConfigs() {
+    setGenesisContracts
 
-    python3 $SCRIPT_PATH/pyScripts/genesis_contract.py $WALLET_ADDRESS $SOV_ESDT_SAFE_WASM $ESDT_SAFE_INIT_PARAMS $FEE_MARKET_WASM $FEE_MARKET_INIT_PARAMS
-}
+    updateSovereignTomlConfigs
 
-updateSovereignConfig() {
-    if [ -z "$1" ]; then
-        ESDT_PREFIX=$(generateRandomEsdtPrefix)
-    else
-        ESDT_PREFIX=$1
-    fi
+    updateNotifierNotarizationRound
 
-    if [ -z "$NATIVE_ESDT" ]; then
-        echo "Error: NATIVE_ESDT was not registered"
-        return 1
-    fi
-
-    python3 $SCRIPT_PATH/pyScripts/update_toml.py $ESDT_SAFE_ADDRESS $ESDT_SAFE_ADDRESS_SOVEREIGN $ESDT_PREFIX $USE_ELASTICSEARCH $MAIN_CHAIN_ELASTIC $NATIVE_ESDT
-}
-
-generateRandomEsdtPrefix() {
-  LEN=$(shuf -i 1-4 -n 1)
-  RANDOM_PREFIX=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c $LEN)
-
-  echo $RANDOM_PREFIX
+    export SOVEREIGN_NATIVE_ESDT="$NATIVE_ESDT"
 }

@@ -19,6 +19,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 
 	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/dblookupext"
 	"github.com/multiversx/mx-chain-go/process"
@@ -527,7 +528,18 @@ func (atp *apiTransactionProcessor) computeTimestampForRound(round uint64) int64
 	secondsSinceGenesis := round * atp.roundDuration
 	timestamp := atp.genesisTime.Add(time.Duration(secondsSinceGenesis) * time.Millisecond)
 
-	return timestamp.Unix()
+	return runType.TimeToUnix(timestamp)
+}
+
+func (atp *apiTransactionProcessor) computeTimestampForRoundAsMs(round uint64) int64 {
+	if round == 0 {
+		return 0
+	}
+
+	secondsSinceGenesis := round * atp.roundDuration
+	timestamp := atp.genesisTime.Add(time.Duration(secondsSinceGenesis) * time.Millisecond)
+
+	return timestamp.UnixMilli()
 }
 
 func (atp *apiTransactionProcessor) lookupHistoricalTransaction(hash []byte, withResults bool) (*transaction.ApiTransactionResult, error) {
@@ -557,6 +569,7 @@ func (atp *apiTransactionProcessor) lookupHistoricalTransaction(hash []byte, wit
 
 	putMiniblockFieldsInTransaction(tx, miniblockMetadata)
 	tx.Timestamp = atp.computeTimestampForRound(tx.Round)
+	tx.TimestampMs = atp.computeTimestampForRoundAsMs(tx.Round)
 	statusComputer, err := txstatus.NewStatusComputer(atp.shardCoordinator.SelfId(), atp.uint64ByteSliceConverter, atp.storageService)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", ErrNilStatusComputer.Error(), err)
@@ -614,6 +627,7 @@ func (atp *apiTransactionProcessor) getTransactionFromStorage(hash []byte) (*tra
 	}
 
 	tx.Timestamp = atp.computeTimestampForRound(tx.Round)
+	tx.TimestampMs = atp.computeTimestampForRoundAsMs(tx.Round)
 
 	// TODO: take care of this when integrating the adaptivity
 	statusComputer, err := txstatus.NewStatusComputer(atp.shardCoordinator.SelfId(), atp.uint64ByteSliceConverter, atp.storageService)

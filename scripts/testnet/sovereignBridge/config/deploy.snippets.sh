@@ -1,128 +1,62 @@
-# This function will deploy full sovereign setup:
-# - deploy all main chain contracts and update sovereign configs
-# - deploy sovereign nodes with all services
-deploySovereignWithCrossChainContracts() {
-    deployMainChainContractsAndSetupObserver $1 || return
-
-    sovereignDeploy
-}
-
-# This function will deploy main chain services:
-# - deploy all main chain contracts
-# - update sovereign configs
-# - prepare a main chain observer for sovereign nodes
-deployMainChainContractsAndSetupObserver() {
-    deployHeaderVerifierContract || return
-
-    deployEsdtSafeContract || return
-
-    setEsdtSafeAddressInHeaderVerifier
-
-    deployFeeMarketContract || return
-
-    setFeeMarketAddress
-
-    registerNativeToken
-
-    setGenesisContract
-
-    updateSovereignConfig $1 || return
-
+createAndDeployMainChainObserver() {
     prepareObserver
-}
-
-# This function will deploy sovereign:
-# - update some parameter in notifier
-# - run the sovereign nodes config
-# - deploy header verifier contract on main chain
-# - start the bridge service, nodes and the observer
-# - do other transactions in sovereign contracts
-sovereignDeploy() {
-    updateNotifierNotarizationRound
-
-    $TESTNET_DIR/config.sh
 
     createObserver
 
-    sovereignStart
+    deployObserver
+}
 
-#    registerBlsPubKeysInHeaderVerifier
+stopAndCleanMainChainObserver() {
+    stopObserver
 
-    unpauseEsdtSafeContract
+    cleanObserver
+}
 
-    fund ${WALLET_ADDRESS}
+deploySovereignWithCrossChainContracts() {
+    SOV_CHAIN_PREFIX=$(generateChainId $1)
+    echo "Sovereign chain ID: $SOV_CHAIN_PREFIX"
+
+    deployPhaseOne || return
+
+    deployPhaseTwo || return
+
+    deployPhaseThree || return
+
+    deployPhaseFour || return
+
+    updateSovereignNodeConfigs
+
+    $TESTNET_DIR/config.sh
+
+    registerBLSKeys || return
+
+    completeSetupPhase || return
+
+    startSovereign
+
+    fund $WALLET_ADDRESS
 
     unpauseEsdtSafeContractSovereign
 }
 
-# This function will start sovereign:
-# - update and start bridge service
-# - start sovereign nodes
-# - deploy main chain observer
-sovereignStart() {
-    deployObserver
-
+startSovereign() {
     updateAndStartBridgeService
 
+    local START_TIME=$(generateStartTime)
+    updateJSONValue "$TESTNETDIR/node/config/nodesSetup.json" "startTime" $START_TIME
     $TESTNET_DIR/sovereignStart.sh
+
+    waitUntilStartTime $START_TIME
 }
 
-# This function will reset sovereign:
-# - stop sovereign nodes and services
-# - deploy sovereign nodes with all services
-sovereignReset() {
-    stopAndCleanSovereign
-
-    sovereignDeploy
-}
-
-# This function will upgrade and reset sovereign:
-# - stop sovereign and clean nodes
-# - pull the latest changes for all the repositories
-# - download the new version of the contracts and update them on main chain
-# - update sovereign configs
-# - deploy sovereign nodes with all services
-sovereignUpgradeAndReset() {
-    stopAndCleanSovereign
-
-    gitPullAllChanges || return
-
-    downloadCrossChainContracts
-
-    upgradeEsdtSafeContract
-
-    upgradeFeeMarketContract
-
-    upgradeHeaderVerifierContract
-
-    setGenesisContract
-
-    updateSovereignConfig
-
-    prepareObserver
-
-    sovereignDeploy
-}
-
-# This function will stop sovereign:
-# - stop sovereign nodes
-# - stop the bridge service
-# - stop the main chain observer
 stopSovereign() {
     $TESTNET_DIR/stop.sh
 
     screen -S sovereignBridgeService -X kill
-
-    stopObserver
 }
 
-# This function will stop and clean sovereign:
-# - stop sovereign nodes and services
-# - clean the sovereign configuration and observer
 stopAndCleanSovereign() {
     stopSovereign
 
     $TESTNET_DIR/clean.sh
-
-    cleanObserver
 }

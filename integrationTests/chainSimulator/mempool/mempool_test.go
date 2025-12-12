@@ -6,10 +6,13 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
-	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/integrationTests/chainSimulator"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/storage"
 )
 
 func TestMempoolWithChainSimulator_Selection(t *testing.T) {
@@ -17,12 +20,16 @@ func TestMempoolWithChainSimulator_Selection(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
+	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
+	defer simulator.Close()
+
+	testSelection(t, simulator, process.TxCacheSelectionMaxNumTxs, 27_756)
+}
+
+func testSelection(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int, numTxsInCurrentBlock int) {
 	numSenders := 10000
 	numTransactionsPerSender := 3
 	shard := 0
-
-	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
-	defer simulator.Close()
 
 	participants := createParticipants(t, simulator, numSenders)
 	noncesTracker := newNoncesTracker()
@@ -55,17 +62,17 @@ func TestMempoolWithChainSimulator_Selection(t *testing.T) {
 	time.Sleep(durationWaitAfterSendMany)
 	require.Equal(t, 30_000, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, gas := selectTransactions(t, simulator, shard)
-	require.Equal(t, 30_000, len(selectedTransactions))
-	require.Equal(t, 50_000*30_000, int(gas))
+	selectedTransactions, gas := selectTransactions(t, simulator, shard, maxNumTxs)
+	require.Equal(t, maxNumTxs, len(selectedTransactions))
+	require.Equal(t, 50_000*maxNumTxs, int(gas))
 
 	err := simulator.GenerateBlocks(1)
 	require.Nil(t, err)
-	require.Equal(t, 27_756, getNumTransactionsInCurrentBlock(simulator, shard))
+	require.Equal(t, numTxsInCurrentBlock, getNumTransactionsInCurrentBlock(simulator, shard))
 
-	selectedTransactions, gas = selectTransactions(t, simulator, shard)
-	require.Equal(t, 30_000-27_756, len(selectedTransactions))
-	require.Equal(t, 50_000*(30_000-27_756), int(gas))
+	selectedTransactions, gas = selectTransactions(t, simulator, shard, maxNumTxs)
+	require.Equal(t, 30_000-numTxsInCurrentBlock, len(selectedTransactions))
+	require.Equal(t, 50_000*(30_000-numTxsInCurrentBlock), int(gas))
 }
 
 func TestMempoolWithChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T) {
@@ -73,10 +80,14 @@ func TestMempoolWithChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelaye
 		t.Skip("this is not a short test")
 	}
 
-	shard := 0
-
 	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
+
+	testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxs)
+}
+
+func testSelection_WhenUsersHaveZeroBalance_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int) {
+	shard := 0
 
 	err := simulator.GenerateBlocksUntilEpochIsReached(2)
 	require.NoError(t, err)
@@ -135,7 +146,7 @@ func TestMempoolWithChainSimulator_Selection_WhenUsersHaveZeroBalance_WithRelaye
 	time.Sleep(durationWaitAfterSendSome)
 	require.Equal(t, 2, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, _ := selectTransactions(t, simulator, shard)
+	selectedTransactions, _ := selectTransactions(t, simulator, shard, maxNumTxs)
 	require.Equal(t, 2, len(selectedTransactions))
 	require.Equal(t, alice.Bytes, selectedTransactions[0].Tx.GetSndAddr())
 	require.Equal(t, bob.Bytes, selectedTransactions[1].Tx.GetSndAddr())
@@ -153,11 +164,15 @@ func TestMempoolWithChainSimulator_Selection_WhenInsufficientBalanceForFee_WithR
 		t.Skip("this is not a short test")
 	}
 
-	numSenders := 3
-	shard := 0
-
 	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
 	defer simulator.Close()
+
+	testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t, simulator, process.TxCacheSelectionMaxNumTxs)
+}
+
+func testSelection_WhenInsufficientBalanceForFee_WithRelayedV3(t *testing.T, simulator chainSimulator.ChainSimulator, maxNumTxs int) {
+	numSenders := 3
+	shard := 0
 
 	err := simulator.GenerateBlocksUntilEpochIsReached(2)
 	require.NoError(t, err)
@@ -243,7 +258,7 @@ func TestMempoolWithChainSimulator_Selection_WhenInsufficientBalanceForFee_WithR
 	time.Sleep(durationWaitAfterSendSome)
 	require.Equal(t, 4, getNumTransactionsInPool(simulator, shard))
 
-	selectedTransactions, _ := selectTransactions(t, simulator, shard)
+	selectedTransactions, _ := selectTransactions(t, simulator, shard, maxNumTxs)
 	require.Equal(t, 3, len(selectedTransactions))
 	require.Equal(t, relayer.Bytes, selectedTransactions[0].Tx.GetSndAddr())
 	require.Equal(t, alice.Bytes, selectedTransactions[1].Tx.GetSndAddr())
@@ -255,12 +270,16 @@ func TestMempoolWithChainSimulator_Eviction(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
+	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
+	defer simulator.Close()
+
+	testEviction(t, simulator)
+}
+
+func testEviction(t *testing.T, simulator chainSimulator.ChainSimulator) {
 	numSenders := 10000
 	numTransactionsPerSender := 30
 	shard := 0
-
-	simulator := startChainSimulator(t, func(cfg *config.Configs) {})
-	defer simulator.Close()
 
 	participants := createParticipants(t, simulator, numSenders)
 	noncesTracker := newNoncesTracker()
@@ -324,7 +343,8 @@ func TestMempoolWithChainSimulator_Eviction(t *testing.T) {
 		Signature: []byte("signature"),
 	})
 
-	time.Sleep(2 * time.Second)
+	// Allow the eviction to complete (even if it's quite fast).
+	time.Sleep(3 * time.Second)
 
 	expectedNumTransactionsInPool := 300_000 + 1 + 1 - int(storage.TxPoolSourceMeNumItemsToPreemptivelyEvict)
 	require.Equal(t, expectedNumTransactionsInPool, getNumTransactionsInPool(simulator, shard))

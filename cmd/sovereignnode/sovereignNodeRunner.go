@@ -19,6 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/throttler"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	outportCore "github.com/multiversx/mx-chain-core-go/data/outport"
@@ -30,20 +31,19 @@ import (
 	"github.com/multiversx/mx-chain-sovereign-notifier-go/factory"
 	notifierProcess "github.com/multiversx/mx-chain-sovereign-notifier-go/process"
 
-	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
-	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
-
 	"github.com/multiversx/mx-chain-go/api/gin"
 	"github.com/multiversx/mx-chain-go/api/shared"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
+	"github.com/multiversx/mx-chain-go/cmd/sovereignnode/notifier"
+	sovRunType "github.com/multiversx/mx-chain-go/cmd/sovereignnode/runType"
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/disabled"
 	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/common/goroutines"
 	"github.com/multiversx/mx-chain-go/common/ordering"
+	runTypeCommon "github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/common/statistics"
 	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/spos"
 	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
@@ -398,6 +398,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedCoreComponents.EnableEpochsHandler(),
 		managedDataComponents.Datapool().CurrentEpochValidatorInfo(),
 		managedBootstrapComponents.NodesCoordinatorRegistryFactory(),
+		managedCoreComponents.ChainParametersHandler(),
 		managedRunTypeComponents.NodesCoordinatorWithRaterCreator(),
 	)
 	if err != nil {
@@ -578,7 +579,7 @@ func (snr *sovereignNodeRunner) executeOneComponentCreationCycle(
 		managedConsensusComponents,
 		flagsConfig.BootstrapRoundIndex,
 		configs.ImportDbConfig.IsImportDBMode,
-		node.NewSovereignNodeFactory(configs.GeneralConfig.SovereignConfig.GenesisConfig.NativeESDT),
+		node.NewSovereignNodeFactory(configs.GeneralConfig.GeneralSettings.BaseTokenID),
 		extraOptionsNotifier,
 		extraOptionOutGoingBridgeSender,
 	)
@@ -907,6 +908,7 @@ func (snr *sovereignNodeRunner) createMetrics(
 		snr.configs.EconomicsConfig,
 		snr.configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		coreComponents.MinTransactionVersion(),
+		snr.configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {
@@ -972,33 +974,22 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 
-	extraSignersHolder, err := createOutGoingTxDataSigners(cryptoComponents.ConsensusSigningHandler())
-	if err != nil {
-		return nil, err
-	}
-
-	sovSubRoundEndCreator, err := bls.NewSovereignSubRoundEndCreator(runTypeComponents.OutGoingOperationsPoolHandler(), outGoingBridgeOpHandler)
-	if err != nil {
-		return nil, err
-	}
-
 	consensusArgs := consensusComp.ConsensusComponentsFactoryArgs{
-		Config:                *snr.configs.GeneralConfig,
-		BootstrapRoundIndex:   snr.configs.FlagsConfig.BootstrapRoundIndex,
-		CoreComponents:        coreComponents,
-		NetworkComponents:     networkComponents,
-		CryptoComponents:      cryptoComponents,
-		DataComponents:        dataComponents,
-		ProcessComponents:     processComponents,
-		StateComponents:       stateComponents,
-		StatusComponents:      statusComponents,
-		StatusCoreComponents:  statusCoreComponents,
-		ScheduledProcessor:    scheduledProcessor,
-		IsInImportMode:        snr.configs.ImportDbConfig.IsImportDBMode,
-		ShouldDisableWatchdog: snr.configs.FlagsConfig.DisableConsensusWatchdog,
-		RunTypeComponents:     runTypeComponents,
-		ExtraSignersHolder:    extraSignersHolder,
-		SubRoundEndV2Creator:  sovSubRoundEndCreator,
+		Config:                  *snr.configs.GeneralConfig,
+		BootstrapRoundIndex:     snr.configs.FlagsConfig.BootstrapRoundIndex,
+		CoreComponents:          coreComponents,
+		NetworkComponents:       networkComponents,
+		CryptoComponents:        cryptoComponents,
+		DataComponents:          dataComponents,
+		ProcessComponents:       processComponents,
+		StateComponents:         stateComponents,
+		StatusComponents:        statusComponents,
+		StatusCoreComponents:    statusCoreComponents,
+		ScheduledProcessor:      scheduledProcessor,
+		IsInImportMode:          snr.configs.ImportDbConfig.IsImportDBMode,
+		ShouldDisableWatchdog:   snr.configs.FlagsConfig.DisableConsensusWatchdog,
+		RunTypeComponents:       runTypeComponents,
+		OutGoingBridgeOpHandler: outGoingBridgeOpHandler,
 	}
 
 	consensusFactory, err := consensusComp.NewConsensusComponentsFactory(consensusArgs)
@@ -1016,44 +1007,6 @@ func (snr *sovereignNodeRunner) CreateManagedConsensusComponents(
 		return nil, err
 	}
 	return managedConsensusComponents, nil
-}
-
-func createOutGoingTxDataSigners(signingHandler consensus.SigningHandler) (bls.ExtraSignersHolder, error) {
-	extraSignerHandler := signingHandler.ShallowClone()
-	startRoundExtraSignersHolder := bls.NewSubRoundStartExtraSignersHolder()
-	startRoundExtraSigner, err := bls.NewSovereignSubRoundStartOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = startRoundExtraSignersHolder.RegisterExtraSigningHandler(startRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	signRoundExtraSignersHolder := bls.NewSubRoundSignatureExtraSignersHolder()
-	signRoundExtraSigner, err := bls.NewSovereignSubRoundSignatureOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = signRoundExtraSignersHolder.RegisterExtraSigningHandler(signRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	endRoundExtraSignersHolder := bls.NewSubRoundEndExtraSignersHolder()
-	endRoundExtraSigner, err := bls.NewSovereignSubRoundEndOutGoingTxData(extraSignerHandler)
-	if err != nil {
-		return nil, err
-	}
-	err = endRoundExtraSignersHolder.RegisterExtraSigningHandler(endRoundExtraSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	return bls.NewExtraSignersHolder(
-		startRoundExtraSignersHolder,
-		signRoundExtraSignersHolder,
-		endRoundExtraSignersHolder)
 }
 
 // CreateManagedHeartbeatV2Components is the managed heartbeatV2 components factory
@@ -1179,7 +1132,7 @@ func (snr *sovereignNodeRunner) logInformation(
 		"ShardId", shardIdString,
 		"TotalShards", bootstrapComponents.ShardCoordinator().NumberOfShards(),
 		"AppVersion", snr.configs.FlagsConfig.Version,
-		"GenesisTimeStamp", coreComponents.GenesisTime().Unix(),
+		"GenesisTimeStamp", runTypeCommon.TimeToUnix(coreComponents.GenesisTime()),
 	)
 
 	sessionInfoFileOutput += "\nStarted with parameters:\n"
@@ -1594,7 +1547,7 @@ func (snr *sovereignNodeRunner) CreateManagedCoreComponents(
 		ImportDbConfig:        *snr.configs.ImportDbConfig,
 		RatingsConfig:         *snr.configs.RatingsConfig,
 		EconomicsConfig:       *snr.configs.EconomicsConfig,
-		NodesFilename:         snr.configs.ConfigurationPathsHolder.Nodes,
+		NodesConfig:           *snr.configs.NodesConfig,
 		WorkingDirectory:      snr.configs.FlagsConfig.DbDir,
 		ChanStopNodeProcess:   chanStopNodeProcess,
 		RunTypeCoreComponents: runTypeCoreComponents,
@@ -1955,10 +1908,16 @@ func createSovereignWsReceiver(
 }
 
 func createSovereignNotifier(config *config.NotifierConfig) (notifierProcess.SovereignNotifier, error) {
+	addressPubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(config.AddressPubKeyConverter.Length, config.AddressPubKeyConverter.Hrp)
+	if err != nil {
+		return nil, err
+	}
+
 	argsNotifier := factory.ArgsCreateSovereignNotifier{
-		MarshallerType:   config.WebSocketConfig.MarshallerType,
-		SubscribedEvents: getNotifierSubscribedEvents(config.SubscribedEvents),
-		HasherType:       config.WebSocketConfig.HasherType,
+		MarshallerType:         config.WebSocketConfig.MarshallerType,
+		SubscribedEvents:       getNotifierSubscribedEvents(config.SubscribedEvents),
+		HasherType:             config.WebSocketConfig.HasherType,
+		AddressPubkeyConverter: addressPubKeyConverter,
 	}
 
 	return factory.CreateSovereignNotifier(argsNotifier)

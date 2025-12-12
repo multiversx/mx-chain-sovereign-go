@@ -25,6 +25,7 @@ import (
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/enablers"
 	"github.com/multiversx/mx-chain-go/common/factory"
+	"github.com/multiversx/mx-chain-go/common/graceperiod"
 	disabledStatistics "github.com/multiversx/mx-chain-go/common/statistics/disabled"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
@@ -94,6 +95,7 @@ func createMockSovereignProcessComponentsFactoryArgs() processComp.ProcessCompon
 }
 
 func createProcessComponentsFactoryArgs(runTypeCoreComponents runType.RunTypeCoreComponentsHolder, runTypeComponents *mainFactoryMocks.RunTypeComponentsStub) processComp.ProcessComponentsFactoryArgs {
+	gracePeriod, _ := graceperiod.NewEpochChangeGracePeriod([]config.EpochChangeGracePeriodByEpoch{{EnableEpoch: 0, GracePeriodInRounds: 1}})
 	args := processComp.ProcessComponentsFactoryArgs{
 		Config: testscommon.GetGeneralConfig(),
 		EpochConfig: config.EpochConfig{
@@ -142,7 +144,8 @@ func createProcessComponentsFactoryArgs(runTypeCoreComponents runType.RunTypeCor
 					MinPassThreshold: 0.5,
 					MinVetoThreshold: 0.5,
 				},
-				OwnerAddress: "erd1vxy22x0fj4zv6hktmydg8vpfh6euv02cz4yg0aaws6rrad5a5awqgqky80",
+				OwnerAddress:                 "erd1vxy22x0fj4zv6hktmydg8vpfh6euv02cz4yg0aaws6rrad5a5awqgqky80",
+				MaxVotingDelayPeriodInEpochs: 30,
 			},
 			StakingSystemSCConfig: config.StakingSystemSCConfig{
 				GenesisNodePrice:                     "2500",
@@ -205,27 +208,31 @@ func createProcessComponentsFactoryArgs(runTypeCoreComponents runType.RunTypeCor
 				},
 			},
 			EpochChangeNotifier: &epochNotifier.EpochNotifierStub{},
-			EconomicsHandler: &economicsmocks.EconomicsHandlerStub{
-				ProtocolSustainabilityAddressCalled: func() string {
+			EconomicsHandler: &economicsmocks.EconomicsHandlerMock{
+				ProtocolSustainabilityAddressInEpochCalled: func(epoch uint32) string {
 					return testingProtocolSustainabilityAddress
 				},
+				GenesisTotalSupplyCalled: func() *big.Int {
+					return big.NewInt(100000000)
+				},
 			},
-			Hash:                         blake2b.NewBlake2b(),
-			TxVersionCheckHandler:        &testscommon.TxVersionCheckerStub{},
-			RatingHandler:                &testscommon.RaterMock{},
-			EnableEpochsHandlerField:     &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
-			EnableRoundsHandlerField:     &testscommon.EnableRoundsHandlerStub{},
-			EpochNotifierWithConfirm:     &updateMocks.EpochStartNotifierStub{},
-			RoundHandlerField:            &testscommon.RoundHandlerMock{},
-			RoundChangeNotifier:          &epochNotifier.RoundNotifierStub{},
-			ChanStopProcess:              make(chan endProcess.ArgEndProcess, 1),
-			TxSignHasherField:            keccak.NewKeccak(),
-			HardforkTriggerPubKeyField:   []byte("hardfork pub key"),
-			WasmVMChangeLockerInternal:   &sync.RWMutex{},
-			NodeTypeProviderField:        &nodeTypeProviderMock.NodeTypeProviderStub{},
-			RatingsConfig:                &testscommon.RatingsInfoMock{},
-			PathHdl:                      &testscommon.PathManagerStub{},
-			ProcessStatusHandlerInternal: &testscommon.ProcessStatusHandlerStub{},
+			EpochChangeGracePeriodHandlerField: gracePeriod,
+			Hash:                               blake2b.NewBlake2b(),
+			TxVersionCheckHandler:              &testscommon.TxVersionCheckerStub{},
+			RatingHandler:                      &testscommon.RaterMock{},
+			EnableEpochsHandlerField:           &enableEpochsHandlerMock.EnableEpochsHandlerStub{},
+			EnableRoundsHandlerField:           &testscommon.EnableRoundsHandlerStub{},
+			EpochNotifierWithConfirm:           &updateMocks.EpochStartNotifierStub{},
+			RoundHandlerField:                  &testscommon.RoundHandlerMock{},
+			RoundChangeNotifier:                &epochNotifier.RoundNotifierStub{},
+			ChanStopProcess:                    make(chan endProcess.ArgEndProcess, 1),
+			TxSignHasherField:                  keccak.NewKeccak(),
+			HardforkTriggerPubKeyField:         []byte("hardfork pub key"),
+			WasmVMChangeLockerInternal:         &sync.RWMutex{},
+			NodeTypeProviderField:              &nodeTypeProviderMock.NodeTypeProviderStub{},
+			RatingsConfig:                      &testscommon.RatingsInfoMock{},
+			PathHdl:                            &testscommon.PathManagerStub{},
+			ProcessStatusHandlerInternal:       &testscommon.ProcessStatusHandlerStub{},
 		},
 		Crypto: &testsMocks.CryptoComponentsStub{
 			BlKeyGen: &cryptoMocks.KeyGenStub{},
@@ -369,7 +376,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler: &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler: &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:      nil,
 		}
 		pcf, err := processComp.NewProcessComponentsFactory(args)
@@ -381,7 +388,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler: &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler: &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:      &nodesSetupMock.NodesSetupStub{},
 			AddrPubKeyConv:   nil,
 		}
@@ -394,7 +401,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler:    &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler:    &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:         &nodesSetupMock.NodesSetupStub{},
 			AddrPubKeyConv:      &testscommon.PubkeyConverterStub{},
 			EpochChangeNotifier: nil,
@@ -408,7 +415,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler:    &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler:    &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:         &nodesSetupMock.NodesSetupStub{},
 			AddrPubKeyConv:      &testscommon.PubkeyConverterStub{},
 			EpochChangeNotifier: &epochNotifier.EpochNotifierStub{},
@@ -423,7 +430,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler:    &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler:    &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:         &nodesSetupMock.NodesSetupStub{},
 			AddrPubKeyConv:      &testscommon.PubkeyConverterStub{},
 			EpochChangeNotifier: &epochNotifier.EpochNotifierStub{},
@@ -439,7 +446,7 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 
 		args := createMockProcessComponentsFactoryArgs()
 		args.CoreData = &mock.CoreComponentsMock{
-			EconomicsHandler:    &economicsmocks.EconomicsHandlerStub{},
+			EconomicsHandler:    &economicsmocks.EconomicsHandlerMock{},
 			NodesConfig:         &nodesSetupMock.NodesSetupStub{},
 			AddrPubKeyConv:      &testscommon.PubkeyConverterStub{},
 			EpochChangeNotifier: &epochNotifier.EpochNotifierStub{},
@@ -1082,6 +1089,17 @@ func TestNewProcessComponentsFactory(t *testing.T) {
 		require.True(t, errors.Is(err, errorsMx.ErrNilOutportDataProviderFactory))
 		require.Nil(t, pcf)
 	})
+	t.Run("nil HeaderSigVerifierFactory should error", func(t *testing.T) {
+		t.Parallel()
+
+		args := createMockProcessComponentsFactoryArgs()
+		rtMock := getRunTypeComponentsMock()
+		rtMock.HeaderSigVerifierFactoryField = nil
+		args.RunTypeComponents = rtMock
+		pcf, err := processComp.NewProcessComponentsFactory(args)
+		require.True(t, errors.Is(err, errorsMx.ErrNilHeaderSigVerifierFactory))
+		require.Nil(t, pcf)
+	})
 	t.Run("nil IncomingHeaderSubscriber should error", func(t *testing.T) {
 		t.Parallel()
 
@@ -1163,6 +1181,9 @@ func getRunTypeComponents(rt runType.RunTypeComponentsHolder) *mainFactoryMocks.
 		DirectStakedListFactoryField:                rt.DirectStakedListFactoryHandler(),
 		TotalStakedValueFactoryField:                rt.TotalStakedValueFactoryHandler(),
 		VersionedHeaderFactoryField:                 rt.VersionedHeaderFactory(),
+		CrawlerAddressGetterField:                   rt.CrawlerAddressGetter(),
+		HeaderSigVerifierFactoryField:               rt.HeaderSigVerifierFactory(),
+		ExtraSignersHolderField:                     rt.ExtraSignersHolder(),
 	}
 }
 

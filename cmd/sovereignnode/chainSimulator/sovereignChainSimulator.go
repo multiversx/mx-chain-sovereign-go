@@ -3,6 +3,9 @@ package chainSimulator
 import (
 	"path"
 
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	sovCommon "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/common"
 	sovChainSimConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator/configs"
 	sovereignConfig "github.com/multiversx/mx-chain-go/cmd/sovereignnode/config"
@@ -16,12 +19,14 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	chainSimulatorConfigs "github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
+	chainSimProc "github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
 )
 
 const (
 	numOfShards = 1
+	baseTokenID = "EGLD-000000"
 )
 
 // ArgsSovereignChainSimulator holds the arguments for sovereign chain simulator
@@ -40,19 +45,21 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 		return nil, err
 	}
 
+	var nativeBaseToken = baseTokenID
 	args.AlterConfigsFunction = func(cfg *config.Configs) {
-		cfg.EconomicsConfig = configs.EconomicsConfig
 		cfg.EpochConfig = configs.EpochConfig
 		cfg.GeneralConfig.SovereignConfig = *configs.SovereignExtraConfig
 		cfg.GeneralConfig.VirtualMachine.Execution.WasmVMVersions = []config.WasmVMVersionByEpoch{{StartEpoch: 0, Version: "v1.5"}}
 		cfg.GeneralConfig.VirtualMachine.Querying.WasmVMVersions = []config.WasmVMVersionByEpoch{{StartEpoch: 0, Version: "v1.5"}}
 		cfg.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix = "sov"
 		cfg.GeneralConfig.Versions.VersionsByEpochs = []config.VersionByEpochs{{StartEpoch: 0, Version: string(process.SovereignHeaderVersion)}}
-
+		cfg.SystemSCConfig.StakingSystemSCConfig.NodeLimitPercentage = 0.4
 		if alterConfigs != nil {
 			alterConfigs(cfg)
 			configs.SovereignExtraConfig = &cfg.GeneralConfig.SovereignConfig
 		}
+
+		nativeBaseToken = cfg.GeneralConfig.GeneralSettings.BaseTokenID
 	}
 
 	args.CreateRunTypeCoreComponents = func() (factory.RunTypeCoreComponentsHolder, error) {
@@ -66,11 +73,13 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 			return sovCommon.CreateSovereignRunTypeComponents(args, *configs.SovereignExtraConfig)
 		}
 	}
-	args.NodeFactory = node.NewSovereignNodeFactory(configs.SovereignExtraConfig.GenesisConfig.NativeESDT)
+
+	args.NodeFactory = node.NewSovereignNodeFactory(nativeBaseToken)
 	args.ChainProcessorFactory = NewSovereignChainHandlerFactory()
 	args.GenerateGenesisFile = func(args chainSimulatorConfigs.ArgsChainSimulatorConfigs, configs *config.Configs) (*dtos.InitialWalletKeys, error) {
 		return sovChainSimConfig.GenerateSovereignGenesisFile(args, configs)
 	}
+	args.AddProofsFunc = addProofsInSovereign
 
 	return chainSimulator.NewSovereignChainSimulator(*args.ArgsChainSimulator)
 }
@@ -78,11 +87,6 @@ func NewSovereignChainSimulator(args ArgsSovereignChainSimulator) (chainSimulato
 // loadSovereignConfigs loads sovereign configs
 func loadSovereignConfigs(configsPath string) (*sovereignConfig.SovereignConfig, error) {
 	epochConfig, err := common.LoadEpochConfig(path.Join(configsPath, "enableEpochs.toml"))
-	if err != nil {
-		return nil, err
-	}
-
-	economicsConfig, err := common.LoadEconomicsConfig(path.Join(configsPath, "economics.toml"))
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +103,7 @@ func loadSovereignConfigs(configsPath string) (*sovereignConfig.SovereignConfig,
 
 	return &sovereignConfig.SovereignConfig{
 		Configs: &config.Configs{
-			EpochConfig:     epochConfig,
-			EconomicsConfig: economicsConfig,
+			EpochConfig: epochConfig,
 		},
 		SovereignExtraConfig: sovereignExtraConfig,
 		SovereignEpochConfig: sovereignEpochConfig,
@@ -119,4 +122,16 @@ func createSovereignRunTypeCoreComponents(sovereignEpochConfig config.SovereignE
 	}
 
 	return managedRunTypeCoreComponents, nil
+}
+
+func addProofsInSovereign(nodes map[uint32]chainSimProc.NodeHandler) {
+	nodeHandler := nodes[core.SovereignChainShardId]
+
+	proof := &block.HeaderProof{
+		HeaderShardId: core.SovereignChainShardId,
+		HeaderHash:    nodeHandler.GetChainHandler().GetGenesisHeaderHash(),
+	}
+
+	proofsPool := nodes[core.SovereignChainShardId].GetDataComponents().Datapool().Proofs()
+	_ = proofsPool.AddProof(proof)
 }

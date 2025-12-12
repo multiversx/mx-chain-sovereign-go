@@ -6,15 +6,16 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-go/process/mock"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/process/mock"
 )
 
 func TestTokenProcessorProcessEventWrongNumberOfTopics(t *testing.T) {
 	t.Parallel()
 
-	tp := newTokensProcessor(&mock.ShardCoordinatorStub{})
+	tp := newTokensProcessor(&mock.ShardCoordinatorStub{}, vmcommon.EGLDIdentifier)
 
 	markedAccounts := make(map[string]*markedAlteredAccount)
 	tp.processEvent(&transaction.Event{
@@ -37,7 +38,7 @@ func TestTokenProcessorProcessEventWrongNumberOfTopics(t *testing.T) {
 func TestTokenProcessorProcessEventMultiTransferV2(t *testing.T) {
 	t.Parallel()
 
-	tp := newTokensProcessor(&mock.ShardCoordinatorStub{})
+	tp := newTokensProcessor(&mock.ShardCoordinatorStub{}, vmcommon.EGLDIdentifier)
 
 	markedAccounts := make(map[string]*markedAlteredAccount)
 	tp.processEvent(&transaction.Event{
@@ -66,7 +67,7 @@ func TestTokenProcessorProcessEventMultiTransferV2(t *testing.T) {
 func TestTokenProcessorProcessEventMultiTransferV2WithEGLD(t *testing.T) {
 	t.Parallel()
 
-	tp := newTokensProcessor(&mock.ShardCoordinatorStub{})
+	tp := newTokensProcessor(&mock.ShardCoordinatorStub{}, vmcommon.EGLDIdentifier)
 
 	markedAccounts := make(map[string]*markedAlteredAccount)
 	tp.processEvent(&transaction.Event{
@@ -101,7 +102,7 @@ func TestTokenProcessorProcessEventMultiTransferV2WithEGLD(t *testing.T) {
 func TestTokenProcessorProcessEventMultiTransferV2WithEGLDAndMoreTokens(t *testing.T) {
 	t.Parallel()
 
-	tp := newTokensProcessor(&mock.ShardCoordinatorStub{})
+	tp := newTokensProcessor(&mock.ShardCoordinatorStub{}, vmcommon.EGLDIdentifier)
 
 	markedAccounts := make(map[string]*markedAlteredAccount)
 	tp.processEvent(&transaction.Event{

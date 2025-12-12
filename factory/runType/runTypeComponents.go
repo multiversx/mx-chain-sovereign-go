@@ -9,6 +9,8 @@ import (
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
 	"github.com/multiversx/mx-chain-go/consensus/broadcastFactory"
+	"github.com/multiversx/mx-chain-go/consensus/spos/bls"
+	"github.com/multiversx/mx-chain-go/consensus/spos/extraSigners/holders"
 	"github.com/multiversx/mx-chain-go/consensus/spos/sposFactory"
 	sovereignBlock "github.com/multiversx/mx-chain-go/dataRetriever/dataPool/sovereign"
 	requesterscontainer "github.com/multiversx/mx-chain-go/dataRetriever/factory/requestersContainer"
@@ -41,8 +43,10 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/shard"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/headerCheck"
+	headerSigVerifierFactory "github.com/multiversx/mx-chain-go/process/headerCheck/factory"
 	"github.com/multiversx/mx-chain-go/process/peer"
 	"github.com/multiversx/mx-chain-go/process/scToProtocol"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processProxy"
 	"github.com/multiversx/mx-chain-go/process/smartContract/scrCommon"
@@ -66,14 +70,14 @@ import (
 // ArgsRunTypeComponents struct holds the arguments for run type component
 type ArgsRunTypeComponents struct {
 	CoreComponents   process.CoreComponentsHolder
-	CryptoComponents process.CryptoComponentsHolder
+	CryptoComponents mainFactory.CryptoComponentsHolder
 	Configs          config.Configs
 	InitialAccounts  []genesis.InitialAccountHandler
 }
 
 type runTypeComponentsFactory struct {
 	coreComponents   process.CoreComponentsHolder
-	cryptoComponents process.CryptoComponentsHolder
+	cryptoComponents mainFactory.CryptoComponentsHolder
 	configs          config.Configs
 	initialAccounts  []genesis.InitialAccountHandler
 }
@@ -134,6 +138,9 @@ type runTypeComponents struct {
 	directStakedListFactoryHandler          trieIteratorsFactory.DirectStakedListProcessorFactoryHandler
 	totalStakedValueFactoryHandler          trieIteratorsFactory.TotalStakedValueProcessorFactoryHandler
 	versionedHeaderFactory                  genesis.VersionedHeaderFactory
+	crawlerAddressGetter                    crawlerAddressGetter.CrawlerAddressGetterHandler
+	headerSigVerifierFactory                headerSigVerifierFactory.HeaderSigVerifierFactory
+	extraSignersHolder                      bls.ExtraSignersHolder
 }
 
 // NewRunTypeComponentsFactory will return a new instance of runTypeComponentsFactory
@@ -262,6 +269,9 @@ func (rcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 		directStakedListFactoryHandler:          trieIteratorsFactory.NewDirectStakedListProcessorFactory(),
 		totalStakedValueFactoryHandler:          trieIteratorsFactory.NewTotalStakedListProcessorFactory(),
 		versionedHeaderFactory:                  versionedHeaderFactory,
+		crawlerAddressGetter:                    crawlerAddressGetter.NewCrawlerAddressGetter(),
+		headerSigVerifierFactory:                headerSigVerifierFactory.NewHeaderSignatureVerifyFactory(),
+		extraSignersHolder:                      holders.NewEmptyExtraSignersHolder(),
 	}, nil
 }
 

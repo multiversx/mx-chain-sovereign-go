@@ -37,6 +37,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/coordinator"
 	"github.com/multiversx/mx-chain-go/process/smartContract"
 	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks/counters"
 	"github.com/multiversx/mx-chain-go/process/txstatus"
@@ -131,6 +132,9 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 	if check.IfNil(args.RunTypeComponents.APIRewardsTxHandler()) {
 		return nil, errErd.ErrNilAPIRewardsHandler
 	}
+	if check.IfNil(args.RunTypeComponents.CrawlerAddressGetter()) {
+		return nil, process.ErrNilCrawlerAllowedAddress
+	}
 
 	argsSCQuery := &scQueryServiceArgs{
 		generalConfig:              args.Configs.GeneralConfig,
@@ -178,6 +182,8 @@ func CreateApiResolver(args *ApiResolverArgs) (facade.ApiResolver, error) {
 		args.Configs.GeneralConfig.VirtualMachine.Querying.TransferAndExecuteByUserAddresses,
 		[]byte(args.Configs.SystemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
+		args.RunTypeComponents.CrawlerAddressGetter(),
+		args.Configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	)
 	if err != nil {
 		return nil, err
@@ -407,6 +413,8 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		args.generalConfig.VirtualMachine.Querying.TransferAndExecuteByUserAddresses,
 		[]byte(args.systemSCConfig.ESDTSystemSCConfig.ESDTPrefix),
 		pkConverter,
+		args.runTypeComponents.CrawlerAddressGetter(),
+		args.generalConfig.GeneralSettings.BaseTokenID,
 	)
 	if err != nil {
 		return nil, nil, err
@@ -441,6 +449,8 @@ func createArgsSCQueryService(args *scQueryElementArgs) (*smartContract.ArgsNewS
 		MissingTrieNodesNotifier: syncer.NewMissingTrieNodesNotifier(),
 		Accounts:                 accountsAdapterApi,
 		BlockChain:               apiBlockchain,
+		EpochStartTrigger:        args.processComponents.EpochStartTrigger(),
+		RoundHandler:             args.processComponents.RoundHandler(),
 	}
 
 	var vmContainer process.VirtualMachinesContainer
@@ -675,6 +685,8 @@ func createBuiltinFuncs(
 	whiteListedCrossChainAddresses []string,
 	selfESDTPrefix []byte,
 	pubKeyConverter core.PubkeyConverter,
+	crawlerAddressGetter crawlerAddressGetter.CrawlerAddressGetterHandler,
+	baseTokenID string,
 ) (vmcommon.BuiltInFunctionFactory, error) {
 	argsBuiltIn := builtInFunctions.ArgsCreateBuiltInFunctionContainer{
 		GasSchedule:                    gasScheduleNotifier,
@@ -692,6 +704,8 @@ func createBuiltinFuncs(
 		MaxNumAddressesInTransferRole:  maxNumAddressesInTransferRole,
 		SelfESDTPrefix:                 selfESDTPrefix,
 		PubKeyConverter:                pubKeyConverter,
+		CrawlerAddressGetterHandler:    crawlerAddressGetter,
+		BaseTokenID:                    baseTokenID,
 	}
 	return builtInFunctions.CreateBuiltInFunctionsFactory(argsBuiltIn)
 }
@@ -734,6 +748,7 @@ func createAPIBlockProcessorArgs(args *ApiResolverArgs, apiTransactionHandler ex
 		AddressConverter:       args.CoreComponents.AddressPubKeyConverter(),
 		AccountsDB:             args.StateComponents.AccountsAdapterAPI(),
 		EsdtDataStorageHandler: args.ProcessComponents.ESDTDataStorageHandlerForAPI(),
+		BaseTokenID:            args.Configs.GeneralConfig.GeneralSettings.BaseTokenID,
 	})
 	if err != nil {
 		return nil, err
@@ -755,6 +770,8 @@ func createAPIBlockProcessorArgs(args *ApiResolverArgs, apiTransactionHandler ex
 		AccountsRepository:           args.StateComponents.AccountsRepository(),
 		ScheduledTxsExecutionHandler: args.ProcessComponents.ScheduledTxsExecutionHandler(),
 		EnableEpochsHandler:          args.CoreComponents.EnableEpochsHandler(),
+		ProofsPool:                   args.DataComponents.Datapool().Proofs(),
+		BlockChain:                   args.DataComponents.Blockchain(),
 	}
 
 	return blockApiArgs, nil

@@ -13,10 +13,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/display"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
 	"github.com/multiversx/mx-chain-go/process"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 type transactionCounter struct {
@@ -134,10 +135,11 @@ func (txc *transactionCounter) displayLogInfo(
 	headerHash []byte,
 	numShards uint32,
 	selfId uint32,
-	_ dataRetriever.PoolsHolder,
+	dataPool dataRetriever.PoolsHolder,
 	blockTracker process.BlockTracker,
 ) {
-	dispHeader, dispLines := txc.createDisplayableShardHeaderAndBlockBody(header, body)
+	headerProof, _ := dataPool.Proofs().GetProof(selfId, headerHash)
+	dispHeader, dispLines := txc.createDisplayableShardHeaderAndBlockBody(header, body, headerProof)
 
 	tblString, err := display.CreateTableString(dispHeader, dispLines)
 	if err != nil {
@@ -162,6 +164,7 @@ func (txc *transactionCounter) displayLogInfo(
 func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 	header data.HeaderHandler,
 	body *block.Body,
+	headerProof data.HeaderProofHandler,
 ) ([]string, []*display.LineData) {
 
 	tableHeader := []string{"Part", "Parameter", "Value"}
@@ -177,7 +180,7 @@ func (txc *transactionCounter) createDisplayableShardHeaderAndBlockBody(
 			getShardName(header.GetShardID())}),
 	}
 
-	lines := displayHeader(header)
+	lines := displayHeader(header, headerProof)
 
 	shardLines := make([]*display.LineData, 0, len(lines)+len(headerLines))
 	shardLines = append(shardLines, headerLines...)
@@ -212,39 +215,55 @@ func (txc *transactionCounter) displaySovereignChainHeader(
 	header sovereignChainHeader,
 ) []*display.LineData {
 	lines = txc.displayExtendedShardHeaderHashesIncluded(lines, header.GetExtendedShardHeaderHashes())
-	lines = txc.displayOutGoingTxData(lines, header.GetOutGoingMiniBlockHeaderHandler())
+	lines = txc.displayOutGoingMiniBlocks(lines, header.GetOutGoingMiniBlockHeaderHandlers())
 	lines = txc.displayLastCrossChainNotarizedHeader(lines, header)
+
+	return lines
+}
+
+func (txc *transactionCounter) displayOutGoingMiniBlocks(
+	lines []*display.LineData,
+	outGoingMbs []data.OutGoingMiniBlockHeaderHandler,
+) []*display.LineData {
+	for _, outGoingMB := range outGoingMbs {
+		lines = txc.displayOutGoingTxData(lines, outGoingMB)
+	}
 
 	return lines
 }
 
 func (txc *transactionCounter) displayOutGoingTxData(
 	lines []*display.LineData,
-	outGoingTxData data.OutGoingMiniBlockHeaderHandler,
+	outGoingMb data.OutGoingMiniBlockHeaderHandler,
 ) []*display.LineData {
-	if check.IfNil(outGoingTxData) {
+	if check.IfNil(outGoingMb) {
 		return lines
 	}
 
 	lines = append(lines, display.NewLineData(false, []string{
 		"OutGoing mini block header",
 		"Hash",
-		logger.DisplayByteSlice(outGoingTxData.GetHash())}),
+		logger.DisplayByteSlice(outGoingMb.GetHash())}),
+	)
+	lines = append(lines, display.NewLineData(false, []string{
+		"",
+		"Type",
+		block.OutGoingMBType(outGoingMb.GetOutGoingMBTypeInt32()).String()}),
 	)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"OutGoingTxDataHash",
-		logger.DisplayByteSlice(outGoingTxData.GetOutGoingOperationsHash())}),
+		logger.DisplayByteSlice(outGoingMb.GetOutGoingOperationsHash())}),
 	)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"AggregatedSignatureOutGoingOperations",
-		logger.DisplayByteSlice(outGoingTxData.GetAggregatedSignatureOutGoingOperations())}),
+		logger.DisplayByteSlice(outGoingMb.GetAggregatedSignatureOutGoingOperations())}),
 	)
 	lines = append(lines, display.NewLineData(false, []string{
 		"",
 		"LeaderSignatureOutGoingOperations",
-		logger.DisplayByteSlice(outGoingTxData.GetLeaderSignatureOutGoingOperations())}),
+		logger.DisplayByteSlice(outGoingMb.GetLeaderSignatureOutGoingOperations())}),
 	)
 
 	lines[len(lines)-1].HorizontalRuleAfter = true
@@ -398,7 +417,7 @@ func (txc *transactionCounter) displayTxBlockBody(
 			senderShardStr,
 			receiverShardStr)
 
-		if miniBlock.TxHashes == nil || len(miniBlock.TxHashes) == 0 {
+		if len(miniBlock.TxHashes) == 0 {
 			lines = append(lines, display.NewLineData(false, []string{
 				part, "", "<EMPTY>"}))
 		}

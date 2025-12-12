@@ -6,12 +6,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	vmcommonBuiltInFunctions "github.com/multiversx/mx-chain-vm-common-go/builtInFunctions"
 
+	"github.com/multiversx/mx-chain-go/errors"
+	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
 )
@@ -32,9 +34,11 @@ type ArgsCreateBuiltInFunctionContainer struct {
 	EnableEpochsHandler            vmcommon.EnableEpochsHandler
 	GuardedAccountHandler          vmcommon.GuardedAccountHandler
 	PubKeyConverter                core.PubkeyConverter
+	CrawlerAddressGetterHandler    crawlerAddressGetter.CrawlerAddressGetterHandler
 	AutomaticCrawlerAddresses      [][]byte
 	MaxNumAddressesInTransferRole  uint32
 	SelfESDTPrefix                 []byte
+	BaseTokenID                    string
 }
 
 // CreateBuiltInFunctionsFactory creates a container that will hold all the available built in functions
@@ -69,13 +73,16 @@ func CreateBuiltInFunctionsFactory(args ArgsCreateBuiltInFunctionContainer) (vmc
 	if len(args.WhiteListedCrossChainAddresses) == 0 {
 		return nil, fmt.Errorf("%w for cross chain whitelisted addresses", process.ErrTransferAndExecuteByUserAddressesAreNil)
 	}
+	if check.IfNil(args.CrawlerAddressGetterHandler) {
+		return nil, errors.ErrNilCrawlerAddressGetter
+	}
 
 	vmcommonAccounts, ok := args.Accounts.(vmcommon.AccountsAdapter)
 	if !ok {
 		return nil, process.ErrWrongTypeAssertion
 	}
 
-	crawlerAllowedAddress, err := GetAllowedAddress(
+	crawlerAllowedAddress, err := args.CrawlerAddressGetterHandler.GetAllowedAddress(
 		args.ShardCoordinator,
 		args.AutomaticCrawlerAddresses)
 	if err != nil {
@@ -111,6 +118,7 @@ func CreateBuiltInFunctionsFactory(args ArgsCreateBuiltInFunctionContainer) (vmc
 		MaxNumOfAddressesForTransferRole:  args.MaxNumAddressesInTransferRole,
 		ConfigAddress:                     crawlerAllowedAddress,
 		SelfESDTPrefix:                    args.SelfESDTPrefix,
+		BaseTokenID:                       []byte(args.BaseTokenID),
 	}
 
 	bContainerFactory, err := vmcommonBuiltInFunctions.NewBuiltInFunctionsCreator(modifiedArgs)
@@ -141,28 +149,4 @@ func AddressListToMap(addresses []string, pubKeyConverter core.PubkeyConverter) 
 	}
 
 	return addressesMap, nil
-}
-
-// GetAllowedAddress returns the allowed crawler address on the current shard
-func GetAllowedAddress(coordinator sharding.Coordinator, addresses [][]byte) ([]byte, error) {
-	if check.IfNil(coordinator) {
-		return nil, process.ErrNilShardCoordinator
-	}
-
-	if len(addresses) == 0 {
-		return nil, fmt.Errorf("%w for shard %d, provided count is %d", process.ErrNilCrawlerAllowedAddress, coordinator.SelfId(), len(addresses))
-	}
-
-	if coordinator.SelfId() == core.MetachainShardId {
-		return core.SystemAccountAddress, nil
-	}
-
-	for _, address := range addresses {
-		allowedAddressShardId := coordinator.ComputeId(address)
-		if allowedAddressShardId == coordinator.SelfId() {
-			return address, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%w for shard %d, provided count is %d", process.ErrNilCrawlerAllowedAddress, coordinator.SelfId(), len(addresses))
 }

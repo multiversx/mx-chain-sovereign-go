@@ -12,15 +12,15 @@ fi
 
 if [[ "$DISTRIBUTION" =~ ^(fedora|centos|rhel)$ ]]; then
   export PACKAGE_MANAGER="dnf"
-  export REQUIRED_PACKAGES="git golang gcc lsof jq curl $tmux"
+  export REQUIRED_PACKAGES="git golang gcc lsof jq curl python3-pip $tmux"
   export INSTALL_PACKAGES_COMMAND="sudo $PACKAGE_MANAGER install -y $REQUIRED_PACKAGES"
 elif [[ "$DISTRIBUTION" =~ ^(ubuntu|debian)$ ]]; then
   export PACKAGE_MANAGER="apt-get"
-  export REQUIRED_PACKAGES="git gcc lsof jq curl $tmux"
+  export REQUIRED_PACKAGES="git gcc lsof jq curl python3-pip $tmux"
   export INSTALL_PACKAGES_COMMAND="sudo $PACKAGE_MANAGER install -y $REQUIRED_PACKAGES"
 elif [[ "$DISTRIBUTION" =~ ^(arch)$ ]]; then
   export PACKAGE_MANAGER="pacman"
-  export REQUIRED_PACKAGES="git gcc lsof jq curl $tmux"
+  export REQUIRED_PACKAGES="git gcc lsof jq curl python3-pip $tmux"
   export INSTALL_PACKAGES_COMMAND="sudo $PACKAGE_MANAGER -S $REQUIRED_PACKAGES"
 fi
 
@@ -33,13 +33,14 @@ if [ -z "$INSTALL_PACKAGES_COMMAND" ]; then
 else
   echo "Using $PACKAGE_MANAGER to install required packages: $REQUIRED_PACKAGES"
   $INSTALL_PACKAGES_COMMAND
+  pip install multiversx-sdk
 fi
 
 if [[ "$DISTRIBUTION" =~ ^(ubuntu|debian)$ ]]; then
 
   if ! [ -x "$(command -v go)" ]; then
     echo "Installing Go..."
-    GO_LATEST="go1.20"
+    GO_LATEST="go1.23.0"
     wget https://dl.google.com/go/$GO_LATEST.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf $GO_LATEST.linux-amd64.tar.gz
     rm $GO_LATEST.linux-amd64.tar.gz

@@ -59,6 +59,8 @@ def main():
     with open(toml_path, 'w') as file:
         file.writelines(updated_lines)
 
+    print(f"MainChainNotarizationStartRound set to {current_round + 5}")
+
 
 if __name__ == "__main__":
     main()

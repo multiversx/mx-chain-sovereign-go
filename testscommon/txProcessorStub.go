@@ -13,6 +13,7 @@ type TxProcessorStub struct {
 	VerifyTransactionCalled            func(tx *transaction.Transaction) error
 	VerifyGuardianCalled               func(tx *transaction.Transaction, account state.UserAccountHandler) error
 	GetSenderAndReceiverAccountsCalled func(tx *transaction.Transaction) (state.UserAccountHandler, state.UserAccountHandler, error)
+	GetRelayerAccountCalled            func(tx *transaction.Transaction) (state.UserAccountHandler, error)
 }
 
 // ProcessTransaction -
@@ -49,6 +50,15 @@ func (tps *TxProcessorStub) GetSenderAndReceiverAccounts(tx *transaction.Transac
 	}
 
 	return nil, nil, nil
+}
+
+// GetRelayerAccount -
+func (tps *TxProcessorStub) GetRelayerAccount(tx *transaction.Transaction) (state.UserAccountHandler, error) {
+	if tps.GetRelayerAccountCalled != nil {
+		return tps.GetRelayerAccountCalled(tx)
+	}
+
+	return nil, nil
 }
 
 // IsInterfaceNil -

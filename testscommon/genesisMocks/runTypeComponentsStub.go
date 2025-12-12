@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/factory/shard"
 	"github.com/multiversx/mx-chain-go/process/factory/shard/data"
 	"github.com/multiversx/mx-chain-go/process/factory/sovereign"
+	"github.com/multiversx/mx-chain-go/process/smartContract/builtInFunctions/crawlerAddressGetter"
 	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processProxy"
 	"github.com/multiversx/mx-chain-go/process/smartContract/processorV2"
@@ -18,7 +19,7 @@ import (
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/state"
 	"github.com/multiversx/mx-chain-go/state/factory"
-	"github.com/multiversx/mx-chain-go/testscommon"
+	"github.com/multiversx/mx-chain-go/testscommon/cache"
 	"github.com/multiversx/mx-chain-go/testscommon/enableEpochsHandlerMock"
 	"github.com/multiversx/mx-chain-go/testscommon/hashingMocks"
 	"github.com/multiversx/mx-chain-go/testscommon/marshallerMock"
@@ -41,6 +42,7 @@ type RunTypeComponentsStub struct {
 	VmContainerMetaFactory                    factoryVm.VmContainerCreator
 	PreProcessorsContainerFactoryCreatorField data.PreProcessorsContainerFactoryCreator
 	VersionedHeaderFactoryField               genesis.VersionedHeaderFactory
+	CrawlerAddressGetterField                 crawlerAddressGetter.CrawlerAddressGetterHandler
 }
 
 // NewRunTypeComponentsStub -
@@ -67,6 +69,7 @@ func NewRunTypeComponentsStub() *RunTypeComponentsStub {
 		VmContainerMetaFactory:                    vmContainerMeta,
 		PreProcessorsContainerFactoryCreatorField: shard.NewPreProcessorContainerFactoryCreator(),
 		VersionedHeaderFactoryField:               hdrFactory,
+		CrawlerAddressGetterField:                 crawlerAddressGetter.NewCrawlerAddressGetter(),
 	}
 }
 
@@ -105,6 +108,7 @@ func NewSovereignRunTypeComponentsStub() *RunTypeComponentsStub {
 		VmContainerMetaFactory:                    sovVMContainerMeta,
 		PreProcessorsContainerFactoryCreatorField: sovereign.NewSovereignPreProcessorContainerFactoryCreator(),
 		VersionedHeaderFactoryField:               sovHdrFactory,
+		CrawlerAddressGetterField:                 crawlerAddressGetter.NewSovereignCrawlerAddressGetter(),
 	}
 }
 
@@ -116,7 +120,7 @@ func createHeaderVersionHandler(version string) nodeFactory.HeaderVersionHandler
 			},
 		},
 		version,
-		&testscommon.CacherStub{},
+		&cache.CacherStub{},
 	)
 	return hdrVersionHandler
 }
@@ -184,6 +188,11 @@ func (r *RunTypeComponentsStub) PreProcessorsContainerFactoryCreator() data.PreP
 // VersionedHeaderFactory  -
 func (r *RunTypeComponentsStub) VersionedHeaderFactory() genesis.VersionedHeaderFactory {
 	return r.VersionedHeaderFactoryField
+}
+
+// CrawlerAddressGetter -
+func (r *RunTypeComponentsStub) CrawlerAddressGetter() crawlerAddressGetter.CrawlerAddressGetterHandler {
+	return r.CrawlerAddressGetterField
 }
 
 // IsInterfaceNil -

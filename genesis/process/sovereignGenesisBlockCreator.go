@@ -13,8 +13,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/dataRetriever"
+	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/factory/addressDecoder"
 	"github.com/multiversx/mx-chain-go/genesis"
 	genesisCommon "github.com/multiversx/mx-chain-go/genesis/process/common"
@@ -34,7 +36,7 @@ func NewSovereignGenesisBlockCreator(gbc *genesisBlockCreator) (*sovereignGenesi
 		return nil, errNilGenesisBlockCreator
 	}
 
-	log.Debug("NewSovereignGenesisBlockCreator", "native esdt token", gbc.arg.Config.SovereignConfig.GenesisConfig.NativeESDT)
+	log.Debug("NewSovereignGenesisBlockCreator", "native esdt token", gbc.arg.Config.GeneralSettings.BaseTokenID)
 
 	return &sovereignGenesisBlockCreator{
 		genesisBlockCreator: gbc,
@@ -285,16 +287,16 @@ func createSovereignShardGenesisBlock(
 		return nil, nil, nil, err
 	}
 
-	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
 	deploySystemSCTxs, err := deploySystemSmartContracts(arg, metaProcessor.txProcessor, metaProcessor.systemSCs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	indexingData.DeploySystemScTxs = deploySystemSCTxs
+
+	err = initSystemSCs(shardProcessors.vmContainer, arg.Accounts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	stakingTxs, err := setSovereignStakedData(arg, metaProcessor, nodesListSplitter)
 	if err != nil {
@@ -395,7 +397,7 @@ func setSovereignStakedData(
 
 	stakedNodes := nodesListSplitter.GetAllNodes()
 	argsUpdateOwnersForBlsKeys := make([][]byte, 0)
-	for _, nodeInfo := range stakedNodes {
+	for idx, nodeInfo := range stakedNodes {
 		senderAcc, err := arg.Accounts.LoadAccount(nodeInfo.AddressBytes())
 		if err != nil {
 			return nil, err
@@ -429,6 +431,11 @@ func setSovereignStakedData(
 			return nil, genesis.ErrBLSKeyNotStaked
 		}
 
+		err = setGenesisNodeChainID(idx+1, arg.ValidatorAccounts, nodeInfo.PubKeyBytes())
+		if err != nil {
+			return nil, err
+		}
+
 		argsUpdateOwnersForBlsKeys = append(argsUpdateOwnersForBlsKeys, nodeInfo.PubKeyBytes())
 		argsUpdateOwnersForBlsKeys = append(argsUpdateOwnersForBlsKeys, senderAcc.AddressBytes())
 	}
@@ -443,6 +450,32 @@ func setSovereignStakedData(
 	)
 
 	return stakingTxs, nil
+}
+
+// setGenesisNodeChainID assigns ascending numerical IDs to BLS keys, based on their order in the genesis config file.
+// Each ID is stored as a 2-byte big-endian number.
+func setGenesisNodeChainID(id int, peerAccountsDB state.AccountsAdapter, key []byte) error {
+	valAcc, err := getPeerAccount(peerAccountsDB, key)
+	if err != nil {
+		return err
+	}
+
+	valAcc.SetMainChainID(runType.UIntToBytes(uint32(id)))
+	return peerAccountsDB.SaveAccount(valAcc)
+}
+
+func getPeerAccount(peerAccountsDB state.AccountsAdapter, key []byte) (state.PeerAccountHandler, error) {
+	account, err := peerAccountsDB.LoadAccount(key)
+	if err != nil {
+		return nil, err
+	}
+
+	peerAcc, ok := account.(state.PeerAccountHandler)
+	if !ok {
+		return nil, epochStart.ErrWrongTypeAssertion
+	}
+
+	return peerAcc, nil
 }
 
 func updateOwnersForBlsKeys(

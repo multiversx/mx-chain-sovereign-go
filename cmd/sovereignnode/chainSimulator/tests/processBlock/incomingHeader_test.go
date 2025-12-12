@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/sovereign"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/stretchr/testify/require"
 
 	sovereignChainSimulator "github.com/multiversx/mx-chain-go/cmd/sovereignnode/chainSimulator"
@@ -25,9 +26,11 @@ import (
 	"github.com/multiversx/mx-chain-go/node/chainSimulator"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/components/api"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/configs"
+	"github.com/multiversx/mx-chain-go/node/chainSimulator/dtos"
 	"github.com/multiversx/mx-chain-go/node/chainSimulator/process"
 	proc "github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader"
+	sovBlock "github.com/multiversx/mx-chain-go/process/block/sovereign"
+	"github.com/multiversx/mx-chain-go/process/block/sovereign/incomingHeader/dto"
 	"github.com/multiversx/mx-chain-go/testscommon"
 	"github.com/multiversx/mx-chain-go/testscommon/components"
 	testFactory "github.com/multiversx/mx-chain-go/testscommon/factory"
@@ -72,16 +75,27 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 
 	defer cs.Close()
 
-	token := "TKN-123456"
-	amountToTransfer := "123"
-	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+	headerNonce := uint64(9999999)
+	prevHeader := createHeaderV2(headerNonce, generateRandomHash(), generateRandomHash())
 
 	receiverWallet, err := cs.GenerateAndMintWalletAddress(core.SovereignChainShardId, chainSim.ZeroValue)
 	require.Nil(t, err)
 
-	headerNonce := uint64(9999999)
-	prevHeader := createHeaderV2(headerNonce, generateRandomHash(), generateRandomHash())
+	prevHeader = processIncomingHeaderWithToken(t, cs, receiverWallet, "EGLD", "15", &headerNonce, prevHeader)
+	processIncomingHeaderWithToken(t, cs, receiverWallet, "TKN-123456", "123", &headerNonce, prevHeader)
+}
+
+func processIncomingHeaderWithToken(
+	t *testing.T,
+	cs chainSim.ChainSimulator,
+	receiverWallet dtos.WalletAddress,
+	token string,
+	amountToTransfer string,
+	headerNonce *uint64,
+	prevHeader *block.HeaderV2,
+) *block.HeaderV2 {
 	txsEvent := make([]*transaction.Event, 0)
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
 
 	for i := 0; i < 3; i++ {
 		if i == 1 {
@@ -90,8 +104,8 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 			txsEvent = nil
 		}
 
-		incomingHdr, headerHash := createIncomingHeader(nodeHandler, &headerNonce, prevHeader, txsEvent)
-		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
+		incomingHdr, headerHash := createIncomingHeader(nodeHandler, headerNonce, prevHeader, txsEvent)
+		err := nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHdr)
 		require.Nil(t, err)
 
 		prevHeader = incomingHdr.Header
@@ -100,11 +114,23 @@ func TestSovereignChainSimulator_IncomingHeader(t *testing.T) {
 		require.Nil(t, err)
 	}
 
+	expectedToken := token
+	if token == "EGLD" {
+		expectedToken = vmcommon.EGLDIdentifier
+	}
+
 	esdts, _, err := nodeHandler.GetFacadeHandler().GetAllESDTTokens(receiverWallet.Bech32, coreAPI.AccountQueryOptions{})
 	require.Nil(t, err)
 	require.NotNil(t, esdts)
-	require.True(t, esdts[token] != nil)
-	require.Equal(t, amountToTransfer, esdts[token].Value.String())
+	require.True(t, esdts[expectedToken] != nil)
+	require.Equal(t, amountToTransfer, esdts[expectedToken].Value.String())
+
+	// ESDT System account should not contain any data about the fungible token
+	accountKeys, _, err := nodeHandler.GetFacadeHandler().GetKeyValuePairs(chainSim.ESDTSystemAccount, coreAPI.AccountQueryOptions{})
+	require.Nil(t, err)
+	require.Empty(t, accountKeys)
+
+	return prevHeader
 }
 
 // In this test we simulate:
@@ -428,6 +454,77 @@ func TestSovereignChainSimulator_AddIncomingHeaderCase3(t *testing.T) {
 
 }
 
+func TestSovereignChainSimulator_ConfirmBridgeOpChangeValidatorSet(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this is not a short test")
+	}
+
+	roundsPerEpoch := core.OptionalUint64{
+		HasValue: true,
+		Value:    20,
+	}
+
+	cs, err := sovereignChainSimulator.NewSovereignChainSimulator(sovereignChainSimulator.ArgsSovereignChainSimulator{
+		SovereignConfigPath: sovereignConfigPath,
+		ArgsChainSimulator: &chainSimulator.ArgsChainSimulator{
+			BypassTxSignatureCheck:   true,
+			TempDir:                  t.TempDir(),
+			PathToInitialConfig:      defaultPathToInitialConfig,
+			GenesisTimestamp:         time.Now().Unix(),
+			RoundDurationInMillis:    uint64(6000),
+			RoundsPerEpoch:           roundsPerEpoch,
+			ApiInterface:             api.NewNoApiInterface(),
+			MinNodesPerShard:         6,
+			NumNodesWaitingListShard: 2,
+			AlterConfigsFunction: func(cfg *config.Configs) {
+				cfg.GeneralConfig.SovereignConfig.OutgoingSubscribedEvents.TimeToWaitForUnconfirmedOutGoingOperationInSeconds = 1
+				cfg.GeneralConfig.SovereignConfig.MainChainNotarization.MainChainNotarizationStartRound = 0
+			},
+		},
+	})
+	require.Nil(t, err)
+	require.NotNil(t, cs)
+
+	defer cs.Close()
+
+	nodeHandler := cs.GetNodeHandler(core.SovereignChainShardId)
+
+	incomingHdrNonce := uint64(1)
+	prevHeader := createHeaderV2(incomingHdrNonce, generateRandomHash(), generateRandomHash())
+	incomingHeader, headerHash := createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, nil)
+	err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
+	require.Nil(t, err)
+
+	for epoch := int32(1); epoch < 5; epoch++ {
+		err = cs.GenerateBlocksUntilEpochIsReached(epoch)
+		require.Nil(t, err)
+
+		time.Sleep(time.Second)
+
+		err = cs.GenerateBlocks(5)
+		require.Nil(t, err)
+
+		unconfirmedOps := nodeHandler.GetRunTypeComponents().OutGoingOperationsPoolHandler().GetUnconfirmedOperations()
+		require.Len(t, unconfirmedOps, 1)
+		require.Equal(t, int32(block.OutGoingMbChangeValidatorSet), unconfirmedOps[0].Type)
+		require.Equal(t, uint32(epoch), unconfirmedOps[0].Epoch)
+
+		hashOfHashes := unconfirmedOps[0].Hash
+		hashOfOperation := unconfirmedOps[0].OutGoingOperations[0].Hash
+
+		confirmBridgeOpEvent := &transaction.Event{
+			Identifier: []byte(dto.EventIDConfirmedChangeValidatorSet),
+			Topics:     [][]byte{[]byte(dto.TopicIDConfirmedOutGoingOperation), hashOfHashes, hashOfOperation},
+		}
+
+		incomingHeader, headerHash = createIncomingHeader(nodeHandler, &incomingHdrNonce, prevHeader, []*transaction.Event{confirmBridgeOpEvent})
+		err = nodeHandler.GetIncomingHeaderSubscriber().AddHeader(headerHash, incomingHeader)
+		require.Nil(t, err)
+
+		prevHeader = incomingHeader.Header
+	}
+}
+
 func getExtendedHeader(t *testing.T, nodeHandler process.NodeHandler, incomingHdr *sovereign.IncomingHeader) data.HeaderHandler {
 	extendedHeader, err := nodeHandler.GetIncomingHeaderSubscriber().CreateExtendedHeader(incomingHdr)
 	require.Nil(t, err)
@@ -494,7 +591,7 @@ func generateRandomHash() []byte {
 	return randomBytes
 }
 
-func createTransactionsEvent(dataCodecHandler incomingHeader.SovereignDataCodec, receiver []byte, token string, amountToTransfer string) []*transaction.Event {
+func createTransactionsEvent(dataCodecHandler sovBlock.DataCodecHandler, receiver []byte, token string, amountToTransfer string) []*transaction.Event {
 	tokenData, _ := dataCodecHandler.SerializeTokenData(createTokenData(amountToTransfer))
 	eventData, _ := dataCodecHandler.SerializeEventData(createEventData())
 

@@ -6,8 +6,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	outportcore "github.com/multiversx/mx-chain-core-go/data/outport"
+
 	"github.com/multiversx/mx-chain-go/sharding"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const (
@@ -20,9 +20,10 @@ const (
 type tokensProcessor struct {
 	shardCoordinator sharding.Coordinator
 	tokensIdentifier map[string]struct{}
+	baseTokenID      string
 }
 
-func newTokensProcessor(shardCoordinator sharding.Coordinator) *tokensProcessor {
+func newTokensProcessor(shardCoordinator sharding.Coordinator, baseTokenID string) *tokensProcessor {
 	return &tokensProcessor{
 		tokensIdentifier: map[string]struct{}{
 			core.BuiltInFunctionESDTTransfer:         {},
@@ -39,6 +40,7 @@ func newTokensProcessor(shardCoordinator sharding.Coordinator) *tokensProcessor 
 			core.BuiltInFunctionESDTUnFreeze:         {},
 		},
 		shardCoordinator: shardCoordinator,
+		baseTokenID:      baseTokenID,
 	}
 }
 
@@ -135,7 +137,7 @@ func (tp *tokensProcessor) processMultiTransferEvent(event data.EventHandler, ma
 		tokenID := topics[i]
 		nonceBigInt := big.NewInt(0).SetBytes(topics[i+1])
 
-		if string(tokenID) == vmcommon.EGLDIdentifier {
+		if string(tokenID) == tp.baseTokenID {
 			tp.processNativeEGLDTransferWithMultiTransfer(destinationAddress, markedAlteredAccounts)
 			continue
 		}

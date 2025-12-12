@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
+	"github.com/multiversx/mx-chain-go/common/runType"
 	"github.com/multiversx/mx-chain-go/epochStart"
 	"github.com/multiversx/mx-chain-go/epochStart/metachain"
 	"github.com/multiversx/mx-chain-go/epochStart/shardchain"
@@ -47,8 +48,9 @@ func (f *epochStartTriggerFactory) CreateEpochStartTrigger(args factory.ArgsEpoc
 
 func createShardEpochStartTrigger(args factory.ArgsEpochStartTrigger) (epochStart.TriggerHandler, error) {
 	argsHeaderValidator := block.ArgsHeaderValidator{
-		Hasher:      args.CoreData.Hasher(),
-		Marshalizer: args.CoreData.InternalMarshalizer(),
+		Hasher:              args.CoreData.Hasher(),
+		Marshalizer:         args.CoreData.InternalMarshalizer(),
+		EnableEpochsHandler: args.CoreData.EnableEpochsHandler(),
 	}
 	headerValidator, err := args.RunTypeComponentsHolder.HeaderValidatorCreator().CreateHeaderValidator(argsHeaderValidator)
 	if err != nil {
@@ -94,7 +96,7 @@ func createMetaEpochStartTriggerArgs(args factory.ArgsEpochStartTrigger) (*metac
 	}
 
 	return &metachain.ArgsNewMetaEpochStartTrigger{
-		GenesisTime:        time.Unix(args.CoreData.GenesisNodesSetup().GetStartTime(), 0),
+		GenesisTime:        runType.UnixToTime(args.CoreData.GenesisNodesSetup().GetStartTime()),
 		Settings:           &args.Config.EpochStartConfig,
 		Epoch:              args.BootstrapComponents.EpochBootstrapParams().Epoch(),
 		EpochStartRound:    genesisHeader.GetRound(),

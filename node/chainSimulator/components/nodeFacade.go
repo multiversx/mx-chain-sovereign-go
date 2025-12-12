@@ -11,15 +11,17 @@ import (
 	"github.com/multiversx/mx-chain-go/common/forking"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/facade"
+	"github.com/multiversx/mx-chain-go/factory"
 	apiComp "github.com/multiversx/mx-chain-go/factory/api"
 	nodePack "github.com/multiversx/mx-chain-go/node"
+	simulatorHeartbeat "github.com/multiversx/mx-chain-go/node/chainSimulator/components/heartbeat"
 	"github.com/multiversx/mx-chain-go/node/metrics"
 	"github.com/multiversx/mx-chain-go/process/mock"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 )
 
-func (node *testOnlyProcessingNode) createFacade(configs config.Configs, apiInterface APIConfigurator, vmQueryDelayAfterStartInMs uint64, nodeFactory nodePack.NodeFactory) error {
+func (node *testOnlyProcessingNode) createFacade(configs config.Configs, apiInterface APIConfigurator, vmQueryDelayAfterStartInMs uint64, nodeFactory nodePack.NodeFactory, monitor factory.HeartbeatV2Monitor) error {
 	log.Debug("creating api resolver structure")
 
 	err := node.createMetrics(configs)
@@ -75,6 +77,13 @@ func (node *testOnlyProcessingNode) createFacade(configs config.Configs, apiInte
 
 	flagsConfig := configs.FlagsConfig
 
+	heartbeatComponents, err := simulatorHeartbeat.NewSyncedHeartbeatComponents(monitor)
+	if err != nil {
+		return err
+	}
+
+	node.closeHandler.AddComponent(heartbeatComponents)
+
 	nd, err := nodeFactory.CreateNewNode(
 		nodePack.WithRunTypeComponents(node.RunTypeComponents),
 		nodePack.WithStatusCoreComponents(node.StatusCoreComponents),
@@ -88,7 +97,6 @@ func (node *testOnlyProcessingNode) createFacade(configs config.Configs, apiInte
 		nodePack.WithNetworkComponents(node.NetworkComponentsHolder),
 		nodePack.WithInitialNodesPubKeys(node.CoreComponentsHolder.GenesisNodesSetup().InitialNodesPubKeys()),
 		nodePack.WithRoundDuration(node.CoreComponentsHolder.GenesisNodesSetup().GetRoundDuration()),
-		nodePack.WithConsensusGroupSize(int(node.CoreComponentsHolder.GenesisNodesSetup().GetShardConsensusGroupSize())),
 		nodePack.WithGenesisTime(node.CoreComponentsHolder.GenesisTime()),
 		nodePack.WithConsensusType(configs.GeneralConfig.Consensus.Type),
 		nodePack.WithRequestedItemsHandler(node.ProcessComponentsHolder.RequestedItemsHandler()),
@@ -98,6 +106,7 @@ func (node *testOnlyProcessingNode) createFacade(configs config.Configs, apiInte
 		nodePack.WithNodeStopChannel(node.CoreComponentsHolder.ChanStopNodeProcess()),
 		nodePack.WithImportMode(configs.ImportDbConfig.IsImportDBMode),
 		nodePack.WithESDTNFTStorageHandler(node.ProcessComponentsHolder.ESDTDataStorageHandlerForAPI()),
+		nodePack.WithHeartbeatV2Components(heartbeatComponents),
 	)
 	if err != nil {
 		return errors.New("error creating node: " + err.Error())
@@ -166,6 +175,7 @@ func (node *testOnlyProcessingNode) createMetrics(configs config.Configs) error 
 		configs.EconomicsConfig,
 		configs.GeneralConfig.EpochStartConfig.RoundsPerEpoch,
 		node.CoreComponentsHolder.MinTransactionVersion(),
+		configs.GeneralConfig.AddressPubkeyConverter.Hrp,
 	)
 
 	if err != nil {

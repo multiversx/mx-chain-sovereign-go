@@ -5,9 +5,15 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+
 	"github.com/multiversx/mx-chain-go/storage"
 	"github.com/multiversx/mx-chain-go/storage/mock"
 )
+
+// GetIsClosed -
+func (pd *persisterData) GetIsClosed() bool {
+	return pd.getIsClosed()
+}
 
 // NewEmptyPruningStorer -
 func NewEmptyPruningStorer() *PruningStorer {
@@ -40,6 +46,11 @@ func (ps *PruningStorer) AddMockActivePersisters(epochs []uint32, ordered bool, 
 func (ps *PruningStorer) ClearPersisters() {
 	ps.activePersisters = make([]*persisterData, 0)
 	ps.persistersMapByEpoch = make(map[uint32]*persisterData)
+}
+
+// PersistersMapByEpoch -
+func (ps *PruningStorer) PersistersMapByEpoch() map[uint32]*persisterData {
+	return ps.persistersMapByEpoch
 }
 
 // AddMockActivePersister -
@@ -97,6 +108,11 @@ func (ps *PruningStorer) ChangeEpochSimple(epochNum uint32) error {
 	return ps.changeEpoch(&block.Header{Epoch: epochNum})
 }
 
+// CreateNextEpochPersisterIfNeeded -
+func (ps *PruningStorer) CreateNextEpochPersisterIfNeeded(epoch uint32) {
+	ps.createNextEpochPersisterIfNeeded(epoch)
+}
+
 // ChangeEpochWithExisting -
 func (ps *PruningStorer) ChangeEpochWithExisting(epoch uint32) error {
 	return ps.changeEpochWithExisting(epoch)
@@ -113,6 +129,23 @@ func (ps *PruningStorer) GetActivePersistersEpochs() []uint32 {
 	}
 
 	return sliceToRet
+}
+
+// GetPersistersEpochs -
+func (ps *PruningStorer) GetPersistersEpochs() []uint32 {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	persistersEpochs := make([]uint32, 0)
+	for epoch := range ps.persistersMapByEpoch {
+		persistersEpochs = append(persistersEpochs, epoch)
+	}
+
+	sort.Slice(persistersEpochs, func(i, j int) bool {
+		return persistersEpochs[i] > persistersEpochs[j]
+	})
+
+	return persistersEpochs
 }
 
 // GetActivePersistersEpochs -
