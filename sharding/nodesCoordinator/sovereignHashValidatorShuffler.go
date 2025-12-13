@@ -11,18 +11,14 @@ type sovereignHashValidatorShuffler struct {
 	*randHashShuffler
 }
 
-func newSovereignHashValidatorShuffler(baseShuffler NodesShuffler) (*sovereignHashValidatorShuffler, error) {
-	if check.IfNil(baseShuffler) {
+// NewSovereignHashValidatorsShuffler creates a new sovereign hash validator shuffler
+func NewSovereignHashValidatorsShuffler(shuffler *randHashShuffler) (*sovereignHashValidatorShuffler, error) {
+	if check.IfNil(shuffler) {
 		return nil, ErrNilShuffler
 	}
 
-	randShuffler, castOK := baseShuffler.(*randHashShuffler)
-	if !castOK {
-		return nil, ErrWrongTypeAssertion
-	}
-
 	return &sovereignHashValidatorShuffler{
-		randShuffler,
+		shuffler,
 	}, nil
 }
 

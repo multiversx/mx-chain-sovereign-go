@@ -6,13 +6,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/endProcess"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	wasmConfig "github.com/multiversx/mx-chain-vm-go/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-go/testscommon/consensus"
 
 	"github.com/multiversx/mx-chain-go/common"
 	commonFactory "github.com/multiversx/mx-chain-go/common/factory"
@@ -348,6 +349,7 @@ func GetDataArgs(coreComponents factory.CoreComponentsHolder, shardCoordinator s
 // GetCoreComponents -
 func GetCoreComponents() factory.CoreComponentsHolder {
 	coreArgs := GetCoreArgs()
+	coreArgs.EpochConfig.EnableEpochs.ConsensusModelV2EnableEpoch = 99999
 	return createCoreComponents(coreArgs)
 }
 
@@ -356,24 +358,19 @@ func GetSovereignCoreComponents() factory.CoreComponentsHolder {
 	sovRunTypeCoreComponents := GetSovereignRunTypeCoreComponents()
 	coreArgs := GetCoreArgs()
 
-	// TODO: MARIUS C: MX-16953 Inject all necessary sov args for sovereign in run type
+	coreArgs.Config.GeneralSettings.GenesisMaxNumberOfShards = 1
 	coreArgs.Config.GeneralSettings.ChainParametersByEpoch = []config.ChainParametersByEpochConfig{
 		{
 			RoundDuration:               5000,
 			Hysteresis:                  0,
 			EnableEpoch:                 0,
-			ShardConsensusGroupSize:     1,
-			ShardMinNumNodes:            1,
+			ShardConsensusGroupSize:     3,
+			ShardMinNumNodes:            3,
 			MetachainConsensusGroupSize: 0,
 			MetachainMinNumNodes:        0,
 			Adaptivity:                  false,
 		},
 	}
-
-	var nodesSetup config.NodesConfig
-	_ = core.LoadJsonFile(&nodesSetup, "../mock/testdata/sovereignNodesSetupMock.json")
-	coreArgs.NodesConfig = nodesSetup
-
 	coreArgs.RunTypeCoreComponents = sovRunTypeCoreComponents
 	return createCoreComponents(coreArgs)
 }
@@ -760,7 +757,7 @@ func GetSovereignProcessArgs(
 		networkComponents,
 	)
 
-	initialAccounts := createSovereignAccounts()
+	initialAccounts := createAccounts()
 	runTypeComponents := GetRunTypeComponentsStub(GetSovereignRunTypeComponents())
 	runTypeComponents.AccountParser = &mock.AccountsParserStub{
 		InitialAccountsCalled: func() []genesis.InitialAccountHandler {
@@ -1148,42 +1145,6 @@ func createAccounts() []genesis.InitialAccountHandler {
 	acc3.SetAddressBytes(acc3Bytes)
 
 	return []genesis.InitialAccountHandler{&acc1, &acc2, &acc3}
-}
-
-func createSovereignAccounts() []genesis.InitialAccountHandler {
-	addrConverter, _ := commonFactory.NewPubkeyConverter(config.PubkeyConfig{
-		Length:          32,
-		Type:            "bech32",
-		SignatureLength: 0,
-		Hrp:             "erd",
-	})
-	acc1 := data.InitialAccount{
-		Address:      "erd1whq0zspt6ktnv37gqj303da0vygyqwf5q52m7erftd0rl7laygfs6rhpct",
-		Supply:       big.NewInt(0).Mul(big.NewInt(10000000), big.NewInt(1000000000000000000)),
-		Balance:      big.NewInt(0).Mul(big.NewInt(9997500), big.NewInt(1000000000000000000)),
-		StakingValue: big.NewInt(0).Mul(big.NewInt(2500), big.NewInt(1000000000000000000)),
-		Delegation: &data.DelegationData{
-			Address: "",
-			Value:   big.NewInt(0),
-		},
-	}
-	acc2 := data.InitialAccount{
-		Address:      "erd129ppuuvtylghsx7muf29xnzw5lm9v2v8h4942ynymjpu2ftycgtq0rgq3h",
-		Supply:       big.NewInt(0).Mul(big.NewInt(10000000), big.NewInt(1000000000000000000)),
-		Balance:      big.NewInt(0).Mul(big.NewInt(9997500), big.NewInt(1000000000000000000)),
-		StakingValue: big.NewInt(0).Mul(big.NewInt(2500), big.NewInt(1000000000000000000)),
-		Delegation: &data.DelegationData{
-			Address: "",
-			Value:   big.NewInt(0),
-		},
-	}
-
-	acc1Bytes, _ := addrConverter.Decode(acc1.Address)
-	acc1.SetAddressBytes(acc1Bytes)
-
-	acc2Bytes, _ := addrConverter.Decode(acc2.Address)
-	acc2.SetAddressBytes(acc2Bytes)
-	return []genesis.InitialAccountHandler{&acc1, &acc2}
 }
 
 func createArgsRunTypeComponents() runType.ArgsRunTypeComponents {

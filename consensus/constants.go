@@ -12,4 +12,6 @@ const (
 	ConsensusModelV1 ConsensusModel = "consensus model v1"
 	// ConsensusModelV2 defines the second variant of the consensus model
 	ConsensusModelV2 ConsensusModel = "consensus model v2"
+	// ConsensusModelSovereign defines the sovereign variant of the consensus model
+	ConsensusModelSovereign ConsensusModel = "consensus model sovereign"
 )

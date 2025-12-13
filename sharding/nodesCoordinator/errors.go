@@ -134,3 +134,6 @@ var ErrInvalidSovereignChainShardId = errors.New("shard id does not match core.S
 var ErrMetachainShardIdNotFound = errors.New("core.MetachainShardId was not found")
 
 var errInvalidConsensusGroupSize = errors.New("invalid consensus group size")
+
+// ErrNilHashValidatorShufflerFactory signals that a nil hash validator shuffler factory has been provided
+var ErrNilHashValidatorShufflerFactory = errors.New("nil hash validator shuffler factory has been provided")

@@ -12,6 +12,7 @@ type sovereignIndexHashedNodesCoordinator struct {
 	*indexHashedNodesCoordinator
 }
 
+// NewSovereignIndexHashedNodesCoordinator creates a new sovereign index hashed nodes coordinator
 func NewSovereignIndexHashedNodesCoordinator(arguments ArgNodesCoordinator) (*sovereignIndexHashedNodesCoordinator, error) {
 	err := checkSovereignArguments(arguments)
 	if err != nil {
@@ -32,17 +33,11 @@ func NewSovereignIndexHashedNodesCoordinator(arguments ArgNodesCoordinator) (*so
 
 	savedKey := arguments.Hasher.Compute(string(arguments.SelfPublicKey))
 
-	// TODO: MX-15633 Once we have sovereign core components merged, we should delete this and have it directly from constructor
-	sovereignShuffler, err := newSovereignHashValidatorShuffler(arguments.Shuffler)
-	if err != nil {
-		return nil, err
-	}
-
 	ihnc := &sovereignIndexHashedNodesCoordinator{
 		indexHashedNodesCoordinator: &indexHashedNodesCoordinator{
 			marshalizer:                     arguments.Marshalizer,
 			hasher:                          arguments.Hasher,
-			shuffler:                        sovereignShuffler,
+			shuffler:                        arguments.Shuffler,
 			epochStartRegistrationHandler:   arguments.EpochStartNotifier,
 			bootStorer:                      arguments.BootStorer,
 			selfPubKey:                      arguments.SelfPublicKey,

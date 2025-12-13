@@ -18,9 +18,11 @@ import (
 
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/factory"
 	consensusComp "github.com/multiversx/mx-chain-go/factory/consensus"
 	"github.com/multiversx/mx-chain-go/integrationTests"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/testscommon/components"
 	consensusMocks "github.com/multiversx/mx-chain-go/testscommon/consensus"
 	"github.com/multiversx/mx-chain-go/testscommon/sovereign"
 )
@@ -65,7 +67,8 @@ func TestConsensusBLSWithFullProcessing_BeforeEquivalentProofs(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, integrationTests.UnreachableEpoch, integrationTests.UnreachableEpoch, 1)
+	testConsensusBLSWithFullProcessing(t, integrationTests.UnreachableEpoch, integrationTests.UnreachableEpoch, 1, 2, 2, components.GetRunTypeComponents())
+	testConsensusBLSWithFullProcessing(t, integrationTests.UnreachableEpoch, uint32(0), 1, 0, 1, components.GetSovereignRunTypeComponents())
 }
 
 func TestConsensusBLSWithFullProcessing_WithEquivalentProofs(t *testing.T) {
@@ -73,7 +76,8 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 1)
+	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 1, 2, 2, components.GetRunTypeComponents())
+	testConsensusBLSWithFullProcessing(t, uint32(0), uint32(0), 1, 0, 1, components.GetSovereignRunTypeComponents())
 }
 
 func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testing.T) {
@@ -81,11 +85,19 @@ func TestConsensusBLSWithFullProcessing_WithEquivalentProofs_MultiKeys(t *testin
 		t.Skip("this is not a short test")
 	}
 
-	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 3)
+	testConsensusBLSWithFullProcessing(t, uint32(0), integrationTests.UnreachableEpoch, 3, 2, 2, components.GetRunTypeComponents())
+	testConsensusBLSWithFullProcessing(t, uint32(0), uint32(0), 3, 0, 1, components.GetSovereignRunTypeComponents())
 }
 
-func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivationEpoch uint32, sovereignConsensusActivationEpoch uint32, numKeysOnEachNode int) {
-	numMetaNodes := uint32(2)
+func testConsensusBLSWithFullProcessing(
+	t *testing.T,
+	equivalentProofsActivationEpoch uint32,
+	sovereignConsensusActivationEpoch uint32,
+	numKeysOnEachNode int,
+	numMetaNodes uint32,
+	numOfShards uint32,
+	runTypeComponents factory.RunTypeComponentsHandler,
+) {
 	numNodes := uint32(2)
 	consensusSize := uint32(2 * numKeysOnEachNode)
 	roundTime := uint64(1000)
@@ -97,7 +109,6 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 	)
 
 	enableEpochsConfig := integrationTests.CreateEnableEpochsConfig()
-
 	enableEpochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
 	enableEpochsConfig.ConsensusModelV2EnableEpoch = sovereignConsensusActivationEpoch
 
@@ -106,13 +117,14 @@ func testConsensusBLSWithFullProcessing(t *testing.T, equivalentProofsActivation
 	nodes := integrationTests.CreateNodesWithTestFullNode(
 		int(numMetaNodes),
 		int(numNodes),
+		numOfShards,
 		int(consensusSize),
 		roundTime,
 		blsConsensusType,
 		numKeysOnEachNode,
 		enableEpochsConfig,
 		true,
-		false, // is sovereign // TODO: MARIUS C: MX-16953 Have these tests also working when consensus v2 is fully integrated in sovereign
+		runTypeComponents, // is sovereign // TODO: MARIUS C: MX-16953 Have these tests also working when consensus v2 is fully integrated in sovereign
 	)
 
 	for shardID, nodesList := range nodes {

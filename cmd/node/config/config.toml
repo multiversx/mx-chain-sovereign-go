@@ -37,8 +37,6 @@
     SetGuardianEpochsDelay = 2
 
     # ChainParametersByEpoch defines chain operation configurable values that can be modified based on epochs
-
-    # TODO: MARIUS C: MX-16953 have this overridable config in cmd/sovereign/config/prefs.toml
     ChainParametersByEpoch = [
         { EnableEpoch = 0, RoundDuration = 6000, ShardConsensusGroupSize = 7, ShardMinNumNodes = 10, MetachainConsensusGroupSize = 10, MetachainMinNumNodes = 10, Hysteresis = 0.2, Adaptivity = false },
         { EnableEpoch = 1, RoundDuration = 6000, ShardConsensusGroupSize = 10, ShardMinNumNodes = 10, MetachainConsensusGroupSize = 10, MetachainMinNumNodes = 10, Hysteresis = 0.2, Adaptivity = false }

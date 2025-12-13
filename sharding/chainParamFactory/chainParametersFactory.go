@@ -8,7 +8,7 @@ import (
 type chainParametersHolderFactory struct {
 }
 
-// NewChainParametersHolderFactory creates a new chain paramters holder factory
+// NewChainParametersHolderFactory creates a new chain parameters holder factory
 func NewChainParametersHolderFactory() *chainParametersHolderFactory {
 	return &chainParametersHolderFactory{}
 }

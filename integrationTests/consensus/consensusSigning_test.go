@@ -7,52 +7,41 @@ import (
 	"testing"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/multiversx/mx-chain-go/consensus"
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/integrationTests"
-
-	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-go/testscommon/components"
 )
 
 func initNodesWithTestSigner(
 	numMetaNodes,
 	numNodes,
+	numOfShards,
 	consensusSize,
 	numInvalid uint32,
 	roundTime uint64,
 	consensusType string,
-	// TODO: Marius C: MX-16953 Inject run type comps here
-	consensusModel consensus.ConsensusModel,
+	enableEpochsConfig config.EnableEpochs,
+	runTypeComponents factory.RunTypeComponentsHandler,
 ) (map[uint32][]*integrationTests.TestFullNode, map[string]struct{}) {
-
 	fmt.Println("Step 1. Setup nodes...")
-
-	equivalentProofsActivationEpoch := uint32(0)
-
-	enableEpochsConfig := integrationTests.CreateEnableEpochsConfig()
-	enableEpochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
-	isSovereign := false
-	if consensusModel == consensus.ConsensusModelV2 {
-		// TODO: MARIUS C: MX-16953 Here, have this enabled when we integrate consensus v2 into sovereign consensus
-		enableEpochsConfig.AndromedaEnableEpoch = 99999
-		enableEpochsConfig.ConsensusModelV2EnableEpoch = 0
-		isSovereign = true
-	} else {
-		enableEpochsConfig.ConsensusModelV2EnableEpoch = 999999
-	}
 
 	nodes := integrationTests.CreateNodesWithTestFullNode(
 		int(numMetaNodes),
 		int(numNodes),
+		numOfShards,
 		int(consensusSize),
 		roundTime,
 		consensusType,
 		1,
 		enableEpochsConfig,
 		false,
-		isSovereign,
+		runTypeComponents,
 	)
 
 	time.Sleep(p2pBootstrapDelay)
@@ -90,28 +79,43 @@ func TestConsensusWithInvalidSignersConsensusModelV1(t *testing.T) {
 		t.Skip("this is not a short test")
 	}
 
-	runConsensusWithInvalidSigners(t, consensus.ConsensusModelV1)
+	equivalentProofsActivationEpoch := uint32(0)
+
+	epochsConfig := integrationTests.GetDefaultEnableEpochsConfig()
+	epochsConfig.AndromedaEnableEpoch = equivalentProofsActivationEpoch
+	epochsConfig.ConsensusModelV2EnableEpoch = 999999
+
+	runConsensusWithInvalidSigners(t, 4, 2, *epochsConfig, components.GetRunTypeComponents())
 }
 
 // TODO: MARIUS C: MX-16953 Fix this test once we have run type comps integrated in this node
-/*
-func TestConsensusWithInvalidSignersConsensusModelV2(t *testing.T) {
+func TestConsensusWithInvalidSignersConsensusModelSovereign(t *testing.T) {
 	if testing.Short() {
 		t.Skip("this is not a short test")
 	}
 
-	runConsensusWithInvalidSigners(t, consensus.ConsensusModelV2)
-}
-*/
+	logger.SetLogLevel("*:TRACE")
 
-func runConsensusWithInvalidSigners(t *testing.T, consensusModel consensus.ConsensusModel) {
-	numMetaNodes := uint32(4)
+	epochsConfig := integrationTests.GetDefaultEnableEpochsConfig()
+	epochsConfig.AndromedaEnableEpoch = 99999
+	epochsConfig.ConsensusModelV2EnableEpoch = 0
+
+	runConsensusWithInvalidSigners(t, 0, 1, *epochsConfig, components.GetSovereignRunTypeComponents())
+}
+
+func runConsensusWithInvalidSigners(
+	t *testing.T,
+	numMetaNodes,
+	numOfShards uint32,
+	enableEpochsConfig config.EnableEpochs,
+	runTypeComponents factory.RunTypeComponentsHandler,
+) {
 	numNodes := uint32(4)
 	consensusSize := uint32(4)
 	numInvalid := uint32(1)
 	roundTime := uint64(1000)
 
-	nodes, invalidNodesAddresses := initNodesWithTestSigner(numMetaNodes, numNodes, consensusSize, numInvalid, roundTime, blsConsensusType, consensusModel)
+	nodes, invalidNodesAddresses := initNodesWithTestSigner(numMetaNodes, numNodes, numOfShards, consensusSize, numInvalid, roundTime, blsConsensusType, enableEpochsConfig, runTypeComponents)
 
 	defer func() {
 		for shardID := range nodes {

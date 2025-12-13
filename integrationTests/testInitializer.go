@@ -414,6 +414,8 @@ func CreateStore(numOfShards uint32) dataRetriever.StorageService {
 	store.AddStorer(dataRetriever.ReceiptsUnit, CreateMemUnit())
 	store.AddStorer(dataRetriever.ScheduledSCRsUnit, CreateMemUnit())
 	store.AddStorer(dataRetriever.ProofsUnit, CreateMemUnit())
+	store.AddStorer(dataRetriever.ExtendedShardHeadersUnit, CreateMemUnit())
+	store.AddStorer(dataRetriever.ExtendedShardHeadersNonceHashDataUnit, CreateMemUnit())
 
 	for i := uint32(0); i < numOfShards; i++ {
 		hdrNonceHashDataUnit := dataRetriever.ShardHdrNonceHashDataUnit + dataRetriever.UnitType(i)
@@ -766,7 +768,7 @@ func CreateFullGenesisBlocks(
 		},
 	}
 
-	genesisProcessor, _ := genesisProcess.NewGenesisBlockCreator(argsGenesis)
+	genesisProcessor, _ := runTypeComp.GenesisBlockCreatorFactory().CreateGenesisBlockCreator(argsGenesis)
 	genesisBlocks, _ := genesisProcessor.CreateGenesisBlocks()
 
 	return genesisBlocks

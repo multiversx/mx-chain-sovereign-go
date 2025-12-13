@@ -5,13 +5,15 @@ import (
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
+	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
 
 type runTypeCoreComponents struct {
-	genesisNodesSetupFactory sharding.GenesisNodesSetupFactory
-	ratingsDataFactory       rating.RatingsDataFactory
-	enableEpochsFactory      enablers.EnableEpochsFactory
-	chainParametersFactory   chainParamFactory.ChainParametersHolderFactory
+	genesisNodesSetupFactory     sharding.GenesisNodesSetupFactory
+	ratingsDataFactory           rating.RatingsDataFactory
+	enableEpochsFactory          enablers.EnableEpochsFactory
+	chainParametersFactory       chainParamFactory.ChainParametersHolderFactory
+	hashValidatorShufflerFactory nodesCoordinator.HashValidatorShufflerFactory
 }
 
 // Close does nothing

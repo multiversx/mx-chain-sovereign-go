@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-go/process/rating"
 	"github.com/multiversx/mx-chain-go/sharding"
 	"github.com/multiversx/mx-chain-go/sharding/chainParamFactory"
+	"github.com/multiversx/mx-chain-go/sharding/nodesCoordinator"
 )
 
 type runTypeCoreComponentsFactory struct {
@@ -18,10 +19,11 @@ func NewRunTypeCoreComponentsFactory() *runTypeCoreComponentsFactory {
 // Create will create the runType core components
 func (rccf *runTypeCoreComponentsFactory) Create() *runTypeCoreComponents {
 	return &runTypeCoreComponents{
-		genesisNodesSetupFactory: sharding.NewGenesisNodesSetupFactory(),
-		ratingsDataFactory:       rating.NewRatingsDataFactory(),
-		enableEpochsFactory:      enablers.NewEnableEpochsFactory(),
-		chainParametersFactory:   chainParamFactory.NewChainParametersHolderFactory(),
+		genesisNodesSetupFactory:     sharding.NewGenesisNodesSetupFactory(),
+		ratingsDataFactory:           rating.NewRatingsDataFactory(),
+		enableEpochsFactory:          enablers.NewEnableEpochsFactory(),
+		chainParametersFactory:       chainParamFactory.NewChainParametersHolderFactory(),
+		hashValidatorShufflerFactory: nodesCoordinator.NewHashValidatorShufflerFactory(),
 	}
 }
 

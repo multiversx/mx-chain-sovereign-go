@@ -696,6 +696,7 @@ type RunTypeCoreComponentsHolder interface {
 	RatingsDataFactoryCreator() rating.RatingsDataFactory
 	EnableEpochsFactoryCreator() enablers.EnableEpochsFactory
 	ChainParametersHolderFactory() chainParamFactory.ChainParametersHolderFactory
+	HashValidatorShufflerFactoryCreator() nodesCoordinator.HashValidatorShufflerFactory
 	Create() error
 	Close() error
 	CheckSubcomponents() error

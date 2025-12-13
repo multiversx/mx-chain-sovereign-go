@@ -137,6 +137,9 @@ func NewCoreComponentsFactory(args CoreComponentsFactoryArgs) (*coreComponentsFa
 	if check.IfNil(args.RunTypeCoreComponents.ChainParametersHolderFactory()) {
 		return nil, errors.ErrNilChainParametersHolderFactory
 	}
+	if check.IfNil(args.RunTypeCoreComponents.HashValidatorShufflerFactoryCreator()) {
+		return nil, nodesCoordinator.ErrNilHashValidatorShufflerFactory
+	}
 
 	return &coreComponentsFactory{
 		config:                args.Config,
@@ -347,7 +350,7 @@ func (ccf *coreComponentsFactory) Create() (*coreComponents, error) {
 		EnableEpochs:         ccf.epochConfig.EnableEpochs,
 	}
 
-	nodesShuffler, err := nodesCoordinator.NewHashValidatorsShuffler(argsNodesShuffler)
+	nodesShuffler, err := ccf.runTypeCoreComponents.HashValidatorShufflerFactoryCreator().CreateHashValidatorShuffler(argsNodesShuffler)
 	if err != nil {
 		return nil, err
 	}

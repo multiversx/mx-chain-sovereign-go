@@ -241,6 +241,17 @@ func TestSovereignBlockProcessor_NewSovereignChainBlockProcessorShouldWork(t *te
 		require.Equal(t, process.ErrNilEpochStartSystemSCProcessor, err)
 	})
 
+	t.Run("should error when SC to protocol is nil", func(t *testing.T) {
+		t.Parallel()
+
+		sovArgs := createSovChainBlockProcessorArgs()
+		sovArgs.SCToProtocol = nil
+		scbp, err := blproc.NewSovereignChainBlockProcessor(sovArgs)
+
+		require.Nil(t, scbp)
+		require.Equal(t, process.ErrNilSCToProtocol, err)
+	})
+
 	t.Run("should error when epoch economics is nil", func(t *testing.T) {
 		t.Parallel()
 
