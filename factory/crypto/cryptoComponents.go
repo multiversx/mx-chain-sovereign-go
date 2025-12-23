@@ -11,12 +11,12 @@ import (
 	"github.com/multiversx/mx-chain-crypto-go/signing"
 	disabledCrypto "github.com/multiversx/mx-chain-crypto-go/signing/disabled"
 	disabledSig "github.com/multiversx/mx-chain-crypto-go/signing/disabled/singlesig"
-	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
-	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519/singlesig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/mcl"
 	mclSig "github.com/multiversx/mx-chain-crypto-go/signing/mcl/singlesig"
 	"github.com/multiversx/mx-chain-crypto-go/signing/secp256k1"
 	secp256k1SinglerSig "github.com/multiversx/mx-chain-crypto-go/signing/secp256k1/singlesig"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	cryptoCommon "github.com/multiversx/mx-chain-go/common/crypto"
 	"github.com/multiversx/mx-chain-go/config"
@@ -31,7 +31,6 @@ import (
 	"github.com/multiversx/mx-chain-go/storage/storageunit"
 	"github.com/multiversx/mx-chain-go/vm"
 	systemVM "github.com/multiversx/mx-chain-go/vm/process"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (
@@ -152,8 +151,8 @@ func (ccf *cryptoComponentsFactory) Create() (*cryptoComponents, error) {
 		return nil, err
 	}
 
-	txSignKeyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
-	txSingleSigner := &singlesig.Ed25519Signer{}
+	txSignKeyGen := NewTxSignKeyGenerator()
+	txSingleSigner := NewTxSingleSigner()
 	processingSingleSigner, err := ccf.createSingleSigner(false)
 	if err != nil {
 		return nil, err
@@ -268,6 +267,18 @@ func (ccf *cryptoComponentsFactory) Create() (*cryptoComponents, error) {
 		p2pSingleSigner:         p2pSingleSigner,
 	}, nil
 }
+
+//func createKeyGenerator() map[string]crypto.KeyGenerator {
+//	return map[string]crypto.KeyGenerator{
+//		transaction.TxFormatMVX: signing.NewKeyGenerator(ed25519.NewEd25519()),
+//	}
+//}
+//
+//func createSigner() map[string]crypto.SingleSigner {
+//	return map[string]crypto.SingleSigner{
+//		transaction.TxFormatMVX: &singlesig.Ed25519Signer{},
+//	}
+//}
 
 func (ccf *cryptoComponentsFactory) createSingleSigner(importModeNoSigCheck bool) (crypto.SingleSigner, error) {
 	if importModeNoSigCheck {

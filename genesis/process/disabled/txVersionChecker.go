@@ -19,7 +19,7 @@ func (tvc *TxVersionChecker) IsGuardedTransaction(_ data.TransactionHandler) boo
 }
 
 // IsSignedWithHash returns false as this is a disabled component
-func (tvc *TxVersionChecker) IsSignedWithHash(_ *transaction.Transaction) bool {
+func (tvc *TxVersionChecker) IsSignedWithHash(_ data.TransactionHandler) bool {
 	return false
 }
 

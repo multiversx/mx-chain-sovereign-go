@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-go/api/errors"
 	"github.com/multiversx/mx-chain-go/api/shared"
 )
@@ -25,7 +26,7 @@ type hardforkFacadeHandler interface {
 }
 
 type hardforkGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    hardforkFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -38,7 +39,7 @@ func NewHardforkGroup(facade hardforkFacadeHandler) (*hardforkGroup, error) {
 
 	hg := &hardforkGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -48,7 +49,7 @@ func NewHardforkGroup(facade hardforkFacadeHandler) (*hardforkGroup, error) {
 			Handler: hg.triggerHandler,
 		},
 	}
-	hg.endpoints = endpoints
+	hg.Endpoints = endpoints
 
 	return hg, nil
 }

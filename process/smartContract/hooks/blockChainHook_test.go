@@ -1185,12 +1185,14 @@ func TestBlockChainHookImpl_UpdateEpochStartHeaderFromCurrentHeader(t *testing.T
 		round := uint64(5)
 		timestamp := uint64(1234)
 
+		chainId := []byte("chainId")
 		hdr := &block.Header{
 			Nonce:     nonce,
 			Round:     round,
 			TimeStamp: timestamp,
 			RandSeed:  randSeed,
 			Epoch:     epoch,
+			ChainID:   chainId,
 		}
 
 		args := createMockBlockChainHookArgs()
@@ -1202,6 +1204,7 @@ func TestBlockChainHookImpl_UpdateEpochStartHeaderFromCurrentHeader(t *testing.T
 		assert.Equal(t, nonce, bh.CurrentNonce())
 		assert.Equal(t, round, bh.CurrentRound())
 		assert.Equal(t, timestamp, bh.CurrentTimeStamp())
+		require.Equal(t, chainId, bh.ChainID())
 
 		genesisBlock := args.BlockChain.GetGenesisHeader()
 

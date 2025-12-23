@@ -33,7 +33,7 @@ type vmValuesFacadeHandler interface {
 }
 
 type vmValuesGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    vmValuesFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -46,7 +46,7 @@ func NewVmValuesGroup(facade vmValuesFacadeHandler) (*vmValuesGroup, error) {
 
 	vvg := &vmValuesGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -71,7 +71,7 @@ func NewVmValuesGroup(facade vmValuesFacadeHandler) (*vmValuesGroup, error) {
 			Handler: vvg.executeQuery,
 		},
 	}
-	vvg.endpoints = endpoints
+	vvg.Endpoints = endpoints
 
 	return vvg, nil
 }

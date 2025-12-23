@@ -62,7 +62,7 @@ type GasConfig struct {
 }
 
 type networkGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    networkFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -75,7 +75,7 @@ func NewNetworkGroup(facade networkFacadeHandler) (*networkGroup, error) {
 
 	ng := &networkGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -155,7 +155,7 @@ func NewNetworkGroup(facade networkFacadeHandler) (*networkGroup, error) {
 			Handler: ng.getGasConfig,
 		},
 	}
-	ng.endpoints = endpoints
+	ng.Endpoints = endpoints
 
 	return ng, nil
 }

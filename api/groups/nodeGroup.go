@@ -59,7 +59,7 @@ type QueryDebugRequest struct {
 }
 
 type nodeGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    nodeFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -72,7 +72,7 @@ func NewNodeGroup(facade nodeFacadeHandler) (*nodeGroup, error) {
 
 	ng := &nodeGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -152,7 +152,7 @@ func NewNodeGroup(facade nodeFacadeHandler) (*nodeGroup, error) {
 			Handler: ng.waitingEpochsLeft,
 		},
 	}
-	ng.endpoints = endpoints
+	ng.Endpoints = endpoints
 
 	return ng, nil
 }

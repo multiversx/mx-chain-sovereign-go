@@ -14,13 +14,14 @@ const (
 	baseESDTKeyPrefix = core.ProtectedKeyPrefix + core.ESDTKeyIdentifier
 )
 
-type sovereignNode struct {
+// SovereignNode is a structure that holds all managed components
+type SovereignNode struct {
 	*Node
 	nativeESDT string
 }
 
 // NewSovereignNode creates a new sovereign node instance
-func NewSovereignNode(node *Node, nativeESDT string) (*sovereignNode, error) {
+func NewSovereignNode(node *Node, nativeESDT string) (*SovereignNode, error) {
 	if check.IfNil(node) {
 		return nil, errors.ErrNilNode
 	}
@@ -28,14 +29,14 @@ func NewSovereignNode(node *Node, nativeESDT string) (*sovereignNode, error) {
 		return nil, ErrEmptyNativeEsdt
 	}
 
-	return &sovereignNode{
+	return &SovereignNode{
 		Node:       node,
 		nativeESDT: nativeESDT,
 	}, nil
 }
 
 // GetAllIssuedESDTs returns all the issued esdt tokens, works only on metachain
-func (sn *sovereignNode) GetAllIssuedESDTs(tokenType string, ctx context.Context) ([]string, error) {
+func (sn *SovereignNode) GetAllIssuedESDTs(tokenType string, ctx context.Context) ([]string, error) {
 	tokens, err := sn.baseGetAllIssuedESDTs(tokenType, ctx)
 	if err != nil {
 		return make([]string, 0), err
@@ -44,7 +45,7 @@ func (sn *sovereignNode) GetAllIssuedESDTs(tokenType string, ctx context.Context
 	return sn.getTokensWithoutNativeESDT(tokens), nil
 }
 
-func (sn *sovereignNode) getTokensWithoutNativeESDT(tokens []string) []string {
+func (sn *SovereignNode) getTokensWithoutNativeESDT(tokens []string) []string {
 	nativeEsdtWithBasePrefix := baseESDTKeyPrefix + sn.nativeESDT
 	issuedTokens := make([]string, 0)
 	for _, token := range tokens {
@@ -56,7 +57,7 @@ func (sn *sovereignNode) getTokensWithoutNativeESDT(tokens []string) []string {
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns all the token identifiers for semi or non fungible tokens registered by the address
-func (sn *sovereignNode) GetNFTTokenIDsRegisteredByAddress(address string, options api.AccountQueryOptions, ctx context.Context) ([]string, api.BlockInfo, error) {
+func (sn *SovereignNode) GetNFTTokenIDsRegisteredByAddress(address string, options api.AccountQueryOptions, ctx context.Context) ([]string, api.BlockInfo, error) {
 	addressBytes, err := sn.coreComponents.AddressPubKeyConverter().Decode(address)
 	if err != nil {
 		return nil, api.BlockInfo{}, err
@@ -69,7 +70,7 @@ func (sn *sovereignNode) GetNFTTokenIDsRegisteredByAddress(address string, optio
 }
 
 // GetESDTsWithRole returns all the tokens with the given role for the given address
-func (sn *sovereignNode) GetESDTsWithRole(address string, role string, options api.AccountQueryOptions, ctx context.Context) ([]string, api.BlockInfo, error) {
+func (sn *SovereignNode) GetESDTsWithRole(address string, role string, options api.AccountQueryOptions, ctx context.Context) ([]string, api.BlockInfo, error) {
 	if !core.IsValidESDTRole(role) {
 		return nil, api.BlockInfo{}, ErrInvalidESDTRole
 	}
@@ -87,7 +88,7 @@ func (sn *sovereignNode) GetESDTsWithRole(address string, role string, options a
 }
 
 // GetESDTsRoles returns all the tokens identifiers and roles for the given address
-func (sn *sovereignNode) GetESDTsRoles(address string, options api.AccountQueryOptions, ctx context.Context) (map[string][]string, api.BlockInfo, error) {
+func (sn *SovereignNode) GetESDTsRoles(address string, options api.AccountQueryOptions, ctx context.Context) (map[string][]string, api.BlockInfo, error) {
 	addressBytes, err := sn.coreComponents.AddressPubKeyConverter().Decode(address)
 	if err != nil {
 		return nil, api.BlockInfo{}, err
@@ -108,6 +109,6 @@ func (sn *sovereignNode) GetESDTsRoles(address string, options api.AccountQueryO
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
-func (sn *sovereignNode) IsInterfaceNil() bool {
+func (sn *SovereignNode) IsInterfaceNil() bool {
 	return sn == nil
 }

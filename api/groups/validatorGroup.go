@@ -26,7 +26,7 @@ type validatorFacadeHandler interface {
 }
 
 type validatorGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    validatorFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -39,7 +39,7 @@ func NewValidatorGroup(facade validatorFacadeHandler) (*validatorGroup, error) {
 
 	ng := &validatorGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -54,7 +54,7 @@ func NewValidatorGroup(facade validatorFacadeHandler) (*validatorGroup, error) {
 			Handler: ng.auction,
 		},
 	}
-	ng.endpoints = endpoints
+	ng.Endpoints = endpoints
 
 	return ng, nil
 }

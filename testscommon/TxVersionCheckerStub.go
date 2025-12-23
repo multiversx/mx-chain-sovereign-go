@@ -7,13 +7,13 @@ import (
 
 // TxVersionCheckerStub -
 type TxVersionCheckerStub struct {
-	IsSignedWithHashCalled     func(tx *transaction.Transaction) bool
+	IsSignedWithHashCalled     func(tx data.TransactionHandler) bool
 	IsGuardedTransactionCalled func(tx data.TransactionHandler) bool
 	CheckTxVersionCalled       func(tx *transaction.Transaction) error
 }
 
 // IsSignedWithHash will return true if transaction is signed with hash
-func (tvcs *TxVersionCheckerStub) IsSignedWithHash(tx *transaction.Transaction) bool {
+func (tvcs *TxVersionCheckerStub) IsSignedWithHash(tx data.TransactionHandler) bool {
 	if tvcs.IsSignedWithHashCalled != nil {
 		return tvcs.IsSignedWithHashCalled(tx)
 	}

@@ -8,12 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/hashing"
-	"github.com/multiversx/mx-chain-go/common"
-	"github.com/multiversx/mx-chain-go/config"
-	"github.com/multiversx/mx-chain-go/process"
-	"github.com/multiversx/mx-chain-go/process/factory"
-	"github.com/multiversx/mx-chain-go/process/factory/containers"
-	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/multiversx/mx-chain-vm-go/vmhost"
@@ -24,6 +18,13 @@ import (
 	wasmVMHost13 "github.com/multiversx/mx-chain-vm-v1_3-go/vmhost/hostCore"
 	wasmvm14 "github.com/multiversx/mx-chain-vm-v1_4-go/vmhost"
 	wasmVMHost14 "github.com/multiversx/mx-chain-vm-v1_4-go/vmhost/hostCore"
+
+	"github.com/multiversx/mx-chain-go/common"
+	"github.com/multiversx/mx-chain-go/config"
+	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/factory"
+	"github.com/multiversx/mx-chain-go/process/factory/containers"
+	"github.com/multiversx/mx-chain-go/process/smartContract/hooks"
 )
 
 var _ process.VirtualMachinesContainerFactory = (*vmContainerFactory)(nil)
@@ -121,32 +122,12 @@ func NewVMContainerFactory(args ArgVMContainerFactory) (*vmContainerFactory, err
 		return nil, err
 	}
 
-	err = vmf.createMapOpCodeAddressIsAllowed()
+	vmf.mapOpcodeAddressIsAllowed, err = CreateMapOpCodeAddressIsAllowed(vmf.config, vmf.pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
 
 	return vmf, nil
-}
-
-func (vmf *vmContainerFactory) createMapOpCodeAddressIsAllowed() error {
-	vmf.mapOpcodeAddressIsAllowed = make(map[string]map[string]struct{})
-
-	transferAndExecuteByUserAddresses := vmf.config.TransferAndExecuteByUserAddresses
-	if len(transferAndExecuteByUserAddresses) == 0 {
-		return process.ErrTransferAndExecuteByUserAddressesAreNil
-	}
-
-	vmf.mapOpcodeAddressIsAllowed[managedMultiTransferESDTNFTExecuteByUser] = make(map[string]struct{})
-	for _, address := range transferAndExecuteByUserAddresses {
-		decodedAddress, errDecode := vmf.pubKeyConverter.Decode(address)
-		if errDecode != nil {
-			return errDecode
-		}
-		vmf.mapOpcodeAddressIsAllowed[managedMultiTransferESDTNFTExecuteByUser][string(decodedAddress)] = struct{}{}
-	}
-
-	return nil
 }
 
 func (vmf *vmContainerFactory) sortWasmVMVersions() {

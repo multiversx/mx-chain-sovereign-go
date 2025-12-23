@@ -2,8 +2,10 @@ module github.com/multiversx/mx-chain-go
 
 replace (
 	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251020081320-f0a86f3e209a
+	github.com/multiversx/mx-chain-core-go => github.com/multiversx/mx-chain-core-sovereign-go v1.2.25-0.20251223075042-2f2f8092dc66
 	github.com/multiversx/mx-chain-es-indexer-go => github.com/multiversx/mx-chain-es-indexer-sovereign-go v1.7.17-0.20250826102827-1b5ebecb30da
 	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20250715144941-88820f3a7c28
+	github.com/multiversx/mx-chain-vm-common-go => github.com/multiversx/mx-chain-vm-common-sovereign-go v1.5.17-0.20251223080659-b248455c9554
 )
 
 go 1.23.0
@@ -27,10 +29,10 @@ require (
 	github.com/multiversx/mx-chain-crypto-go v1.3.0
 	github.com/multiversx/mx-chain-es-indexer-go v1.9.1
 	github.com/multiversx/mx-chain-logger-go v1.1.0
-	github.com/multiversx/mx-chain-scenario-go v1.6.0
+	github.com/multiversx/mx-chain-scenario-go v1.7.1-0.20251223080807-d2ad64a6fecf
 	github.com/multiversx/mx-chain-storage-go v1.1.0
 	github.com/multiversx/mx-chain-vm-common-go v1.6.0
-	github.com/multiversx/mx-chain-vm-go v1.5.43
+	github.com/multiversx/mx-chain-vm-go v1.6.1-0.20251223080857-969f99560287
 	github.com/multiversx/mx-chain-vm-v1_2-go v1.2.69
 	github.com/multiversx/mx-chain-vm-v1_3-go v1.3.70
 	github.com/multiversx/mx-chain-vm-v1_4-go v1.4.99
