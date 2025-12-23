@@ -24,7 +24,7 @@ func TestSovereignNodeFactory_CreateNewNode(t *testing.T) {
 	sn, err := sovereignNodeFactory.CreateNewNode()
 	require.Nil(t, err)
 	require.NotNil(t, sn)
-	require.Equal(t, "*node.sovereignNode", fmt.Sprintf("%T", sn))
+	require.Equal(t, "*node.SovereignNode", fmt.Sprintf("%T", sn))
 }
 
 func TestSovereignNodeFactory_CreateNewNodeFail(t *testing.T) {

@@ -1071,6 +1071,14 @@ func (bh *BlockChainHookImpl) GetAccountsAdapter() state.AccountsAdapter {
 	return bh.accounts
 }
 
+// ChainID returns the chain ID
+func (bh *BlockChainHookImpl) ChainID() []byte {
+	bh.mutCurrentHdr.RLock()
+	defer bh.mutCurrentHdr.RUnlock()
+
+	return bh.currentHdr.GetChainID()
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (bh *BlockChainHookImpl) IsInterfaceNil() bool {
 	return bh == nil

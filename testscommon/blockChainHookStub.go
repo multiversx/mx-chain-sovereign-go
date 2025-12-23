@@ -3,9 +3,10 @@ package testscommon
 import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 // BlockChainHookStub -
@@ -61,6 +62,7 @@ type BlockChainHookStub struct {
 	ExecuteSmartContractCallOnOtherVMCalled func(input *vmcommon.ContractCallInput) (*vmcommon.VMOutput, error)
 	SetVMContainerCalled                    func(vmContainer process.VirtualMachinesContainer) error
 	GetAccountsAdapterCalled                func() state.AccountsAdapter
+	ChainIDCalled                           func() []byte
 }
 
 // GetCode -
@@ -517,4 +519,13 @@ func (stub *BlockChainHookStub) GetAccountsAdapter() state.AccountsAdapter {
 		return stub.GetAccountsAdapterCalled()
 	}
 	return nil
+}
+
+// ChainID -
+func (stub *BlockChainHookStub) ChainID() []byte {
+	if stub.ChainIDCalled != nil {
+		return stub.ChainIDCalled()
+	}
+
+	return make([]byte, 0)
 }

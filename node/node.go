@@ -160,9 +160,14 @@ func (n *Node) CreateShardedStores() error {
 	return nil
 }
 
+// GetAddressSignatureHexSize returns the address signature hex size
+func (n *Node) GetAddressSignatureHexSize() int {
+	return n.addressSignatureHexSize
+}
+
 // GetBalance gets the balance for a specific address
 func (n *Node) GetBalance(address string, options api.AccountQueryOptions) (*big.Int, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -177,7 +182,7 @@ func (n *Node) GetBalance(address string, options api.AccountQueryOptions) (*big
 
 // GetUsername gets the username for a specific address
 func (n *Node) GetUsername(address string, options api.AccountQueryOptions) (string, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -193,7 +198,7 @@ func (n *Node) GetUsername(address string, options api.AccountQueryOptions) (str
 
 // GetCodeHash gets the code hash for a specific address
 func (n *Node) GetCodeHash(address string, options api.AccountQueryOptions) ([]byte, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -217,7 +222,7 @@ func (n *Node) GetAllIssuedESDTs(tokenType string, ctx context.Context) ([]strin
 }
 
 func (n *Node) baseGetAllIssuedESDTs(tokenType string, ctx context.Context) ([]string, error) {
-	userAccount, _, err := n.loadUserAccountHandlerByPubKey(vm.ESDTSCAddress, api.AccountQueryOptions{})
+	userAccount, _, err := n.LoadUserAccountHandlerByPubKey(vm.ESDTSCAddress, api.AccountQueryOptions{})
 	if err != nil {
 		// don't return 0 values here - not finding the ESDT SC address is an error that should be returned
 		return nil, err
@@ -297,7 +302,7 @@ func (n *Node) getEsdtDataFromLeaf(leaf core.KeyValueHolder) (*systemSmartContra
 
 // GetKeyValuePairs returns all the key-value pairs under the address
 func (n *Node) GetKeyValuePairs(address string, options api.AccountQueryOptions, ctx context.Context) (map[string]string, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -329,7 +334,7 @@ type userAccountWithLeavesParser interface {
 
 // IterateKeys starts from the given iteratorState and returns the next key-value pairs and the new iteratorState
 func (n *Node) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options api.AccountQueryOptions, ctx context.Context) (map[string]string, [][]byte, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -389,7 +394,7 @@ func (n *Node) GetValueForKey(address string, key string, options api.AccountQue
 		return "", api.BlockInfo{}, fmt.Errorf("invalid key: %w", err)
 	}
 
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -409,7 +414,7 @@ func (n *Node) GetValueForKey(address string, key string, options api.AccountQue
 
 // GetGuardianData returns the guardian data for given account
 func (n *Node) GetGuardianData(address string, options api.AccountQueryOptions) (api.GuardianData, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -462,7 +467,7 @@ func (n *Node) getPendingAndActiveGuardians(
 // GetESDTData returns the esdt balance and properties from a given account
 func (n *Node) GetESDTData(address, tokenID string, nonce uint64, options api.AccountQueryOptions) (*esdt.ESDigitalToken, api.BlockInfo, error) {
 	// TODO: refactor here as to ensure userAccount and systemAccount are on the same root-hash
-	userAccount, _, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, _, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -516,7 +521,7 @@ func (n *Node) baseGetTokensIDsWithFilter(
 	options api.AccountQueryOptions,
 	ctx context.Context,
 ) ([]string, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByPubKey(vm.ESDTSCAddress, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByPubKey(vm.ESDTSCAddress, options)
 	if err != nil {
 		return nil, api.BlockInfo{}, err
 	}
@@ -640,7 +645,7 @@ func bigToString(bigValue *big.Int) string {
 // GetAllESDTTokens returns all the ESDTs that the given address interacted with
 func (n *Node) GetAllESDTTokens(address string, options api.AccountQueryOptions, ctx context.Context) (map[string]*esdt.ESDigitalToken, api.BlockInfo, error) {
 	// TODO: refactor here as to ensure userAccount and systemAccount are on the same root-hash
-	userAccount, _, err := n.loadUserAccountHandlerByAddress(address, options)
+	userAccount, _, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -1025,7 +1030,7 @@ func (n *Node) CreateTransaction(requestTx map[string]interface{}) (data.Transac
 	}
 
 	if len(txArgs.Guardian) > 0 {
-		err = n.setTxGuardianData(txArgs.Guardian, txArgs.GuardianSigHex, tx)
+		err = n.SetTxGuardianData(txArgs.Guardian, txArgs.GuardianSigHex, tx)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1054,7 +1059,7 @@ func (n *Node) CreateTransaction(requestTx map[string]interface{}) (data.Transac
 	return tx, txHash, nil
 }
 
-func (n *Node) setTxGuardianData(guardian string, guardianSigHex string, tx data.TransactionHandler) error {
+func (n *Node) SetTxGuardianData(guardian string, guardianSigHex string, tx data.TransactionHandler) error {
 	addrPubKeyConverter := n.coreComponents.AddressPubKeyConverter()
 	guardianAddress, err := addrPubKeyConverter.Decode(guardian)
 	if err != nil {
@@ -1126,7 +1131,7 @@ func extractBlockInfoIfNewAccount(err error) (api.BlockInfo, bool) {
 }
 
 func (n *Node) getAccountInfo(address string, options api.AccountQueryOptions) (accountInfo, error) {
-	account, blockInfo, err := n.loadUserAccountHandlerByAddress(address, options)
+	account, blockInfo, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		adaptedBlockInfo, isEmptyAccount := extractBlockInfoIfNewAccount(err)
 		if isEmptyAccount {
@@ -1588,7 +1593,7 @@ func (n *Node) VerifyProof(rootHash string, address string, proof [][]byte) (boo
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated
 func (n *Node) IsDataTrieMigrated(address string, options api.AccountQueryOptions) (bool, error) {
-	accountHandler, _, err := n.loadUserAccountHandlerByAddress(address, options)
+	accountHandler, _, err := n.LoadUserAccountHandlerByAddress(address, options)
 	if err != nil {
 		return false, err
 	}

@@ -5266,7 +5266,7 @@ func TestNode_GetGuardianData(t *testing.T) {
 		Address:         addressG2,
 		ActivationEpoch: g2.ActivationEpoch,
 	}
-	t.Run("error on loadUserAccountHandlerByAddress", func(t *testing.T) {
+	t.Run("error on LoadUserAccountHandlerByAddress", func(t *testing.T) {
 		accDB := &stateMock.AccountsStub{
 			GetAccountWithBlockInfoCalled: func(address []byte, options common.RootHashHolder) (vmcommon.AccountHandler, common.BlockInfo, error) {
 				return testAccount, nil, nil
@@ -5293,7 +5293,7 @@ func TestNode_GetGuardianData(t *testing.T) {
 		require.NotNil(t, err)
 		require.True(t, strings.Contains(err.Error(), "invalid address"))
 	})
-	t.Run("error on loadUserAccountHandlerByAddress but account is new", func(t *testing.T) {
+	t.Run("error on LoadUserAccountHandlerByAddress but account is new", func(t *testing.T) {
 		providedBlockInfo := holders.NewBlockInfo([]byte{0xaa}, 7, []byte{0xbb})
 		accDB := &stateMock.AccountsStub{
 			GetAccountWithBlockInfoCalled: func(address []byte, options common.RootHashHolder) (vmcommon.AccountHandler, common.BlockInfo, error) {

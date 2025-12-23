@@ -7,14 +7,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/api"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/common/holders"
 	"github.com/multiversx/mx-chain-go/state"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 func (n *Node) loadSystemAccountWithOptions(options api.AccountQueryOptions) (vmcommon.UserAccountHandler, api.BlockInfo, error) {
-	userAccount, blockInfo, err := n.loadUserAccountHandlerByPubKey(core.SystemAccountAddress, options)
+	userAccount, blockInfo, err := n.LoadUserAccountHandlerByPubKey(core.SystemAccountAddress, options)
 	if err != nil {
 		return nil, api.BlockInfo{}, err
 	}
@@ -27,16 +28,18 @@ func (n *Node) loadSystemAccountWithOptions(options api.AccountQueryOptions) (vm
 	return userAccountVmCommon, blockInfo, nil
 }
 
-func (n *Node) loadUserAccountHandlerByAddress(address string, options api.AccountQueryOptions) (state.UserAccountHandler, api.BlockInfo, error) {
+// LoadUserAccountHandlerByAddress loads the user account handler by address
+func (n *Node) LoadUserAccountHandlerByAddress(address string, options api.AccountQueryOptions) (state.UserAccountHandler, api.BlockInfo, error) {
 	pubKey, err := n.decodeAddressToPubKey(address)
 	if err != nil {
 		return nil, api.BlockInfo{}, err
 	}
 
-	return n.loadUserAccountHandlerByPubKey(pubKey, options)
+	return n.LoadUserAccountHandlerByPubKey(pubKey, options)
 }
 
-func (n *Node) loadUserAccountHandlerByPubKey(pubKey []byte, options api.AccountQueryOptions) (state.UserAccountHandler, api.BlockInfo, error) {
+// LoadUserAccountHandlerByPubKey loads the user account handler by pubkey
+func (n *Node) LoadUserAccountHandlerByPubKey(pubKey []byte, options api.AccountQueryOptions) (state.UserAccountHandler, api.BlockInfo, error) {
 	options, err := n.addBlockCoordinatesToAccountQueryOptions(options)
 	if err != nil {
 		return nil, api.BlockInfo{}, err

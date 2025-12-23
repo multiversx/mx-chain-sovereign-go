@@ -39,7 +39,7 @@ type blockFacadeHandler interface {
 }
 
 type blockGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    blockFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -52,7 +52,7 @@ func NewBlockGroup(facade blockFacadeHandler) (*blockGroup, error) {
 
 	bg := &blockGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -82,7 +82,7 @@ func NewBlockGroup(facade blockFacadeHandler) (*blockGroup, error) {
 			Handler: bg.getAlteredAccountsByHash,
 		},
 	}
-	bg.endpoints = endpoints
+	bg.Endpoints = endpoints
 
 	return bg, nil
 }

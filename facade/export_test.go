@@ -5,6 +5,6 @@ import (
 )
 
 // GetSyncer returns the current syncer
-func (nf *nodeFacade) GetSyncer() ntp.SyncTimer {
+func (nf *NodeFacade) GetSyncer() ntp.SyncTimer {
 	return nf.syncer
 }

@@ -4,9 +4,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/api/shared"
 	"github.com/multiversx/mx-chain-go/config"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("api/groups")
@@ -15,21 +16,22 @@ type endpointProperties struct {
 	isOpen bool
 }
 
-type baseGroup struct {
-	endpoints []*shared.EndpointHandlerData
+// BaseGroup defines the base group
+type BaseGroup struct {
+	Endpoints []*shared.EndpointHandlerData
 }
 
-// GetEndpoints returns all the endpoints specific to the group
-func (bg *baseGroup) GetEndpoints() []*shared.EndpointHandlerData {
-	return bg.endpoints
+// GetEndpoints returns all the Endpoints specific to the group
+func (bg *BaseGroup) GetEndpoints() []*shared.EndpointHandlerData {
+	return bg.Endpoints
 }
 
-// RegisterRoutes will register all the endpoints to the given web server
-func (bg *baseGroup) RegisterRoutes(
+// RegisterRoutes will register all the Endpoints to the given web server
+func (bg *BaseGroup) RegisterRoutes(
 	ws *gin.RouterGroup,
 	apiConfig config.ApiRoutesConfig,
 ) {
-	for _, handlerData := range bg.endpoints {
+	for _, handlerData := range bg.Endpoints {
 		properties := getEndpointProperties(ws, handlerData.Path, apiConfig)
 
 		if !properties.isOpen {

@@ -17,6 +17,7 @@ import (
 
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/process"
+	"github.com/multiversx/mx-chain-go/process/interceptors"
 	"github.com/multiversx/mx-chain-go/sharding"
 )
 
@@ -30,8 +31,7 @@ type InterceptedTransaction struct {
 	signMarshalizer        marshal.Marshalizer
 	hasher                 hashing.Hasher
 	txSignHasher           hashing.Hasher
-	keyGen                 crypto.KeyGenerator
-	singleSigner           crypto.SingleSigner
+	txSignatureVerifier    process.TxSignatureVerifier
 	pubkeyConv             core.PubkeyConverter
 	coordinator            sharding.Coordinator
 	hash                   []byte
@@ -79,12 +79,6 @@ func NewInterceptedTransaction(
 	if check.IfNil(hasher) {
 		return nil, process.ErrNilHasher
 	}
-	if check.IfNil(keyGen) {
-		return nil, process.ErrNilKeyGen
-	}
-	if check.IfNil(signer) {
-		return nil, process.ErrNilSingleSigner
-	}
 	if check.IfNil(pubkeyConv) {
 		return nil, process.ErrNilPubkeyConverter
 	}
@@ -113,6 +107,11 @@ func NewInterceptedTransaction(
 		return nil, process.ErrNilEnableEpochsHandler
 	}
 
+	txSignatureVerifier, err := interceptors.NewTxSignatureVerifier(keyGen, signer)
+	if err != nil {
+		return nil, err
+	}
+
 	tx, err := createTx(protoMarshalizer, txBuff)
 	if err != nil {
 		return nil, err
@@ -123,9 +122,8 @@ func NewInterceptedTransaction(
 		protoMarshalizer:       protoMarshalizer,
 		signMarshalizer:        signMarshalizer,
 		hasher:                 hasher,
-		singleSigner:           signer,
 		pubkeyConv:             pubkeyConv,
-		keyGen:                 keyGen,
+		txSignatureVerifier:    txSignatureVerifier,
 		coordinator:            coordinator,
 		feeHandler:             feeHandler,
 		whiteListerVerifiedTxs: whiteListerVerifiedTxs,
@@ -414,18 +412,13 @@ func (inTx *InterceptedTransaction) checkMaxGasPrice() error {
 }
 
 // verifySig checks if the tx is correctly signed
-func (inTx *InterceptedTransaction) verifySig(tx *transaction.Transaction) error {
+func (inTx *InterceptedTransaction) verifySig(tx data.TransactionHandler) error {
 	txMessageForSigVerification, err := inTx.getTxMessageForGivenTx(tx)
 	if err != nil {
 		return err
 	}
 
-	senderPubKey, err := inTx.keyGen.PublicKeyFromByteArray(tx.SndAddr)
-	if err != nil {
-		return err
-	}
-
-	return inTx.singleSigner.Verify(senderPubKey, txMessageForSigVerification, tx.Signature)
+	return inTx.txSignatureVerifier.VerifySignature(tx, txMessageForSigVerification, tx.GetSignature())
 }
 
 // verifyRelayerSig checks if the tx is correctly signed by relayer
@@ -435,12 +428,7 @@ func (inTx *InterceptedTransaction) verifyRelayerSig(tx *transaction.Transaction
 		return err
 	}
 
-	relayerPubKey, err := inTx.keyGen.PublicKeyFromByteArray(tx.RelayerAddr)
-	if err != nil {
-		return err
-	}
-
-	return inTx.singleSigner.Verify(relayerPubKey, txMessageForSigVerification, tx.RelayerSignature)
+	return inTx.txSignatureVerifier.VerifySignature(tx, txMessageForSigVerification, tx.GetRelayerSignature())
 }
 
 // VerifyGuardianSig verifies if the guardian signature is valid
@@ -454,12 +442,7 @@ func (inTx *InterceptedTransaction) VerifyGuardianSig(tx *transaction.Transactio
 		return verifyConsistencyForNotGuardedTx(tx)
 	}
 
-	guardianPubKey, err := inTx.keyGen.PublicKeyFromByteArray(tx.GuardianAddr)
-	if err != nil {
-		return err
-	}
-
-	errVerifySig := inTx.singleSigner.Verify(guardianPubKey, txMessageForSigVerification, tx.GuardianSignature)
+	errVerifySig := inTx.txSignatureVerifier.VerifySignature(tx, txMessageForSigVerification, tx.GetGuardianSignature())
 	if errVerifySig != nil {
 		return fmt.Errorf("%w when checking the guardian's signature", errVerifySig)
 	}
@@ -478,7 +461,7 @@ func verifyConsistencyForNotGuardedTx(tx *transaction.Transaction) error {
 	return nil
 }
 
-func (inTx *InterceptedTransaction) getTxMessageForGivenTx(tx *transaction.Transaction) ([]byte, error) {
+func (inTx *InterceptedTransaction) getTxMessageForGivenTx(tx data.TransactionHandler) ([]byte, error) {
 	if inTx.txVersionChecker.IsSignedWithHash(tx) && !inTx.enableSignedTxWithHash {
 		return nil, process.ErrTransactionSignedWithHashIsNotEnabled
 	}

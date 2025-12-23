@@ -37,7 +37,7 @@ type proofFacadeHandler interface {
 }
 
 type proofGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    proofFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -50,7 +50,7 @@ func NewProofGroup(facade proofFacadeHandler) (*proofGroup, error) {
 
 	pg := &proofGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -99,7 +99,7 @@ func NewProofGroup(facade proofFacadeHandler) (*proofGroup, error) {
 			},
 		},
 	}
-	pg.endpoints = endpoints
+	pg.Endpoints = endpoints
 
 	return pg, nil
 }

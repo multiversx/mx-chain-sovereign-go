@@ -109,7 +109,7 @@ type InterceptedTransactionHandler interface {
 // TxVersionCheckerHandler defines the functionality that is needed for a TxVersionChecker to validate transaction version
 type TxVersionCheckerHandler interface {
 	IsGuardedTransaction(tx data.TransactionHandler) bool
-	IsSignedWithHash(tx *transaction.Transaction) bool
+	IsSignedWithHash(tx data.TransactionHandler) bool
 	CheckTxVersion(tx *transaction.Transaction) error
 	IsInterfaceNil() bool
 }
@@ -584,6 +584,7 @@ type BlockChainHookHandler interface {
 	GetCounterValues() map[string]uint64
 	IsInterfaceNil() bool
 	IsBuiltinFunctionName(functionName string) bool
+	ChainID() []byte
 }
 
 // BlockChainHookWithAccountsAdapter defines an extension of BlockChainHookHandler with the AccountsAdapter exposed
@@ -1526,5 +1527,11 @@ type ScrProcessingDataHandler interface {
 type SCProcessorHelperHandler interface {
 	GetAccountFromAddress(address []byte) (state.UserAccountHandler, error)
 	CheckSCRBeforeProcessing(scr *smartContractResult.SmartContractResult) (ScrProcessingDataHandler, error)
+	IsInterfaceNil() bool
+}
+
+// TxSignatureVerifier defines the method to verify tx signature
+type TxSignatureVerifier interface {
+	VerifySignature(tx data.TransactionHandler, txMessageForSigVerification []byte, signature []byte) error
 	IsInterfaceNil() bool
 }

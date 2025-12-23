@@ -65,7 +65,7 @@ type transactionFacadeHandler interface {
 }
 
 type transactionGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    transactionFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -78,7 +78,7 @@ func NewTransactionGroup(facade transactionFacadeHandler) (*transactionGroup, er
 
 	tg := &transactionGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -154,7 +154,7 @@ func NewTransactionGroup(facade transactionFacadeHandler) (*transactionGroup, er
 			},
 		},
 	}
-	tg.endpoints = endpoints
+	tg.Endpoints = endpoints
 
 	return tg, nil
 }

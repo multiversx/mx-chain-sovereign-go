@@ -1385,8 +1385,8 @@ func TestNodeFacade_ExecuteSCQuery(t *testing.T) {
 		expectedVmOutput := &vmcommon.VMOutput{
 			ReturnData: [][]byte{[]byte("test return data")},
 			ReturnCode: vmcommon.AccountCollision,
-			OutputAccounts: map[string]*vmcommon.OutputAccount{
-				"key0": {
+			OutputAccounts: map[string]vmcommon.OutputAccountHandler{
+				"key0": &vmcommon.OutputAccount{
 					Address: expectedAddress,
 					Balance: expectedBalance,
 				},
@@ -1633,8 +1633,8 @@ func testConvertVmOutput(t *testing.T, logData [][]byte, expectedLogData []byte,
 	logId, logAddr, logTopics := []byte("log_id"), []byte("log_addr"), [][]byte{[]byte("log_topic")}
 	vmInput := vmcommon.VMOutput{
 		ReturnData: retData,
-		OutputAccounts: map[string]*vmcommon.OutputAccount{
-			string(outAcc): {
+		OutputAccounts: map[string]vmcommon.OutputAccountHandler{
+			string(outAcc): &vmcommon.OutputAccount{
 				Address: outAcc,
 				StorageUpdates: map[string]*vmcommon.StorageUpdate{
 					string(outAccStorageKey): {
@@ -2359,7 +2359,7 @@ func TestNodeFacade_Close(t *testing.T) {
 func TestNodeFacade_IsInterfaceNil(t *testing.T) {
 	t.Parallel()
 
-	var nf *nodeFacade
+	var nf *NodeFacade
 	require.True(t, nf.IsInterfaceNil())
 
 	nf, _ = NewNodeFacade(createMockArguments())

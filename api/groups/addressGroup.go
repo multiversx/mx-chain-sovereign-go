@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
+
 	"github.com/multiversx/mx-chain-go/api/errors"
 	"github.com/multiversx/mx-chain-go/api/shared"
 )
@@ -66,7 +67,7 @@ type addressFacadeHandler interface {
 }
 
 type addressGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    addressFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -100,7 +101,7 @@ func NewAddressGroup(facade addressFacadeHandler) (*addressGroup, error) {
 
 	ag := &addressGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -185,7 +186,7 @@ func NewAddressGroup(facade addressFacadeHandler) (*addressGroup, error) {
 			Handler: ag.isDataTrieMigrated,
 		},
 	}
-	ag.endpoints = endpoints
+	ag.Endpoints = endpoints
 
 	return ag, nil
 }

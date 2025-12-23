@@ -51,7 +51,7 @@ type internalBlockFacadeHandler interface {
 }
 
 type internalBlockGroup struct {
-	*baseGroup
+	*BaseGroup
 	facade    internalBlockFacadeHandler
 	mutFacade sync.RWMutex
 }
@@ -64,7 +64,7 @@ func NewInternalBlockGroup(facade internalBlockFacadeHandler) (*internalBlockGro
 
 	ib := &internalBlockGroup{
 		facade:    facade,
-		baseGroup: &baseGroup{},
+		BaseGroup: &BaseGroup{},
 	}
 
 	endpoints := []*shared.EndpointHandlerData{
@@ -154,7 +154,7 @@ func NewInternalBlockGroup(facade internalBlockFacadeHandler) (*internalBlockGro
 			Handler: ib.getJSONStartOfEpochValidatorsInfo,
 		},
 	}
-	ib.endpoints = endpoints
+	ib.Endpoints = endpoints
 
 	return ib, nil
 }
