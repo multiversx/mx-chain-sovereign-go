@@ -5,7 +5,7 @@ from multiversx_sdk import Address
 
 def main():
     # input arguments
-    address = Address.from_bech32(sys.argv[1])
+    address = Address.new_from_bech32(sys.argv[1])
 
     print(address.to_hex())
 

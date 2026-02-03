@@ -10,11 +10,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-go/common"
 	"github.com/multiversx/mx-chain-go/config"
 	"github.com/multiversx/mx-chain-go/process"
 	"github.com/multiversx/mx-chain-go/statusHandler"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var _ process.EconomicsDataHandler = (*economicsData)(nil)
@@ -101,7 +102,8 @@ func NewEconomicsData(args ArgsNewEconomicsData) (*economicsData, error) {
 }
 
 func checkEconomicsConfig(economics *config.EconomicsConfig) error {
-	if isPercentageInvalid(economics.GlobalSettings.MinimumInflation) {
+	if economics.GlobalSettings.MinimumInflation < 0 ||
+		economics.GlobalSettings.MinimumInflation > 99.9 {
 		return process.ErrInvalidInflationPercentages
 	}
 
@@ -109,9 +111,9 @@ func checkEconomicsConfig(economics *config.EconomicsConfig) error {
 		return process.ErrEmptyEpochRewardsConfig
 	}
 
-	if len(economics.GlobalSettings.YearSettings) == 0 {
-		return process.ErrEmptyYearSettings
-	}
+	//if len(economics.GlobalSettings.YearSettings) == 0 {
+	//	return process.ErrEmptyYearSettings
+	//}
 	for _, yearSetting := range economics.GlobalSettings.YearSettings {
 		if isPercentageInvalid(yearSetting.MaximumInflation) {
 			return process.ErrInvalidInflationPercentages
